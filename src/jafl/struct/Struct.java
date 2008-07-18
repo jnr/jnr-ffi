@@ -28,6 +28,7 @@
 package jafl.struct;
 
 import jafl.MemoryIO;
+import jafl.MemoryUtil;
 import jafl.ParameterFlags;
 import jafl.Platform;
 import jafl.util.EnumMapper;
@@ -87,7 +88,7 @@ public abstract class Struct /*implements Marshallable */{
             } else {
                 buffer = ByteBuffer.allocateDirect(size()).order(ByteOrder.nativeOrder());
             }
-            return io = MemoryIO.wrap(buffer);
+            return io = MemoryUtil.wrap(buffer);
         }
         /*
         public final Marshaller.Session marshal(Marshaller marshaller, MarshalContext context) {

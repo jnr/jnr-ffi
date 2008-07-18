@@ -18,6 +18,7 @@
 
 package jafl.jffi;
 
+import jafl.AbstractMemoryIO;
 import jafl.MemoryIO;
 import jafl.Pointer;
 import java.nio.ByteBuffer;
@@ -26,7 +27,7 @@ import java.nio.ByteOrder;
 /**
  * JFFI implementation of native memory operations.
  */
-public final class JFFIMemoryIO extends MemoryIO {
+public final class JFFIMemoryIO extends AbstractMemoryIO {
     /**
      * The native address of the memory (if not a ByteBuffer).
      */
@@ -170,7 +171,6 @@ public final class JFFIMemoryIO extends MemoryIO {
                 com.googlecode.jffi.lowlevel.MemoryIO.wrap(address));
     }
 
-    @Override
     public MemoryIO getMemoryIO(long offset, long size) {
         long address = io.getAddress(offset);
         com.googlecode.jffi.lowlevel.MemoryIO memio
@@ -178,7 +178,6 @@ public final class JFFIMemoryIO extends MemoryIO {
         return new JFFIMemoryIO(new com.googlecode.jffi.Address(address), memio);
     }
 
-    @Override
     public Pointer getPointer(long offset) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -226,7 +225,6 @@ public final class JFFIMemoryIO extends MemoryIO {
         io.putAddress(offset, ((JFFIMemoryIO) value).getAddress());
     }
 
-    @Override
     public void putPointer(long offset, Pointer value) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -279,7 +277,6 @@ public final class JFFIMemoryIO extends MemoryIO {
         io.put(offset, dst, off, len);
     }
 
-    @Override
     public int indexOf(long offset, byte value) {
         return io.indexOf(offset, value);
     }
@@ -288,7 +285,6 @@ public final class JFFIMemoryIO extends MemoryIO {
         return io.indexOf(offset, value, maxlen);
     }
 
-    @Override
     public boolean isDirect() {
         return io.isDirect();
     }
