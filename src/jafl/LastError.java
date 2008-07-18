@@ -19,7 +19,7 @@
 package jafl;
 
 /**
- *
+ * Enables getting/setting of the unix errno value
  */
 public final class LastError {
     private LastError() {}
