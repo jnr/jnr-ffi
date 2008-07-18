@@ -59,6 +59,13 @@ abstract public class AbstractMemoryIO implements MemoryIO {
         put(offset, tmp, 0, Math.min(tmp.length, maxLength));
         putByte(offset + maxLength - 1, (byte) 0);
     }
+
+    public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
+        for (long i = 0; i < count; ++i) {
+            other.putByte(otherOffset + i, getByte(offset + i));
+        }
+    }
+
     //
     // Optimize reading/writing pointers.
     //

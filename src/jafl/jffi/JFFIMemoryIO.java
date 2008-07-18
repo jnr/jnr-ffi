@@ -318,7 +318,18 @@ public final class JFFIMemoryIO implements jafl.MemoryIO {
     public boolean isDirect() {
         return io.isDirect();
     }
-
+    private void slowTransfer(long offset, MemoryIO other, long otherOffset, long count) {
+        for (long i = 0; i < count; ++i) {
+            other.putByte(otherOffset + count, getByte(offset + count));
+        }
+    }
+    public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
+        if (other instanceof JFFIMemoryIO) {
+            io.transferTo(offset, ((JFFIMemoryIO) other).io, otherOffset, count);
+        } else {
+            slowTransfer(offset, other, otherOffset, count);
+        }
+    }
 /*
     public void marshal(Marshaller marshaller, MarshalContext context, long offset) {
         if (memory instanceof ByteBuffer) {

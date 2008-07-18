@@ -67,4 +67,6 @@ public interface MemoryIO {
 
     abstract public MemoryIO slice(long offset);
     abstract public MemoryIO slice(long offset, long size);
+
+    abstract public void transferTo(long offset, MemoryIO other, long otherOffset, long count);
 }
