@@ -18,16 +18,17 @@
 
 package jafl.jffi;
 
-import jafl.AbstractMemoryIO;
+import jafl.Address;
 import jafl.MemoryIO;
 import jafl.Pointer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 
 /**
  * JFFI implementation of native memory operations.
  */
-public final class JFFIMemoryIO extends AbstractMemoryIO {
+public final class JFFIMemoryIO implements jafl.MemoryIO {
     /**
      * The native address of the memory (if not a ByteBuffer).
      */
@@ -140,6 +141,22 @@ public final class JFFIMemoryIO extends AbstractMemoryIO {
     public int hashCode() {
         return memory.hashCode();
     }
+    private MemoryIO slice(com.googlecode.jffi.lowlevel.MemoryIO newio) {
+        if (memory instanceof ByteBuffer) {
+            return new JFFIMemoryIO((ByteBuffer) memory, newio);
+        } else if (memory instanceof com.googlecode.jffi.Address) {
+            return new JFFIMemoryIO((com.googlecode.jffi.Address) memory, newio);
+        } else {
+            throw new UnsupportedOperationException("Invalid memory state");
+        }
+    }
+    public MemoryIO slice(long offset) {
+        return slice(io.slice(offset));
+    }
+
+    public MemoryIO slice(long offset, long size) {
+        return slice(io.slice(offset, size));
+    }
 
     public byte getByte(long offset) {
         return io.getByte(offset);
@@ -156,7 +173,7 @@ public final class JFFIMemoryIO extends AbstractMemoryIO {
     public long getLong(long offset) {
         return io.getLong(offset);
     }
-/*
+
     public long getNativeLong(long offset) {
         return io.getNativeLong(offset);
     }
@@ -164,7 +181,11 @@ public final class JFFIMemoryIO extends AbstractMemoryIO {
     public long getAddress(long offset) {
         return io.getAddress(offset);
     }
- */
+
+    public String getString(long offset, int maxLength, Charset cs) {
+        return io.getString(offset, maxLength, cs);
+    }
+
     public JFFIMemoryIO getMemoryIO(long offset) {
         long address = getAddress(offset);
         return new JFFIMemoryIO(new com.googlecode.jffi.Address(address),
@@ -205,7 +226,7 @@ public final class JFFIMemoryIO extends AbstractMemoryIO {
     public void putLong(long offset, long value) {
         io.putLong(offset, value);
     }
-/*
+
     public void putNativeLong(long offset, long value) {
         io.putNativeLong(offset, value);
     }
@@ -213,7 +234,11 @@ public final class JFFIMemoryIO extends AbstractMemoryIO {
     public void putAddress(long offset, long value) {
         io.putAddress(offset, value);
     }
-*/
+
+    public void putAddress(long offset, Address value) {
+        io.putAddress(offset, value.nativeAddress());
+    }
+
     public void putFloat(long offset, float value) {
         io.putFloat(offset, value);
     }
@@ -221,6 +246,11 @@ public final class JFFIMemoryIO extends AbstractMemoryIO {
     public void putDouble(long offset, double value) {
         io.putDouble(offset, value);
     }
+
+    public void putString(long offset, String string, int maxLength, Charset cs) {
+        io.putString(offset, string, maxLength, cs);
+    }
+
     public void putMemoryIO(long offset, MemoryIO value) {
         io.putAddress(offset, ((JFFIMemoryIO) value).getAddress());
     }
