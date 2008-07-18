@@ -3,8 +3,9 @@
  * and open the template in the editor.
  */
 
-package jafl;
+package jafl.provider.jna;
 
+import jafl.*;
 import jafl.util.BufferUtil;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;

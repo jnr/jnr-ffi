@@ -16,8 +16,9 @@
  * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jafl;
+package jafl.provider.jna;
 
+import jafl.*;
 import java.nio.charset.Charset;
 
 /**
