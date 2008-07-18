@@ -27,14 +27,12 @@
 
 package jafl.struct;
 
+import jafl.FFIProvider;
 import jafl.MemoryIO;
-import jafl.MemoryUtil;
 import jafl.ParameterFlags;
 import jafl.Platform;
 import jafl.util.EnumMapper;
 import java.lang.reflect.Constructor;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 /**
@@ -62,33 +60,22 @@ public abstract class Struct /*implements Marshallable */{
     }
     static final class Info {
         MemoryIO io;
-        ByteBuffer buffer = null;
-        jafl.Address memory = null;
         int size = 0;
         boolean isUnion = false;
         boolean resetIndex = false;
+
         public final MemoryIO getMemoryIO() {
-            if (io != null) {
-                return io;
-            }
-            return allocateMemory();
-        }
-        final ByteBuffer getByteBuffer() {
-            return buffer;
+            return io != null ? io : allocateMemory(ParameterFlags.TRANSIENT);
         }
         final int size() {
             return size;
         }
-        private final MemoryIO allocateMemory() {
-            return allocateMemory(ParameterFlags.TRANSIENT);
-        }
         private final MemoryIO allocateMemory(int flags) {
             if (ParameterFlags.isTransient(flags)) {
-                buffer = ByteBuffer.allocate(size()).order(ByteOrder.nativeOrder());
+                return FFIProvider.getInstance().allocateMemory(size());
             } else {
-                buffer = ByteBuffer.allocateDirect(size()).order(ByteOrder.nativeOrder());
+                return FFIProvider.getInstance().allocateMemoryDirect(size());
             }
-            return io = MemoryUtil.wrap(buffer);
         }
         /*
         public final Marshaller.Session marshal(Marshaller marshaller, MarshalContext context) {
@@ -113,8 +100,6 @@ public abstract class Struct /*implements Marshallable */{
         */
         public final void useMemory(jafl.MemoryIO io) {
             this.io = io;
-            memory = null;
-            buffer = null;
         }
         
         protected final int addField(int sizeBits, int alignBits) {
