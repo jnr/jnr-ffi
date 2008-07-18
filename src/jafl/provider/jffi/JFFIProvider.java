@@ -16,7 +16,7 @@
  * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jafl.jffi;
+package jafl.provider.jffi;
 
 import jafl.FFIProvider;
 import jafl.LibraryOption;
