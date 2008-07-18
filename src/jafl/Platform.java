@@ -20,7 +20,6 @@ package jafl;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,7 +46,6 @@ public class Platform {
         UNKNOWN;
     }
     private static final Platform platform;
-    private static final String stubLibraryName = "jffi";
     private static final OS osType;
     public static final ARCH archType;
     private static final int javaVersionMajor;
