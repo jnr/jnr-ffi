@@ -329,7 +329,10 @@ is divided into following sections:
                 COMPILATION SECTION
                 ===================
             -->
-    <target depends="init" name="deps-jar" unless="no.deps"/>
+    <target depends="init" name="deps-jar" unless="no.deps">
+        <ant antfile="${project.JNA_Library}/build.xml" inheritall="false" target="jar"/>
+        <ant antfile="${project.jffi}/build.xml" inheritall="false" target="jar"/>
+    </target>
     <target depends="init,deps-jar" name="-pre-pre-compile">
         <mkdir dir="${build.classes.dir}"/>
     </target>
@@ -635,7 +638,10 @@ is divided into following sections:
                 CLEANUP SECTION
                 ===============
             -->
-    <target depends="init" name="deps-clean" unless="no.deps"/>
+    <target depends="init" name="deps-clean" unless="no.deps">
+        <ant antfile="${project.JNA_Library}/build.xml" inheritall="false" target="clean"/>
+        <ant antfile="${project.jffi}/build.xml" inheritall="false" target="clean"/>
+    </target>
     <target depends="init" name="-do-clean">
         <delete dir="${build.dir}"/>
         <delete dir="${dist.dir}"/>
