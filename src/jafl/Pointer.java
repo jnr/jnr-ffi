@@ -21,6 +21,8 @@ package jafl;
  * @author wayne
  */
 public interface Pointer {
+    public static final int SIZE = Platform.getPlatform().addressSize();
+
     abstract public byte getByte(long offset);
     abstract public short getShort(long offset);
     abstract public int getInt(long offset);
