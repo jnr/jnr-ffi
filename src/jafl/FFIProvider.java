@@ -67,7 +67,7 @@ public abstract class FFIProvider {
     private static final class SingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();
         private static final FFIProvider getInstance() {
-            final boolean useJNA = Boolean.getBoolean("jafl.UseJNA");
+            final boolean useJNA = Boolean.getBoolean("jafl.usejna");
             FFIProvider provider = null;
             String prefix = FFIProvider.class.getPackage().getName();
             if (!useJNA) {
