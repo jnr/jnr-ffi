@@ -106,7 +106,27 @@
           </archive>
         </configuration>
       </plugin>
-      -->      
+      -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.1</version>
+        <executions>
+          <execution>
+            <phase>test-compile</phase>
+            <configuration>
+              <tasks>
+                <exec dir="${basedir}" executable="make" failonerror="true">
+                  <arg line="-f libtest/GNUmakefile"/>
+                  <arg line="BUILD_DIR=${build.directory}"/>
+                </exec>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <extensions>
       <extension>
