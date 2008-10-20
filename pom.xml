@@ -2,12 +2,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.kenai</groupId>
-  <artifactId>constantine</artifactId>
+  <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
-  <url>http://constantine.kenai.com</url>
+  <url>http://jaffl.kenai.com</url>
   <licenses>
     <license>
       <name>GNU Lesser General Public License Version 3</name>
@@ -63,7 +63,7 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>3.0.7</version>
+      <version>3.0.8</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
