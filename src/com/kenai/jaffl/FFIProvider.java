@@ -35,6 +35,7 @@ public abstract class FFIProvider {
     }
     public abstract MemoryIO allocateMemory(int size);
     public abstract MemoryIO allocateMemoryDirect(int size);
+    public abstract MemoryIO allocateMemoryDirect(int size, boolean clear);
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.

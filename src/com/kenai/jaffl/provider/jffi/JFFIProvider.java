@@ -40,6 +40,11 @@ public class JFFIProvider extends FFIProvider {
     }
 
     @Override
+    public MemoryIO allocateMemoryDirect(int size, boolean clear) {
+        return JFFIMemoryIO.allocateDirect(size);
+    }
+
+    @Override
     public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         return com.googlecode.jffi.Library.loadLibrary(libraryName, interfaceClass);
     }

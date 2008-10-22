@@ -64,8 +64,11 @@ public abstract class Struct /*implements Marshallable */{
         boolean isUnion = false;
         boolean resetIndex = false;
 
+        public final MemoryIO getMemoryIO(int flags) {
+            return io != null ? io : (io = allocateMemory(ParameterFlags.TRANSIENT));
+        }
         public final MemoryIO getMemoryIO() {
-            return io != null ? io : allocateMemory(ParameterFlags.TRANSIENT);
+            return getMemoryIO(ParameterFlags.TRANSIENT);
         }
         final int size() {
             return size;
@@ -74,7 +77,7 @@ public abstract class Struct /*implements Marshallable */{
             if (ParameterFlags.isTransient(flags)) {
                 return FFIProvider.getProvider().allocateMemory(size());
             } else {
-                return FFIProvider.getProvider().allocateMemoryDirect(size());
+                return FFIProvider.getProvider().allocateMemoryDirect(size(), true);
             }
         }
         /*

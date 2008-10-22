@@ -20,12 +20,17 @@ public class JNAProvider extends FFIProvider {
 
     @Override
     public MemoryIO allocateMemory(int size) {
-        return JNAMemoryIO.allocate(size);
+        return JNAMemoryIO.allocateDirect(size, true);
     }
 
     @Override
     public MemoryIO allocateMemoryDirect(int size) {
         return JNAMemoryIO.allocateDirect(size);
+    }
+
+    @Override
+    public MemoryIO allocateMemoryDirect(int size, boolean clear) {
+        return JNAMemoryIO.allocateDirect(size, clear);
     }
 
     @Override

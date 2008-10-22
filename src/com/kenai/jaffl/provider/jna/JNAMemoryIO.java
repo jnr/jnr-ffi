@@ -51,6 +51,18 @@ abstract class JNAMemoryIO extends AbstractMemoryIO {
     static JNAMemoryIO allocate(int size) {
         return allocateDirect(size);
     }
+
+    /**
+     * Allocates a new block of java heap memory and wraps it in a {@link MemoryIO}
+     * accessor.
+     *
+     * @param size The size in bytes of memory to allocate.
+     *
+     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
+     */
+    static JNAMemoryIO allocate(int size, boolean clear) {
+        return allocateDirect(size, clear);
+    }
     
     /**
      * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
@@ -62,6 +74,20 @@ abstract class JNAMemoryIO extends AbstractMemoryIO {
      */
     static JNAMemoryIO allocateDirect(int size) {
         return PointerMemoryIO.wrap(new com.sun.jna.Memory(size));
+    }
+
+    /**
+     * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
+     * accessor.
+     *
+     * @param size The size in bytes of memory to allocate.
+     *
+     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
+     */
+    static JNAMemoryIO allocateDirect(int size, boolean clear) {
+        com.sun.jna.Memory m = new com.sun.jna.Memory(size);
+        if (clear) m.clear();
+        return PointerMemoryIO.wrap(m);
     }
     
     /**
