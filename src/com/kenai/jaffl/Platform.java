@@ -130,6 +130,9 @@ public class Platform {
     public static final boolean isFreeBSD() {
         return osType == OS.FREEBSD;
     }
+    public static final boolean isBSD() {
+        return isFreeBSD() || isMac();
+    }
     public static final boolean isUnix() {
         return !isWindows();
     }
