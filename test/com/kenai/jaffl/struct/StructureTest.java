@@ -18,7 +18,7 @@
 
 package com.kenai.jaffl.struct;
 
-import com.kenai.jaffl.Util;
+import com.kenai.jaffl.TstUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -52,7 +52,7 @@ public class StructureTest {
     static TestLib testlib;
     @BeforeClass
     public static void setUpClass() throws Exception {
-        testlib = Util.loadTestLib(TestLib.class);
+        testlib = TstUtil.loadTestLib(TestLib.class);
     }
     
 

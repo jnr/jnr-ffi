@@ -58,7 +58,7 @@ public class LibraryTest {
         int setLastError(int error);
     }
     @Test public void loadTestLib() {
-        TestLib lib = Util.loadTestLib(TestLib.class);
+        TestLib lib = TstUtil.loadTestLib(TestLib.class);
         assertNotNull("Could not load libtest", lib);
         // This just forces the library to really load and call a function
         lib.setLastError(0);

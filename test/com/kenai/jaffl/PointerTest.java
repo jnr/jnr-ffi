@@ -62,7 +62,7 @@ public class PointerTest {
     static Libc libc;
     @BeforeClass
     public static void setUpClass() throws Exception {
-        testlib = Util.loadTestLib(TestLib.class);
+        testlib = TstUtil.loadTestLib(TestLib.class);
         libc = Library.loadLibrary("c", Libc.class);
     }
 

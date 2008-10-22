@@ -54,7 +54,7 @@ public class LastErrorTest {
     }
     
     @Test public void testLastError() {
-        TestLib lib = Util.loadTestLib(TestLib.class);
+        TestLib lib = TstUtil.loadTestLib(TestLib.class);
         final int MAGIC = 0xdeadbeef;
         lib.setLastError(MAGIC);
         assertEquals("Wrong errno value", MAGIC, LastError.getLastError());

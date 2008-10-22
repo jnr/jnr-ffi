@@ -12,8 +12,8 @@ import java.util.Map;
  *
  * @author wayne
  */
-public final class Util {
-    private Util() {}
+public final class TstUtil {
+    private TstUtil() {}
     public static final String getTestLibraryName() {
         return "test";
     }
