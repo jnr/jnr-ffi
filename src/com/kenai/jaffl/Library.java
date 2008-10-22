@@ -50,6 +50,6 @@ public final class Library {
      */
     public static <T> T loadLibrary(String libraryName, Class<T> interfaceClass,
             Map<LibraryOption, ?> libraryOptions) {
-        return FFIProvider.getInstance().loadLibrary(libraryName, interfaceClass, libraryOptions);
+        return FFIProvider.getProvider().loadLibrary(libraryName, interfaceClass, libraryOptions);
     }
 }

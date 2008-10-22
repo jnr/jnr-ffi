@@ -72,9 +72,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         private final MemoryIO allocateMemory(int flags) {
             if (ParameterFlags.isTransient(flags)) {
-                return FFIProvider.getInstance().allocateMemory(size());
+                return FFIProvider.getProvider().allocateMemory(size());
             } else {
-                return FFIProvider.getInstance().allocateMemoryDirect(size());
+                return FFIProvider.getProvider().allocateMemoryDirect(size());
             }
         }
         /*

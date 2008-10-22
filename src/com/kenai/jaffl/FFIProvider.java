@@ -30,7 +30,7 @@ public abstract class FFIProvider {
      *
      * @return an instance of <tt>FFIProvider</tt>
      */
-    public static final FFIProvider getInstance() {
+    public static final FFIProvider getProvider() {
         return SingletonHolder.INSTANCE;
     }
     public abstract MemoryIO allocateMemory(int size);

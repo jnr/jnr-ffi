@@ -24,9 +24,9 @@ package com.kenai.jaffl;
 public final class LastError {
     private LastError() {}
     public static final int getLastError() {
-        return FFIProvider.getInstance().getLastError();
+        return FFIProvider.getProvider().getLastError();
     }
     public static final void setLastError(int error) {
-        FFIProvider.getInstance().setLastError(error);
+        FFIProvider.getProvider().setLastError(error);
     }
 }
