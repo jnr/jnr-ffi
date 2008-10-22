@@ -49,8 +49,7 @@ abstract class JNAMemoryIO extends AbstractMemoryIO {
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
     static JNAMemoryIO allocate(int size) {
-//        return BufferIO.allocate(size);
-        return null;
+        return allocateDirect(size);
     }
     
     /**
@@ -62,7 +61,7 @@ abstract class JNAMemoryIO extends AbstractMemoryIO {
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
     static JNAMemoryIO allocateDirect(int size) {
-        return PointerMemoryIO.allocate(size);
+        return PointerMemoryIO.wrap(new com.sun.jna.Memory(size));
     }
     
     /**
