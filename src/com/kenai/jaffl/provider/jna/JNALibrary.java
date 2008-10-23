@@ -88,6 +88,10 @@ final class JNALibrary implements com.kenai.jaffl.provider.Library {
             in = (annotations[n] instanceof In) ? true : in;
             out = (annotations[n] instanceof Out) ? true : out;
         }
+        // If neither is set, assume param is both IN & OUT
+        if (!in && !out) {
+            in = out = true;
+        }
         return new MarshalContext(in, out);
     }
     private static final class MarshallingInvoker extends BaseInvoker {
