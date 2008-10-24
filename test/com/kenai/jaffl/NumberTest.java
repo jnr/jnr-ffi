@@ -43,6 +43,10 @@ public class NumberTest {
 
         public int add_int32_t(int i1, int i2);
         public long add_int64_t(long i1, long i2);
+        public NativeLong add_long(NativeLong i1, NativeLong i2);
+        public NativeLong sub_long(NativeLong i1, NativeLong i2);
+        public NativeLong mul_long(NativeLong i1, NativeLong i2);
+        public NativeLong div_long(NativeLong i1, NativeLong i2);
         public float add_float(float f1, float f2);
         public float sub_float(float f1, float f2);
         public float mul_float(float f1, float f2);
@@ -258,5 +262,39 @@ public class NumberTest {
         }); 
         
     }
+    static interface NativeLongOp {
+        public long j(long f1, long f2);
+        public long n(long f1, long f2);
+    }
+    private void testNativeLong(NativeLongOp op) throws Exception {
+        long i1 = 1;
+        long i2 = 2;
+        assertEquals("NativeLong " + op + " failed", op.j(i1, i2), op.n(i1, i2));
+        for (int i = 0; i < 0xffff; ++i) {
+            assertEquals("NativeLong + " + op + " failed", op.j(i, i2), op.n(i, i2));
+        }
+    }
+    @Test
+    public void NativeLong_valueOf() {
+        for (int i = -1000; i < 1000; ++i) {
+            assertEquals("Incorrect value from valueOf(" + i+ ")", i, NativeLong.valueOf(i).intValue());
+        }
+        for (long i = -1000; i < 1000; ++i) {
+            assertEquals("Incorrect value from valueOf(" + i+ ")", i, NativeLong.valueOf(i).longValue());
+        }
+    }
     
+    @Test
+    public void testNativeLongAddition() throws Exception {
+        testNativeLong(new NativeLongOp() {
+
+            public long j(long i1, long i2) {
+                return i1 + i2;
+            }
+
+            public long n(long i1, long i2) {
+                return testlib.add_long(NativeLong.valueOf(i1), NativeLong.valueOf(i2)).longValue();
+            }
+        });
+    }
 }

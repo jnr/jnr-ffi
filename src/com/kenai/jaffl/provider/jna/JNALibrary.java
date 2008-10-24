@@ -19,6 +19,7 @@
 package com.kenai.jaffl.provider.jna;
 
 import com.kenai.jaffl.LibraryOption;
+import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.provider.Invoker;
 import com.kenai.jaffl.provider.jna.invokers.MarshallingInvoker;
@@ -35,20 +36,20 @@ final class JNALibrary implements com.kenai.jaffl.provider.Library {
         this.libraryName = libraryName;
     }
     public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {
-        boolean needMarshal = false;
+        boolean needParameterConversion = false;
         for (Class c : method.getParameterTypes()) {
             if (ByReference.class.isAssignableFrom(c)) {
-                needMarshal = true;
+                needParameterConversion = true;
             } else if (StringBuffer.class.isAssignableFrom(c)) {
-                needMarshal = true;
+                needParameterConversion = true;
             } else if (StringBuilder.class.isAssignableFrom(c)) {
-                needMarshal = true;
+                needParameterConversion = true;
             } else if (CharSequence.class.isAssignableFrom(c)) {
-                needMarshal = true;
+                needParameterConversion = true;
             }
         }
         com.sun.jna.NativeLibrary lib = com.sun.jna.NativeLibrary.getInstance(libraryName);
-        return needMarshal 
+        return needParameterConversion
                 ? new MarshallingInvoker(lib, method)
                 : new SimpleInvoker(lib, method);
     }

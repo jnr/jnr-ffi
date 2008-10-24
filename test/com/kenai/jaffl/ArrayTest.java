@@ -29,7 +29,6 @@ import static org.junit.Assert.*;
 
 
 public class ArrayTest {
-    private static final String libname = "jffitest";
     private static interface TestLib {
         Pointer ptr_return_array_element(Pointer[] array, int index);
         void ptr_set_array_element(Pointer[] array, int index, Pointer value);
@@ -165,7 +164,7 @@ public class ArrayTest {
     
     //@Test
     public void inOnlyByteByReference() {
-        TestLibInOnly lib = Library.loadLibrary(libname, TestLibInOnly.class);
+        TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final byte MAGIC = (byte) 0xfe;
         byte[] ref = { MAGIC };
         assertEquals("byte reference not read correctly", MAGIC, lib.ptr_ret_int8_t(ref, 0));
@@ -175,7 +174,7 @@ public class ArrayTest {
     }
     //@Test
     public void inOnlyByteArray() {
-        TestLibInOnly lib = Library.loadLibrary(libname, TestLibInOnly.class);
+        TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final byte MAGIC = (byte) 0xfe;
         byte[] ref = new byte[1024];
         ref[0] = MAGIC;
@@ -186,7 +185,7 @@ public class ArrayTest {
     }
     //@Test
     public void outOnlyByteByReference() {
-        TestLibOutOnly lib = Library.loadLibrary(libname, TestLibOutOnly.class);
+        TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final byte MAGIC = (byte) 0xfe;
         byte[] ref = { MAGIC };
         

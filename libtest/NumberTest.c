@@ -32,3 +32,4 @@ TEST(int32_t);
 TEST(int64_t);
 TEST(float);
 TEST(double);
+TEST(long);

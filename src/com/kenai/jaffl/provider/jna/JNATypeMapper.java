@@ -18,6 +18,7 @@
 
 package com.kenai.jaffl.provider.jna;
 
+import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
@@ -32,6 +33,7 @@ public class JNATypeMapper extends com.sun.jna.DefaultTypeMapper {
         addTypeConverter(com.kenai.jaffl.Pointer.class, new PointerConverter());
         addTypeConverter(com.kenai.jaffl.struct.Struct.class, new StructConverter());
         addTypeConverter(Enum.class, new EnumConverter());
+        addTypeConverter(NativeLong.class, new NativeLongConverter());
     }
     private static final class PointerConverter implements com.sun.jna.TypeConverter {
 
@@ -46,7 +48,9 @@ public class JNATypeMapper extends com.sun.jna.DefaultTypeMapper {
         }
 
         public Object toNative(Object value, com.sun.jna.ToNativeContext context) {
-            return ((JNAPointer) value).getNativePointer();
+            return value != null
+                    ? ((JNAPointer) value).getNativePointer()
+                    : null;
         }
     }
     private static final class StructConverter implements com.sun.jna.TypeConverter {
@@ -91,6 +95,23 @@ public class JNATypeMapper extends com.sun.jna.DefaultTypeMapper {
             return value != null
                 ? EnumMapper.getInstance().intValue((Enum) value)
                 : null;
+        }
+    }
+    private static final class NativeLongConverter implements com.sun.jna.TypeConverter {
+        public Object fromNative(Object nativeValue, com.sun.jna.FromNativeContext context) {
+            return NativeLong.valueOf(((Number)nativeValue).longValue());
+        }
+
+        public Class nativeType() {
+            return NativeLong.SIZE == 32 ? Integer.class : Long.class;
+        }
+
+        public Object toNative(Object value, com.sun.jna.ToNativeContext context) {
+            if (NativeLong.SIZE == 32) {
+                return Integer.valueOf(value != null ? ((NativeLong) value).intValue() : 0);
+            } else {
+                return Long.valueOf(value != null ? ((NativeLong) value).longValue() : 0);
+            }
         }
     }
 }
