@@ -64,13 +64,12 @@ public class UTF8StringFieldTest {
     @After
     public void tearDown() {
     }
-    @Test public void dummy() {}
-//    @Test public void stringFieldFirstInStruct() {
-//        StringFieldStruct s = new StringFieldStruct();
-//        final String MAGIC = "test";
-//        s.string.set(MAGIC);
-//        StringBuilder tmp = new StringBuilder(s.string.length());
-//        testlib.copyByteBuffer(tmp, s, s.string.length());
-//        assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
-//    }
+    @Test public void stringFieldFirstInStruct() {
+        StringFieldStruct s = new StringFieldStruct();
+        final String MAGIC = "test";
+        s.string.set(MAGIC);
+        StringBuilder tmp = new StringBuilder(s.string.length());
+        testlib.copyByteBuffer(tmp, s, s.string.length());
+        assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
+    }
 }

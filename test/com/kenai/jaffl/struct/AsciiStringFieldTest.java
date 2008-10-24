@@ -45,7 +45,7 @@ public class AsciiStringFieldTest {
         int string_equals(@Pinned @In @Transient StringFieldStruct s1, String s2);
         int copyByteBuffer(@Pinned @Out StringFieldStruct dst, @In byte[] src, int len);
         int copyByteBuffer(@Pinned @Out byte[] dst, @Pinned @In @Transient StringFieldStruct src, int len);
-//        int copyByteBuffer(@Pinned @Out StringBuilder dst, @Pinned @In @Transient StringFieldStruct src, int len);
+        int copyByteBuffer(@Pinned @Out StringBuilder dst, @Pinned @In @Transient StringFieldStruct src, int len);
     }
     static TestLib testlib;
     @BeforeClass
@@ -64,14 +64,14 @@ public class AsciiStringFieldTest {
     @After
     public void tearDown() {
     }
-    @Test public void dummy() {}
-//    @Test
-//    public void stringFieldFirstInStruct() {
-//        StringFieldStruct s = new StringFieldStruct();
-//        final String MAGIC = "test";
-//        s.string.set(MAGIC);
-//        StringBuilder tmp = new StringBuilder(s.string.length());
-//        testlib.copyByteBuffer(tmp, s, s.string.length());
-//        assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
-//    }
+
+    @Test
+    public void stringFieldFirstInStruct() {
+        StringFieldStruct s = new StringFieldStruct();
+        final String MAGIC = "test";
+        s.string.set(MAGIC);
+        StringBuilder tmp = new StringBuilder(s.string.length());
+        testlib.copyByteBuffer(tmp, s, s.string.length());
+        assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
+    }
 }
