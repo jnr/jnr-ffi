@@ -1,12 +1,10 @@
 
 package com.kenai.jaffl.provider.jna.invokers;
 
-import com.kenai.jaffl.annotations.In;
-import com.kenai.jaffl.annotations.Out;
+import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.provider.Invoker;
 import com.kenai.jaffl.provider.jna.JNATypeMapper;
 import com.kenai.jaffl.provider.jna.marshallers.MarshalContext;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -30,17 +28,7 @@ public abstract class BaseInvoker implements Invoker {
     }
     
     protected static final MarshalContext getContext(Method m, int i) {
-        Annotation[] annotations = m.getParameterAnnotations()[i];
-        boolean in = false;
-        boolean out = false;
-        for (int n = 0; n < annotations.length; ++n) {
-            in = (annotations[n] instanceof In) ? true : in;
-            out = (annotations[n] instanceof Out) ? true : out;
-        }
-        // If neither is set, assume param is both IN & OUT
-        if (!in && !out) {
-            in = out = true;
-        }
-        return new MarshalContext(in, out);
+        int flags = ParameterFlags.parse(m.getParameterAnnotations()[i]);
+        return new MarshalContext(ParameterFlags.isIn(flags), ParameterFlags.isOut(flags));
     }
 }
