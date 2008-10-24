@@ -39,6 +39,12 @@ final class JNALibrary implements com.kenai.jaffl.provider.Library {
         for (Class c : method.getParameterTypes()) {
             if (ByReference.class.isAssignableFrom(c)) {
                 needMarshal = true;
+            } else if (StringBuffer.class.isAssignableFrom(c)) {
+                needMarshal = true;
+            } else if (StringBuilder.class.isAssignableFrom(c)) {
+                needMarshal = true;
+            } else if (CharSequence.class.isAssignableFrom(c)) {
+                needMarshal = true;
             }
         }
         com.sun.jna.NativeLibrary lib = com.sun.jna.NativeLibrary.getInstance(libraryName);

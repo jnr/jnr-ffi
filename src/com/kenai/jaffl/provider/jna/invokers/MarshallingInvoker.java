@@ -5,8 +5,11 @@ import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.provider.Invoker;
 import com.kenai.jaffl.provider.jna.InvocationSession;
 import com.kenai.jaffl.provider.jna.marshallers.ByRefMarshaller;
+import com.kenai.jaffl.provider.jna.marshallers.CharSequenceMarshaller;
 import com.kenai.jaffl.provider.jna.marshallers.MarshalContext;
 import com.kenai.jaffl.provider.jna.marshallers.Marshaller;
+import com.kenai.jaffl.provider.jna.marshallers.StringBufferMarshaller;
+import com.kenai.jaffl.provider.jna.marshallers.StringBuilderMarshaller;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +31,13 @@ public class MarshallingInvoker extends BaseInvoker {
             MarshalContext ctx = getContext(method, i);
             if (ByReference.class.isAssignableFrom(types[i])) {
                 m.add(new ByRefMarshaller(ctx));
+            } else if (StringBuffer.class.isAssignableFrom(types[i])) {
+                m.add(new StringBufferMarshaller(ctx));
+            } else if (StringBuilder.class.isAssignableFrom(types[i])) {
+                m.add(new StringBuilderMarshaller(ctx));
+            } else if (CharSequence.class.isAssignableFrom(types[i])) {
+                m.add(new CharSequenceMarshaller(ctx));
+
             } else {
                 continue;
             }
