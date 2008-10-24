@@ -139,6 +139,15 @@ public abstract class Struct /*implements Marshallable */{
     public void useMemory(com.kenai.jaffl.MemoryIO address) {
         __info.useMemory(address);
     }
+
+    /**
+     * Uses the specified memory address as the backing store for this structure.
+     *
+     * @param address the native memory area.
+     */
+    public void useMemory(com.kenai.jaffl.Pointer address) {
+        __info.useMemory(FFIProvider.getProvider().wrap(address));
+    }
     
     /**
      * Returns a human readable {@link java.lang.String} representation of the structure.

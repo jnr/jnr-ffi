@@ -8,8 +8,8 @@ package com.kenai.jaffl.provider.jna;
 import com.kenai.jaffl.FFIProvider;
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.provider.NativeInvocationHandler;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -31,6 +31,10 @@ public class JNAProvider extends FFIProvider {
     @Override
     public MemoryIO allocateMemoryDirect(int size, boolean clear) {
         return JNAMemoryIO.allocateDirect(size, clear);
+    }
+    @Override
+    public MemoryIO wrap(Pointer address) {
+        return new PointerMemoryIO(((JNAPointer) address).getNativePointer());
     }
 
     @Override

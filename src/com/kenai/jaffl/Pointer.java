@@ -49,4 +49,5 @@ public interface Pointer {
     abstract public void put(long offset, double[] dst, int off, int len);
     abstract public Pointer getPointer(long offset);
     abstract public void putPointer(long offset, Pointer value);
+    abstract public String getString(long offset);
 }

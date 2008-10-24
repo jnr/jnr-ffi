@@ -126,4 +126,8 @@ class JNAPointer implements com.kenai.jaffl.Pointer {
         ptr.setPointer(offset, ((JNAPointer) value).ptr);
     }
 
+    public String getString(long offset) {
+        return ptr.getString(offset);
+    }
+
 }
