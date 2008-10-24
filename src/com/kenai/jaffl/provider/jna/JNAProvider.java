@@ -36,7 +36,7 @@ public class JNAProvider extends FFIProvider {
     @Override
     public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         return interfaceClass.cast(NativeInvocationHandler.wrapInterface(new JNALibrary(libraryName),
-                interfaceClass, Collections.EMPTY_MAP));
+                interfaceClass, libraryOptions));
     }
 
     @Override

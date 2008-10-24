@@ -20,6 +20,7 @@ package com.kenai.jaffl.provider.jna;
 
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
+import com.kenai.jaffl.util.EnumMapper;
 
 
 /**
@@ -30,6 +31,7 @@ public class JNATypeMapper extends com.sun.jna.DefaultTypeMapper {
     public JNATypeMapper() {
         addTypeConverter(com.kenai.jaffl.Pointer.class, new PointerConverter());
         addTypeConverter(com.kenai.jaffl.struct.Struct.class, new StructConverter());
+        addTypeConverter(Enum.class, new EnumConverter());
     }
     private static final class PointerConverter implements com.sun.jna.TypeConverter {
 
@@ -70,6 +72,24 @@ public class JNATypeMapper extends com.sun.jna.DefaultTypeMapper {
         public Object toNative(Object value, com.sun.jna.ToNativeContext context) {
             return value != null ?
                 ((JNAMemoryIO) StructUtil.getMemoryIO((Struct) value)).getMemory()
+                : null;
+        }
+    }
+    private static final class EnumConverter implements com.sun.jna.TypeConverter {
+        @SuppressWarnings("unchecked")
+        public Object fromNative(Object nativeValue, com.sun.jna.FromNativeContext context) {
+            return nativeValue != null
+                    ? EnumMapper.getInstance().valueOf((Integer) nativeValue, context.getTargetType())
+                    : 0;
+        }
+
+        public Class nativeType() {
+            return Integer.class;
+        }
+
+        public Object toNative(Object value, com.sun.jna.ToNativeContext context) {
+            return value != null
+                ? EnumMapper.getInstance().intValue((Enum) value)
                 : null;
         }
     }

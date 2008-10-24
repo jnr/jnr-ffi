@@ -2,6 +2,7 @@
 package com.kenai.jaffl.provider.jna.invokers;
 
 import com.kenai.jaffl.byref.ByReference;
+import com.kenai.jaffl.provider.Invoker;
 import com.kenai.jaffl.provider.jna.InvocationSession;
 import com.kenai.jaffl.provider.jna.marshallers.ByRefMarshaller;
 import com.kenai.jaffl.provider.jna.marshallers.MarshalContext;

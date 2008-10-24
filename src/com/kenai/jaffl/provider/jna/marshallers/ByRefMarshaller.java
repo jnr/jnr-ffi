@@ -15,6 +15,9 @@ public class ByRefMarshaller extends BaseMarshaller {
     }
 
     public Object marshal(InvocationSession session, Object value) {
+        if (value == null) {
+            return null;
+        }
         final ByReference ref = (ByReference) value;
         final ByteBuffer buf = ByteBuffer.allocate(ref.nativeSize()).order(ByteOrder.nativeOrder());
         if (ctx.isIn()) {
