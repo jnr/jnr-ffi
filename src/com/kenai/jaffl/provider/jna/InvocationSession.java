@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class InvocationSession {
     private final List<PostInvoke> list;
-    InvocationSession(int n) {
+    public InvocationSession(int n) {
         list = new ArrayList<PostInvoke>(n);
     }
     public static interface PostInvoke {
