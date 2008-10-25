@@ -25,7 +25,10 @@ import java.util.Map;
  *
  */
 public final class Library {
-    private Library() {}
+    private final String name;
+    private Library(String libraryName) {
+        name = libraryName;
+    }
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
@@ -51,5 +54,14 @@ public final class Library {
     public static <T> T loadLibrary(String libraryName, Class<T> interfaceClass,
             Map<LibraryOption, ?> libraryOptions) {
         return FFIProvider.getProvider().loadLibrary(libraryName, interfaceClass, libraryOptions);
+    }
+    public static final Library getInstance(String libraryName) {
+        return new Library(libraryName);
+    }
+    public boolean hasFunction(String method) {
+        return false;
+    }
+    public String getName() {
+        return name;
     }
 }

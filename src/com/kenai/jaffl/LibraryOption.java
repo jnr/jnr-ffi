@@ -39,6 +39,11 @@ public enum LibraryOption {
      * A type mapper which maps java types to native types is present.
      */
     TypeMapper,
+
+    /**
+     * A function mapper which maps from java function names to native function names.
+     */
+    FunctionMapper,
     
     /**
      * The type of calling convention.

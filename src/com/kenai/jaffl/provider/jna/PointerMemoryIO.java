@@ -7,6 +7,7 @@ package com.kenai.jaffl.provider.jna;
 import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 import com.kenai.jaffl.MemoryIO;
+import java.nio.charset.Charset;
 
 /**
  * A <tt>MemoryIO</tt> accessor that wraps a native pointer.
@@ -185,5 +186,15 @@ final class PointerMemoryIO extends JNAMemoryIO {
 
     public void putPointer(long offset, com.kenai.jaffl.Pointer value) {
         ptr.setPointer(offset, ((JNAPointer) value).getNativePointer());
+    }
+
+    @Override
+    public String getString(long offset, int maxLength, Charset cs) {
+        return ptr.getString(offset);
+    }
+
+    @Override
+    public void putString(long offset, String string, int maxLength, Charset cs) {
+        ptr.setString(offset, string);
     }
 }
