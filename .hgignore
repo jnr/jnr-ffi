@@ -4,3 +4,5 @@
 \.rej$
 \.conflict\~$
 ^target/.*$
+^nbproject/private/.*$
+^lib/.*private.*
