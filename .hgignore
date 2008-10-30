@@ -6,3 +6,4 @@
 ^target/.*$
 ^nbproject/private/.*$
 ^lib/.*private.*
+^dist/.*
