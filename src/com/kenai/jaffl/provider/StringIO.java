@@ -1,10 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.kenai.jaffl.provider;
 
-import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.util.BufferUtil;
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
@@ -17,7 +13,6 @@ import java.nio.charset.CodingErrorAction;
 
 /**
  *
- * @author wayne
  */
 public class StringIO {
     private static final ThreadLocal<SoftReference<StringIO>> localData = new ThreadLocal<SoftReference<StringIO>>() {

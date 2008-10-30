@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package com.kenai.jaffl.provider.jna;
 
@@ -12,7 +8,6 @@ import java.nio.charset.Charset;
 
 /**
  *
- * @author wayne
  */
 public final class MemoryUtil {
     public static final MemoryIO slice(MemoryIO io, long offset) {

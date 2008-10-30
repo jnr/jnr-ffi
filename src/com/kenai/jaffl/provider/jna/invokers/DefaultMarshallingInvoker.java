@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package com.kenai.jaffl.provider.jna.invokers;
 
@@ -11,7 +7,6 @@ import java.lang.reflect.Method;
 
 /**
  *
- * @author wayne
  */
 public class DefaultMarshallingInvoker extends MarshallingInvoker {
 

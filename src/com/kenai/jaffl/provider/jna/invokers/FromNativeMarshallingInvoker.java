@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package com.kenai.jaffl.provider.jna.invokers;
 
@@ -16,7 +12,6 @@ import java.util.Map;
 
 /**
  *
- * @author wayne
  */
 public class FromNativeMarshallingInvoker extends MarshallingInvoker {
     private final FromNativeConverter resultConverter;

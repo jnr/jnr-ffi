@@ -1,13 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package com.kenai.jaffl.provider;
 
 /**
- *
- * @author wayne
+ * Interface for any invocable function
  */
 public interface Invoker {
     Object invoke(Object[] parameters);

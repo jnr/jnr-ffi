@@ -1,15 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package com.kenai.jaffl.provider.jna;
 
 import com.kenai.jaffl.Pointer;
 
 /**
- *
- * @author wayne
+ * JNA Implementation of a jaffl Pointer
  */
 class JNAPointer implements com.kenai.jaffl.Pointer {
     private final com.sun.jna.Pointer ptr;
