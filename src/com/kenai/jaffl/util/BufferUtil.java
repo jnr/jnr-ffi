@@ -74,28 +74,33 @@ public final class BufferUtil {
     private static interface AddressIO {
         public long getAddress(ByteBuffer io, int offset);
         public void putAddress(ByteBuffer io, int offset, long address);
-        public static class Address32Helper {
-            public static final AddressIO INSTANCE = new AddressIO() {
-                public long getAddress(ByteBuffer io, int offset) {
-                    return io.getInt(offset);
-                }
-                public void putAddress(ByteBuffer io, int offset, long address) {
-                    io.putInt(offset, (int) address);
-                }
-            };
+        public static class AddressIO32 implements AddressIO {
+
+            public static final AddressIO IMPL = new AddressIO32();
+
+            public long getAddress(ByteBuffer io, int offset) {
+                return io.getInt(offset);
+            }
+
+            public void putAddress(ByteBuffer io, int offset, long address) {
+                io.putInt(offset, (int) address);
+            }
         }
-        public static class Address64Helper {
-            public static final AddressIO INSTANCE = new AddressIO() {
-                public long getAddress(ByteBuffer io, int offset) {
-                    return io.getLong(offset);
-                }
-                public void putAddress(ByteBuffer io, int offset, long address) {
-                    io.putLong(offset, address);
-                }
-            };
+
+        public static class AddressIO64 implements AddressIO {
+
+            public static final AddressIO IMPL = new AddressIO64();
+
+            public long getAddress(ByteBuffer io, int offset) {
+                return io.getLong(offset);
+            }
+
+            public void putAddress(ByteBuffer io, int offset, long address) {
+                io.putLong(offset, address);
+            }
         }
         public static final AddressIO INSTANCE = Platform.getPlatform().addressSize() == 32
-                ? Address32Helper.INSTANCE : Address64Helper.INSTANCE;
+                ? AddressIO32.IMPL : AddressIO64.IMPL;
     }
     
     public final static long getAddress(ByteBuffer buf, int position) {

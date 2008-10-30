@@ -4,6 +4,7 @@
 \.rej$
 \.conflict\~$
 ^target/.*$
+^build/.*$
 ^nbproject/private/.*$
 ^lib/.*private.*
 ^dist/.*
