@@ -8,6 +8,48 @@ import java.nio.charset.Charset;
  * Interface to reading/writing various types of memory
  */
 public abstract class MemoryIO {
+    /**
+     * Allocates a new block of java heap memory and wraps it in a {@link MemoryIO}
+     * accessor.
+     *
+     * @param size The size in bytes of memory to allocate.
+     *
+     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
+     */
+    public static final MemoryIO allocate(int size) {
+        return FFIProvider.getProvider().getMemoryManager().allocate(size);
+    }
+    /**
+     * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
+     * accessor.
+     *
+     * @param size The size in bytes of memory to allocate.
+     *
+     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
+     */
+    public static final MemoryIO allocateDirect(int size) {
+        return FFIProvider.getProvider().getMemoryManager().allocateDirect(size);
+    }
+    /**
+     * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
+     * accessor.
+     *
+     * @param size The size in bytes of memory to allocate.
+     * @param clear Whether the memory contents should be cleared, or left as
+     * random data.
+     *
+     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
+     */
+    public static final MemoryIO allocateDirect(int size, boolean clear) {
+        return FFIProvider.getProvider().getMemoryManager().allocateDirect(size, clear);
+    }
+    public static final MemoryIO wrap(Pointer ptr) {
+        return FFIProvider.getProvider().getMemoryManager().wrap(ptr);
+    }
+    public static final MemoryIO wrap(Pointer ptr, int size) {
+        return FFIProvider.getProvider().getMemoryManager().wrap(ptr, size);
+    }
+    
     abstract public byte getByte(long offset);
     abstract public short getShort(long offset);
     abstract public int getInt(long offset);

@@ -34,7 +34,7 @@ final class PointerMemoryIO extends JNAMemoryIO {
      *
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
-    static JNAMemoryIO allocate(int size) {
+    static JNAMemoryIO nativeAllocate(int size) {
         return new PointerMemoryIO(new Memory(size));
     }
 

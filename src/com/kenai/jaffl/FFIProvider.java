@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl;
 
+import com.kenai.jaffl.provider.MemoryManager;
 import java.nio.Buffer;
 import java.util.Map;
 
@@ -17,12 +18,13 @@ public abstract class FFIProvider {
     public static final FFIProvider getProvider() {
         return SingletonHolder.INSTANCE;
     }
-    public abstract MemoryIO allocateMemory(int size);
-    public abstract MemoryIO allocateMemoryDirect(int size);
-    public abstract MemoryIO allocateMemoryDirect(int size, boolean clear);
-    public abstract MemoryIO wrap(Pointer address);
-    public abstract MemoryIO wrap(Pointer address, int size);
-    public abstract Pointer getBufferPointer(Buffer buffer);
+    /**
+     * Gets the native memory manager for this provider.
+     *
+     * @return a {@link MemoryManager}
+     */
+    public abstract MemoryManager getMemoryManager();
+    
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.

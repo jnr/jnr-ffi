@@ -10,7 +10,6 @@
 
 package com.kenai.jaffl.struct;
 
-import com.kenai.jaffl.FFIProvider;
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Platform;
@@ -58,9 +57,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         private final MemoryIO allocateMemory(int flags) {
             if (ParameterFlags.isTransient(flags)) {
-                return FFIProvider.getProvider().allocateMemory(size());
+                return MemoryIO.allocate(size());
             } else {
-                return FFIProvider.getProvider().allocateMemoryDirect(size(), true);
+                return MemoryIO.allocateDirect(size(), true);
             }
         }
         /*
@@ -129,7 +128,7 @@ public abstract class Struct /*implements Marshallable */{
      * @param address the native memory area.
      */
     public void useMemory(com.kenai.jaffl.Pointer address) {
-        __info.useMemory(FFIProvider.getProvider().wrap(address));
+        __info.useMemory(MemoryIO.wrap(address));
     }
     
     /**

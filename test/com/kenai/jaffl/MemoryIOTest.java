@@ -54,19 +54,19 @@ public class MemoryIOTest {
     public void tearDown() {
     }
     private static final Pointer getBufferPointer(Buffer buffer) {
-        return FFIProvider.getProvider().getBufferPointer(buffer);
+        return FFIProvider.getProvider().getMemoryManager().getBufferPointer(buffer);
     }
     private static final MemoryIO wrapPointer(Pointer ptr, int size) {
-        return FFIProvider.getProvider().wrap(ptr, size);
+        return MemoryIO.wrap(ptr, size);
     }
     private static final MemoryIO wrapPointer(Pointer ptr) {
-        return FFIProvider.getProvider().wrap(ptr);
+        return MemoryIO.wrap(ptr);
     }
     private static final MemoryIO wrap(ByteBuffer buffer) {
         return null;
     }
     private static final MemoryIO allocateDirect(int size) {
-        return FFIProvider.getProvider().allocateMemoryDirect(size);
+        return MemoryIO.allocateDirect(size);
     }
     private final void testPutByte(MemoryIO io, ByteBuffer buffer, int size) {
         for (int i = 0; i < size; ++i) {
