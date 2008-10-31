@@ -6,6 +6,7 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.provider.MemoryManager;
 import com.sun.jna.Native;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 /**
  *
@@ -34,6 +35,10 @@ class JNAMemoryManager implements MemoryManager {
 
     public MemoryIO wrap(Pointer address, int size) {
         return new PointerMemoryIO(((JNAPointer) address).getNativePointer());
+    }
+
+    public MemoryIO wrap(ByteBuffer buffer) {
+        return new BufferMemoryIO(buffer);
     }
 
     public Pointer getBufferPointer(Buffer buffer) {

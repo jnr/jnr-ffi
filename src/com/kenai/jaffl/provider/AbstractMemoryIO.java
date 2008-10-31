@@ -1,6 +1,7 @@
 
-package com.kenai.jaffl.provider.jna;
+package com.kenai.jaffl.provider;
 
+import com.kenai.jaffl.provider.jna.*;
 import com.kenai.jaffl.*;
 import java.nio.charset.Charset;
 
@@ -8,6 +9,11 @@ import java.nio.charset.Charset;
  * Base implementations of some MemoryIO operations.
  */
 abstract public class AbstractMemoryIO extends MemoryIO {
+    protected static final void checkBounds(long size, long off, long len) {
+        if ((off | len | (off + len) | (size - (off + len))) < 0) {
+            throw new IndexOutOfBoundsException();
+        }
+    }
     public int indexOf(long offset, byte value) {
         return indexOf(offset, value, Integer.MAX_VALUE);
     }
@@ -50,6 +56,11 @@ abstract public class AbstractMemoryIO extends MemoryIO {
         }
     }
 
+    public void transferFrom(long offset, MemoryIO other, long otherOffset, long count) {
+        for (long i = 0; i < count; ++i) {
+            putByte(offset + i, other.getByte(otherOffset + i));
+        }
+    }
     //
     // Optimize reading/writing pointers.
     //

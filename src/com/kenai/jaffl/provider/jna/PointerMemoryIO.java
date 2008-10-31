@@ -1,49 +1,26 @@
 
 package com.kenai.jaffl.provider.jna;
 
-import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.provider.AbstractMemoryIO;
 import java.nio.charset.Charset;
 
 /**
  * A <tt>MemoryIO</tt> accessor that wraps a native pointer.
  */
-final class PointerMemoryIO extends JNAMemoryIO {
+final class PointerMemoryIO extends AbstractMemoryIO {
 
     /**
      * The native pointer.
      */
     private final Pointer ptr;
 
-    /**
-     * Wraps a <tt>MemoryIO</tt> accessor around an existing native memory area.
-     *
-     * @param ptr The native pointer to wrap.
-     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
-     */
-    static PointerMemoryIO wrap(Pointer ptr) {
-        return new PointerMemoryIO(ptr);
-    }
-
-    /**
-     * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
-     * accessor.
-     *
-     * @param size The size in bytes of memory to allocate.
-     *
-     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
-     */
-    static JNAMemoryIO nativeAllocate(int size) {
-        return new PointerMemoryIO(new Memory(size));
-    }
-
     PointerMemoryIO() {
         this(Pointer.NULL);
     }
 
     PointerMemoryIO(Pointer ptr) {
-        super(ptr);
         this.ptr = ptr;
     }
     /*
@@ -51,9 +28,29 @@ final class PointerMemoryIO extends JNAMemoryIO {
     return ptr;
     }
      */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PointerMemoryIO)) {
+            return false;
+        }
+        PointerMemoryIO io = (PointerMemoryIO) obj;
+        return ptr != null ? ptr.equals(io.ptr) : ptr == io.ptr;
+    }
 
+    @Override
+    public int hashCode() {
+        return ptr != null ? ptr.hashCode() : 0;
+    }
+    /**
+     * Gets the underlying memory object this <tt>MemoryIO</tt> is wrapping.
+     *
+     * @return The native pointer or ByteBuffer.
+     */
+    Object getNativeMemory() {
+        return ptr;
+    }
     public boolean isNull() {
-        return Pointer.NULL.equals(ptr);
+        return ptr == null;
     }
 
     public byte getByte(long offset) {
@@ -166,11 +163,11 @@ final class PointerMemoryIO extends JNAMemoryIO {
     }
 
     public PointerMemoryIO getMemoryIO(long offset) {
-        return wrap(ptr.getPointer(offset));
+        return new PointerMemoryIO(ptr.getPointer(offset));
     }
 
     public MemoryIO getMemoryIO(long offset, long size) {
-        return wrap(ptr.getPointer(offset));
+        return new PointerMemoryIO(ptr.getPointer(offset));
     }
 
     public boolean isDirect() {
@@ -194,4 +191,10 @@ final class PointerMemoryIO extends JNAMemoryIO {
     public void putString(long offset, String string, int maxLength, Charset cs) {
         ptr.setString(offset, string);
     }
+
+    @Override
+    public void setMemory(long offset, long size, byte value) {
+        ptr.setMemory(offset, size, value);
+    }
+
 }

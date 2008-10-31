@@ -63,7 +63,7 @@ public class MemoryIOTest {
         return MemoryIO.wrap(ptr);
     }
     private static final MemoryIO wrap(ByteBuffer buffer) {
-        return null;
+        return MemoryIO.wrap(buffer);
     }
     private static final MemoryIO allocateDirect(int size) {
         return MemoryIO.allocateDirect(size);
@@ -365,6 +365,32 @@ public class MemoryIOTest {
             fail("Should have thrown IndexOutOfBoundsException");
         } catch (IndexOutOfBoundsException ex) {
             
+        }
+    }
+    @Test public void transferDirectToHeap() throws Exception {
+        ByteBuffer buf = ByteBuffer.allocate(1024);
+        MemoryIO dst = MemoryIO.wrap(buf);
+        MemoryIO src = MemoryIO.allocateDirect(1024);
+        byte[] MAGIC = "MAGIC".getBytes();
+        src.put(0, MAGIC, 0, MAGIC.length);
+        src.transferTo(0, dst, 0, MAGIC.length);
+        for (int i = 0; i < MAGIC.length; ++i) {
+            assertEquals("Wrong byte at index " + i, MAGIC[i], dst.getByte(i));
+        }
+        for (int i = 0; i < MAGIC.length; ++i) {
+            assertEquals("Wrong byte at index " + i, MAGIC[i], buf.get(i));
+        }
+    }
+    @Test public void transferDirectToDirect() throws Exception {
+        MemoryIO dst = MemoryIO.allocateDirect(1024);
+        MemoryIO src = MemoryIO.allocateDirect(1024);
+        final byte[] MAGIC = "MAGIC".getBytes();
+        final int SRCOFF = 100;
+        final int DSTOFF = 123;
+        src.put(SRCOFF, MAGIC, 0, MAGIC.length);
+        src.transferTo(SRCOFF, dst, DSTOFF, MAGIC.length);
+        for (int i = 0; i < MAGIC.length; ++i) {
+            assertEquals("Wrong byte at index " + i, MAGIC[i], dst.getByte(DSTOFF + i));
         }
     }
 }

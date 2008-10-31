@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 
@@ -49,7 +50,9 @@ public abstract class MemoryIO {
     public static final MemoryIO wrap(Pointer ptr, int size) {
         return FFIProvider.getProvider().getMemoryManager().wrap(ptr, size);
     }
-    
+    public static final MemoryIO wrap(ByteBuffer buffer) {
+        return FFIProvider.getProvider().getMemoryManager().wrap(buffer);
+    }
     abstract public byte getByte(long offset);
     abstract public short getShort(long offset);
     abstract public int getInt(long offset);
@@ -94,4 +97,5 @@ public abstract class MemoryIO {
     abstract public MemoryIO slice(long offset, long size);
 
     abstract public void transferTo(long offset, MemoryIO other, long otherOffset, long count);
+    abstract public void setMemory(long offset, long size, byte value);
 }

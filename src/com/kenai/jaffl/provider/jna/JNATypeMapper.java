@@ -1,7 +1,9 @@
 
 package com.kenai.jaffl.provider.jna;
 
+import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
+import com.kenai.jaffl.provider.jna.BufferMemoryIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
@@ -57,9 +59,16 @@ public class JNATypeMapper extends com.sun.jna.DefaultTypeMapper {
         }
 
         public Object toNative(Object value, com.sun.jna.ToNativeContext context) {
-            return value != null ?
-                ((JNAMemoryIO) StructUtil.getMemoryIO((Struct) value)).getMemory()
-                : null;
+            if (value == null) {
+                return null;
+            }
+            MemoryIO io = StructUtil.getMemoryIO((Struct) value);
+            if (io instanceof PointerMemoryIO) {
+                return ((PointerMemoryIO) io).getNativeMemory();
+            } else if (io instanceof BufferMemoryIO) {
+                return ((BufferMemoryIO) io).getByteBuffer();
+            }
+            throw new RuntimeException("Unsupported structm MemoryIO");
         }
     }
     private static final class EnumConverter implements com.sun.jna.TypeConverter {
