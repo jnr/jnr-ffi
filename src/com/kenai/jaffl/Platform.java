@@ -247,6 +247,12 @@ public class Platform {
             }
             return bestMatch != null ? new File(bestMatch) : new File(mapLibraryName(libName));
         }
+        @Override
+        public String mapLibraryName(String libName) {
+            // Older JDK on linux map 'c' to 'libc.so' which doesn't work
+            return "c".equals(libName) || "libc.so".equals(libName)
+                    ? "libc.so.6" : super.mapLibraryName(libName);
+        }
     }
 
     /**
