@@ -6,6 +6,8 @@ import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.provider.NativeInvocationHandler;
+import com.sun.jna.Native;
+import java.nio.Buffer;
 import java.util.Map;
 
 /**
@@ -31,6 +33,10 @@ public class JNAProvider extends FFIProvider {
     public MemoryIO wrap(Pointer address) {
         return new PointerMemoryIO(((JNAPointer) address).getNativePointer());
     }
+    @Override
+    public MemoryIO wrap(Pointer address, int size) {
+        return new PointerMemoryIO(((JNAPointer) address).getNativePointer());
+    }
 
     @Override
     public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
@@ -46,6 +52,11 @@ public class JNAProvider extends FFIProvider {
     @Override
     public void setLastError(int error) {
         com.sun.jna.Native.setLastError(error);
+    }
+
+    @Override
+    public Pointer getBufferPointer(Buffer buffer) {
+        return new JNAPointer(Native.getDirectBufferPointer(buffer));
     }
 
 }

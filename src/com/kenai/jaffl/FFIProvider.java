@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl;
 
+import java.nio.Buffer;
 import java.util.Map;
 
 /**
@@ -20,7 +21,8 @@ public abstract class FFIProvider {
     public abstract MemoryIO allocateMemoryDirect(int size);
     public abstract MemoryIO allocateMemoryDirect(int size, boolean clear);
     public abstract MemoryIO wrap(Pointer address);
-
+    public abstract MemoryIO wrap(Pointer address, int size);
+    public abstract Pointer getBufferPointer(Buffer buffer);
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
