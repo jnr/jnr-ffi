@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 /**
  * Base implementations of some MemoryIO operations.
  */
-abstract public class AbstractMemoryIO implements MemoryIO {
+abstract public class AbstractMemoryIO extends MemoryIO {
     public int indexOf(long offset, byte value) {
         return indexOf(offset, value, Integer.MAX_VALUE);
     }

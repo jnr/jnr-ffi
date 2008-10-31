@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 /**
  * Interface to reading/writing various types of memory
  */
-public interface MemoryIO {
+public abstract class MemoryIO {
     abstract public byte getByte(long offset);
     abstract public short getShort(long offset);
     abstract public int getInt(long offset);
