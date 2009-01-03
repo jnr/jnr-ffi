@@ -23,6 +23,7 @@ public class Platform {
     }
     public enum ARCH {
         I386,
+        X86_64,
         PPC,
         SPARC,
         SPARCV9,
@@ -57,9 +58,13 @@ public class Platform {
         }
         osType = os;
         ARCH arch = ARCH.UNKNOWN;
-        try {
-            arch = ARCH.valueOf(System.getProperty("os.arch").toUpperCase());
-        } catch (Exception ex) {
+        final String archString = System.getProperty("os.arch").toLowerCase();
+
+        if ("x86".equals(archString) || "i386".equals(archString)) {
+            arch = ARCH.I386;
+        } else if ("x86_64".equals(archString) || "amd64".equals(archString)) {
+            arch = ARCH.X86_64;
+        } else {
             throw new ExceptionInInitializerError("Unknown CPU architecture");
         }
         archType = arch;
@@ -76,12 +81,14 @@ public class Platform {
         javaVersionMajor = version;
     }
     private final int addressSize;
+    private final long addressMask;
     private Platform() {
         final int dataModel = Integer.getInteger("sun.arch.data.model");
         if (dataModel != 32 && dataModel != 64) {
             throw new IllegalArgumentException("Unsupported data model");
         }
         addressSize = dataModel;
+        addressMask = addressSize == 32 ? 0xffffffffL : 0xffffffffffffffffL;
     }
     public static final Platform getPlatform() {
         return platform;
@@ -135,6 +142,15 @@ public class Platform {
      */
     public int addressSize() {
         return addressSize;
+    }
+
+    /**
+     * Gets the 32/64bit mask of a C address/pointer on the native platform.
+     *
+     * @return the size of a pointer in bits
+     */
+    public final long addressMask() {
+        return addressMask;
     }
 
     /**
