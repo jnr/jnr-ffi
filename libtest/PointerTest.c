@@ -57,6 +57,11 @@ ptr_set_array_element(void **ptrArray, int arrayIndex, void *value)
 }
 
 void*
+ptr_from_buffer(void* ptr)
+{
+    return ptr;
+}
+void*
 ptr_malloc(int size) 
 {
     return calloc(1, size);

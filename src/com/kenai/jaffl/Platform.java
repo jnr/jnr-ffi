@@ -76,7 +76,7 @@ public class Platform {
                 version = Integer.valueOf(v[1]);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
         }
         javaVersionMajor = version;
     }

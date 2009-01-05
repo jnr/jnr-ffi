@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.Address;
@@ -9,11 +6,8 @@ import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import java.nio.charset.Charset;
 
-/**
- *
- * @author wayne
- */
-public class BoundedMemoryIO extends AbstractMemoryIO {
+
+public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemoryIO {
 
     private final long base,  size;
     private final MemoryIO io;
@@ -26,6 +20,10 @@ public class BoundedMemoryIO extends AbstractMemoryIO {
 
     public boolean isDirect() {
         return io.isDirect();
+    }
+
+    public MemoryIO getDelegatedMemoryIO() {
+        return io;
     }
 
     @Override

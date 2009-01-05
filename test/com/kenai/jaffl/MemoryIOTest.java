@@ -53,8 +53,8 @@ public class MemoryIOTest {
     @After
     public void tearDown() {
     }
-    private static final Pointer getBufferPointer(Buffer buffer) {
-        return FFIProvider.getProvider().getMemoryManager().getBufferPointer(buffer);
+    private static final Pointer getBufferPointer(ByteBuffer buffer) {
+        return TstUtil.getDirectBufferPointer(buffer);
     }
     private static final MemoryIO wrapPointer(Pointer ptr, int size) {
         return MemoryIO.wrap(ptr, size);

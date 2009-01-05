@@ -60,9 +60,9 @@ public abstract class FFIProvider {
             final boolean useJNA = Boolean.getBoolean("jaffl.usejna");
             FFIProvider provider = null;
             String prefix = FFIProvider.class.getPackage().getName() + ".provider";
-            if (false && !useJNA) {
+            if (!useJNA) {
                 try {
-                    provider = (FFIProvider) Class.forName(prefix + ".jffi.JFFIProvider").newInstance();
+                    provider = (FFIProvider) Class.forName(prefix + ".jffi.Provider").newInstance();
                 } catch (Throwable ex) {
                 }
             }
