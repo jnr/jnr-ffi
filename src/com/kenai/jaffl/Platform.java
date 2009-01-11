@@ -26,6 +26,9 @@ public abstract class Platform {
         WINDOWS,
 
         UNKNOWN;
+
+        @Override
+        public String toString() { return name().toLowerCase(); }
     }
     public enum CPU {
         I386,
@@ -35,6 +38,9 @@ public abstract class Platform {
         SPARC,
         SPARCV9,
         UNKNOWN;
+
+        @Override
+        public String toString() { return name().toLowerCase(); }
     }
     private static final class SingletonHolder {
         static final Platform PLATFORM = determinePlatform(determineOS());
@@ -205,8 +211,7 @@ public abstract class Platform {
      * @return The name of this platform.
      */
     public String getName() {
-        String osName = System.getProperty("os.name").split(" ")[0];
-        return System.getProperty("os.arch") + "-" + osName;
+        return cpu + "-" + os;
     }
 
     /**
