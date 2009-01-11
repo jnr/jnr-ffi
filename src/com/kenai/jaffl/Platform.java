@@ -14,6 +14,7 @@ public abstract class Platform {
     private final int addressSize;
     private final long addressMask;
     private final int javaVersionMajor;
+    protected final Pattern libPattern;
 
     public enum OS {
         DARWIN,
@@ -116,6 +117,19 @@ public abstract class Platform {
             throw new ExceptionInInitializerError("Could not determine java version");
         }
         javaVersionMajor = version;
+        String libpattern = null;
+        switch (os) {
+            case WINDOWS:
+                libpattern = ".*\\.dll$";
+                break;
+            case DARWIN:
+                libpattern = "lib.*\\.(dylib|jnilib)$";
+                break;
+            default:
+                libpattern = "lib.*\\.so.*$";
+                break;
+        }
+        libPattern = Pattern.compile(libpattern);
     }
     /**
      * Gets the current <tt>Platform</tt>
@@ -205,18 +219,10 @@ public abstract class Platform {
         //
         // A specific version was requested - use as is for search
         //
-        if (libName.matches(getLibraryNamePattern())) {
+        if (libPattern.matcher(libName).find()) {
             return libName;
         }
         return System.mapLibraryName(libName);
-    }
-
-    /**
-     * Gets the regex string used to match platform-specific libraries
-     * @return
-     */
-    public String getLibraryNamePattern() {
-        return "lib.*\\.so.*$";
     }
 
     /**
@@ -259,14 +265,10 @@ public abstract class Platform {
             //
             // A specific version was requested - use as is for search
             //
-            if (libName.matches(getLibraryNamePattern())) {
+            if (libPattern.matcher(libName).find()) {
                 return libName;
             }
             return "lib" + libName + ".dylib";
-        }
-        @Override
-        public String getLibraryNamePattern() {
-            return "lib.*\\.(dylib|jnilib)$";
         }
         
         @Override
@@ -340,11 +342,6 @@ public abstract class Platform {
 
         public Windows() {
             super(OS.WINDOWS);
-        }
-
-        @Override
-        public String getLibraryNamePattern() {
-            return ".*\\.dll$";
         }
     }
 }
