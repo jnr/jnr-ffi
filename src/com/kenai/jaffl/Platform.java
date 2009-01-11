@@ -8,130 +8,162 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class Platform {
+public abstract class Platform {
+    private final OS os;
+    private final CPU cpu;
+    private final int addressSize;
+    private final long addressMask;
+    private final int javaVersionMajor;
+
     public enum OS {
         DARWIN,
         FREEBSD,
-        LINUX,
-        MAC,
         NETBSD,
         OPENBSD,
-        SUNOS,
+        LINUX,
+        SOLARIS,
         WINDOWS,
 
         UNKNOWN;
     }
-    public enum ARCH {
+    public enum CPU {
         I386,
         X86_64,
-        PPC,
+        POWERPC,
+        POWERPC64,
         SPARC,
         SPARCV9,
         UNKNOWN;
     }
-    private static final Platform platform;
-    private static final OS osType;
-    public static final ARCH archType;
-    private static final int javaVersionMajor;
-    static {
-        String osName = System.getProperty("os.name").split(" ")[0];
-        OS os = OS.UNKNOWN;
-        try {
-            os = OS.valueOf(osName.toUpperCase());
-        } catch (Exception ex) {
-            throw new ExceptionInInitializerError("Unknown Operating System");
+    private static final class SingletonHolder {
+        static final Platform PLATFORM = determinePlatform(determineOS());
         }
-        switch (os) {
-            case MAC:
-            case DARWIN:
-                platform = new MacOSX();
-                break;
-            case LINUX:
-                platform = new Linux();
-                break;
-            case WINDOWS:
-                platform = new Windows();
-                break;
-            default:
-                platform = new Platform();
-                break;
-        }
-        osType = os;
-        ARCH arch = ARCH.UNKNOWN;
-        final String archString = System.getProperty("os.arch").toLowerCase();
-
-        if ("x86".equals(archString) || "i386".equals(archString)) {
-            arch = ARCH.I386;
-        } else if ("x86_64".equals(archString) || "amd64".equals(archString)) {
-            arch = ARCH.X86_64;
+    private static final OS determineOS() {
+        String osName = System.getProperty("os.name").split(" ")[0].toLowerCase();
+        if (osName.startsWith("mac") || osName.startsWith("darwin")) {
+            return OS.DARWIN;
+        } else if (osName.startsWith("linux")) {
+            return OS.LINUX;
+        } else if (osName.startsWith("sunos") || osName.startsWith("solaris")) {
+            return OS.SOLARIS;
+        } else if (osName.startsWith("openbsd")) {
+            return OS.OPENBSD;
+        } else if (osName.startsWith("freebsd")) {
+            return OS.FREEBSD;
         } else {
-            throw new ExceptionInInitializerError("Unknown CPU architecture");
+            throw new ExceptionInInitializerError("Unsupported operating system");
         }
-        archType = arch;
+    }
+    private static final Platform determinePlatform(OS os) {
+        switch (os) {
+            case DARWIN:
+                return new Darwin();
+            case LINUX:
+                return new Linux();
+            case WINDOWS:
+                return new Windows();
+            case UNKNOWN:
+                throw new ExceptionInInitializerError("Unsupported operating system");
+            default:
+                return new Default(os);
+        }
+    }
+    private static final CPU determineCPU() {
+        String archString = System.getProperty("os.arch").toLowerCase();
+        if ("x86".equals(archString) || "i386".equals(archString) || "i86pc".equals(archString)) {
+            return CPU.I386;
+        } else if ("x86_64".equals(archString) || "amd64".equals(archString)) {
+            return CPU.X86_64;
+        } else if ("ppc".equals(archString) || "powerpc".equals(archString)) {
+            return CPU.POWERPC;
+        } else if ("ppc64".equals(archString)) {
+            return CPU.POWERPC64;
+        } else {
+            throw new ExceptionInInitializerError("Unsupported CPU architecture: " + archString);
+        }
+    }
+
+    private Platform(OS os) {
+        this.os = os;
+        this.cpu = determineCPU();
+        int dataModel = Integer.getInteger("sun.arch.data.model");
+        if (dataModel != 32 && dataModel != 64) {
+            switch (cpu) {
+                case I386:
+                case POWERPC:
+                case SPARC:
+                    dataModel = 32;
+                    break;
+                case X86_64:
+                case POWERPC64:
+                case SPARCV9:
+                    dataModel = 64;
+                    break;
+                default:
+                    throw new ExceptionInInitializerError("Cannot determine cpu address size");
+            }
+        }
+        addressSize = dataModel;
+        addressMask = addressSize == 32 ? 0xffffffffL : 0xffffffffffffffffL;
         int version = 5;
         try {
-            String versionString = System.getProperty("java.vm.version");
+            String versionString = System.getProperty("java.version");
             if (versionString != null) {
                 String[] v = versionString.split("\\.");
                 version = Integer.valueOf(v[1]);
             }
         } catch (Exception ex) {
-            //ex.printStackTrace();
+            throw new ExceptionInInitializerError("Could not determine java version");
         }
         javaVersionMajor = version;
     }
-    private final int addressSize;
-    private final long addressMask;
-    private Platform() {
-        final int dataModel = Integer.getInteger("sun.arch.data.model");
-        if (dataModel != 32 && dataModel != 64) {
-            throw new IllegalArgumentException("Unsupported data model");
-        }
-        addressSize = dataModel;
-        addressMask = addressSize == 32 ? 0xffffffffL : 0xffffffffffffffffL;
-    }
+    /**
+     * Gets the current <tt>Platform</tt>
+     *
+     * @return The current platform.
+     */
     public static final Platform getPlatform() {
-        return platform;
+        return SingletonHolder.PLATFORM;
     }
-    public static final OS getOS() {
-        return osType;
+
+    /**
+     * Gets the current Operating System.
+     *
+     * @return A <tt>OS</tt> value representing the current Operating System.
+     */
+    public final OS getOS() {
+        return os;
     }
-    public static final ARCH getArch() {
-        return archType;
+
+    /**
+     * Gets the current processor architecture the JVM is running on.
+     *
+     * @return A <tt>CPU</tt> value representing the current processor architecture.
+     */
+    public final CPU getCPU() {
+        return cpu;
     }
-    public static final boolean is64() {
-        return getPlatform().addressSize() == 64;
-    }
-    public static final int getJavaVersion() {
+
+    /**
+     * Gets the version of the Java Virtual Machine (JVM) jffi is running on.
+     *
+     * @return A number representing the java version.  e.g. 5 for java 1.5, 6 for java 1.6
+     */
+    public final int getJavaMajorVersion() {
         return javaVersionMajor;
     }
-    public static final boolean isMac() {
-        return osType == OS.MAC || osType == OS.DARWIN;
+    public final boolean isBSD() {
+        return os == OS.FREEBSD || os == os.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
     }
-    public static final boolean isLinux() {
-        return osType == OS.LINUX;
-    }
-    public static final boolean isWindows() {
-        return osType == OS.WINDOWS;
-    }
-    public static final boolean isSolaris() {
-        return osType == OS.SUNOS;
-    }
-    public static final boolean isFreeBSD() {
-        return osType == OS.FREEBSD;
-    }
-    public static final boolean isBSD() {
-        return isFreeBSD() || isMac();
-    }
-    public static final boolean isUnix() {
-        return !isWindows();
+    public final boolean isUnix() {
+        return os != OS.WINDOWS;
     }
     /**
      * Gets the size of a C 'long' on the native platform.
      *
      * @return the size of a long in bits
      */
-    public int longSize() {
+    public final int longSize() {
         return addressSize;
     }
 
@@ -140,7 +172,7 @@ public class Platform {
      *
      * @return the size of a pointer in bits
      */
-    public int addressSize() {
+    public final int addressSize() {
         return addressSize;
     }
 
@@ -158,14 +190,17 @@ public class Platform {
      *
      * @return The name of this platform.
      */
-    public final String getName() {
-        if (Platform.isMac()) {
-            return "Darwin";
-        }
+    public String getName() {
         String osName = System.getProperty("os.name").split(" ")[0];
         return System.getProperty("os.arch") + "-" + osName;
     }
 
+    /**
+     * Maps from a generic library name (e.g. "c") to the platform specific library name.
+     *
+     * @param libName The library name to map
+     * @return The mapped library name.
+     */
     public String mapLibraryName(String libName) {
         //
         // A specific version was requested - use as is for search
@@ -176,6 +211,10 @@ public class Platform {
         return System.mapLibraryName(libName);
     }
 
+    /**
+     * Gets the regex string used to match platform-specific libraries
+     * @return
+     */
     public String getLibraryNamePattern() {
         return "lib.*\\.so.*$";
     }
@@ -198,11 +237,23 @@ public class Platform {
         // Default to letting the system search for it
         return new File(mappedName);
     }
+    
+    private static final class Default extends Platform {
 
+        public Default(OS os) {
+            super(os);
+        }
+
+    }
     /**
      * A {@link Platform} subclass representing the MacOS system.
      */
-    private static class MacOSX extends Platform {
+    private static final class Darwin extends Platform {
+
+        public Darwin() {
+            super(OS.DARWIN);
+        }
+
         @Override
         public String mapLibraryName(String libName) {
             //
@@ -217,11 +268,22 @@ public class Platform {
         public String getLibraryNamePattern() {
             return "lib.*\\.(dylib|jnilib)$";
         }
+        
+        @Override
+        public String getName() {
+            return "Darwin";
+        }
+
     }
     /**
      * A {@link Platform} subclass representing the Linux operating system.
      */
-    private static class Linux extends Platform {
+    private static final class Linux extends Platform {
+
+        public Linux() {
+            super(OS.LINUX);
+        }
+
         @Override
         public File locateLibrary(final String libName, List<String> libraryPath) {
             FilenameFilter filter = new FilenameFilter() {
@@ -275,10 +337,11 @@ public class Platform {
      * A {@link Platform} subclass representing the Windows system.
      */
     private static class Windows extends Platform {
-        @Override
-        public int longSize() {
-            return 32;
+
+        public Windows() {
+            super(OS.WINDOWS);
         }
+
         @Override
         public String getLibraryNamePattern() {
             return ".*\\.dll$";

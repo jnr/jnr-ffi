@@ -256,7 +256,7 @@ public class NativeInvocationHandler implements InvocationHandler {
         //
         // On JVM6 and above, System.identityHashCode is inlined so very fast
         //
-        private static final Hasher hasher = Platform.getJavaVersion() >= 6
+        private static final Hasher hasher = Platform.getPlatform().getJavaMajorVersion() >= 6
                 ? IdentityHasherSingleton.getInstance() : NameHasherSingleton.getInstance();
         
         /**

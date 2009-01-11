@@ -27,7 +27,7 @@ public abstract class Struct /*implements Marshallable */{
      * Various platform-dependent constants needed for Struct construction
      */
     protected static final class Constants {
-        private static final boolean isSparc() { return Platform.getArch() == Platform.ARCH.SPARC; }
+        private static final boolean isSparc() { return Platform.getPlatform().getCPU() == Platform.CPU.SPARC; }
         /*
          * Most arches align long/double on the same size as a native long (or a pointer)
          * Sparc (32bit) requires it to be aligned on an 8 byte boundary
@@ -38,7 +38,7 @@ public abstract class Struct /*implements Marshallable */{
         static final int LONG_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
         static final int ADDRESS_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
         static final int DOUBLE_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
-        static final int FLOAT_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
+        static final int FLOAT_ALIGN = isSparc() ? 64 : 32;
     }
     static final class Info {
         MemoryIO io;
