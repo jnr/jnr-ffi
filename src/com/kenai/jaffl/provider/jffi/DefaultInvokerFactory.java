@@ -42,8 +42,8 @@ import java.util.Map;
 
 class DefaultInvokerFactory {
     public Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
-        com.kenai.jffi.Address address = ((Library) library).getNativeLibrary().findSymbol(method.getName());
-        
+        final long address = ((Library) library).getNativeLibrary().getSymbolAddress(method.getName());
+
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];
         Type[] paramTypes = new Type[marshallers.length];
         for (int i = 0; i < marshallers.length; ++i) {
@@ -322,6 +322,7 @@ class DefaultInvokerFactory {
         private EnumInvoker(Class enumClass) {
             this.enumClass = enumClass;
         }
+        @SuppressWarnings("unchecked")
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
             return EnumMapper.getInstance().valueOf(invoker.invokeInt(function, buffer), enumClass);
         }
@@ -406,37 +407,37 @@ class DefaultInvokerFactory {
     static final class BooleanMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new BooleanMarshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putInt32(((Boolean) parameter).booleanValue() ? 1 : 0);
+            buffer.putInt(((Boolean) parameter).booleanValue() ? 1 : 0);
         }
     }
     static final class EnumMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new EnumMarshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putInt32(EnumMapper.getInstance().intValue((Enum) parameter));
+            buffer.putInt(EnumMapper.getInstance().intValue((Enum) parameter));
         }
     }
     static final class Int8Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Int8Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putInt8(((Number) parameter).intValue());
+            buffer.putByte(((Number) parameter).intValue());
         }
     }
     static final class Int16Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Int16Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putInt16(((Number) parameter).intValue());
+            buffer.putShort(((Number) parameter).intValue());
         }
     }
     static final class Int32Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Int32Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putInt32(((Number) parameter).intValue());
+            buffer.putInt(((Number) parameter).intValue());
         }
     }
     static final class Int64Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Int64Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putInt64(((Number) parameter).longValue());
+            buffer.putLong(((Number) parameter).longValue());
         }
     }
     static final class Float32Marshaller extends BaseMarshaller {

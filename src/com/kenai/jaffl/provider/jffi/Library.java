@@ -41,9 +41,9 @@ class Library extends com.kenai.jaffl.provider.Library {
     synchronized com.kenai.jffi.Library getNativeLibrary() {
         if (this.nativeLibrary == null) {
             try {
-                this.nativeLibrary = new com.kenai.jffi.Library(locateLibrary(libraryName), com.kenai.jffi.Library.LAZY);
+                this.nativeLibrary = com.kenai.jffi.Library.getCachedInstance(locateLibrary(libraryName), com.kenai.jffi.Library.LAZY);
             } catch (UnsatisfiedLinkError ex) {
-                this.nativeLibrary = new com.kenai.jffi.Library(libraryName, com.kenai.jffi.Library.LAZY);
+                this.nativeLibrary = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY);
             }
         }
         return nativeLibrary;
