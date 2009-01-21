@@ -242,7 +242,7 @@ public class PointerTest {
     
     @Test
     public void testLibcMalloc() {
-        if (!Platform.isLinux()) {
+        if (Platform.getPlatform().getOS() != Platform.OS.LINUX) {
             Pointer p = libc.malloc(SIZE);
             libc.free(p);
         }        
