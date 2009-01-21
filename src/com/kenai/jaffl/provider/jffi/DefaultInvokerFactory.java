@@ -40,7 +40,7 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.Map;
 
-class InvokerFactory {
+class DefaultInvokerFactory {
     public Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
         com.kenai.jffi.Address address = ((Library) library).getNativeLibrary().findSymbol(method.getName());
         

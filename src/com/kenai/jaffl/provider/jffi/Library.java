@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class Library extends com.kenai.jaffl.provider.Library {
-    private static final InvokerFactory factory = new InvokerFactory();
+    private static final DefaultInvokerFactory factory = new DefaultInvokerFactory();
     private static final Map<String, WeakReference<Library>> cache
             = new ConcurrentHashMap<String, WeakReference<Library>>();
     private static final Object cacheLock = new Object();
