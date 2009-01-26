@@ -2,6 +2,7 @@
 package com.kenai.jaffl.struct;
 
 import com.kenai.jaffl.MemoryIO;
+import java.lang.reflect.Array;
 
 /**
  *
@@ -19,5 +20,33 @@ public final class StructUtil {
     }
     public final static int getMinimumAlignment(Struct struct) {
         return struct.__info.getMinimumAlignment();
+    }
+    @SuppressWarnings("unchecked")
+    public static final <T extends Struct> T[] newArray(Class<T> type, int length) {
+        try {
+            T[] array = (T[]) Array.newInstance(type, length);
+            for (int i = 0; i < length; ++i) {
+                array[i] = type.newInstance();
+            }
+            if (array.length > 0) {
+                final int align = getMinimumAlignment(array[0]);
+                final int mask = align - 1;
+                int structSize = getSize(array[0]);
+                if ((structSize & mask) != 0) {
+                    structSize = (structSize & ~mask) + align;
+                }
+                MemoryIO memory = MemoryIO.allocateDirect(structSize * length);
+                for (int i = 0; i < array.length; ++i) {
+                    array[i].useMemory(memory.slice(structSize * i, structSize));
+                }
+            }
+            return array;
+        } catch (SecurityException ex) {
+            throw new RuntimeException(ex);
+        } catch (InstantiationException ex) {
+            throw new RuntimeException(ex);
+        } catch (IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

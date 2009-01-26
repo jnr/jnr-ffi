@@ -6,7 +6,7 @@ import com.kenai.jaffl.Pointer;
 /**
  *
  */
-public class ShareMemoryIO extends AbstractMemoryIO {
+public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryIO {
 
     private final MemoryIO io;
     private final long base;
@@ -16,8 +16,12 @@ public class ShareMemoryIO extends AbstractMemoryIO {
         this.base = offset;
     }
 
-    public boolean isDirect() {
+    public final boolean isDirect() {
         return io.isDirect();
+    }
+
+    public final MemoryIO getDelegatedMemoryIO() {
+        return io;
     }
 
     @Override

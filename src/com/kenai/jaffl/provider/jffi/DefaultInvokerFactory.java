@@ -11,6 +11,7 @@ import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.Out;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
+import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.InvocationSession;
 import com.kenai.jaffl.provider.Invoker;
 import com.kenai.jaffl.struct.Struct;
@@ -154,7 +155,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return Type.SINT32;
         } else if (Pointer.class.isAssignableFrom(type)) {
             return Type.POINTER;
-        } else if (Struct.class.isAssignableFrom(type)) {
+        } else if (Struct.class.isAssignableFrom(type) || type.isArray() && Struct.class.isAssignableFrom(type.getComponentType())) {
             return Type.POINTER;
         } else if (Buffer.class.isAssignableFrom(type)) {
             return Type.POINTER;
@@ -243,6 +244,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return new FloatArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
         } else if (type.isArray() && type.getComponentType() == double.class) {
             return new DoubleArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
+        } else if (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType())) {
+            return new StructArrayMarshaller(getInOutFlags(method, paramIndex));
         } else {
             throw new IllegalArgumentException("Unsupported parameter type: " + type);
         }
@@ -850,6 +853,32 @@ final class DefaultInvokerFactory implements InvokerFactory {
             } else {
                 Struct s = (Struct) parameter;
                 MemoryIO io = StructUtil.getMemoryIO(s, flags);
+                if (io instanceof AbstractArrayMemoryIO) {
+                    AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
+                    buffer.putArray(aio.array(), aio.offset(), aio.length(), nflags);
+                } else if (io instanceof DirectMemory) {
+                    buffer.putAddress(((DirectMemory) io).getAddress());
+                }
+            }
+        }
+    }
+    static final class StructArrayMarshaller extends BaseMarshaller {
+        private final int nflags, flags;
+        public StructArrayMarshaller(int flags) {
+            this.flags = flags;
+            this.nflags = getNativeFlags(flags);
+        }
+        
+        public final void marshal(InvocationBuffer buffer, Object parameter) {
+            if (parameter == null) {
+                buffer.putAddress(0L);
+            } else {
+                Struct[] array = Struct[].class.cast(parameter);
+                MemoryIO io = StructUtil.getMemoryIO(array[0], flags);
+                if (!(io instanceof DelegatingMemoryIO)) {
+                    throw new RuntimeException("Struct array must be backed by contiguous array");
+                }
+                io = ((DelegatingMemoryIO) io).getDelegatedMemoryIO();
                 if (io instanceof AbstractArrayMemoryIO) {
                     AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
                     buffer.putArray(aio.array(), aio.offset(), aio.length(), nflags);
