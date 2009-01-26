@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class Library extends com.kenai.jaffl.provider.Library {
-    private static final DefaultInvokerFactory factory = new DefaultInvokerFactory();
     private static final Map<String, WeakReference<Library>> cache
             = new ConcurrentHashMap<String, WeakReference<Library>>();
     private static final Object cacheLock = new Object();
@@ -32,6 +31,12 @@ class Library extends com.kenai.jaffl.provider.Library {
         this.libraryName = name;
     }
     public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {
+        InvokerFactory factory;
+        if (FastIntInvokerFactory.getInstance().isMethodSupported(method)) {
+            factory = FastIntInvokerFactory.getInstance();
+        } else {
+            factory = DefaultInvokerFactory.getInstance();
+        }
         return factory.createInvoker(method, this, options);
     }
 

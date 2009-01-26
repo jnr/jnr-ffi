@@ -40,8 +40,17 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.Map;
 
-class DefaultInvokerFactory {
-    public Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
+final class DefaultInvokerFactory implements InvokerFactory {
+    private final static class SingletonHolder {
+        static InvokerFactory INSTANCE = new DefaultInvokerFactory();
+    }
+    public static final InvokerFactory getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+    public final boolean isMethodSupported(Method method) {
+        return true; // The default factory supports everything
+    }
+    public final Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
         final long address = ((Library) library).getNativeLibrary().getSymbolAddress(method.getName());
 
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];

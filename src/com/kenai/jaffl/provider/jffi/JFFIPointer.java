@@ -3,7 +3,7 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Pointer;
 
-public class JFFIPointer implements com.kenai.jaffl.Pointer {
+public class JFFIPointer extends Number implements com.kenai.jaffl.Pointer {
     static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
     final long address;
     JFFIPointer(long address) {
@@ -121,6 +121,26 @@ public class JFFIPointer implements com.kenai.jaffl.Pointer {
 
     public String getString(long offset) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public int intValue() {
+        return (int) address;
+    }
+
+    @Override
+    public long longValue() {
+        return address;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float) address;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double) address;
     }
 
 }
