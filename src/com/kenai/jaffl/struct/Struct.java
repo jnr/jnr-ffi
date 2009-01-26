@@ -43,6 +43,7 @@ public abstract class Struct /*implements Marshallable */{
     static final class Info {
         MemoryIO io;
         int size = 0;
+        int minAlign = 1;
         boolean isUnion = false;
         boolean resetIndex = false;
 
@@ -54,6 +55,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         final int size() {
             return size;
+        }
+        final int getMinimumAlignment() {
+            return minAlign;
         }
         private final MemoryIO allocateMemory(int flags) {
             if (ParameterFlags.isTransient(flags)) {
@@ -94,6 +98,7 @@ public abstract class Struct /*implements Marshallable */{
                 off = (off & ~mask) + (alignBits >> 3);
             }
             this.size = Math.max(this.size, off + (sizeBits >> 3));
+            this.minAlign = Math.max(this.minAlign, alignBits >> 3);
             return off;
         }
     }

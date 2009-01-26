@@ -17,4 +17,7 @@ public final class StructUtil {
     public final static int getSize(Struct struct) {
         return struct.__info.size();
     }
+    public final static int getMinimumAlignment(Struct struct) {
+        return struct.__info.getMinimumAlignment();
+    }
 }
