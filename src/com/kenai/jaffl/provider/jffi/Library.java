@@ -2,6 +2,7 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
+import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.provider.Invoker;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
@@ -45,11 +46,19 @@ class Library extends com.kenai.jaffl.provider.Library {
     }
     synchronized com.kenai.jffi.Library getNativeLibrary() {
         if (this.nativeLibrary == null) {
-            try {
-                this.nativeLibrary = com.kenai.jffi.Library.getCachedInstance(locateLibrary(libraryName), com.kenai.jffi.Library.LAZY);
-            } catch (UnsatisfiedLinkError ex) {
-                this.nativeLibrary = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY);
+            com.kenai.jffi.Library lib;
+            
+            lib = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY);
+            if (lib == null) {
+                String path;
+                if (libraryName != null && (path = locateLibrary(libraryName)) != null && !libraryName.equals(path)) {
+                    lib = com.kenai.jffi.Library.getCachedInstance(path, com.kenai.jffi.Library.LAZY);
+                }
             }
+            if (lib == null) {
+                throw new UnsatisfiedLinkError(com.kenai.jffi.Library.getLastError());
+            }
+            this.nativeLibrary = lib;
         }
         return nativeLibrary;
     }

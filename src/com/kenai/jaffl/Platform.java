@@ -237,16 +237,16 @@ public abstract class Platform {
      * @param libraryPath the list of directories to search
      * @return the path of the library
      */
-    public File locateLibrary(String libName, List<String> libraryPath) {
+    public String locateLibrary(String libName, List<String> libraryPath) {
         String mappedName = mapLibraryName(libName);
         for (String path : libraryPath) {
             File libFile = new File(path, mappedName);
             if (libFile.exists()) {
-                return libFile;
+                return libFile.getAbsolutePath();
             }
         }
         // Default to letting the system search for it
-        return new File(mappedName);
+        return mappedName;
     }
     
     private static final class Default extends Platform {
@@ -292,7 +292,7 @@ public abstract class Platform {
         }
 
         @Override
-        public File locateLibrary(final String libName, List<String> libraryPath) {
+        public String locateLibrary(final String libName, List<String> libraryPath) {
             FilenameFilter filter = new FilenameFilter() {
                 Pattern p = Pattern.compile("lib" + libName + "\\.so\\.[0-9]+$");
                 String exact = "lib" + libName + ".so";
@@ -330,7 +330,7 @@ public abstract class Platform {
                     } // Just skip if not a number
                 }
             }
-            return bestMatch != null ? new File(bestMatch) : new File(mapLibraryName(libName));
+            return bestMatch != null ? bestMatch : mapLibraryName(libName);
         }
         @Override
         public String mapLibraryName(String libName) {

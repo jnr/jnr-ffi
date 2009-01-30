@@ -36,8 +36,8 @@ public abstract class Library {
         //
         searchPath.addAll(0, com.kenai.jaffl.Library.getLibraryPath(libraryName));
         searchPath.addAll(userLibraryPath);
-        File path = Platform.getPlatform().locateLibrary(libraryName, searchPath);
-        return path != null ? path.getAbsolutePath() : libraryName;
+        String path = Platform.getPlatform().locateLibrary(libraryName, searchPath);
+        return path != null ? path : null;
     }
     
     private static final List<String> getPropertyPaths(String propName) {
