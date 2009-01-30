@@ -69,6 +69,13 @@ public class StringIO {
             throw new Error("Illegal character data in native string", ex);
         }
     }
+    public final CharSequence fromNative(final ByteBuffer buf) {
+        try {
+            return decoder.reset().decode(buf);
+        } catch (CharacterCodingException ex) {
+            throw new Error("Illegal character data in native string", ex);
+        }
+    }
     public final void nulTerminate(ByteBuffer buf) {
         // NUL terminate the string
         int nulSize = nulByteCount;

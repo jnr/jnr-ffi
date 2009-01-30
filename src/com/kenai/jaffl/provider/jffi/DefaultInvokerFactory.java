@@ -14,6 +14,7 @@ import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
 import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.InvocationSession;
 import com.kenai.jaffl.provider.Invoker;
+import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
@@ -22,23 +23,15 @@ import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.InvocationBuffer;
 import com.kenai.jffi.Type;
 import java.lang.annotation.Annotation;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.CharBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
 import java.util.Map;
 
 final class DefaultInvokerFactory implements InvokerFactory {
@@ -89,6 +82,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
             invoker = PointerInvoker.INSTANCE;
         } else if (Struct.class.isAssignableFrom(returnType)) {
             invoker = new StructInvoker(returnType);
+        } else if (String.class.isAssignableFrom(returnType)) {
+            invoker = StringInvoker.INSTANCE;
         } else {
             throw new IllegalArgumentException("Unknown return type: " + returnType);
         }
@@ -128,6 +123,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
         } else if (Pointer.class.isAssignableFrom(type)) {
             return Type.POINTER;
         } else if (Struct.class.isAssignableFrom(type)) {
+            return Type.POINTER;
+        } else if (String.class.isAssignableFrom(type)) {
             return Type.POINTER;
         } else {
             throw new IllegalArgumentException("Unsupported return type: " + type);
@@ -414,7 +411,23 @@ final class DefaultInvokerFactory implements InvokerFactory {
             }
         }
     }
-
+    static final class StringInvoker extends BaseInvoker {
+        com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
+        static final FunctionInvoker INSTANCE = new StringInvoker();
+        public final Object invoke(Function function, HeapInvocationBuffer buffer) {
+            final long ptr = invoker.invokeAddress(function, buffer);
+            if (ptr == 0) {
+                return null;
+            }
+            int end = (int) IO.indexOf(ptr, (byte) 0);
+            if (end < 0) {
+                return null;
+            }
+            ByteBuffer buf = ByteBuffer.allocate(end);
+            IO.getByteArray(ptr, buf.array(), buf.arrayOffset(), buf.capacity());
+            return StringIO.getStringIO().fromNative(buf).toString();
+        }
+    }
     /* ---------------------------------------------------------------------- */
     static final class BooleanMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new BooleanMarshaller();
@@ -470,86 +483,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             buffer.putAddress(((JFFIPointer) parameter).address);
         }
     }
-    private static final class StringIO {
-        private final static Charset defaultCharset = Charset.defaultCharset();
-        public final CharsetEncoder encoder = defaultCharset.newEncoder();
-        public final CharsetDecoder decoder = defaultCharset.newDecoder();
-        public final int nulByteCount = Math.round(encoder.maxBytesPerChar());
-        public StringIO() {
-            encoder.onMalformedInput(CodingErrorAction.REPLACE)
-                .onUnmappableCharacter(CodingErrorAction.REPLACE);
-            decoder.onMalformedInput(CodingErrorAction.REPLACE)
-                .onUnmappableCharacter(CodingErrorAction.REPLACE);
-        }
-        public final void nulTerminate(ByteBuffer buf) {
-            // NUL terminate the string
-            int nulSize = nulByteCount;
-            while (nulSize >= 4) {
-                buf.putInt(0);
-                nulSize -= 4;
-            }
-            if (nulSize >= 2) {
-                buf.putShort((short) 0);
-                nulSize -= 2;
-            }
-            if (nulSize >= 1) {
-                buf.put((byte) 0);
-            }
-        }
-    }
-    private static final ThreadLocal<Reference<StringIO>> threadLocalStringIO
-            = new ThreadLocal<Reference<StringIO>>();
-    private static final StringIO getStringIO() {
-        Reference<StringIO> ref = threadLocalStringIO.get();
-        StringIO io = ref != null ? ref.get() : null;
-        if (io == null) {
-            io = new StringIO();
-            threadLocalStringIO.set(new SoftReference<StringIO>(io));
-        }
-        return io;
-    }
-    private static final ByteBuffer copyinString(final CharSequence value, final int minSize, int flags) {
-        final StringIO io = getStringIO();
-        final CharsetEncoder encoder = io.encoder;
-
-        // Calculate the raw byte size required (with allowance for NUL termination)
-        final int len = (int) (((float)Math.max(minSize, value.length()) + 1) * encoder.maxBytesPerChar());
-        final ByteBuffer buf = ByteBuffer.allocate(len);
-        if (ParameterFlags.isIn(flags)) {
-            encoder.reset();
-            //
-            // Copy the string to native memory
-            //
-            encoder.encode(CharBuffer.wrap(value), buf, true);
-            encoder.flush(buf);
-            io.nulTerminate(buf);
-            buf.rewind();
-        }
-        return buf;
-    }
     
-    private static final CharSequence copyoutString(final ByteBuffer buf, final int maxSize) {
-        // Find the NUL terminator and limit to that, so the
-        // StringBuffer/StringBuilder does not have superfluous NUL chars
-        int end = indexOf(buf, (byte) 0);
-        if (end < 0 || end > maxSize) {
-            end = maxSize;
-        }
-        buf.rewind().limit(end);
-        try {
-            return getStringIO().decoder.reset().decode(buf);
-        } catch (CharacterCodingException ex) {
-            throw new Error("Illegal character data in native string", ex);
-        }
-    }
-    public final static int indexOf(ByteBuffer buf, byte value) {
-        for (int offset = 0; offset > -1; ++offset) {
-            if (buf.get(offset) == value) {
-                return offset;
-            }
-        }
-        return -1;
-    }
     static final class CharSequenceMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new CharSequenceMarshaller();
         static final int FLAGS = com.kenai.jffi.ArrayFlags.IN | com.kenai.jffi.ArrayFlags.NULTERMINATE;
@@ -558,7 +492,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 buffer.putAddress(0L);
             } else {
                 CharSequence cs = (CharSequence) parameter;
-                ByteBuffer buf = copyinString(cs, cs.length(), ParameterFlags.IN);
+                ByteBuffer buf = StringIO.getStringIO().toNative(cs, cs.length(), true);
                 buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), FLAGS);
             }
         }
@@ -584,7 +518,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 buffer.putAddress(0L);
             } else if (parameter instanceof StringBuilder) {
                 final StringBuilder sb = (StringBuilder) parameter;
-                final ByteBuffer buf = copyinString(sb, sb.capacity(), inout);
+                final StringIO io = StringIO.getStringIO();
+                final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
                 buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), nflags);
                 //
                 // Copy the string back out if its an OUT parameter
@@ -593,13 +528,14 @@ final class DefaultInvokerFactory implements InvokerFactory {
                     session.addPostInvoke(new InvocationSession.PostInvoke() {
 
                         public void postInvoke() {
-                            sb.delete(0, sb.length()).append(copyoutString(buf, sb.capacity()));
+                            sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
                         }
                     });
                 }
             } else if (parameter instanceof StringBuffer) {
                 final StringBuffer sb = (StringBuffer) parameter;
-                final ByteBuffer buf = copyinString(sb, sb.capacity(), inout);
+                final StringIO io = StringIO.getStringIO();
+                final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
                 buffer.putArray(buf.array(), buf.arrayOffset(), buf.limit(), nflags);
                 //
                 // Copy the string back out if its an OUT parameter
@@ -608,7 +544,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
                     session.addPostInvoke(new InvocationSession.PostInvoke() {
 
                         public void postInvoke() {
-                            sb.delete(0, sb.length()).append(copyoutString(buf, sb.capacity()));
+                            sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
                         }
                     });
                 }
