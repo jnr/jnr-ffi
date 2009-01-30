@@ -180,11 +180,11 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
         return flags != 0 ? flags : (ParameterFlags.IN | ParameterFlags.OUT);
     }
-    static final int getNativeFlags(int flags) {
+    static final int getNativeArrayFlags(int flags) {
         int nflags = 0;
-        nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ParameterFlags.IN : 0;
-        nflags |= ParameterFlags.isOut(flags) ? com.kenai.jffi.ParameterFlags.OUT : 0;
-        nflags |= ParameterFlags.isNulTerminate(flags) ? com.kenai.jffi.ParameterFlags.NULTERMINATE : 0;
+        nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ArrayFlags.IN : 0;
+        nflags |= ParameterFlags.isOut(flags) ? com.kenai.jffi.ArrayFlags.OUT : 0;
+        nflags |= ParameterFlags.isNulTerminate(flags) ? com.kenai.jffi.ArrayFlags.NULTERMINATE : 0;
         return nflags;
     }
     private static final Marshaller getMarshaller(Method method, int paramIndex) {
@@ -552,7 +552,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     }
     static final class CharSequenceMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new CharSequenceMarshaller();
-        static final int FLAGS = com.kenai.jffi.ParameterFlags.IN | com.kenai.jffi.ParameterFlags.NULTERMINATE;
+        static final int FLAGS = com.kenai.jffi.ArrayFlags.IN | com.kenai.jffi.ArrayFlags.NULTERMINATE;
         public void marshal(InvocationBuffer buffer, Object parameter) {
             if (parameter == null) {
                 buffer.putAddress(0L);
@@ -567,7 +567,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         private final int nflags, inout;
         public StringBuilderMarshaller(int inout) {
             this.inout = inout;
-            this.nflags = getNativeFlags(inout | (ParameterFlags.isIn(inout) ? ParameterFlags.NULTERMINATE : 0));
+            this.nflags = getNativeArrayFlags(inout | (ParameterFlags.isIn(inout) ? ParameterFlags.NULTERMINATE : 0));
         }
 
         @Override
@@ -618,7 +618,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class ByteArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public ByteArrayMarshaller(int flags) {
-            this.flags = getNativeFlags(flags | (ParameterFlags.isIn(flags) ? ParameterFlags.NULTERMINATE : 0));
+            this.flags = getNativeArrayFlags(flags | (ParameterFlags.isIn(flags) ? ParameterFlags.NULTERMINATE : 0));
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -633,7 +633,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class ShortArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public ShortArrayMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -648,7 +648,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class IntArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public IntArrayMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -663,7 +663,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class LongArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public LongArrayMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -678,7 +678,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class FloatArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public FloatArrayMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -693,7 +693,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class DoubleArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public DoubleArrayMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -708,7 +708,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class ByteBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public ByteBufferMarshaller(int flags) {
-            this.flags = getNativeFlags(flags | (ParameterFlags.isIn(flags) ? ParameterFlags.NULTERMINATE : 0));
+            this.flags = getNativeArrayFlags(flags | (ParameterFlags.isIn(flags) ? ParameterFlags.NULTERMINATE : 0));
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -725,7 +725,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class ShortBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public ShortBufferMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -742,7 +742,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class IntBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public IntBufferMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -759,7 +759,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class LongBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public LongBufferMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -776,7 +776,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class FloatBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public FloatBufferMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -793,7 +793,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class DoubleBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public DoubleBufferMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -810,7 +810,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class ByReferenceMarshaller extends BaseMarshaller {
         private final int flags;
         public ByReferenceMarshaller(int flags) {
-            this.flags = getNativeFlags(flags);
+            this.flags = getNativeArrayFlags(flags);
         }
 
         @Override
@@ -844,7 +844,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         private final int nflags, flags;
         public StructMarshaller(int flags) {
             this.flags = flags;
-            this.nflags = getNativeFlags(flags);
+            this.nflags = getNativeArrayFlags(flags);
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
@@ -866,7 +866,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         private final int nflags, flags;
         public StructArrayMarshaller(int flags) {
             this.flags = flags;
-            this.nflags = getNativeFlags(flags);
+            this.nflags = getNativeArrayFlags(flags);
         }
         
         public final void marshal(InvocationBuffer buffer, Object parameter) {
