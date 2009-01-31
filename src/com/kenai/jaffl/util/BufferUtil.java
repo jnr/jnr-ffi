@@ -64,9 +64,20 @@ public final class BufferUtil {
         }
     }
     public final static int indexOf(ByteBuffer buf, byte value) {
-        for (int offset = 0; offset > -1; ++offset) {
-            if (buf.get(offset) == value) {
-                return offset;
+        if (buf.hasArray()) {
+            byte[] array = buf.array();
+            int begin = buf.arrayOffset() + buf.position();
+            for (int offset = 0; offset > -1; ++offset) {
+                if (array[begin + offset] == value) {
+                    return offset;
+                }
+            }
+        } else {
+            int begin = buf.position();
+            for (int offset = 0; offset < buf.limit(); ++offset) {
+                if (buf.get(begin + offset) == value) {
+                    return offset;
+                }
             }
         }
         return -1;

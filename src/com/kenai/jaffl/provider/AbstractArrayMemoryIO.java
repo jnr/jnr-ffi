@@ -2,7 +2,9 @@
 package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.Platform;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
@@ -67,6 +69,17 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         return false;
     }
 
+    @Override
+    public String getString(long offset, int maxLength, Charset cs) {
+        ByteBuffer tmp = ByteBuffer.wrap(buffer, index(offset), length - (int) offset);
+        return StringIO.getStringIO().fromNative(tmp, Math.min(maxLength, length - (int) offset)).toString();
+    }
+    
+    @Override
+    public void putString(long offset, String string, int maxLength, Charset cs) {
+        StringIO.getStringIO().toNative(string,
+                ByteBuffer.wrap(buffer, index(offset), Math.min(maxLength, length - (int) offset)));
+    }
     public final byte getByte(long offset) {
         return (byte) (buffer[index(offset)] & 0xff);
     }

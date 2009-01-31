@@ -44,15 +44,20 @@ public class StringIO {
         final int len = (int) (((float)Math.max(minSize, value.length()) + 1) * encoder.maxBytesPerChar());
         final ByteBuffer buf = ByteBuffer.allocate(len);
         if (copyIn) {
-            encoder.reset();
-            //
-            // Copy the string to native memory
-            //
-            encoder.encode(CharBuffer.wrap(value), buf, true);
-            encoder.flush(buf);
-            nulTerminate(buf);
-            buf.rewind();
+            toNative(value, buf);
         }
+        return buf;
+    }
+    public final ByteBuffer toNative(final CharSequence value, final ByteBuffer buf) {
+        //
+        // Copy the string to native memory
+        //
+        buf.mark();
+        encoder.reset();
+        encoder.encode(CharBuffer.wrap(value), buf, true);
+        encoder.flush(buf);
+        nulTerminate(buf);
+        buf.reset();
         return buf;
     }
     public final CharSequence fromNative(final ByteBuffer buf, final int maxSize) {
