@@ -549,6 +549,13 @@ public abstract class Struct /*implements Marshallable */{
         }
         
         /**
+         * Sets the field to a new value.
+         * 
+         * @param value The new value.
+         */
+        public abstract void set(java.lang.Number value);
+
+        /**
          * Returns an {@code float} representation of this <tt>Number</tt>.
          * 
          * @return an {@code float} value for this <tt>Number</tt>.
@@ -626,7 +633,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(byte value) {
             getMemoryIO().putByte(offset, value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putByte(offset, value.byteValue());
+        }
+
         /**
          * Returns a java byte representation of this field.
          * 
@@ -696,7 +707,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(short value) {
             getMemoryIO().putByte(offset, (byte) value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putByte(offset, value.byteValue());
+        }
+
         /**
          * Returns a java short representation of this field.
          * 
@@ -755,7 +770,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(short value) {
             getMemoryIO().putShort(offset, value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putShort(offset, value.shortValue());
+        }
+
         /**
          * Returns a java short representation of this field.
          * 
@@ -815,7 +834,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(int value) {
             getMemoryIO().putShort(offset, (short) value);
         }
-        
+
+        public void set(Number value) {
+            getMemoryIO().putShort(offset, value.shortValue());
+        }
+
         /**
          * Returns a java int representation of this field.
          * 
@@ -864,6 +887,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(int value) {
             getMemoryIO().putInt(offset, value);
         }
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putInt(offset, value.intValue());
+        }
+
         /**
          * Returns a java int representation of this field.
          * 
@@ -913,6 +941,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(long value) {
             getMemoryIO().putInt(offset, (int) value);
         }
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putInt(offset, value.intValue());
+        }
+
         /**
          * Returns a java int representation of this field.
          * 
@@ -971,7 +1004,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(long value) {
             getMemoryIO().putLong(offset, value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putLong(offset, value.longValue());
+        }
+
         /**
          * Returns a java int representation of this field.
          * 
@@ -1040,7 +1077,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(long value) {
             getMemoryIO().putLong(offset, value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putLong(offset, value.longValue());
+        }
+
         /**
          * Returns a java int representation of this field.
          * 
@@ -1109,7 +1150,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(long value) {
             getMemoryIO().putNativeLong(offset, value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putNativeLong(offset, value.longValue());
+        }
+
         /**
          * Returns a java int representation of this field.
          * 
@@ -1182,7 +1227,11 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(long value) {
             getMemoryIO().putNativeLong(offset, value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putNativeLong(offset, value.longValue());
+        }
+
         /**
          * Returns a java int representation of this field.
          * 
@@ -1233,6 +1282,9 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(float value) {
             getMemoryIO().putFloat(offset, value);
         }
+        public void set(java.lang.Number value) {
+            getMemoryIO().putFloat(offset, value.floatValue());
+        }
         
         @Override
         public final int intValue() {
@@ -1270,6 +1322,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         public final void set(double value) {
             getMemoryIO().putDouble(offset, value);
+        }
+        public void set(java.lang.Number value) {
+            getMemoryIO().putDouble(offset, value.doubleValue());
         }
         
         @Override
@@ -1327,7 +1382,10 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(com.kenai.jaffl.Address value) {
             getMemoryIO().putAddress(offset, value != null ? value.nativeAddress() : 0);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putAddress(offset, value.longValue());
+        }
         /**
          * Returns an integer representation of this address.
          * 
@@ -1397,7 +1455,10 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(com.kenai.jaffl.Pointer value) {
             getMemoryIO().putPointer(offset, value);
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putAddress(offset, value.longValue());
+        }
         /**
          * Returns an integer representation of this <code>Pointer</code>.
          * 
@@ -1527,7 +1588,10 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(E value) {
             getMemoryIO().putByte(offset, (byte) EnumMapper.getInstance().intValue(value));
         }
-        
+
+        public void set(java.lang.Number value) {
+            getMemoryIO().putByte(offset, value.byteValue());
+        }
         /**
          * Returns an integer representation of this enum field.
          * 
@@ -1548,6 +1612,9 @@ public abstract class Struct /*implements Marshallable */{
         public final void set(E value) {
             getMemoryIO().putShort(offset, (short) EnumMapper.getInstance().intValue(value));
         }
+        public void set(java.lang.Number value) {
+            getMemoryIO().putShort(offset, value.shortValue());
+        }
         @Override
         public final int intValue() {
             return getMemoryIO().getShort(offset);
@@ -1562,6 +1629,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         public final void set(E value) {
             getMemoryIO().putInt(offset, EnumMapper.getInstance().intValue(value));
+        }
+        public void set(java.lang.Number value) {
+            getMemoryIO().putInt(offset, value.intValue());
         }
         @Override
         public final int intValue() {
@@ -1578,6 +1648,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         public final void set(E value) {
             getMemoryIO().putLong(offset, EnumMapper.getInstance().intValue(value));
+        }
+        public void set(java.lang.Number value) {
+            getMemoryIO().putLong(offset, value.longValue());
         }
         @Override
         public final int intValue() {
@@ -1598,6 +1671,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         public final void set(E value) {
             getMemoryIO().putNativeLong(offset, EnumMapper.getInstance().intValue(value));
+        }
+        public void set(java.lang.Number value) {
+            getMemoryIO().putNativeLong(offset, value.longValue());
         }
 
         @Override
