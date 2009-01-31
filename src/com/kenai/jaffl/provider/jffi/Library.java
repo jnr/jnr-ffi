@@ -2,7 +2,6 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
-import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.provider.Invoker;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
