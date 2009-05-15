@@ -5,6 +5,9 @@ import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.provider.AbstractMemoryIO;
 import com.kenai.jaffl.provider.NullMemoryIO;
+import com.kenai.jaffl.provider.StringIO;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 class DirectMemoryIO extends AbstractMemoryIO implements DirectMemory {
     static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
@@ -136,6 +139,14 @@ class DirectMemoryIO extends AbstractMemoryIO implements DirectMemory {
             IO.putAddress(address + offset, ((JFFIPointer) value).address);
         }
         throw new IllegalArgumentException("Invalid Pointer");
+    }
+
+    @Override
+    public String getString(long offset, int maxLength, Charset cs) {
+        final int len = (int) IO.indexOf(address + offset, (byte) 0, maxLength);
+        final ByteBuffer buf = ByteBuffer.allocate(Math.min(len, maxLength));
+        get(offset, buf.array(), buf.arrayOffset(), buf.limit());
+        return StringIO.getStringIO().fromNative(buf).toString();
     }
 
     public int indexOf(long offset, byte value, int maxlen) {
