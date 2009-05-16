@@ -10,6 +10,10 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.Out;
 import com.kenai.jaffl.byref.ByReference;
+import com.kenai.jaffl.mapper.FromNativeContext;
+import com.kenai.jaffl.mapper.FromNativeConverter;
+import com.kenai.jaffl.mapper.MethodResultContext;
+import com.kenai.jaffl.mapper.TypeMapper;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
 import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.InvocationSession;
@@ -54,52 +58,65 @@ final class DefaultInvokerFactory implements InvokerFactory {
             paramTypes[i] = getNativeParameterType(method, i);
         }
         Class returnType = method.getReturnType();
-
-        Function function = new Function(address, getNativeReturnType(method), paramTypes);
-        FunctionInvoker invoker = null;
-        if (Void.class.isAssignableFrom(returnType) || void.class == returnType) {
-            invoker = VoidInvoker.INSTANCE;
-        } else if (Boolean.class.isAssignableFrom(returnType) || boolean.class == returnType) {
-            invoker = BooleanInvoker.INSTANCE;
-        } else if (Enum.class.isAssignableFrom(returnType)) {
-            invoker = new EnumInvoker(returnType);
-        } else if (Byte.class.isAssignableFrom(returnType) || byte.class == returnType) {
-            invoker = Int8Invoker.INSTANCE;
-        } else if (Short.class.isAssignableFrom(returnType) || short.class == returnType) {
-            invoker = Int16Invoker.INSTANCE;
-        } else if (Integer.class.isAssignableFrom(returnType) || int.class == returnType) {
-            invoker = Int32Invoker.INSTANCE;
-        } else if (Long.class.isAssignableFrom(returnType) || long.class == returnType) {
-            invoker = Int64Invoker.INSTANCE;
-        } else if (NativeLong.class.isAssignableFrom(returnType)) {
-            invoker = Platform.getPlatform().longSize() == 32
-                ? NativeLong32Invoker.INSTANCE : NativeLong64Invoker.INSTANCE;
-        } else if (Float.class.isAssignableFrom(returnType) || float.class == returnType) {
-            invoker = Float32Invoker.INSTANCE;
-        } else if (Double.class.isAssignableFrom(returnType) || double.class == returnType) {
-            invoker = Float64Invoker.INSTANCE;
-        } else if (Pointer.class.isAssignableFrom(returnType)) {
-            invoker = PointerInvoker.INSTANCE;
-        } else if (Struct.class.isAssignableFrom(returnType)) {
-            invoker = new StructInvoker(returnType);
-        } else if (String.class.isAssignableFrom(returnType)) {
-            invoker = StringInvoker.INSTANCE;
-        } else {
-            throw new IllegalArgumentException("Unknown return type: " + returnType);
+        TypeMapper typeMapper = (TypeMapper) options.get(LibraryOption.TypeMapper);
+        FromNativeConverter resultConverter = typeMapper != null
+                ? typeMapper.getFromNativeConverter(returnType)
+                : null;
+        if (resultConverter != null) {
+            returnType = resultConverter.nativeType();
         }
-        boolean sessionRequired = false;
-        for (Marshaller m : marshallers) {
-            if (m.isSessionRequired()) {
-                sessionRequired = true;
-                break;
-            }
+        Function function = new Function(address, getNativeReturnType(returnType),
+                paramTypes);
+        FunctionInvoker invoker = getFunctionInvoker(returnType);
+        if (resultConverter != null) {
+            MethodResultContext context = new MethodResultContext(method);
+            invoker = new ConvertingInvoker(resultConverter, context, invoker);
         }
-        return sessionRequired
+        return isSessionRequired(marshallers)
                 ? new SessionInvoker(function, invoker, marshallers)
                 : new DefaultInvoker(function, invoker, marshallers);
     }
-    private static final Type getNativeReturnType(Method method) {
-        Class type = method.getReturnType();
+    private static final boolean isSessionRequired(Marshaller[] marshallers) {
+        for (Marshaller m : marshallers) {
+            if (m.isSessionRequired()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private static final FunctionInvoker getFunctionInvoker(Class returnType) {
+        if (Void.class.isAssignableFrom(returnType) || void.class == returnType) {
+            return VoidInvoker.INSTANCE;
+        } else if (Boolean.class.isAssignableFrom(returnType) || boolean.class == returnType) {
+            return BooleanInvoker.INSTANCE;
+        } else if (Enum.class.isAssignableFrom(returnType)) {
+            return new EnumInvoker(returnType);
+        } else if (Byte.class.isAssignableFrom(returnType) || byte.class == returnType) {
+            return Int8Invoker.INSTANCE;
+        } else if (Short.class.isAssignableFrom(returnType) || short.class == returnType) {
+            return Int16Invoker.INSTANCE;
+        } else if (Integer.class.isAssignableFrom(returnType) || int.class == returnType) {
+            return Int32Invoker.INSTANCE;
+        } else if (Long.class.isAssignableFrom(returnType) || long.class == returnType) {
+            return Int64Invoker.INSTANCE;
+        } else if (NativeLong.class.isAssignableFrom(returnType)) {
+            return Platform.getPlatform().longSize() == 32
+                ? NativeLong32Invoker.INSTANCE : NativeLong64Invoker.INSTANCE;
+        } else if (Float.class.isAssignableFrom(returnType) || float.class == returnType) {
+            return Float32Invoker.INSTANCE;
+        } else if (Double.class.isAssignableFrom(returnType) || double.class == returnType) {
+            return Float64Invoker.INSTANCE;
+        } else if (Pointer.class.isAssignableFrom(returnType)) {
+            return PointerInvoker.INSTANCE;
+        } else if (Struct.class.isAssignableFrom(returnType)) {
+            return new StructInvoker(returnType);
+        } else if (String.class.isAssignableFrom(returnType)) {
+            return StringInvoker.INSTANCE;
+        } else {
+            throw new IllegalArgumentException("Unknown return type: " + returnType);
+        }
+    }
+    private static final Type getNativeReturnType(Class type) {
         if (Void.class.isAssignableFrom(type) || void.class == type) {
             return Type.VOID;
         } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
@@ -312,6 +329,21 @@ final class DefaultInvokerFactory implements InvokerFactory {
     }
     static abstract class BaseInvoker implements FunctionInvoker {
         static final com.kenai.jffi.Invoker invoker = com.kenai.jffi.Invoker.getInstance();
+    }
+    static final class ConvertingInvoker extends BaseInvoker {
+        private final FromNativeConverter converter;
+        private final FromNativeContext context;
+        private final FunctionInvoker nativeInvoker;
+
+        public ConvertingInvoker(FromNativeConverter converter, FromNativeContext context, FunctionInvoker nativeInvoker) {
+            this.converter = converter;
+            this.context = context;
+            this.nativeInvoker = nativeInvoker;
+        }
+
+        public final Object invoke(Function function, HeapInvocationBuffer buffer) {
+            return converter.fromNative(nativeInvoker.invoke(function, buffer), context);
+        }
     }
     static final class VoidInvoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new VoidInvoker();
