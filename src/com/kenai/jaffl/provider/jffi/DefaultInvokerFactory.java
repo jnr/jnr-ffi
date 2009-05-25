@@ -13,6 +13,8 @@ import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
 import com.kenai.jaffl.mapper.MethodResultContext;
+import com.kenai.jaffl.mapper.ToNativeContext;
+import com.kenai.jaffl.mapper.ToNativeConverter;
 import com.kenai.jaffl.mapper.TypeMapper;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
 import com.kenai.jaffl.provider.DelegatingMemoryIO;
@@ -51,14 +53,16 @@ final class DefaultInvokerFactory implements InvokerFactory {
     public final Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
         final long address = ((Library) library).getNativeLibrary().getSymbolAddress(method.getName());
 
+        TypeMapper typeMapper = (TypeMapper) options.get(LibraryOption.TypeMapper);
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];
         Type[] paramTypes = new Type[marshallers.length];
+
         for (int i = 0; i < marshallers.length; ++i) {
-            marshallers[i] = getMarshaller(method, i);
-            paramTypes[i] = getNativeParameterType(method, i);
+            marshallers[i] = getMarshaller(method, i, typeMapper);
+            paramTypes[i] = getNativeParameterType(method, i, typeMapper);
         }
+
         Class returnType = method.getReturnType();
-        TypeMapper typeMapper = (TypeMapper) options.get(LibraryOption.TypeMapper);
         FromNativeConverter resultConverter = typeMapper != null
                 ? typeMapper.getFromNativeConverter(returnType)
                 : null;
@@ -147,8 +151,14 @@ final class DefaultInvokerFactory implements InvokerFactory {
             throw new IllegalArgumentException("Unsupported return type: " + type);
         }
     }
-    private static final Type getNativeParameterType(Method method, int paramIndex) {
+
+    private static final Type getNativeParameterType(Method method, int paramIndex, TypeMapper mapper) {
         Class type = method.getParameterTypes()[paramIndex];
+        ToNativeConverter converter = mapper != null ? mapper.getToNativeConverter(type) : null;
+        return getNativeParameterType(converter != null ? converter.nativeType() : type);
+    }
+
+    private static final Type getNativeParameterType(Class type) {
         if (Byte.class.isAssignableFrom(type) || byte.class == type) {
             return Type.SINT8;
         } else if (Short.class.isAssignableFrom(type) || short.class == type) {
@@ -201,8 +211,23 @@ final class DefaultInvokerFactory implements InvokerFactory {
         nflags |= ParameterFlags.isNulTerminate(flags) ? com.kenai.jffi.ArrayFlags.NULTERMINATE : 0;
         return nflags;
     }
-    private static final Marshaller getMarshaller(Method method, int paramIndex) {
+    private static final Marshaller getMarshaller(Method method, int paramIndex, TypeMapper mapper) {
         Class type = method.getParameterTypes()[paramIndex];
+        ToNativeConverter converter = mapper != null ? mapper.getToNativeConverter(type) : null;
+        if (converter != null) {
+            return new ToNativeConverterMarshaller(converter, 
+                    getMarshaller(converter.nativeType(), method.getParameterAnnotations()[paramIndex]));
+        } else {
+            return getMarshaller(method, paramIndex);
+        }
+    }
+
+    private static final Marshaller getMarshaller(Method method, int paramIndex) {
+        return getMarshaller(method.getParameterTypes()[paramIndex],
+                method.getParameterAnnotations()[paramIndex]);
+    }
+
+    private static final Marshaller getMarshaller(Class type, Annotation[] annotations) {
         if (Byte.class.isAssignableFrom(type) || byte.class == type) {
             return Int8Marshaller.INSTANCE;
         } else if (Short.class.isAssignableFrom(type) || short.class == type) {
@@ -225,41 +250,41 @@ final class DefaultInvokerFactory implements InvokerFactory {
         } else if (Pointer.class.isAssignableFrom(type)) {
             return PointerMarshaller.INSTANCE;
         } else if (StringBuffer.class.isAssignableFrom(type)) {
-            return new StringBuilderMarshaller(getInOutFlags(method, paramIndex));
+            return new StringBuilderMarshaller(getInOutFlags(annotations));
         } else if (StringBuilder.class.isAssignableFrom(type)) {
-            return new StringBuilderMarshaller(getInOutFlags(method, paramIndex));
+            return new StringBuilderMarshaller(getInOutFlags(annotations));
         } else if (CharSequence.class.isAssignableFrom(type)) {
             return CharSequenceMarshaller.INSTANCE;
         } else if (ByReference.class.isAssignableFrom(type)) {
-            return new ByReferenceMarshaller(getInOutFlags(method, paramIndex));
+            return new ByReferenceMarshaller(getInOutFlags(annotations));
         } else if (Struct.class.isAssignableFrom(type)) {
-            return new StructMarshaller(getInOutFlags(method, paramIndex));
+            return new StructMarshaller(getInOutFlags(annotations));
         } else if (ByteBuffer.class.isAssignableFrom(type)) {
-            return new ByteBufferMarshaller(getInOutFlags(method, paramIndex));
+            return new ByteBufferMarshaller(getInOutFlags(annotations));
         } else if (ShortBuffer.class.isAssignableFrom(type)) {
-            return new ShortBufferMarshaller(getInOutFlags(method, paramIndex));
+            return new ShortBufferMarshaller(getInOutFlags(annotations));
         } else if (IntBuffer.class.isAssignableFrom(type)) {
-            return new IntBufferMarshaller(getInOutFlags(method, paramIndex));
+            return new IntBufferMarshaller(getInOutFlags(annotations));
         } else if (LongBuffer.class.isAssignableFrom(type)) {
-            return new LongBufferMarshaller(getInOutFlags(method, paramIndex));
+            return new LongBufferMarshaller(getInOutFlags(annotations));
         } else if (FloatBuffer.class.isAssignableFrom(type)) {
-            return new FloatBufferMarshaller(getInOutFlags(method, paramIndex));
+            return new FloatBufferMarshaller(getInOutFlags(annotations));
         } else if (DoubleBuffer.class.isAssignableFrom(type)) {
-            return new DoubleBufferMarshaller(getInOutFlags(method, paramIndex));
+            return new DoubleBufferMarshaller(getInOutFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == byte.class) {
-            return new ByteArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
+            return new ByteArrayMarshaller(getInOutFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == short.class) {
-            return new ShortArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
+            return new ShortArrayMarshaller(getInOutFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == int.class) {
-            return new IntArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
+            return new IntArrayMarshaller(getInOutFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == long.class) {
-            return new LongArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
+            return new LongArrayMarshaller(getInOutFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == float.class) {
-            return new FloatArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
+            return new FloatArrayMarshaller(getInOutFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == double.class) {
-            return new DoubleArrayMarshaller(getInOutFlags(method.getParameterAnnotations()[paramIndex]));
+            return new DoubleArrayMarshaller(getInOutFlags(annotations));
         } else if (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType())) {
-            return new StructArrayMarshaller(getInOutFlags(method, paramIndex));
+            return new StructArrayMarshaller(getInOutFlags(annotations));
         } else {
             throw new IllegalArgumentException("Unsupported parameter type: " + type);
         }
@@ -855,5 +880,30 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 }
             }
         }
+    }
+    static final class ToNativeConverterMarshaller extends BaseMarshaller {
+        private final ToNativeConverter converter;
+        private final ToNativeContext context = null;
+        private final Marshaller marshaller;
+
+        public ToNativeConverterMarshaller(ToNativeConverter converter, Marshaller marshaller) {
+            this.converter = converter;
+            this.marshaller = marshaller;
+        }
+
+        public void marshal(InvocationBuffer buffer, Object parameter) {
+            marshaller.marshal(buffer, converter.toNative(parameter, context));
+        }
+
+        @Override
+        public boolean isSessionRequired() {
+            return marshaller.isSessionRequired();
+        }
+
+        @Override
+        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+            marshaller.marshal(session, buffer, converter.toNative(parameter, context));
+        }
+        
     }
 }
