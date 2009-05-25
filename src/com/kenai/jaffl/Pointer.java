@@ -1,10 +1,6 @@
 
 package com.kenai.jaffl;
 
-/**
- *
- * @author wayne
- */
 public interface Pointer {
     public static final int SIZE = Platform.getPlatform().addressSize();
 
