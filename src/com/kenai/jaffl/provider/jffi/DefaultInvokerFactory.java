@@ -819,13 +819,17 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 final ByReference ref = (ByReference) parameter;
                 final ByteBuffer buf = ByteBuffer.allocate(ref.nativeSize()).order(ByteOrder.nativeOrder());
                 buf.clear();
-                ref.marshal(buf);
+                if (com.kenai.jffi.ArrayFlags.isIn(flags)) {
+                    ref.marshal(buf);
+                }
                 buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-                session.addPostInvoke(new InvocationSession.PostInvoke() {
-                    public void postInvoke() {
-                        ref.unmarshal(buf);
-                    }
-                });
+                if (com.kenai.jffi.ArrayFlags.isOut(flags)) {
+                    session.addPostInvoke(new InvocationSession.PostInvoke() {
+                        public void postInvoke() {
+                            ref.unmarshal(buf);
+                        }
+                    });
+                }
             }
         }
 
