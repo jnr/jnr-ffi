@@ -24,6 +24,7 @@ import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
+import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.InvocationBuffer;
@@ -70,7 +71,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             returnType = resultConverter.nativeType();
         }
         Function function = new Function(address, getNativeReturnType(returnType),
-                paramTypes);
+                paramTypes, CallingConvention.DEFAULT, InvokerUtil.requiresErrno(method));
         FunctionInvoker invoker = getFunctionInvoker(returnType);
         if (resultConverter != null) {
             MethodResultContext context = new MethodResultContext(method);

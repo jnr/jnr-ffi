@@ -4,9 +4,12 @@ package com.kenai.jaffl.provider.jffi;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.annotations.IgnoreError;
+import com.kenai.jaffl.annotations.SaveError;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jffi.Type;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 
@@ -75,5 +78,17 @@ final class InvokerUtil {
         } else {
             throw new IllegalArgumentException("Unsupported parameter type: " + type);
         }
+    }
+
+    public static final boolean requiresErrno(Method method) {
+        boolean saveError = true;
+        for (Annotation a : method.getAnnotations()) {
+            if (a instanceof IgnoreError) {
+                saveError = false;
+            } else if (a instanceof SaveError) {
+                saveError = true;
+            }
+        }
+        return saveError;
     }
 }

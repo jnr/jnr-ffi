@@ -5,9 +5,13 @@ import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.annotations.IgnoreError;
+import com.kenai.jaffl.annotations.SaveError;
 import com.kenai.jaffl.util.EnumMapper;
+import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Type;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -28,7 +32,10 @@ class FastIntInvokerFactory implements InvokerFactory {
         for (int i = 0; i < nativeParamTypes.length; ++i) {
             nativeParamTypes[i] = InvokerUtil.getNativeParameterType(paramTypes[i]);
         }
-        Function function = new Function(address, InvokerUtil.getNativeReturnType(method), nativeParamTypes);
+        
+        Function function = new Function(address, InvokerUtil.getNativeReturnType(method), 
+                nativeParamTypes, CallingConvention.DEFAULT, InvokerUtil.requiresErrno(method));
+
         FastIntFunctionInvoker functionInvoker;
         switch (paramTypes.length) {
             case 0:
