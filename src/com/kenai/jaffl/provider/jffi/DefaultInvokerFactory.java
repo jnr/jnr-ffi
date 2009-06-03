@@ -476,15 +476,12 @@ final class DefaultInvokerFactory implements InvokerFactory {
             if (ptr == 0) {
                 return null;
             }
-            int end = (int) IO.indexOf(ptr, (byte) 0);
-            if (end < 0) {
-                return null;
-            }
-            ByteBuffer buf = ByteBuffer.allocate(end);
-            IO.getByteArray(ptr, buf.array(), buf.arrayOffset(), buf.capacity());
+            final ByteBuffer buf = ByteBuffer.wrap(IO.getZeroTerminatedByteArray(ptr));
+
             return StringIO.getStringIO().fromNative(buf).toString();
         }
     }
+
     /* ---------------------------------------------------------------------- */
     static final class BooleanMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new BooleanMarshaller();
