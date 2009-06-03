@@ -18,6 +18,8 @@
 
 package com.kenai.jaffl;
 
+import com.kenai.jaffl.annotations.In;
+import com.kenai.jaffl.annotations.Out;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -42,32 +44,32 @@ public class BufferTest {
     public BufferTest() {
     }
     private static interface TestLib {
-        void fillByteBuffer(ByteBuffer buf, byte value, int size);
-        void fillCharBuffer(CharBuffer buf, char value, int size);
-        void fillShortBuffer(ShortBuffer buf, short value, int size);
-        void fillIntBuffer(IntBuffer buf, int value, int size);
-        void fillLongBuffer(LongBuffer buf, long value, int size);
-        void fillFloatBuffer(FloatBuffer buf, float value, int size);
-        void fillDoubleBuffer(DoubleBuffer buf, double value, int size);
-        void fillByteBuffer(byte[] buf, byte value, int size);
-        void fillCharBuffer(char[] buf, char value, int size);
-        void fillShortBuffer(short[] buf, short value, int size);
-        void fillIntBuffer(int[] buf, int value, int size);
-        void fillLongBuffer(long[] buf, long value, int size);
-        void fillFloatBuffer(float[] buf, float value, int size);
-        void fillDoubleBuffer(double[] buf, double value, int size);
-        void copyByteBuffer(ByteBuffer dst, ByteBuffer src, int size);
-        void copyByteBuffer(ByteBuffer dst, byte[] src, int size);
-        void copyByteBuffer(byte[] dst, ByteBuffer src, int size);
-        void copyByteBuffer(byte[] dst, byte[] src, int size);
-        void copyShortBuffer(ShortBuffer dst, ShortBuffer src, int size);
-        void copyShortBuffer(ShortBuffer dst, short[] src, int size);
-        void copyShortBuffer(short[] dst, ShortBuffer src, int size);
-        void copyShortBuffer(short[] dst, short[] src, int size);
-        void copyIntBuffer(IntBuffer dst, IntBuffer src, int size);
-        void copyIntBuffer(IntBuffer dst, int[] src, int size);
-        void copyIntBuffer(int[] dst, IntBuffer src, int size);
-        void copyIntBuffer(int[] dst, int[] src, int size);
+        void fillByteBuffer(@Out ByteBuffer buf, byte value, int size);
+        void fillCharBuffer(@Out CharBuffer buf, char value, int size);
+        void fillShortBuffer(@Out ShortBuffer buf, short value, int size);
+        void fillIntBuffer(@Out IntBuffer buf, int value, int size);
+        void fillLongBuffer(@Out LongBuffer buf, long value, int size);
+        void fillFloatBuffer(@Out FloatBuffer buf, float value, int size);
+        void fillDoubleBuffer(@Out DoubleBuffer buf, double value, int size);
+        void fillByteBuffer(@Out byte[] buf, byte value, int size);
+        void fillCharBuffer(@Out char[] buf, char value, int size);
+        void fillShortBuffer(@Out short[] buf, short value, int size);
+        void fillIntBuffer(@Out int[] buf, int value, int size);
+        void fillLongBuffer(@Out long[] buf, long value, int size);
+        void fillFloatBuffer(@Out float[] buf, float value, int size);
+        void fillDoubleBuffer(@Out double[] buf, double value, int size);
+        void copyByteBuffer(@Out ByteBuffer dst, @In ByteBuffer src, int size);
+        void copyByteBuffer(@Out ByteBuffer dst, @In byte[] src, int size);
+        void copyByteBuffer(@Out byte[] dst, @In ByteBuffer src, int size);
+        void copyByteBuffer(@Out byte[] dst, @In byte[] src, int size);
+        void copyShortBuffer(@Out ShortBuffer dst, @In ShortBuffer src, int size);
+        void copyShortBuffer(@Out ShortBuffer dst, @In short[] src, int size);
+        void copyShortBuffer(@Out short[] dst, @In ShortBuffer src, int size);
+        void copyShortBuffer(@Out short[] dst, @In short[] src, int size);
+        void copyIntBuffer(@Out IntBuffer dst, @In IntBuffer src, int size);
+        void copyIntBuffer(@Out IntBuffer dst, @In int[] src, int size);
+        void copyIntBuffer(@Out int[] dst, @In IntBuffer src, int size);
+        void copyIntBuffer(@Out int[] dst, @In int[] src, int size);
     }
     static TestLib lib;
     @BeforeClass
