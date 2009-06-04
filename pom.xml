@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.kenai.jaffl</groupId>
+  <groupId>org.jruby.extras</groupId>
   <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.2</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
   <url>http://jaffl.kenai.com</url>
@@ -20,11 +20,16 @@
     <url>https://kenai.com/hg/jaffl~mercurial</url>
   </scm>
   <distributionManagement>
-    <repository>
-      <uniqueVersion>false</uniqueVersion>
-      <id>kenai.com</id>
-      <url>svn:https://kenai.com/svn/jaffl~maven</url>
+     <repository>
+      <id>codehaus-jruby-repository</id>
+      <name>JRuby Central Repository</name>
+      <url>dav:https://dav.codehaus.org/repository/jruby</url>
     </repository>
+    <snapshotRepository>
+      <id>codehaus-jruby-snapshot-repository</id>
+      <name>JRuby Central Development Repository</name>
+      <url>dav:https://dav.codehaus.org/snapshots.repository/jruby</url>
+    </snapshotRepository>
   </distributionManagement>
   <repositories>
     <repository>
@@ -44,7 +49,13 @@
       <url>http://repository.codehaus.org</url>
     </repository>
   </repositories>
-
+  <pluginRepositories>
+    <pluginRepository>
+      <id>maven2-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/2/</url>
+    </pluginRepository>
+  </pluginRepositories>
   <developers>
     <developer>
       <id>wmeissner</id>
@@ -61,9 +72,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.jruby.extras</groupId>
+      <artifactId>jffi</artifactId>
+      <version>0.5</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>3.0.8</version>
+      <version>3.0.9</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -75,6 +92,7 @@
     -->
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
+    <!--
     <resources>
         <resource>
             <directory>src/com/kenai/jaffl/provider/jffi</directory>
@@ -83,6 +101,7 @@
             </excludes>
         </resource>
     </resources>
+    -->
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -91,10 +110,6 @@
         <configuration>
           <source>1.5</source>
           <target>1.5</target>
-          <!-- Exclude the JFFI provider until its stable enough to have a maven pom -->
-          <excludes>
-            <exclude>com/kenai/jaffl/provider/jffi/**/*.java</exclude>
-          </excludes>
         </configuration>
       </plugin>
       <!--
@@ -146,6 +161,10 @@
         <groupId>org.jvnet.wagon-svn</groupId>
         <artifactId>wagon-svn</artifactId>
         <version>1.8</version>
+      </extension>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
       </extension>
     </extensions>
   </build>
