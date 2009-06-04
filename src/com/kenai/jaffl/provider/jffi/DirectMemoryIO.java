@@ -143,9 +143,9 @@ class DirectMemoryIO extends AbstractMemoryIO implements DirectMemory {
 
     @Override
     public String getString(long offset, int maxLength, Charset cs) {
-        final int len = (int) IO.indexOf(address + offset, (byte) 0, maxLength);
-        final ByteBuffer buf = ByteBuffer.allocate(Math.min(len, maxLength));
-        get(offset, buf.array(), buf.arrayOffset(), buf.limit());
+        byte[] bytes = IO.getZeroTerminatedByteArray(address + offset, maxLength);
+        final ByteBuffer buf = ByteBuffer.wrap(bytes);
+
         return StringIO.getStringIO().fromNative(buf).toString();
     }
 
