@@ -66,13 +66,13 @@ public class StringIO {
     public final CharSequence fromNative(final ByteBuffer buf, final int maxSize) {
         // Find the NUL terminator and limit to that, so the
         // StringBuffer/StringBuilder does not have superfluous NUL chars
-        int end = BufferUtil.indexOf(buf, (byte) 0);
+        int end = BufferUtil.positionOf(buf, (byte) 0);
         if (end < 0 || end > maxSize) {
             end = maxSize;
         }
 
         final int limit = buf.limit();
-        buf.limit(buf.position() + end);
+        buf.limit(end);
         try {
             return decoder.reset().decode(buf);
         } catch (CharacterCodingException ex) {

@@ -63,11 +63,44 @@ public final class BufferUtil {
             throw new Error("Illegal character data in native string", ex);
         }
     }
+
+    /**
+     * Finds the position of a byte relative to the start of the buffer.
+     *
+     * @param buf The ByteBuffer to find the value in
+     * @param value The value to locate
+     * @return The position within the buffer that value is found, or -1 if not
+     * found.
+     */
+    public final static int positionOf(ByteBuffer buf, byte value) {
+        if (buf.hasArray()) {
+            final byte[] array = buf.array();
+            final int offset = buf.arrayOffset();
+            final int limit = buf.limit();
+            for (int pos = buf.position(); pos < limit; ++pos) {
+                if (array[offset + pos] == value) {
+                    return pos;
+                }
+            }
+
+        } else {
+            final int limit = buf.limit();
+            for (int pos = buf.position(); pos < limit; ++pos) {
+                if (buf.get(pos) == value) {
+                    return pos;
+                }
+            }
+        }
+        
+        return -1;
+    }
+    
     public final static int indexOf(ByteBuffer buf, byte value) {
         if (buf.hasArray()) {
             byte[] array = buf.array();
             int begin = buf.arrayOffset() + buf.position();
-            for (int offset = 0; offset > -1; ++offset) {
+            int end = begin + buf.limit();
+            for (int offset = 0; offset < end && offset > -1; ++offset) {
                 if (array[begin + offset] == value) {
                     return offset;
                 }
