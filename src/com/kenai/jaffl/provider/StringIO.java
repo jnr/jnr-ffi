@@ -53,11 +53,14 @@ public class StringIO {
         // Copy the string to native memory
         //
         buf.mark();
-        encoder.reset();
-        encoder.encode(CharBuffer.wrap(value), buf, true);
-        encoder.flush(buf);
-        nulTerminate(buf);
-        buf.reset();
+        try {
+            encoder.reset();
+            encoder.encode(CharBuffer.wrap(value), buf, true);
+            encoder.flush(buf);
+            nulTerminate(buf);
+        } finally {
+            buf.reset();
+        }
         return buf;
     }
     public final CharSequence fromNative(final ByteBuffer buf, final int maxSize) {
@@ -67,11 +70,15 @@ public class StringIO {
         if (end < 0 || end > maxSize) {
             end = maxSize;
         }
-        buf.rewind().limit(end);
+
+        final int limit = buf.limit();
+        buf.limit(buf.position() + end);
         try {
             return decoder.reset().decode(buf);
         } catch (CharacterCodingException ex) {
             throw new Error("Illegal character data in native string", ex);
+        } finally {
+            buf.limit(limit);
         }
     }
     public final CharSequence fromNative(final ByteBuffer buf) {

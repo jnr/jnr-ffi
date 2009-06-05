@@ -72,4 +72,22 @@ public class UTF8StringFieldTest {
         testlib.copyByteBuffer(tmp, s, s.string.length());
         assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
     }
+    private final class SockaddrUnix extends Struct {
+        private final Signed8 sun_len = new Signed8();
+        private final Signed8 sun_family = new Signed8();
+        private final UTF8String sun_path = new UTF8String(100);
+    }
+    @Test public void SockaddrUnix() {
+        final int SUN_LEN = 1;
+        final int SUN_FAM = 2;
+        final String SUN_PATH = "test";
+
+        SockaddrUnix s = new SockaddrUnix();
+        s.sun_len.set(SUN_LEN);
+        s.sun_family.set(SUN_FAM);
+        s.sun_path.set(SUN_PATH);
+        assertEquals("Incorrect sun_len value", SUN_LEN, s.sun_len.intValue());
+        assertEquals("Incorrect sun_fam value", SUN_FAM, s.sun_family.intValue());
+        assertEquals("Incorrect sun_path value", SUN_PATH, s.sun_path.toString());
+    }
 }
