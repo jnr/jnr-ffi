@@ -5,13 +5,10 @@ import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
-import com.kenai.jaffl.annotations.IgnoreError;
-import com.kenai.jaffl.annotations.SaveError;
 import com.kenai.jaffl.util.EnumMapper;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Type;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -35,20 +32,21 @@ class FastIntInvokerFactory implements InvokerFactory {
         
         Function function = new Function(address, InvokerUtil.getNativeReturnType(method), 
                 nativeParamTypes, CallingConvention.DEFAULT, InvokerUtil.requiresErrno(method));
-
+        
+        final boolean noErrno = !InvokerUtil.requiresErrno(method);
         FastIntFunctionInvoker functionInvoker;
         switch (paramTypes.length) {
             case 0:
-                functionInvoker = FunctionInvokerVrI.INSTANCE;
+                functionInvoker = noErrno ? NoErrnoInvokerVrI.INSTANCE : FunctionInvokerVrI.INSTANCE;
                 break;
             case 1:
-                functionInvoker = FunctionInvokerIrI.INSTANCE;
+                functionInvoker = noErrno ? NoErrnoInvokerIrI.INSTANCE : FunctionInvokerIrI.INSTANCE;
                 break;
             case 2:
-                functionInvoker = FunctionInvokerIIrI.INSTANCE;
+                functionInvoker = noErrno ? NoErrnoInvokerIIrI.INSTANCE : FunctionInvokerIIrI.INSTANCE;
                 break;
             case 3:
-                functionInvoker = FunctionInvokerIIIrI.INSTANCE;
+                functionInvoker = noErrno ? NoErrnoInvokerIIIrI.INSTANCE : FunctionInvokerIIIrI.INSTANCE;
                 break;
             default:
                 throw new IllegalArgumentException("Parameter limit exceeded");
@@ -229,6 +227,33 @@ class FastIntInvokerFactory implements InvokerFactory {
         static final FastIntFunctionInvoker INSTANCE = new FunctionInvokerIIIrI();
         public final int invoke(Function function, Object[] args) {
             return ffi.invokeIIIrI(function, ((Number) args[0]).intValue(),
+                    ((Number) args[1]).intValue(), ((Number) args[2]).intValue());
+        }
+    }
+    private static final class NoErrnoInvokerVrI extends FastIntFunctionInvoker {
+        static final FastIntFunctionInvoker INSTANCE = new NoErrnoInvokerVrI();
+        public int invoke(Function function, Object[] args) {
+            return ffi.invokeNoErrnoVrI(function);
+        }
+    }
+    private static final class NoErrnoInvokerIrI extends FastIntFunctionInvoker {
+        static final FastIntFunctionInvoker INSTANCE = new NoErrnoInvokerIrI();
+        public final int invoke(Function function, Object[] args) {
+            return ffi.invokeNoErrnoIrI(function, ((Number) args[0]).intValue());
+        }
+    }
+    private static final class NoErrnoInvokerIIrI extends FastIntFunctionInvoker {
+        static final FastIntFunctionInvoker INSTANCE = new NoErrnoInvokerIIrI();
+        public final int invoke(Function function, Object[] args) {
+            return ffi.invokeNoErrnoIIrI(function,
+                    ((Number) args[0]).intValue(),
+                    ((Number) args[1]).intValue());
+        }
+    }
+    private static final class NoErrnoInvokerIIIrI extends FastIntFunctionInvoker {
+        static final FastIntFunctionInvoker INSTANCE = new NoErrnoInvokerIIIrI();
+        public final int invoke(Function function, Object[] args) {
+            return ffi.invokeNoErrnoIIIrI(function, ((Number) args[0]).intValue(),
                     ((Number) args[1]).intValue(), ((Number) args[2]).intValue());
         }
     }
