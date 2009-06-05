@@ -48,7 +48,7 @@ public abstract class Struct /*implements Marshallable */{
         boolean resetIndex = false;
 
         public final MemoryIO getMemoryIO(int flags) {
-            return io != null ? io : (io = allocateMemory(ParameterFlags.TRANSIENT));
+            return io != null ? io : (io = allocateMemory(flags));
         }
         public final MemoryIO getMemoryIO() {
             return getMemoryIO(ParameterFlags.TRANSIENT);

@@ -9,6 +9,7 @@ import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.Out;
+import com.kenai.jaffl.annotations.Transient;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
@@ -194,14 +195,15 @@ final class DefaultInvokerFactory implements InvokerFactory {
             throw new IllegalArgumentException("Unsupported parameter type: " + type);
         }
     }
-    static final int getInOutFlags(Method method, int paramIndex) {
-        return getInOutFlags(method.getParameterAnnotations()[paramIndex]);
+    static final int getParameterFlags(Method method, int paramIndex) {
+        return getParameterFlags(method.getParameterAnnotations()[paramIndex]);
     }
-    static final int getInOutFlags(Annotation[] annotations) {
+    static final int getParameterFlags(Annotation[] annotations) {
         int flags = 0;
         for (int i = 0; i < annotations.length; ++i) {
             flags |= (annotations[i] instanceof In) ? ParameterFlags.IN : 0;
             flags |= (annotations[i] instanceof Out) ? ParameterFlags.OUT : 0;
+            flags |= (annotations[i] instanceof Transient) ? ParameterFlags.TRANSIENT : 0;
         }
         return flags != 0 ? flags : (ParameterFlags.IN | ParameterFlags.OUT);
     }
@@ -251,41 +253,41 @@ final class DefaultInvokerFactory implements InvokerFactory {
         } else if (Pointer.class.isAssignableFrom(type)) {
             return PointerMarshaller.INSTANCE;
         } else if (StringBuffer.class.isAssignableFrom(type)) {
-            return new StringBuilderMarshaller(getInOutFlags(annotations));
+            return new StringBuilderMarshaller(getParameterFlags(annotations));
         } else if (StringBuilder.class.isAssignableFrom(type)) {
-            return new StringBuilderMarshaller(getInOutFlags(annotations));
+            return new StringBuilderMarshaller(getParameterFlags(annotations));
         } else if (CharSequence.class.isAssignableFrom(type)) {
             return CharSequenceMarshaller.INSTANCE;
         } else if (ByReference.class.isAssignableFrom(type)) {
-            return new ByReferenceMarshaller(getInOutFlags(annotations));
+            return new ByReferenceMarshaller(getParameterFlags(annotations));
         } else if (Struct.class.isAssignableFrom(type)) {
-            return new StructMarshaller(getInOutFlags(annotations));
+            return new StructMarshaller(getParameterFlags(annotations));
         } else if (ByteBuffer.class.isAssignableFrom(type)) {
-            return new ByteBufferMarshaller(getInOutFlags(annotations));
+            return new ByteBufferMarshaller(getParameterFlags(annotations));
         } else if (ShortBuffer.class.isAssignableFrom(type)) {
-            return new ShortBufferMarshaller(getInOutFlags(annotations));
+            return new ShortBufferMarshaller(getParameterFlags(annotations));
         } else if (IntBuffer.class.isAssignableFrom(type)) {
-            return new IntBufferMarshaller(getInOutFlags(annotations));
+            return new IntBufferMarshaller(getParameterFlags(annotations));
         } else if (LongBuffer.class.isAssignableFrom(type)) {
-            return new LongBufferMarshaller(getInOutFlags(annotations));
+            return new LongBufferMarshaller(getParameterFlags(annotations));
         } else if (FloatBuffer.class.isAssignableFrom(type)) {
-            return new FloatBufferMarshaller(getInOutFlags(annotations));
+            return new FloatBufferMarshaller(getParameterFlags(annotations));
         } else if (DoubleBuffer.class.isAssignableFrom(type)) {
-            return new DoubleBufferMarshaller(getInOutFlags(annotations));
+            return new DoubleBufferMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == byte.class) {
-            return new ByteArrayMarshaller(getInOutFlags(annotations));
+            return new ByteArrayMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == short.class) {
-            return new ShortArrayMarshaller(getInOutFlags(annotations));
+            return new ShortArrayMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == int.class) {
-            return new IntArrayMarshaller(getInOutFlags(annotations));
+            return new IntArrayMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == long.class) {
-            return new LongArrayMarshaller(getInOutFlags(annotations));
+            return new LongArrayMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == float.class) {
-            return new FloatArrayMarshaller(getInOutFlags(annotations));
+            return new FloatArrayMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && type.getComponentType() == double.class) {
-            return new DoubleArrayMarshaller(getInOutFlags(annotations));
+            return new DoubleArrayMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType())) {
-            return new StructArrayMarshaller(getInOutFlags(annotations));
+            return new StructArrayMarshaller(getParameterFlags(annotations));
         } else {
             throw new IllegalArgumentException("Unsupported parameter type: " + type);
         }
