@@ -60,10 +60,10 @@ public abstract class Struct /*implements Marshallable */{
             return minAlign;
         }
         private final MemoryIO allocateMemory(int flags) {
-            if (ParameterFlags.isTransient(flags)) {
-                return MemoryIO.allocate(size());
-            } else {
+            if (ParameterFlags.isDirect(flags)) {
                 return MemoryIO.allocateDirect(size(), true);
+            } else {
+                return MemoryIO.allocate(size());
             }
         }
         /*

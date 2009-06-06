@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl;
 
+import com.kenai.jaffl.annotations.Direct;
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.NulTerminate;
 import com.kenai.jaffl.annotations.Out;
@@ -16,16 +17,18 @@ public final class ParameterFlags {
     private ParameterFlags() {}
     public static final int OUT = 0x01;
     public static final int IN = 0x02;
-    public static final int TRANSIENT = 0x04;
-    public static final int PINNED = 0x08;
-    public static final int NULTERMINATE = 0x10;
-    
+    public static final int PINNED = 0x04;
+    public static final int NULTERMINATE = 0x08;
+    public static final int TRANSIENT = 0x10;
+    public static final int DIRECT = 0x20;
+
     public static final int parse(Annotation[] annotations) {
         int flags = 0;
         for (Annotation a : annotations) {
             flags |= a instanceof Out ? OUT : 0;
             flags |= a instanceof In ? IN : 0;
             flags |= a instanceof Transient ? TRANSIENT : 0;
+            flags |= a instanceof Direct ? DIRECT : 0;
             flags |= a instanceof Pinned ? PINNED : 0;
             flags |= a instanceof NulTerminate ? NULTERMINATE : 0;
         }
@@ -40,6 +43,7 @@ public final class ParameterFlags {
     public static final boolean isFlag(Annotation annotation) {
         return annotation instanceof Pinned 
                 || annotation instanceof Transient
+                || annotation instanceof Direct
                 || annotation instanceof NulTerminate
                 || annotation instanceof Out 
                 || annotation instanceof In;
@@ -49,6 +53,9 @@ public final class ParameterFlags {
     }
     public static final boolean isTransient(int flags) {
         return (flags & TRANSIENT) != 0;
+    }
+    public static final boolean isDirect(int flags) {
+        return (flags & DIRECT) != 0;
     }
     public static final boolean isNulTerminate(int flags) {
         return (flags & NULTERMINATE) != 0;

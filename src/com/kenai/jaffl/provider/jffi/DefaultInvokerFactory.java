@@ -7,9 +7,6 @@ import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
-import com.kenai.jaffl.annotations.In;
-import com.kenai.jaffl.annotations.Out;
-import com.kenai.jaffl.annotations.Transient;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
@@ -198,15 +195,11 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final int getParameterFlags(Method method, int paramIndex) {
         return getParameterFlags(method.getParameterAnnotations()[paramIndex]);
     }
+
     static final int getParameterFlags(Annotation[] annotations) {
-        int flags = 0;
-        for (int i = 0; i < annotations.length; ++i) {
-            flags |= (annotations[i] instanceof In) ? ParameterFlags.IN : 0;
-            flags |= (annotations[i] instanceof Out) ? ParameterFlags.OUT : 0;
-            flags |= (annotations[i] instanceof Transient) ? ParameterFlags.TRANSIENT : 0;
-        }
-        return flags != 0 ? flags : (ParameterFlags.IN | ParameterFlags.OUT);
+        return ParameterFlags.parse(annotations);
     }
+
     static final int getNativeArrayFlags(int flags) {
         int nflags = 0;
         nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ArrayFlags.IN : 0;
