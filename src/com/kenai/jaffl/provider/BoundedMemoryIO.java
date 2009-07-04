@@ -211,7 +211,7 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
     @Override
     public void putAddress(long offset, Address value) {
         checkBounds(size, offset, Address.SIZE >> 3);
-        super.putAddress(base + offset, value);
+        io.putAddress(base + offset, value);
     }
 
     @Override
