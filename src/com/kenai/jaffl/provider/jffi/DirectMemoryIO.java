@@ -9,7 +9,7 @@ import com.kenai.jaffl.provider.StringIO;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-class DirectMemoryIO extends AbstractMemoryIO implements DirectMemory {
+class DirectMemoryIO extends AbstractMemoryIO {
     static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
     protected final long address;
 

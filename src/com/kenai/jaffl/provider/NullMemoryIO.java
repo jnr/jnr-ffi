@@ -134,6 +134,11 @@ public final class NullMemoryIO extends AbstractMemoryIO {
     }
 
     @Override
+    public long getAddress() {
+        return 0;
+    }
+
+    @Override
     public final void setMemory(long offset, long size, byte value) {
         throw npe();
     }

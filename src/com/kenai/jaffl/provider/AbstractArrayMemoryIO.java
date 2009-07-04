@@ -41,6 +41,12 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         return false;
     }
 
+    @Override
+    public long getAddress() {
+        throw new UnsupportedOperationException("Not a direct memory object");
+    }
+
+
     private static final ArrayIO getArrayIO() {
         if (ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
             return Platform.getPlatform().addressSize() == 64

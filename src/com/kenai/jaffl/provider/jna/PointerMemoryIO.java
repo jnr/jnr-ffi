@@ -174,6 +174,12 @@ final class PointerMemoryIO extends AbstractMemoryIO {
         return true;
     }
 
+    @Override
+    public long getAddress() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+
     public com.kenai.jaffl.Pointer getPointer(long offset) {
         return new JNAPointer(ptr.getPointer(offset));
     }

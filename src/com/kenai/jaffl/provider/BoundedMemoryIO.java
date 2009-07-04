@@ -19,7 +19,11 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
     }
 
     public boolean isDirect() {
-        return io.isDirect();
+        return getDelegatedMemoryIO().isDirect();
+    }
+    
+    public long getAddress() {
+        return getDelegatedMemoryIO().getAddress();
     }
 
     public MemoryIO getDelegatedMemoryIO() {

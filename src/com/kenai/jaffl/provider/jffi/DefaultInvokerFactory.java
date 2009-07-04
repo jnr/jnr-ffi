@@ -846,8 +846,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 if (io instanceof AbstractArrayMemoryIO) {
                     AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
                     buffer.putArray(aio.array(), aio.offset(), aio.length(), nflags);
-                } else if (io instanceof DirectMemory) {
-                    buffer.putAddress(((DirectMemory) io).getAddress());
+                } else if (io.isDirect()) {
+                    buffer.putAddress(io.getAddress());
                 }
             }
         }
@@ -872,8 +872,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 if (io instanceof AbstractArrayMemoryIO) {
                     AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
                     buffer.putArray(aio.array(), aio.offset(), aio.length(), nflags);
-                } else if (io instanceof DirectMemory) {
-                    buffer.putAddress(((DirectMemory) io).getAddress());
+                } else if (io.isDirect()) {
+                    buffer.putAddress(io.getAddress());
                 }
             }
         }

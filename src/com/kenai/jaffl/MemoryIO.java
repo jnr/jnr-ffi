@@ -313,7 +313,7 @@ public abstract class MemoryIO {
     abstract public void putPointer(long offset, Pointer value);
     abstract public int indexOf(long offset, byte value);    
     abstract public int indexOf(long offset, byte value, int maxlen);
-    abstract public boolean isDirect();
+    
     abstract public long getAddress(long offset);
     
     abstract public void putAddress(long offset, long value);
@@ -328,4 +328,22 @@ public abstract class MemoryIO {
 
     abstract public void transferTo(long offset, MemoryIO other, long otherOffset, long count);
     abstract public void setMemory(long offset, long size, byte value);
+
+    /**
+     * Tells whether or not this memory object is direct.
+     *
+     * Memory objects can be either direct (representing native memory), or
+     * non-direct (representing java heap memory).
+     * 
+     * @return true if, and only if, this memory object is direct
+     */
+    abstract public boolean isDirect();
+
+    /**
+     * Gets the native address of this memory object (optional operation).
+     *
+     * @return The native address of this memory object.
+     * @throws UnsupportedOperationException If this memory object is not backed by native memory.
+     */
+    abstract public long getAddress();
 }
