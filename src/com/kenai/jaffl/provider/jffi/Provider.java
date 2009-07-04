@@ -23,11 +23,12 @@ public class Provider extends com.kenai.jaffl.FFIProvider {
 
     @Override
     public int getLastError() {
-        return LastError.getInstance().getError();
+        return LastError.getInstance().get();
     }
 
     @Override
     public void setLastError(int error) {
+        LastError.getInstance().set(error);
     }
 
 }
