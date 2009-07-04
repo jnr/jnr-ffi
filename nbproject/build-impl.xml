@@ -50,14 +50,16 @@ is divided into following sections:
         </pathconvert>
         <basename file="${libraries.1.path}" property="libraries.1.basename" suffix=".properties"/>
         <touch file="${libraries.1.dir}/${libraries.1.basename}-private.properties"/>
-        <loadproperties srcfile="${libraries.1.dir}/${libraries.1.basename}-private.properties">
+        <loadproperties encoding="ISO-8859-1" srcfile="${libraries.1.dir}/${libraries.1.basename}-private.properties">
             <filterchain>
                 <replacestring from="$${base}" to="${libraries.1.dir}"/>
+                <escapeunicode/>
             </filterchain>
         </loadproperties>
-        <loadproperties srcfile="${libraries.1.path}">
+        <loadproperties encoding="ISO-8859-1" srcfile="${libraries.1.path}">
             <filterchain>
                 <replacestring from="$${base}" to="${libraries.1.dir}"/>
+                <escapeunicode/>
             </filterchain>
         </loadproperties>
     </target>
@@ -178,10 +180,12 @@ is divided into following sections:
             <attribute default="${includes}" name="includes"/>
             <attribute default="${excludes}" name="excludes"/>
             <attribute default="${javac.debug}" name="debug"/>
-            <attribute default="/does/not/exist" name="sourcepath"/>
-            <attribute default="/does/not/exist" name="gensrcdir"/>
+            <attribute default="${empty.dir}" name="sourcepath"/>
+            <attribute default="${empty.dir}" name="gensrcdir"/>
             <element name="customize" optional="true"/>
             <sequential>
+                <property location="${build.dir}/empty" name="empty.dir"/>
+                <mkdir dir="${empty.dir}"/>
                 <javac debug="@{debug}" deprecation="${javac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includeantruntime="false" includes="@{includes}" source="${javac.source}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="${javac.target}">
                     <src>
                         <dirset dir="@{gensrcdir}" erroronmissingdir="false">
@@ -462,11 +466,29 @@ is divided into following sections:
         <property location="${dist.jar}" name="dist.jar.resolved"/>
         <echo>java -jar "${dist.jar.resolved}"</echo>
     </target>
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" if="libs.CopyLibs.classpath" name="-do-jar-with-libraries-without-manifest" unless="manifest.available+main.class">
+        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
+        <pathconvert property="run.classpath.without.build.classes.dir">
+            <path path="${run.classpath}"/>
+            <map from="${build.classes.dir.resolved}" to=""/>
+        </pathconvert>
+        <pathconvert pathsep=" " property="jar.classpath">
+            <path path="${run.classpath.without.build.classes.dir}"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+        <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+            <fileset dir="${build.classes.dir}"/>
+        </copylibs>
+    </target>
     <target name="-post-jar">
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
     </target>
-    <target depends="init,compile,-pre-jar,-do-jar-with-manifest,-do-jar-without-manifest,-do-jar-with-mainclass,-do-jar-with-libraries,-post-jar" description="Build JAR." name="jar"/>
+    <target depends="init,compile,-pre-jar,-do-jar-with-manifest,-do-jar-without-manifest,-do-jar-with-mainclass,-do-jar-with-libraries,-do-jar-with-libraries-without-manifest,-post-jar" description="Build JAR." name="jar"/>
     <!--
                 =================
                 EXECUTION SECTION
