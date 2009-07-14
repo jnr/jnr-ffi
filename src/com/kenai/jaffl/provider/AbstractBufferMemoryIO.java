@@ -145,6 +145,12 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
     }
 
     @Override
+    public String getString(long offset) {
+        return BufferUtil.getString(BufferUtil.slice(buffer, (int) offset), Charset.defaultCharset());
+    }
+
+
+    @Override
     public String getString(long offset, int maxLength, Charset cs) {
         return BufferUtil.getString(BufferUtil.slice(buffer, (int) offset, maxLength),
                 cs);

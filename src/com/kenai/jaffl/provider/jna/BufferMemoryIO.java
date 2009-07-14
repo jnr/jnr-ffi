@@ -36,4 +36,10 @@ public class BufferMemoryIO extends AbstractBufferMemoryIO {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
+    public String getString(long offset) {
+        // FIXME
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }

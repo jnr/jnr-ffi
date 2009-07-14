@@ -76,6 +76,13 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     }
 
     @Override
+    public String getString(long offset) {
+        ByteBuffer tmp = ByteBuffer.wrap(buffer, index(offset), length - (int) offset);
+        return StringIO.getStringIO().fromNative(tmp, length - (int) offset).toString();
+    }
+
+
+    @Override
     public String getString(long offset, int maxLength, Charset cs) {
         ByteBuffer tmp = ByteBuffer.wrap(buffer, index(offset), length - (int) offset);
         return StringIO.getStringIO().fromNative(tmp, Math.min(maxLength, length - (int) offset)).toString();

@@ -2,6 +2,7 @@ package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
+import java.nio.charset.Charset;
 
 /**
  *
@@ -73,6 +74,18 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     }
 
     @Override
+    public String getString(long offset) {
+        return io.getString(base + offset);
+    }
+
+
+    @Override
+    public String getString(long offset, int maxLength, Charset cs) {
+        return io.getString(base + offset, maxLength, cs);
+    }
+
+
+    @Override
     public void putByte(long offset, byte value) {
         io.putByte(base + offset, value);
     }
@@ -104,6 +117,11 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
 
     public void putPointer(long offset, Pointer value) {
         io.putPointer(base + offset, value);
+    }
+
+    @Override
+    public void putString(long offset, String string, int maxLength, Charset cs) {
+        io.putString(base + offset, string, maxLength, cs);
     }
 
     @Override

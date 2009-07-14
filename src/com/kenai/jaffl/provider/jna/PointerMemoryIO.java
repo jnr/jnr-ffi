@@ -189,6 +189,12 @@ final class PointerMemoryIO extends AbstractMemoryIO {
     }
 
     @Override
+    public String getString(long offset) {
+        return ptr.getString(offset);
+    }
+
+
+    @Override
     public String getString(long offset, int maxLength, Charset cs) {
         return ptr.getString(offset);
     }

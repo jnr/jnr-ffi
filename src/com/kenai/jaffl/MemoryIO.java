@@ -8,7 +8,7 @@ import java.nio.charset.Charset;
 /**
  * Interface to reading/writing various types of memory
  */
-public abstract class MemoryIO {
+public abstract class MemoryIO implements Pointer {
     /**
      * Allocates a new block of java heap memory and wraps it in a {@link MemoryIO}
      * accessor.
@@ -321,6 +321,7 @@ public abstract class MemoryIO {
     abstract public long getNativeLong(long offset);
     abstract public void putNativeLong(long offset, long value);
     abstract public String getString(long offset, int maxLength, Charset cs);
+    abstract public String getString(long offset);
     abstract public void putString(long offset, String string, int maxLength, Charset cs);
 
     abstract public MemoryIO slice(long offset);

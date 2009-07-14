@@ -3,6 +3,7 @@ package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
+import java.nio.charset.Charset;
 
 public final class NullMemoryIO extends AbstractMemoryIO {
     private static final String msg = "Attempted access to a NULL memory address";
@@ -124,6 +125,22 @@ public final class NullMemoryIO extends AbstractMemoryIO {
     public final void putPointer(long offset, Pointer value) {
         throw npe();
     }
+
+    public String getString(long offset) {
+        throw npe();
+    }
+
+
+    @Override
+    public String getString(long offset, int maxLength, Charset cs) {
+        throw npe();
+    }
+
+    @Override
+    public void putString(long offset, String string, int maxLength, Charset cs) {
+        throw npe();
+    }
+
 
     public final int indexOf(long offset, byte value, int maxlen) {
         throw npe();

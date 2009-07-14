@@ -203,6 +203,11 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
     }
 
     @Override
+    public String getString(long offset) {
+        return io.getString(base + offset, (int) size, Charset.defaultCharset());
+    }
+
+    @Override
     public void putAddress(long offset, long value) {
         checkBounds(size, offset, Address.SIZE >> 3);
         io.putAddress(base + offset, value);
