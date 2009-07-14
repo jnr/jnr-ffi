@@ -157,8 +157,15 @@ class DirectMemoryIO extends AbstractMemoryIO {
         return StringIO.getStringIO().fromNative(buf).toString();
     }
 
+    @Override
+    public void putString(long offset, String string, int maxLength, Charset cs) {
+        ByteBuffer buf = StringIO.getStringIO().toNative(string, 0, true);
+        IO.putByteArray(address + offset, buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+    }
+
+
     public int indexOf(long offset, byte value, int maxlen) {
-        return (int) IO.indexOf(address, value, maxlen);
+        return (int) IO.indexOf(address + offset, value, maxlen);
     }
 
     public final boolean isDirect() {

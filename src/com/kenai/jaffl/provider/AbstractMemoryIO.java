@@ -3,7 +3,6 @@ package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.provider.jna.*;
 import com.kenai.jaffl.*;
-import java.nio.charset.Charset;
 
 /**
  * Base implementations of some MemoryIO operations.
@@ -38,16 +37,6 @@ abstract public class AbstractMemoryIO extends MemoryIO {
 
     public void putNativeLong(long offset, long value) {
         NativeLongIO.INSTANCE.putLong(this, offset, value);
-    }
-    public String getString(long offset, int maxLength, Charset cs) {
-        byte[] tmp = new byte[maxLength];
-        get(offset, tmp, 0, tmp.length);
-        return new java.lang.String(tmp);
-    }
-    public void putString(long offset, String string, int maxLength, Charset cs) {
-        byte[] tmp = string.getBytes();
-        put(offset, tmp, 0, Math.min(tmp.length, maxLength));
-        putByte(offset + maxLength - 1, (byte) 0);
     }
 
     public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
