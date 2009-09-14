@@ -50,7 +50,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         return true; // The default factory supports everything
     }
     public final Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
-        final long address = ((Library) library).getNativeLibrary().getSymbolAddress(method.getName());
+        final long address = ((Library) library).findSymbolAddress(method.getName());
 
         TypeMapper typeMapper = (TypeMapper) options.get(LibraryOption.TypeMapper);
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];

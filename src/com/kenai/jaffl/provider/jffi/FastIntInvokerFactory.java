@@ -21,7 +21,7 @@ class FastIntInvokerFactory implements InvokerFactory {
         return SingletonHolder.INSTANCE;
     }
     public com.kenai.jaffl.provider.Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
-        final long address = ((Library) library).getNativeLibrary().getSymbolAddress(method.getName());
+        final long address = ((Library) library).findSymbolAddress(method.getName());
 
         Class returnType = method.getReturnType();
         Class[] paramTypes = method.getParameterTypes();

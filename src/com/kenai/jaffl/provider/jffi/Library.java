@@ -3,33 +3,26 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.provider.Invoker;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 class Library extends com.kenai.jaffl.provider.Library {
-    private static final Map<String, WeakReference<Library>> cache
-            = new ConcurrentHashMap<String, WeakReference<Library>>();
-    private static final Object cacheLock = new Object();
 
-    private final String libraryName;
-    private volatile com.kenai.jffi.Library nativeLibrary;
-    public static final Library getInstance(String name) {
-        synchronized (cacheLock) {
-            WeakReference<Library> ref = cache.get(name);
-            Library lib;
-            if (ref != null && (lib = ref.get()) != null) {
-                return lib;
-            }
-            lib = new Library(name);
-            cache.put(name, new WeakReference<Library>(lib));
-            return lib;
-        }
-    }
+    private final String[] libraryNames;
+    
+    private volatile List<com.kenai.jffi.Library> nativeLibraries = Collections.EMPTY_LIST;
+    
     Library(String name) {
-        this.libraryName = name;
+        this.libraryNames = new String[] { name };
     }
+
+    Library(String... names) {
+        this.libraryNames = (String[]) names.clone();
+    }
+
     public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {
         InvokerFactory factory;
         if (FastIntInvokerFactory.getInstance().isMethodSupported(method)) {
@@ -43,8 +36,37 @@ class Library extends com.kenai.jaffl.provider.Library {
     public Object libraryLock() {
         return this;
     }
-    synchronized com.kenai.jffi.Library getNativeLibrary() {
-        if (this.nativeLibrary == null) {
+
+    long getSymbolAddress(String name) {
+        for (com.kenai.jffi.Library l : getNativeLibraries()) {
+            long address = l.getSymbolAddress(name);
+            if (address != 0) {
+                return address;
+            }
+        }
+        return 0;
+    }
+
+    long findSymbolAddress(String name) {
+        long address = getSymbolAddress(name);
+        if (address == 0) {
+            throw new UnsatisfiedLinkError(name + " not found");
+        }
+        return address;
+    }
+
+    private synchronized List<com.kenai.jffi.Library> getNativeLibraries() {
+        if (!this.nativeLibraries.isEmpty()) {
+            return nativeLibraries;
+        }
+        return nativeLibraries = loadNativeLibraries();
+    }
+
+    private synchronized List<com.kenai.jffi.Library> loadNativeLibraries() {
+        List<com.kenai.jffi.Library> libs = new ArrayList<com.kenai.jffi.Library>();
+        List<String> errors = new ArrayList<String>(0);
+
+        for (String libraryName : libraryNames) {
             com.kenai.jffi.Library lib;
             
             lib = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY);
@@ -57,8 +79,9 @@ class Library extends com.kenai.jaffl.provider.Library {
             if (lib == null) {
                 throw new UnsatisfiedLinkError(com.kenai.jffi.Library.getLastError());
             }
-            this.nativeLibrary = lib;
+            libs.add(lib);
         }
-        return nativeLibrary;
+
+        return Collections.unmodifiableList(libs);
     }
 }

@@ -2,7 +2,6 @@
 package com.kenai.jaffl;
 
 import com.kenai.jaffl.provider.MemoryManager;
-import java.nio.Buffer;
 import java.util.Map;
 
 /**
@@ -36,6 +35,18 @@ public abstract class FFIProvider {
      */
     public abstract <T> T loadLibrary(String libraryName, Class<T> interfaceClass,
             Map<LibraryOption, ?> libraryOptions);
+
+    /**
+     * Loads a native library and links the methods defined in {@code interfaceClass}
+     * to native methods in the library.
+     *
+     * @param interfaceClass the interface that describes the native library interface
+     * @param libraryOptions options
+     * @param libraryNames the list of libraries to load
+     * @return an instance of {@code interfaceclass} that will call the native methods.
+     */
+    public abstract <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
+            String... libraryNames);
 
     /**
      * Gets the last native error code.

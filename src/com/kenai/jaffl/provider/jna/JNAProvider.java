@@ -25,6 +25,12 @@ public final class JNAProvider extends FFIProvider {
     }
 
     @Override
+    public <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
+            String... libraryNames) {
+        return loadLibrary(libraryNames[0], interfaceClass, libraryOptions);
+    }
+
+    @Override
     public int getLastError() {
         return com.sun.jna.Native.getLastError();
     }

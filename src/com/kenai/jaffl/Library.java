@@ -18,6 +18,7 @@ public final class Library {
     private Library(String libraryName) {
         name = libraryName;
     }
+
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
@@ -30,7 +31,20 @@ public final class Library {
         final Map<LibraryOption, ?> options = Collections.emptyMap();
         return loadLibrary(libraryName, interfaceClass, options);
     }
-    
+
+    /**
+     * Loads a native library and links the methods defined in {@code interfaceClass}
+     * to native methods in the library.
+     *
+     * @param libraryName the name of the library to load
+     * @param interfaceClass the interface that describes the native library interface
+     * @return an instance of {@code interfaceclass} that will call the native methods.
+     */
+    public static <T> T loadLibrary(Class<T> interfaceClass, String... libraryNames) {
+        final Map<LibraryOption, ?> options = Collections.emptyMap();
+        return loadLibrary(interfaceClass, options, libraryNames);
+    }
+
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
@@ -43,6 +57,20 @@ public final class Library {
     public static <T> T loadLibrary(String libraryName, Class<T> interfaceClass,
             Map<LibraryOption, ?> libraryOptions) {
         return FFIProvider.getProvider().loadLibrary(libraryName, interfaceClass, libraryOptions);
+    }
+
+    /**
+     * Loads a native library and links the methods defined in {@code interfaceClass}
+     * to native methods in the library.
+     *
+     * @param libraryName the name of the library to load
+     * @param interfaceClass the interface that describes the native library interface
+     * @param libraryOptions options
+     * @return an instance of {@code interfaceclass} that will call the native methods.
+     */
+    public static <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
+            String... libraryNames) {
+        return FFIProvider.getProvider().loadLibrary(interfaceClass, libraryOptions, libraryNames);
     }
     
     /**
