@@ -16,35 +16,71 @@ public abstract class Platform {
     private final int javaVersionMajor;
     protected final Pattern libPattern;
 
+    /**
+     * The common names of operating systems.
+     *
+     * <b>Note</b> The names of the enum values are used in other parts of the
+     * code to determine where to find the native stub library.  Do not rename.
+     */
     public enum OS {
+        /** MacOSX */
         DARWIN,
+        /** FreeBSD */
         FREEBSD,
+        /** NetBSD */
         NETBSD,
+        /** OpenBSD */
         OPENBSD,
+        /** Linux */
         LINUX,
+        /** Solaris (and OpenSolaris) */
         SOLARIS,
+        /** The evil borg operating system */
         WINDOWS,
-
+        /** IBM AIX */
+        AIX,
+        /** No idea what the operating system is */
         UNKNOWN;
 
         @Override
         public String toString() { return name().toLowerCase(); }
     }
+
+    /**
+     * The common names of cpu architectures.
+     *
+     * <b>Note</b> The names of the enum values are used in other parts of the
+     * code to determine where to find the native stub library.  Do not rename.
+     */
     public enum CPU {
+        /** Intel ia32 */
         I386,
+        /** AMD 64 bit (aka EM64T/X64) */
         X86_64,
-        POWERPC,
-        POWERPC64,
+        /** Power PC 32 bit */
+        PPC,
+        /** Power PC 64 bit */
+        PPC64,
+        /** Sun sparc 32 bit */
         SPARC,
+        /** Sun sparc 64 bit */
         SPARCV9,
+        /** Unknown CPU */
         UNKNOWN;
 
         @Override
         public String toString() { return name().toLowerCase(); }
     }
+
     private static final class SingletonHolder {
         static final Platform PLATFORM = determinePlatform(determineOS());
-        }
+    }
+
+    /**
+     * Determines the operating system jffi is running on
+     *
+     * @return An member of the <tt>OS</tt> enum.
+     */
     private static final OS determineOS() {
         String osName = System.getProperty("os.name").split(" ")[0].toLowerCase();
         if (osName.startsWith("mac") || osName.startsWith("darwin")) {
@@ -53,14 +89,25 @@ public abstract class Platform {
             return OS.LINUX;
         } else if (osName.startsWith("sunos") || osName.startsWith("solaris")) {
             return OS.SOLARIS;
+        } else if (osName.startsWith("aix")) {
+            return OS.AIX;
         } else if (osName.startsWith("openbsd")) {
             return OS.OPENBSD;
         } else if (osName.startsWith("freebsd")) {
             return OS.FREEBSD;
+        } else if (osName.startsWith("windows")) {
+            return OS.WINDOWS;
         } else {
-            throw new ExceptionInInitializerError("Unsupported operating system");
+            return OS.UNKNOWN;
         }
     }
+
+    /**
+     * Determines the <tt>Platform</tt> that best describes the <tt>OS</tt>
+     *
+     * @param os The operating system.
+     * @return An instance of <tt>Platform</tt>
+     */
     private static final Platform determinePlatform(OS os) {
         switch (os) {
             case DARWIN:
@@ -70,7 +117,7 @@ public abstract class Platform {
             case WINDOWS:
                 return new Windows();
             case UNKNOWN:
-                throw new ExceptionInInitializerError("Unsupported operating system");
+                return new Unsupported(os);
             default:
                 return new Default(os);
         }
@@ -82,11 +129,11 @@ public abstract class Platform {
         } else if ("x86_64".equals(archString) || "amd64".equals(archString)) {
             return CPU.X86_64;
         } else if ("ppc".equals(archString) || "powerpc".equals(archString)) {
-            return CPU.POWERPC;
+            return CPU.PPC;
         } else if ("ppc64".equals(archString)) {
-            return CPU.POWERPC64;
+            return CPU.PPC64;
         } else {
-            throw new ExceptionInInitializerError("Unsupported CPU architecture: " + archString);
+            return CPU.UNKNOWN;
         }
     }
 
@@ -97,12 +144,12 @@ public abstract class Platform {
         if (dataModel != 32 && dataModel != 64) {
             switch (cpu) {
                 case I386:
-                case POWERPC:
+                case PPC:
                 case SPARC:
                     dataModel = 32;
                     break;
                 case X86_64:
-                case POWERPC64:
+                case PPC64:
                 case SPARCV9:
                     dataModel = 64;
                     break;
@@ -248,8 +295,19 @@ public abstract class Platform {
         // Default to letting the system search for it
         return mappedName;
     }
-    
-    private static final class Default extends Platform {
+    private static class Supported extends Platform {
+        public Supported(OS os) {
+            super(os);
+        }
+    }
+
+    private static class Unsupported extends Platform {
+        public Unsupported(OS os) {
+            super(os);
+        }
+    }
+
+    private static final class Default extends Supported {
 
         public Default(OS os) {
             super(os);
@@ -259,7 +317,7 @@ public abstract class Platform {
     /**
      * A {@link Platform} subclass representing the MacOS system.
      */
-    private static final class Darwin extends Platform {
+    private static final class Darwin extends Supported {
 
         public Darwin() {
             super(OS.DARWIN);
@@ -285,7 +343,7 @@ public abstract class Platform {
     /**
      * A {@link Platform} subclass representing the Linux operating system.
      */
-    private static final class Linux extends Platform {
+    private static final class Linux extends Supported {
 
         public Linux() {
             super(OS.LINUX);
@@ -343,7 +401,7 @@ public abstract class Platform {
     /**
      * A {@link Platform} subclass representing the Windows system.
      */
-    private static class Windows extends Platform {
+    private static class Windows extends Supported {
 
         public Windows() {
             super(OS.WINDOWS);
