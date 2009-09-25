@@ -6,9 +6,11 @@ import com.kenai.jaffl.Pointer;
 public class JFFIPointer extends Number implements com.kenai.jaffl.Pointer {
     static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
     final long address;
+
     JFFIPointer(long address) {
         this.address = address;
     }
+
     public final byte getByte(long offset) {
         return IO.getByte(address + offset);
     }
@@ -143,4 +145,11 @@ public class JFFIPointer extends Number implements com.kenai.jaffl.Pointer {
         return (double) address;
     }
 
+    public static final JFFIPointer valueOf(long address) {
+        return new JFFIPointer(address);
+    }
+
+    public static final JFFIPointer valueOf(int address) {
+        return new JFFIPointer(address & 0xffffffffL);
+    }
 }

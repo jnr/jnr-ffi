@@ -24,13 +24,21 @@ class Library extends com.kenai.jaffl.provider.Library {
     }
 
     public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {
-        InvokerFactory factory;
-        if (FastIntInvokerFactory.getInstance().isMethodSupported(method)) {
-            factory = FastIntInvokerFactory.getInstance();
-        } else {
-            factory = DefaultInvokerFactory.getInstance();
+        InvokerFactory[] factories = { AsmFastIntInvokerFactory.getInstance(), FastIntInvokerFactory.getInstance() };
+        for (InvokerFactory factory : factories) {
+            if (factory.isMethodSupported(method)) {
+                try {
+                    Invoker i = factory.createInvoker(method, this, options);
+                    if (i != null) {
+                        return i;
+                    }
+                } catch (Throwable ex) { 
+                    throw new RuntimeException(ex);
+                }
+            }
         }
-        return factory.createInvoker(method, this, options);
+
+        return DefaultInvokerFactory.getInstance().createInvoker(method, this, options);
     }
 
     public Object libraryLock() {
