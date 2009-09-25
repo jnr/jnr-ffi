@@ -3,7 +3,6 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.provider.MemoryManager;
-import com.kenai.jaffl.provider.NativeInvocationHandler;
 import com.kenai.jffi.LastError;
 import java.util.Map;
 
@@ -17,17 +16,18 @@ public class Provider extends com.kenai.jaffl.FFIProvider {
 
     @Override
     public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        return interfaceClass.cast(NativeInvocationHandler.wrapInterface(new Library(libraryName),
-                interfaceClass, libraryOptions));
+        return loadLibrary(new Library(libraryName), interfaceClass, libraryOptions);
     }
 
     @Override
     public <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, String... libraryNames) {
-        return interfaceClass.cast(NativeInvocationHandler.wrapInterface(new Library(libraryNames),
-                interfaceClass, libraryOptions));
+        return loadLibrary(new Library(libraryNames), interfaceClass, libraryOptions);
     }
 
-
+    private <T> T loadLibrary(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+        return ProxyLibraryLoader.getInstance().loadLibrary(library, interfaceClass, libraryOptions);
+    }
+    
     @Override
     public int getLastError() {
         return LastError.getInstance().get();
