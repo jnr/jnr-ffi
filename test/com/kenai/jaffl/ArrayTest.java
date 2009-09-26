@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
 
 
 public class ArrayTest {
-    private static interface TestLib {
+    public static interface TestLib {
         Pointer ptr_return_array_element(Pointer[] array, int index);
         void ptr_set_array_element(Pointer[] array, int index, Pointer value);
         byte ptr_ret_int8_t(byte[] p, int offset);
@@ -49,7 +49,7 @@ public class ArrayTest {
         Pointer ptr_malloc(int size);
         void ptr_free(Pointer ptr);
     }
-    private static interface TestLibInOnly {
+    public static interface TestLibInOnly {
         byte ptr_ret_int8_t(@In byte[] p, int offset);
         short ptr_ret_int16_t(@In short[] p, int offset);
         int ptr_ret_int32_t(@In int[] p, int offset);
@@ -63,7 +63,7 @@ public class ArrayTest {
         void ptr_set_double(@In double[] p, int offset, double value);
         void ptr_set_pointer(@In Pointer[] p, int offset, Pointer value);
     }
-    private static interface TestLibOutOnly {
+    public static interface TestLibOutOnly {
         byte ptr_ret_int8_t(@Out byte[] p, int offset);
         short ptr_ret_int16_t(@Out short[] p, int offset);
         int ptr_ret_int32_t(@Out int[] p, int offset);

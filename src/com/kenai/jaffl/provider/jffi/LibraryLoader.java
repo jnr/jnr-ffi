@@ -6,4 +6,5 @@ import java.util.Map;
 
 abstract class LibraryLoader {
     abstract <T> T loadLibrary(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions);
+    abstract boolean isInterfaceSupported(Class interfaceClass);
 }

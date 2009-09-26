@@ -14,4 +14,8 @@ class ProxyLibraryLoader extends LibraryLoader {
     <T> T loadLibrary(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         return interfaceClass.cast(NativeInvocationHandler.wrapInterface(library, interfaceClass, libraryOptions));
     }
+
+    boolean isInterfaceSupported(Class interfaceClass) {
+        return true;
+    }
 }
