@@ -43,16 +43,16 @@ public class BufferTest {
 
     public BufferTest() {
     }
-    private static interface TestLib {
+    public static interface TestLib {
         void fillByteBuffer(@Out ByteBuffer buf, byte value, int size);
-        void fillCharBuffer(@Out CharBuffer buf, char value, int size);
+//        void fillCharBuffer(@Out CharBuffer buf, char value, int size);
         void fillShortBuffer(@Out ShortBuffer buf, short value, int size);
         void fillIntBuffer(@Out IntBuffer buf, int value, int size);
         void fillLongBuffer(@Out LongBuffer buf, long value, int size);
         void fillFloatBuffer(@Out FloatBuffer buf, float value, int size);
         void fillDoubleBuffer(@Out DoubleBuffer buf, double value, int size);
         void fillByteBuffer(@Out byte[] buf, byte value, int size);
-        void fillCharBuffer(@Out char[] buf, char value, int size);
+//        void fillCharBuffer(@Out char[] buf, char value, int size);
         void fillShortBuffer(@Out short[] buf, short value, int size);
         void fillIntBuffer(@Out int[] buf, int value, int size);
         void fillLongBuffer(@Out long[] buf, long value, int size);

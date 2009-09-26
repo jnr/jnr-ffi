@@ -33,7 +33,7 @@ public class StringTest {
 
     public StringTest() {
     }
-    private static interface TestLib {
+    public static interface TestLib {
         boolean string_equals(CharSequence s1, byte[] s2);        
         void string_set(StringBuffer dst, CharSequence src);
         void string_set(StringBuilder dst, CharSequence src);

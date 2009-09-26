@@ -39,7 +39,7 @@ public class ArrayTest {
     public static final class s32 extends Struct {
         public final Signed8 s8 = new Signed8();
     }
-    private static interface TestLib {
+    public static interface TestLib {
         byte ptr_ret_int8_t(s8[] s, int index);
     }
     // TODO add test methods here.

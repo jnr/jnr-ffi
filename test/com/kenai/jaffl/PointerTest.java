@@ -33,7 +33,7 @@ public class PointerTest {
 
     public PointerTest() {
     }
-    private static interface TestLib {
+    public static interface TestLib {
         Pointer ptr_return_array_element(Pointer[] array, int index);
         void ptr_set_array_element(Pointer[] array, int index, Pointer value);
         byte ptr_ret_int8_t(Pointer p, int offset);
@@ -53,7 +53,7 @@ public class PointerTest {
         void ptr_free(Pointer ptr);
     }
     static TestLib testlib;
-    private static interface Libc {
+    public static interface Libc {
         Pointer calloc(int nmemb, int size);
         Pointer malloc(int size);
         void free(Pointer ptr);

@@ -10,7 +10,7 @@ public final class TstUtil {
     public static final String getTestLibraryName() {
         return "test";
     }
-    static interface HelperLib {
+    public static interface HelperLib {
         Pointer ptr_from_buffer(ByteBuffer buf);
     }
     public static <T> T loadTestLib(Class<T> interfaceClass) {

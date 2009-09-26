@@ -54,7 +54,7 @@ public class LibraryTest {
     //
     // @Test
     // public void hello() {}
-    private static interface TestLib {
+    public static interface TestLib {
         int setLastError(int error);
     }
     @Test public void loadTestLib() {

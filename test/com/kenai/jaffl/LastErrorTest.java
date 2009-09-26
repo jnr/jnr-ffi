@@ -30,10 +30,11 @@ import static org.junit.Assert.*;
  *
  */
 public class LastErrorTest {
-    private static interface TestLib {
+    public static interface TestLib {
         @SaveError
         int setLastError(int error);
     }
+    
     public LastErrorTest() {
     }
 

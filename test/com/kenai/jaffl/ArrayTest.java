@@ -30,14 +30,14 @@ import static org.junit.Assert.*;
 
 public class ArrayTest {
     public static interface TestLib {
-        Pointer ptr_return_array_element(Pointer[] array, int index);
-        void ptr_set_array_element(Pointer[] array, int index, Pointer value);
+//        Pointer ptr_return_array_element(Pointer[] array, int index);
+//        void ptr_set_array_element(Pointer[] array, int index, Pointer value);
         byte ptr_ret_int8_t(byte[] p, int offset);
         short ptr_ret_int16_t(short[] p, int offset);
         int ptr_ret_int32_t(int[] p, int offset);
         long ptr_ret_int64_t(long[] p, int offset);
         float ptr_ret_float(float[] p, int offset);
-        Pointer ptr_ret_pointer(Pointer[] p, int offset);
+//        Pointer ptr_ret_pointer(Pointer[] p, int offset);
         double ptr_ret_double(double[] p, int offset);
         void ptr_set_int8_t(byte[] p, int offset, byte value);
         void ptr_set_int16_t(short[] p, int offset, short value);
@@ -45,7 +45,7 @@ public class ArrayTest {
         void ptr_set_int64_t(long[] p, int offset, long value);
         void ptr_set_float(float[] p, int offset, float value);
         void ptr_set_double(double[] p, int offset, double value);
-        void ptr_set_pointer(Pointer[] p, int offset, Pointer value);
+//        void ptr_set_pointer(Pointer[] p, int offset, Pointer value);
         Pointer ptr_malloc(int size);
         void ptr_free(Pointer ptr);
     }
@@ -61,7 +61,7 @@ public class ArrayTest {
         void ptr_set_int64_t(@In long[] p, int offset, long value);
         void ptr_set_float(@In float[] p, int offset, float value);
         void ptr_set_double(@In double[] p, int offset, double value);
-        void ptr_set_pointer(@In Pointer[] p, int offset, Pointer value);
+//        void ptr_set_pointer(@In Pointer[] p, int offset, Pointer value);
     }
     public static interface TestLibOutOnly {
         byte ptr_ret_int8_t(@Out byte[] p, int offset);
@@ -75,7 +75,7 @@ public class ArrayTest {
         void ptr_set_int64_t(@Out long[] p, int offset, long value);
         void ptr_set_float(@Out float[] p, int offset, float value);
         void ptr_set_double(@Out double[] p, int offset, double value);
-        void ptr_set_pointer(@Out Pointer[] p, int offset, Pointer value);
+//        void ptr_set_pointer(@Out Pointer[] p, int offset, Pointer value);
     }
     static TestLib testlib;
     public ArrayTest() {

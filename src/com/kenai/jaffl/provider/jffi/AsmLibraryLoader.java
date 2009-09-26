@@ -3,14 +3,22 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
+import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.annotations.In;
+import com.kenai.jaffl.provider.jffi.DefaultInvokerFactory.Marshaller;
+import com.kenai.jaffl.struct.Struct;
+import com.kenai.jffi.ArrayFlags;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
+import com.kenai.jffi.InvocationBuffer;
 import com.kenai.jffi.Platform;
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.nio.Buffer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,7 +30,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
-class AsmLibraryLoader extends LibraryLoader implements Opcodes {
+public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     private final AtomicLong nextClassID = new AtomicLong(0);
     private final AtomicLong nextIvarID = new AtomicLong(0);
@@ -32,7 +40,38 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     boolean isInterfaceSupported(Class interfaceClass) {
+        for (Method m : interfaceClass.getDeclaredMethods()) {
+            if (!isReturnTypeSupported(m.getReturnType())) {
+                return false;
+            }
+            for (Class c: m.getParameterTypes()) {
+                if (!isParameterTypeSupported(c)) {
+                    return false;
+                }
+            }
+        }
+
         return true;
+    }
+
+    private boolean isReturnTypeSupported(Class type) {
+        return type.isPrimitive() || Byte.class == type
+                || Short.class == type || Integer.class == type
+                || Long.class == type || Float.class == type
+                || Double.class == type || Pointer.class == type
+                || String.class == type;
+        
+    }
+
+    private boolean isParameterTypeSupported(Class type) {
+        return type.isPrimitive() || Byte.class == type
+                || Short.class == type || Integer.class == type
+                || Long.class == type || Float.class == type
+                || Double.class == type || Pointer.class.isAssignableFrom(type)
+                || Buffer.class.isAssignableFrom(type)
+                || (type.isArray() && type.getComponentType().isPrimitive())
+                || Struct.class.isAssignableFrom(type)
+                || String.class.isAssignableFrom(type);
     }
     
     @Override
@@ -42,8 +81,8 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final <T> T generateInterfaceImpl(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = new CheckClassAdapter(new TraceClassVisitor(cw, new PrintWriter(System.err)));
-//        ClassVisitor cv = cw;
+//        ClassVisitor cv = new CheckClassAdapter(new TraceClassVisitor(cw, new PrintWriter(System.err)));
+        ClassVisitor cv = cw;
 
         String className = Type.getInternalName(AsmLibraryLoader.class).replace("/", "_")
                 + "_" + interfaceClass.getSimpleName() + "_" + nextClassID.incrementAndGet();
@@ -66,12 +105,16 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         
         final Method[] methods = interfaceClass.getDeclaredMethods();
         Function[] functions = new Function[methods.length];
+        Marshaller[] marshallers = new Marshaller[methods.length];
+
         init.visitVarInsn(ALOAD, 0);
         init.visitVarInsn(ALOAD, 2);
 
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
             functions[i] = getFunction(m, library.findSymbolAddress(m.getName()));
+//            marshallers[i] = DefaultInvokerFactory.getMarshaller(m.getParameterTypes()[i], m.getParameterAnnotations()[i]);
+
             String functionFieldName = "function_" + i;
 
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, Type.getDescriptor(Function.class), null, null);
@@ -95,7 +138,6 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         try {
             Class implClass = AsmLoader.INSTANCE.defineClass(className, cw.toByteArray());
             Constructor<T> cons = implClass.getDeclaredConstructor(Library.class, Function[].class);
-            System.out.println("constructor=" + cons);
             return cons.newInstance(library, functions);
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
@@ -120,17 +162,16 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         if (isFastIntMethod(m)) {
             generateFastIntInvocation(mv, returnType, parameterTypes);
         } else {
-            generateBufferInvocation(mv, returnType, parameterTypes);
+            generateBufferInvocation(mv, returnType, parameterTypes, m.getParameterAnnotations());
         }
         
         mv.visitMaxs(10, 10);
         mv.visitEnd();
     }
 
-    private final void generateBufferInvocation(MethodVisitor mv, Class returnType, Class[] parameterTypes) {
+    private final void generateBufferInvocation(MethodVisitor mv, Class returnType, Class[] parameterTypes, Annotation[][] annotations) {
         // [ stack contains: Invoker, Function ]
         // new HeapInvocationBuffer(function)
-//        mv.visitInsn(DUP);
         mv.visitTypeInsn(NEW, Type.getInternalName(HeapInvocationBuffer.class));
         // [ Invoker, Function, Buffer ] => [ Invoker, Function, Buffer, Function, Buffer ]
         mv.visitInsn(DUP2);
@@ -143,22 +184,69 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.visitInsn(DUP); // dup ref to HeapInvocationBuffer
-            if (isPrimitiveInt(parameterTypes[i]) || boolean.class == parameterTypes[i]) {
-                mv.visitVarInsn(ILOAD, lvar++);
-            } else if (long.class == parameterTypes[i]) {
-                mv.visitVarInsn(LLOAD, lvar); lvar += 2;
-            } else if (float.class == parameterTypes[i]) {
-                mv.visitVarInsn(FLOAD, lvar++);
-            } else if (double.class == parameterTypes[i]) {
-                mv.visitVarInsn(DLOAD, lvar); lvar += 2;
-            } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
-                mv.visitVarInsn(ALOAD, lvar++);
-                unboxIntParameter(mv, parameterTypes[i], null);
-            } else {
-                throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
-            }
+            final int parameterFlags = DefaultInvokerFactory.getParameterFlags(annotations[i]);
+            final int nativeArrayFlags = DefaultInvokerFactory.getNativeArrayFlags(parameterFlags)
+                        | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
 
-            emitInvocationBufferParameter(mv, parameterTypes[i]);
+            if (parameterTypes[i].isArray()) {
+                mv.visitVarInsn(ALOAD, lvar++);
+                mv.visitIntInsn(BIPUSH, nativeArrayFlags);
+                // stack should be: [ Buffer, array, flags ]
+                mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(MarshalUtil.class), "marshal",
+                    Type.getMethodDescriptor(Type.getType(void.class),
+                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE }));
+
+            } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                mv.visitVarInsn(ALOAD, lvar++);
+                mv.visitIntInsn(BIPUSH, nativeArrayFlags);
+                // stack should be: [ Buffer, pointer, flags ]
+                mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(MarshalUtil.class), "marshal",
+                    Type.getMethodDescriptor(Type.getType(void.class),
+                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE }));
+
+            } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+                mv.visitVarInsn(ALOAD, lvar++);
+                mv.visitIntInsn(BIPUSH, nativeArrayFlags);
+                // stack should be: [ Buffer, array, flags ]
+                mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(MarshalUtil.class), "marshal",
+                    Type.getMethodDescriptor(Type.getType(void.class),
+                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE }));
+
+            } else if (CharSequence.class.isAssignableFrom(parameterTypes[i])) {
+                mv.visitVarInsn(ALOAD, lvar++);
+                // stack should be: [ Buffer, array, flags ]
+                mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(MarshalUtil.class), "marshal",
+                    Type.getMethodDescriptor(Type.getType(void.class),
+                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(CharSequence.class) }));
+
+            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                mv.visitVarInsn(ALOAD, lvar++);
+                mv.visitIntInsn(BIPUSH, parameterFlags);
+                mv.visitIntInsn(BIPUSH, nativeArrayFlags);
+                // stack should be: [ Buffer, array, flags ]
+                mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(MarshalUtil.class), "marshal",
+                    Type.getMethodDescriptor(Type.getType(void.class),
+                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Struct.class), Type.INT_TYPE, Type.INT_TYPE }));
+
+            } else {
+                if (isPrimitiveInt(parameterTypes[i]) || boolean.class == parameterTypes[i]) {
+                    mv.visitVarInsn(ILOAD, lvar++);
+                } else if (long.class == parameterTypes[i]) {
+                    mv.visitVarInsn(LLOAD, lvar);
+                    lvar += 2;
+                } else if (float.class == parameterTypes[i]) {
+                    mv.visitVarInsn(FLOAD, lvar++);
+                } else if (double.class == parameterTypes[i]) {
+                    mv.visitVarInsn(DLOAD, lvar);
+                    lvar += 2;
+                } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
+                    mv.visitVarInsn(ALOAD, lvar++);
+                    unboxIntParameter(mv, parameterTypes[i], null);
+                } else {
+                    throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
+                }
+                emitInvocationBufferIntParameter(mv, parameterTypes[i]);
+            }
         }
 
         String invokeMethod = null;
@@ -174,6 +262,9 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         } else if (NativeLong.class == returnType) {
             invokeMethod = NativeLong.SIZE == 32 ? "invokeInt" : "invokeLong";
             nativeReturnType = NativeLong.SIZE == 32 ? int.class : long.class;
+        } else if (Pointer.class == returnType || Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
+            invokeMethod = "invokeAddress";
+            nativeReturnType = long.class;
         } else if (Float.class == returnType || float.class == returnType) {
             invokeMethod = "invokeFloat";
             nativeReturnType = float.class;
@@ -187,14 +278,19 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         mv.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(com.kenai.jffi.Invoker.class), invokeMethod,
                 Type.getMethodDescriptor(Type.getType(nativeReturnType), new Type[] { Type.getType(Function.class), Type.getType(HeapInvocationBuffer.class) }));
 
-        if (!returnType.isPrimitive()) {
+        if (Struct.class.isAssignableFrom(returnType)) {
+        } else if (String.class == returnType) {
+            mv.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(MarshalUtil.class), "returnString",
+                Type.getMethodDescriptor(Type.getType(String.class), new Type[] { Type.LONG_TYPE }));
+            mv.visitInsn(ARETURN);
+        } else if (!returnType.isPrimitive()) {
             boxIntReturnValue(mv, returnType, nativeReturnType);
             mv.visitInsn(ARETURN);
         } else {
             emitReturnOp(mv, returnType);
         }
     }
-
+    
     private final void generateFastIntInvocation(MethodVisitor mv, Class returnType, Class[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
 
@@ -374,7 +470,7 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
-    private final void emitInvocationBufferParameter(final MethodVisitor mv, final Class parameterType) {
+    private final void emitInvocationBufferIntParameter(final MethodVisitor mv, final Class parameterType) {
         String paramMethod = null;
         Class paramClass = int.class;
         if (byte.class == parameterType || Byte.class == parameterType) {
@@ -489,6 +585,7 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     }
 
+    
     static final class AsmLoader extends ClassLoader {
         static final AsmLoader INSTANCE = new AsmLoader();
 
@@ -497,7 +594,15 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
+    static final int marshall(byte[] array) {
+        if (array == null) {
+            return 1;
+        } else {
+            return array[0];
+        }
+    }
     public static interface TestLib {
+        byte ptr_ret_int8_t(@In byte[] p, int offset);
         public byte add_int8_t(byte i1, byte i2);
         public byte add_int8_t(Byte i1, byte i2);
         public Byte add_int8_t(byte i1, Byte i2);
@@ -522,6 +627,7 @@ class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     
     public static void main(String[] args) {
         final Map<LibraryOption, ?> options = Collections.emptyMap();
+        byte[].class.cast(null);
         TestLib lib = AsmLibraryLoader.getInstance().loadLibrary(new Library("test"), TestLib.class, options);
         byte result = lib.add_int8_t((byte) 1, (byte) 2);
         System.err.println("result=" + result);

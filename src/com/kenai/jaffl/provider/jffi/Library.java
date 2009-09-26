@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-class Library extends com.kenai.jaffl.provider.Library {
+public class Library extends com.kenai.jaffl.provider.Library {
 
     private final String[] libraryNames;
     

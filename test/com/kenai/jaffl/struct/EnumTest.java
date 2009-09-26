@@ -40,14 +40,14 @@ public class EnumTest {
         B,
         MAGIC;
     }
-    private class struct1 extends Struct {
+    public class struct1 extends Struct {
         public final Enum8<TestEnum> b = new Enum8<TestEnum>(TestEnum.class);
         public final Enum16<TestEnum> s = new Enum16<TestEnum>(TestEnum.class);
         public final Enum32<TestEnum> i = new Enum32<TestEnum>(TestEnum.class);
         public final Enum64<TestEnum> i64 = new Enum64<TestEnum>(TestEnum.class);
         public final EnumLong<TestEnum> l = new EnumLong<TestEnum>(TestEnum.class);
     }
-    private static interface TestLib {
+    public static interface TestLib {
         byte struct_field_Signed8(struct1 s);
         short struct_field_Signed16(struct1 s);
         int struct_field_Signed32(struct1 s);

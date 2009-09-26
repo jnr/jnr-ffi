@@ -207,7 +207,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
         nflags |= ParameterFlags.isNulTerminate(flags) ? com.kenai.jffi.ArrayFlags.NULTERMINATE : 0;
         return nflags;
     }
-    private static final Marshaller getMarshaller(Method method, int paramIndex, TypeMapper mapper) {
+
+    static final Marshaller getMarshaller(Method method, int paramIndex, TypeMapper mapper) {
         Class type = method.getParameterTypes()[paramIndex];
         ToNativeConverter converter = mapper != null ? mapper.getToNativeConverter(type) : null;
         if (converter != null) {
@@ -218,12 +219,12 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
     }
 
-    private static final Marshaller getMarshaller(Method method, int paramIndex) {
+    static final Marshaller getMarshaller(Method method, int paramIndex) {
         return getMarshaller(method.getParameterTypes()[paramIndex],
                 method.getParameterAnnotations()[paramIndex]);
     }
 
-    private static final Marshaller getMarshaller(Class type, Annotation[] annotations) {
+    static final Marshaller getMarshaller(Class type, Annotation[] annotations) {
         if (Byte.class.isAssignableFrom(type) || byte.class == type) {
             return Int8Marshaller.INSTANCE;
         } else if (Short.class.isAssignableFrom(type) || short.class == type) {
@@ -339,18 +340,22 @@ final class DefaultInvokerFactory implements InvokerFactory {
         abstract void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter);
         abstract void marshal(InvocationBuffer buffer, Object parameter);
     }
+
     static interface FunctionInvoker {
         Object invoke(Function function, HeapInvocationBuffer buffer);
     }
+
     static abstract class BaseMarshaller implements Marshaller {
         public boolean isSessionRequired() { return false; }
         public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
             marshal(buffer, parameter);
         }
     }
+
     static abstract class BaseInvoker implements FunctionInvoker {
         static final com.kenai.jffi.Invoker invoker = com.kenai.jffi.Invoker.getInstance();
     }
+
     static final class ConvertingInvoker extends BaseInvoker {
         private final FromNativeConverter converter;
         private final FromNativeContext context;
@@ -536,17 +541,11 @@ final class DefaultInvokerFactory implements InvokerFactory {
     
     static final class CharSequenceMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new CharSequenceMarshaller();
-        static final int FLAGS = com.kenai.jffi.ArrayFlags.IN | com.kenai.jffi.ArrayFlags.NULTERMINATE;
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                CharSequence cs = (CharSequence) parameter;
-                ByteBuffer buf = StringIO.getStringIO().toNative(cs, cs.length(), true);
-                buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), FLAGS);
-            }
+            MarshalUtil.marshal(buffer, (CharSequence) parameter);
         }
     }
+    
     static final class StringBuilderMarshaller extends BaseMarshaller {
         private final int nflags, inout;
         public StringBuilderMarshaller(int inout) {
@@ -608,12 +607,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                byte[] array = byte[].class.cast(parameter);
-                buffer.putArray(array, 0, array.length, flags);
-            }
+            MarshalUtil.marshal(buffer, byte[].class.cast(parameter), flags);
         }
     }
     static final class ShortArrayMarshaller extends BaseMarshaller {
@@ -623,12 +617,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                short[] array = short[].class.cast(parameter);
-                buffer.putArray(array, 0, array.length, flags);
-            }
+            MarshalUtil.marshal(buffer, short[].class.cast(parameter), flags);
         }
     }
     static final class IntArrayMarshaller extends BaseMarshaller {
@@ -638,14 +627,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                int[] array = int[].class.cast(parameter);
-                buffer.putArray(array, 0, array.length, flags);
-            }
+            MarshalUtil.marshal(buffer, int[].class.cast(parameter), flags);
         }
     }
+
     static final class LongArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public LongArrayMarshaller(int flags) {
@@ -653,14 +638,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                long[] array = long[].class.cast(parameter);
-                buffer.putArray(array, 0, array.length, flags);
-            }
+            MarshalUtil.marshal(buffer, long[].class.cast(parameter), flags);
         }
     }
+
     static final class FloatArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public FloatArrayMarshaller(int flags) {
@@ -668,14 +649,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                float[] array = float[].class.cast(parameter);
-                buffer.putArray(array, 0, array.length, flags);
-            }
+            MarshalUtil.marshal(buffer, float[].class.cast(parameter), flags);
         }
     }
+    
     static final class DoubleArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public DoubleArrayMarshaller(int flags) {
@@ -683,14 +660,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                double[] array = double[].class.cast(parameter);
-                buffer.putArray(array, 0, array.length, flags);
-            }
+            MarshalUtil.marshal(buffer, double[].class.cast(parameter), flags);
         }
     }
+
     static final class ByteBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public ByteBufferMarshaller(int flags) {
@@ -698,16 +671,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            ByteBuffer buf = (ByteBuffer) parameter;
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else if (buf.hasArray()) {
-                buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-            } else {
-                buffer.putDirectBuffer(buf, buf.position(), buf.remaining());
-            }
+            MarshalUtil.marshal(buffer, (ByteBuffer) parameter, flags);
         }
     }
+
     static final class ShortBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public ShortBufferMarshaller(int flags) {
@@ -715,16 +682,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            ShortBuffer buf = (ShortBuffer) parameter;
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else if (buf.hasArray()) {
-                buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-            } else {
-                buffer.putDirectBuffer(buf, buf.position() << 1, buf.remaining() << 1);
-            }
+            MarshalUtil.marshal(buffer, (ShortBuffer) parameter, flags);
         }
     }
+
     static final class IntBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public IntBufferMarshaller(int flags) {
@@ -732,16 +693,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            IntBuffer buf = (IntBuffer) parameter;
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else if (buf.hasArray()) {
-                buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-            } else {
-                buffer.putDirectBuffer(buf, buf.position() << 2, buf.remaining() << 2);
-            }
+            MarshalUtil.marshal(buffer, (IntBuffer) parameter, flags);
         }
     }
+
     static final class LongBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public LongBufferMarshaller(int flags) {
@@ -749,16 +704,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            LongBuffer buf = (LongBuffer) parameter;
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else if (buf.hasArray()) {
-                buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-            } else {
-                buffer.putDirectBuffer(buf, buf.position() << 3, buf.remaining() << 3);
-            }
+            MarshalUtil.marshal(buffer, (LongBuffer) parameter, flags);
         }
     }
+
     static final class FloatBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public FloatBufferMarshaller(int flags) {
@@ -766,16 +715,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            FloatBuffer buf = (FloatBuffer) parameter;
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else if (buf.hasArray()) {
-                buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-            } else {
-                buffer.putDirectBuffer(buf, buf.position() << 2, buf.remaining() << 2);
-            }
+            MarshalUtil.marshal(buffer, (FloatBuffer) parameter, flags);
         }
     }
+
     static final class DoubleBufferMarshaller extends BaseMarshaller {
         private final int flags;
         public DoubleBufferMarshaller(int flags) {
@@ -783,16 +726,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            DoubleBuffer buf = (DoubleBuffer) parameter;
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else if (buf.hasArray()) {
-                buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-            } else {
-                buffer.putDirectBuffer(buf, buf.position() << 3, buf.remaining() << 3);
-            }
+            MarshalUtil.marshal(buffer, (DoubleBuffer) parameter, flags);
         }
     }
+    
     static final class ByReferenceMarshaller extends BaseMarshaller {
         private final int flags;
         public ByReferenceMarshaller(int flags) {
@@ -830,6 +767,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             throw new UnsupportedOperationException("Cannot marshal ByReference without session");
         }
     }
+
     static final class StructMarshaller extends BaseMarshaller {
         private final int nflags, flags;
         public StructMarshaller(int flags) {
@@ -838,20 +776,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                Struct s = (Struct) parameter;
-                MemoryIO io = StructUtil.getMemoryIO(s, flags);
-                if (io instanceof AbstractArrayMemoryIO) {
-                    AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
-                    buffer.putArray(aio.array(), aio.offset(), aio.length(), nflags);
-                } else if (io.isDirect()) {
-                    buffer.putAddress(io.getAddress());
-                }
-            }
+            MarshalUtil.marshal(buffer, (Struct) parameter, flags, nflags);
         }
     }
+
     static final class StructArrayMarshaller extends BaseMarshaller {
         private final int nflags, flags;
         public StructArrayMarshaller(int flags) {
@@ -878,6 +806,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             }
         }
     }
+
     static final class ToNativeConverterMarshaller extends BaseMarshaller {
         private final ToNativeConverter converter;
         private final ToNativeContext context = null;
