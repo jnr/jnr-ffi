@@ -34,7 +34,7 @@ public class EnumTest {
 
     public EnumTest() {
     }
-    private static enum TestEnum implements EnumMapper.IntegerEnum {
+    public static enum TestEnum implements EnumMapper.IntegerEnum {
         A(1),
         B(2),
         C(3),
@@ -48,11 +48,13 @@ public class EnumTest {
         }
         private final int value;
     }
-    private static interface TestLib {
+    
+    public static interface TestLib {
         public int ret_int32_t(TestEnum e);
         public int add_int32_t(TestEnum i1, TestEnum i2);
     }
-    private static interface ReturnEnumLib {
+
+    public static interface ReturnEnumLib {
         public TestEnum ret_int32_t(int e);
         public TestEnum ret_int32_t(TestEnum e);
         public TestEnum add_int32_t(int i1, int i2);

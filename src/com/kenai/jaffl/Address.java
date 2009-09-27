@@ -10,7 +10,11 @@ public class Address extends Number implements Comparable<Address> {
     public static final long MASK = SIZE == 32 ? 0xffffffffL : 0xffffffffffffffffL;
 
     protected final long address;
-    
+
+    public static final Address valueOf(long address) {
+        return new Address(address);
+    }
+
     /**
      * Creates a new address representation.
      * 

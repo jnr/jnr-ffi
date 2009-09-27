@@ -50,15 +50,17 @@ public class ByteByReferenceTest {
     @After
     public void tearDown() {
     }
-    private static interface TestLib {
+    public static interface TestLib {
         byte ptr_ret_int8_t(ByteByReference p, int offset);
         void ptr_set_int_t(ByteByReference p, int offset, byte value);
     }
-    private static interface TestLibInOnly {
+    
+    public static interface TestLibInOnly {
         byte ptr_ret_int8_t(@In ByteByReference p, int offset);
         void ptr_set_int8_t(@In ByteByReference p, int offset, byte value);
     }
-    private static interface TestLibOutOnly {
+    
+    public static interface TestLibOutOnly {
         byte ptr_ret_int8_t(@Out ByteByReference p, int offset);
         void ptr_set_int8_t(@Out ByteByReference p, int offset, byte value);
     }

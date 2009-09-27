@@ -18,7 +18,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
  * @author headius
  */
 public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
-    private final static boolean DEBUG = true; //SafePropertyAccessor.getBoolean("jruby.compile.dump");
+    private final static boolean DEBUG = false; //SafePropertyAccessor.getBoolean("jruby.compile.dump");
     private MethodVisitor method;
     
     /** Creates a new instance of SkinnyMethodAdapter */

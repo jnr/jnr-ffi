@@ -53,15 +53,15 @@ public class AddressByReferenceTest {
     @After
     public void tearDown() {
     }
-    private static interface TestLib {
+    public static interface TestLib {
         Address ptr_ret_pointer(AddressByReference p, int offset);
         void ptr_set_pointer(AddressByReference p, int offset, Address value);
     }
-    private static interface TestLibInOnly {
+    public static interface TestLibInOnly {
         Address ptr_ret_pointer(@In AddressByReference p, int offset);
         void ptr_set_pointer(@In AddressByReference p, int offset, Address value);
     }
-    private static interface TestLibOutOnly {
+    public static interface TestLibOutOnly {
         Address ptr_ret_pointer(@Out AddressByReference p, int offset);
         void ptr_set_pointer(@Out AddressByReference p, int offset, Address value);
     }
@@ -71,12 +71,12 @@ public class AddressByReferenceTest {
     // @Test
     // public void hello() {}
     @Test public void dummy() {}
-//    @Test public void inOnlyReferenceSet() {
-//        TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
-//        final Address MAGIC = new Address(0xdeadbeef);
-//        AddressByReference ref = new AddressByReference(MAGIC);
-//        assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_pointer(ref, 0));
-//    }
+    @Test public void inOnlyReferenceSet() {
+        TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
+        final Address MAGIC = new Address(0xdeadbeef);
+        AddressByReference ref = new AddressByReference(MAGIC);
+        assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_pointer(ref, 0));
+    }
 //    @Test public void inOnlyIntReferenceNotWritten() {
 //        TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
 //        final Address MAGIC = new Address(0xdeadbeef);

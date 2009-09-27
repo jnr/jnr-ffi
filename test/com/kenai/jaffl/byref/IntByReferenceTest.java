@@ -51,15 +51,15 @@ public class IntByReferenceTest {
     @After
     public void tearDown() {
     }
-    private static interface TestLib {
+    public static interface TestLib {
         int ptr_ret_int32_t(IntByReference p, int offset);
         void ptr_set_int32_t(IntByReference p, int offset, int value);
     }
-    private static interface TestLibInOnly {
+    public static interface TestLibInOnly {
         int ptr_ret_int32_t(@In IntByReference p, int offset);
         void ptr_set_int32_t(@In IntByReference p, int offset, int value);
     }
-    private static interface TestLibOutOnly {
+    public static interface TestLibOutOnly {
         int ptr_ret_int32_t(@Out IntByReference p, int offset);
         void ptr_set_int32_t(@Out IntByReference p, int offset, int value);
     }

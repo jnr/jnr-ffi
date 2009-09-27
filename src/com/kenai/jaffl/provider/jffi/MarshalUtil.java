@@ -1,14 +1,21 @@
 
 package com.kenai.jaffl.provider.jffi;
 
+import com.kenai.jaffl.Address;
 import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
+import com.kenai.jaffl.provider.DelegatingMemoryIO;
+import com.kenai.jaffl.provider.InvocationSession;
 import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
+import com.kenai.jaffl.util.EnumMapper;
 import com.kenai.jffi.InvocationBuffer;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -68,13 +75,24 @@ public class MarshalUtil {
         }
     }
 
-    public static final void marshal(InvocationBuffer buffer, Pointer ptr, int flags) {
+    public static final void marshal(InvocationBuffer buffer, Pointer ptr, int nativeArrayFlags) {
         if (ptr == null) {
             buffer.putAddress(0L);
         } else if (ptr instanceof JFFIPointer) {
             buffer.putAddress(((JFFIPointer) ptr).address);
+        } else if (ptr instanceof AbstractArrayMemoryIO) {
+            AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) ptr;
+            buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
         } else {
             throw new IllegalArgumentException("unsupported argument type" + ptr.getClass());
+        }
+    }
+
+    public static final void marshal(InvocationBuffer buffer, Address ptr) {
+        if (ptr == null) {
+            buffer.putAddress(0L);
+        } else {
+            buffer.putAddress(ptr.nativeAddress());
         }
     }
 
@@ -147,19 +165,107 @@ public class MarshalUtil {
         }
     }
 
-    public static final void marshal(InvocationBuffer buffer, Struct parameter, int flags, int nflags) {
+    public static final void marshal(InvocationBuffer buffer, Struct parameter, int parameterFlags, int nativeArrayFlags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
-            Struct s = (Struct) parameter;
-            MemoryIO io = StructUtil.getMemoryIO(s, flags);
+            Struct s = parameter;
+            MemoryIO io = StructUtil.getMemoryIO(s, parameterFlags);
             if (io instanceof AbstractArrayMemoryIO) {
                 AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
-                buffer.putArray(aio.array(), aio.offset(), aio.length(), nflags);
+                buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
             } else if (io.isDirect()) {
                 buffer.putAddress(io.getAddress());
             }
         }
+    }
+
+    public static final void marshal(InvocationBuffer buffer, Struct[] parameter, int parameterFlags, int nativeArrayFlags) {
+        if (parameter == null) {
+            buffer.putAddress(0L);
+        } else {
+            Struct[] array = parameter;
+            MemoryIO io = StructUtil.getMemoryIO(array[0], parameterFlags);
+            if (!(io instanceof DelegatingMemoryIO)) {
+                throw new RuntimeException("Struct array must be backed by contiguous array");
+            }
+            io = ((DelegatingMemoryIO) io).getDelegatedMemoryIO();
+            if (io instanceof AbstractArrayMemoryIO) {
+                AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
+                buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
+            } else if (io.isDirect()) {
+                buffer.putAddress(io.getAddress());
+            }
+        }
+    }
+
+    public static final void marshal(InvocationSession session, InvocationBuffer buffer, ByReference parameter, int flags) {
+        if (parameter == null) {
+            buffer.putAddress(0L);
+        } else {
+            final ByReference ref = (ByReference) parameter;
+            final ByteBuffer buf = ByteBuffer.allocate(ref.nativeSize()).order(ByteOrder.nativeOrder());
+            buf.clear();
+            if (com.kenai.jffi.ArrayFlags.isIn(flags)) {
+                ref.marshal(buf);
+            }
+            buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
+            if (com.kenai.jffi.ArrayFlags.isOut(flags)) {
+                session.addPostInvoke(new InvocationSession.PostInvoke() {
+                    public void postInvoke() {
+                        ref.unmarshal(buf);
+                    }
+                });
+            }
+        }
+    }
+
+    public static final void marshal(InvocationSession session, InvocationBuffer buffer, StringBuilder parameter, int inout, int nflags) {
+        if (parameter == null) {
+            buffer.putAddress(0L);
+        } else {
+            final StringBuilder sb = parameter;
+            final StringIO io = StringIO.getStringIO();
+            final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
+            buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), nflags);
+            //
+            // Copy the string back out if its an OUT parameter
+            //
+            if (ParameterFlags.isOut(inout)) {
+                session.addPostInvoke(new InvocationSession.PostInvoke() {
+
+                    public void postInvoke() {
+                        sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
+                    }
+                });
+            }
+        }
+    }
+    
+    public static final void marshal(InvocationSession session, InvocationBuffer buffer, final StringBuffer parameter, int inout, int nflags) {
+        if (parameter == null) {
+            buffer.putAddress(0L);
+        } else {
+            final StringBuffer sb = parameter;
+            final StringIO io = StringIO.getStringIO();
+            final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
+            buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), nflags);
+            //
+            // Copy the string back out if its an OUT parameter
+            //
+            if (ParameterFlags.isOut(inout)) {
+                session.addPostInvoke(new InvocationSession.PostInvoke() {
+
+                    public void postInvoke() {
+                        sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
+                    }
+                });
+            }
+        }
+    }
+
+    public static final void marshal(InvocationBuffer buffer, final Enum parameter) {
+        buffer.putInt(EnumMapper.getInstance().intValue(parameter));
     }
 
     public static final String returnString(long ptr) {

@@ -247,7 +247,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         } else if (Pointer.class.isAssignableFrom(type)) {
             return PointerMarshaller.INSTANCE;
         } else if (StringBuffer.class.isAssignableFrom(type)) {
-            return new StringBuilderMarshaller(getParameterFlags(annotations));
+            return new StringBufferMarshaller(getParameterFlags(annotations));
         } else if (StringBuilder.class.isAssignableFrom(type)) {
             return new StringBuilderMarshaller(getParameterFlags(annotations));
         } else if (CharSequence.class.isAssignableFrom(type)) {
@@ -545,61 +545,46 @@ final class DefaultInvokerFactory implements InvokerFactory {
             MarshalUtil.marshal(buffer, (CharSequence) parameter);
         }
     }
-    
-    static final class StringBuilderMarshaller extends BaseMarshaller {
-        private final int nflags, inout;
-        public StringBuilderMarshaller(int inout) {
-            this.inout = inout;
-            this.nflags = getNativeArrayFlags(inout | (ParameterFlags.isIn(inout) ? ParameterFlags.NULTERMINATE : 0));
-        }
 
+    static abstract class SessionRequiredMarshaller extends BaseMarshaller {
         @Override
         public final boolean isSessionRequired() {
             return true;
         }
 
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            throw new UnsupportedOperationException("Cannot marshal StringBuilder without session");
-        }
-        @Override
-        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else if (parameter instanceof StringBuilder) {
-                final StringBuilder sb = (StringBuilder) parameter;
-                final StringIO io = StringIO.getStringIO();
-                final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
-                buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), nflags);
-                //
-                // Copy the string back out if its an OUT parameter
-                //
-                if (ParameterFlags.isOut(inout)) {
-                    session.addPostInvoke(new InvocationSession.PostInvoke() {
-
-                        public void postInvoke() {
-                            sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
-                        }
-                    });
-                }
-            } else if (parameter instanceof StringBuffer) {
-                final StringBuffer sb = (StringBuffer) parameter;
-                final StringIO io = StringIO.getStringIO();
-                final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
-                buffer.putArray(buf.array(), buf.arrayOffset(), buf.limit(), nflags);
-                //
-                // Copy the string back out if its an OUT parameter
-                //
-                if (ParameterFlags.isOut(inout)) {
-                    session.addPostInvoke(new InvocationSession.PostInvoke() {
-
-                        public void postInvoke() {
-                            sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
-                        }
-                    });
-                }
-            }
+            throw new UnsupportedOperationException("Cannot marshal this type without session");
         }
     }
+
+    static final class StringBuilderMarshaller extends SessionRequiredMarshaller {
+        private final int nflags, inout;
+        public StringBuilderMarshaller(int inout) {
+            this.inout = inout;
+            this.nflags = getNativeArrayFlags(inout | (ParameterFlags.isIn(inout) ? ParameterFlags.NULTERMINATE : 0));
+        }
+
+        
+        @Override
+        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+            MarshalUtil.marshal(session, buffer, (StringBuilder) parameter, inout, nflags);
+        }
+    }
+
+    static final class StringBufferMarshaller extends SessionRequiredMarshaller {
+        private final int nflags, inout;
+        public StringBufferMarshaller(int inout) {
+            this.inout = inout;
+            this.nflags = getNativeArrayFlags(inout | (ParameterFlags.isIn(inout) ? ParameterFlags.NULTERMINATE : 0));
+        }
+
+
+        @Override
+        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+            MarshalUtil.marshal(session, buffer, (StringBuffer) parameter, inout, nflags);
+        }
+    }
+            
     static final class ByteArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public ByteArrayMarshaller(int flags) {
@@ -730,41 +715,15 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
     }
     
-    static final class ByReferenceMarshaller extends BaseMarshaller {
+    static final class ByReferenceMarshaller extends SessionRequiredMarshaller {
         private final int flags;
         public ByReferenceMarshaller(int flags) {
             this.flags = getNativeArrayFlags(flags);
         }
 
         @Override
-        public final boolean isSessionRequired() {
-            return true;
-        }
-
-        @Override
         public final void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                final ByReference ref = (ByReference) parameter;
-                final ByteBuffer buf = ByteBuffer.allocate(ref.nativeSize()).order(ByteOrder.nativeOrder());
-                buf.clear();
-                if (com.kenai.jffi.ArrayFlags.isIn(flags)) {
-                    ref.marshal(buf);
-                }
-                buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-                if (com.kenai.jffi.ArrayFlags.isOut(flags)) {
-                    session.addPostInvoke(new InvocationSession.PostInvoke() {
-                        public void postInvoke() {
-                            ref.unmarshal(buf);
-                        }
-                    });
-                }
-            }
-        }
-
-        public void marshal(InvocationBuffer buffer, Object parameter) {
-            throw new UnsupportedOperationException("Cannot marshal ByReference without session");
+            MarshalUtil.marshal(session, buffer, (ByReference) parameter, flags);
         }
     }
 
@@ -788,22 +747,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
         
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            if (parameter == null) {
-                buffer.putAddress(0L);
-            } else {
-                Struct[] array = Struct[].class.cast(parameter);
-                MemoryIO io = StructUtil.getMemoryIO(array[0], flags);
-                if (!(io instanceof DelegatingMemoryIO)) {
-                    throw new RuntimeException("Struct array must be backed by contiguous array");
-                }
-                io = ((DelegatingMemoryIO) io).getDelegatedMemoryIO();
-                if (io instanceof AbstractArrayMemoryIO) {
-                    AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
-                    buffer.putArray(aio.array(), aio.offset(), aio.length(), nflags);
-                } else if (io.isDirect()) {
-                    buffer.putAddress(io.getAddress());
-                }
-            }
+            MarshalUtil.marshal(buffer, Struct[].class.cast(parameter), flags, nflags);
         }
     }
 

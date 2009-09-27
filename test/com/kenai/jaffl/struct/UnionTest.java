@@ -50,7 +50,7 @@ public class UnionTest {
     public void tearDown() {
     }
 
-    private static final class union extends Union {
+    public static final class union extends Union {
         public final Signed8 s8 = new Signed8();
         public final Unsigned8 u8 = new Unsigned8();
         public final Signed16 s16 = new Signed16();

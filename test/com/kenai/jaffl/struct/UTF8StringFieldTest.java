@@ -37,10 +37,10 @@ import static org.junit.Assert.*;
 public class UTF8StringFieldTest {
     public UTF8StringFieldTest() {
     }
-    private class StringFieldStruct extends Struct {
+    public class StringFieldStruct extends Struct {
         public final UTF8String string = new UTF8String(32);
     }
-    private static interface TestLib {
+    public static interface TestLib {
         // This makes use of the string being the first field in the struct
         int string_equals(@Pinned @In @Transient StringFieldStruct s1, String s2);
         int copyByteBuffer(@Pinned @Out StringFieldStruct dst, @In byte[] src, int len);

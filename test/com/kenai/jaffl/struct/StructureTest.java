@@ -33,7 +33,7 @@ public class StructureTest {
 
     public StructureTest() {
     }
-    private static interface TestLib {
+    public static interface TestLib {
         byte struct_field_Signed8(struct1 s);
         short struct_field_Signed16(struct1 s);
         int struct_field_Signed32(struct1 s);

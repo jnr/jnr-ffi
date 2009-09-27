@@ -35,7 +35,7 @@ public class EnumTest {
 
     public EnumTest() {
     }
-    enum TestEnum {
+    public enum TestEnum {
         ZERO,
         B,
         MAGIC;
@@ -86,19 +86,19 @@ public class EnumTest {
     //
     // @Test
     // public void hello() {}
-    private static class Int16Align extends Struct {
+    public static class Int16Align extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final Enum16<TestEnum> s = new Enum16<TestEnum>(TestEnum.class);
     }
-    private static class Int32Align extends Struct {
+    public static class Int32Align extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final Enum32<TestEnum> i = new Enum32<TestEnum>(TestEnum.class);
     }
-    private static class Int64Align extends Struct {
+    public static class Int64Align extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final Enum64<TestEnum> l = new Enum64<TestEnum>(TestEnum.class);
     }
-    private static class LongAlign extends Struct {
+    public static class LongAlign extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final EnumLong<TestEnum> l = new EnumLong<TestEnum>(TestEnum.class);
     }

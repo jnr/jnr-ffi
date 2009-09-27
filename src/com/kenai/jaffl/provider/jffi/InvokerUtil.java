@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl.provider.jffi;
 
+import com.kenai.jaffl.Address;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
@@ -38,6 +39,8 @@ final class InvokerUtil {
             return Type.SINT32;
         } else if (Pointer.class.isAssignableFrom(type)) {
             return Type.POINTER;
+        } else if (Address.class.isAssignableFrom(type)) {
+            return Type.POINTER;
         } else if (Struct.class.isAssignableFrom(type)) {
             return Type.POINTER;
         } else {
@@ -64,6 +67,8 @@ final class InvokerUtil {
         } else if (Enum.class.isAssignableFrom(type)) {
             return Type.SINT32;
         } else if (Pointer.class.isAssignableFrom(type)) {
+            return Type.POINTER;
+        } else if (Address.class.isAssignableFrom(type)) {
             return Type.POINTER;
         } else if (Struct.class.isAssignableFrom(type)) {
             return Type.POINTER;
