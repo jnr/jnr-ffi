@@ -20,6 +20,7 @@ import com.kenai.jffi.Platform;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.Collections;
@@ -201,12 +202,29 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.dup(); // dup ref to HeapInvocationBuffer
+            if (isSessionRequired(parameterTypes[i])) {
+                mv.aload(lvarSession);
+                mv.swap();
+            }
+            if (!parameterTypes[i].isPrimitive()) {
+                mv.aload(lvar++);
+            } else if (long.class == parameterTypes[i]) {
+                mv.lload(lvar);
+                lvar += 2;
+            } else if (float.class == parameterTypes[i]) {
+                mv.fload(lvar++);
+            } else if (double.class == parameterTypes[i]) {
+                mv.dload(lvar);
+                lvar += 2;
+            } else {
+                mv.iload(lvar++);
+            }
+            
             final int parameterFlags = DefaultInvokerFactory.getParameterFlags(annotations[i]);
             final int nativeArrayFlags = DefaultInvokerFactory.getNativeArrayFlags(parameterFlags)
                         | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
 
             if (parameterTypes[i].isArray() && parameterTypes[i].getComponentType().isPrimitive()) {
-                mv.aload(lvar++);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ Buffer, array, flags ]
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
@@ -214,7 +232,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                         new Type[] { Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE }));
 
             } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ Buffer, pointer, flags ]
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
@@ -222,7 +239,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                         new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Pointer.class), Type.INT_TYPE }));
 
             } else if (Address.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
                 // stack should be: [ Buffer, pointer, flags ]
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
                     Type.getMethodDescriptor(Type.getType(void.class),
@@ -230,14 +246,12 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
 
             } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
                 // stack should be: [ Buffer, pointer, flags ]
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
                     Type.getMethodDescriptor(Type.getType(void.class),
                         new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Enum.class) }));
 
             } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ Buffer, array, flags ]
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
@@ -245,9 +259,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                         new Type[] { Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE }));
 
             } else if (ByReference.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvarSession);
-                mv.swap();
-                mv.aload(lvar++);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ session, buffer, ref, flags ]
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
@@ -256,9 +267,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
 
             } else if (StringBuilder.class.isAssignableFrom(parameterTypes[i]) || StringBuffer.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvarSession);
-                mv.swap();
-                mv.aload(lvar++);
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ session, buffer, ref, flags ]
@@ -267,14 +275,12 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                         new Type[] { Type.getType(InvocationSession.class), Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE, Type.INT_TYPE }));
 
             } else if (CharSequence.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
                 // stack should be: [ Buffer, array, flags ]
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
                     Type.getMethodDescriptor(Type.getType(void.class),
                         new Type[] { Type.getType(InvocationBuffer.class), Type.getType(CharSequence.class) }));
 
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ Buffer, array, flags ]
@@ -283,7 +289,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                         new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Struct.class), Type.INT_TYPE, Type.INT_TYPE }));
 
             } else if (parameterTypes[i].isArray() && Struct.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
-                mv.aload(lvar++);
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
@@ -291,24 +296,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                         new Type[] { Type.getType(InvocationBuffer.class),
                                 Type.getType(Struct[].class), Type.INT_TYPE, Type.INT_TYPE }));
 
-            } else {
-                if (isPrimitiveInt(parameterTypes[i]) || boolean.class == parameterTypes[i]) {
-                    mv.iload(lvar++);
-                } else if (long.class == parameterTypes[i]) {
-                    mv.lload(lvar);
-                    lvar += 2;
-                } else if (float.class == parameterTypes[i]) {
-                    mv.fload(lvar++);
-                } else if (double.class == parameterTypes[i]) {
-                    mv.dload(lvar);
-                    lvar += 2;
-                } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
-                    mv.aload(lvar++);
-                    unboxIntParameter(mv, parameterTypes[i], null);
-                } else {
-                    throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
-                }
+            } else if (parameterTypes[i].isPrimitive() || Number.class.isAssignableFrom(parameterTypes[i])) {
                 emitInvocationBufferIntParameter(mv, parameterTypes[i]);
+
+            } else {
+                throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
             }
         }
 
@@ -435,40 +427,40 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void boxIntReturnValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
-        Class primitiveClass, objClass;
+        Class primitiveClass, objClass = returnType;
         if (Byte.class.isAssignableFrom(returnType)) {
             if (long.class == nativeReturnType) mv.l2i();
             mv.i2b();
             primitiveClass = byte.class;
-            objClass = Byte.class;
-
+            
         } else if (Short.class.isAssignableFrom(returnType)) {
             if (long.class == nativeReturnType) mv.l2i();
             mv.i2s();
             primitiveClass = short.class;
-            objClass = Short.class;
-
+            
         } else if (Integer.class.isAssignableFrom(returnType)) {
             if (long.class == nativeReturnType) mv.l2i();
             primitiveClass = int.class;
-            objClass = Integer.class;
-
+            
 
         } else if (Long.class.isAssignableFrom(returnType)) {
             if (long.class != nativeReturnType) mv.i2l();
             primitiveClass = long.class;
-            objClass = Long.class;
-
+            
         } else if (NativeLong.class.isAssignableFrom(returnType)) {
             if (long.class != nativeReturnType) mv.i2l();
             primitiveClass = long.class;
-            objClass = NativeLong.class;
+
+        } else if (Float.class.isAssignableFrom(returnType)) {
+            primitiveClass = float.class;
+
+        } else if (Double.class.isAssignableFrom(returnType)) {
+            primitiveClass = double.class;
 
         } else if (Boolean.class.isAssignableFrom(returnType)) {
             if (long.class == nativeReturnType) mv.l2i();
             primitiveClass = boolean.class;
-            objClass = Boolean.class;
-
+            
         } else if (Pointer.class.isAssignableFrom(returnType)) {
             primitiveClass = nativeReturnType;
             objClass = JFFIPointer.class;
@@ -476,7 +468,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         } else if (Address.class == returnType) {
             if (long.class != nativeReturnType) mv.i2l();
             primitiveClass = long.class;
-            objClass = Address.class;
         } else {
             throw new IllegalArgumentException("invalid return type");
         }
@@ -485,24 +476,29 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 Type.getMethodDescriptor(Type.getType(objClass), new Type[] { Type.getType(primitiveClass) }));
     }
 
+    
     private final void unboxIntParameter(final SkinnyMethodAdapter mv, final Class parameterType, final Class nativeIntType) {
         String intValueMethod = long.class == nativeIntType ? "longValue" : "intValue";
         String intValueSignature = long.class == nativeIntType ? "()J" : "()I";
 
         if (Byte.class == parameterType || Short.class == parameterType || Integer.class == parameterType) {
             mv.invokevirtual(Type.getInternalName(parameterType), intValueMethod, intValueSignature);
+
         } else if (Long.class == parameterType) {
             mv.invokevirtual(Type.getInternalName(parameterType), "longValue", "()J");
+
         } else if (Float.class == parameterType) {
             mv.invokevirtual(Type.getInternalName(parameterType), "floatValue", "()F");
+
         } else if (Double.class == parameterType) {
             mv.invokevirtual(Type.getInternalName(parameterType), "doubleValue", "()D");
-        } else if (NativeLong.class.isAssignableFrom(parameterType) && nativeIntType != null) {
-            mv.invokevirtual(Type.getInternalName(parameterType), intValueMethod, intValueSignature);
-        } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 32) {
-            mv.invokevirtual(Type.getInternalName(parameterType), "intValue", "()I");
+
         } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 64) {
             mv.invokevirtual(Type.getInternalName(parameterType), "longValue", "()J");
+
+        } else if (NativeLong.class.isAssignableFrom(parameterType)) {
+            mv.invokevirtual(Type.getInternalName(parameterType), intValueMethod, intValueSignature);
+
         } else {
             throw new IllegalArgumentException("unsupported Number subclass");
         }
@@ -523,30 +519,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.areturn();
         }
     }
-    private final void emitNullReturn(SkinnyMethodAdapter mv, Class returnType) {
-        if (isPrimitiveInt(returnType) || boolean.class == returnType) {
-            mv.visitInsn(ICONST_0);
-            mv.visitInsn(IRETURN);
-        } else if (long.class == returnType) {
-            mv.visitInsn(LCONST_0);
-            mv.visitInsn(LRETURN);
-        } else if (float.class == returnType) {
-            mv.visitInsn(FCONST_0);
-            mv.visitInsn(FRETURN);
-        } else if (double.class == returnType) {
-            mv.visitInsn(DCONST_0);
-            mv.visitInsn(DRETURN);
-        } else if (void.class == returnType) {
-            mv.visitInsn(RETURN);
-        } else {
-            mv.visitInsn(ACONST_NULL);
-            mv.visitInsn(ARETURN);
-        }
-    }
 
     private final void emitInvocationBufferIntParameter(final SkinnyMethodAdapter mv, final Class parameterType) {
         String paramMethod = null;
         Class paramClass = int.class;
+        
+        if (!parameterType.isPrimitive()) {
+            unboxIntParameter(mv, parameterType, null);
+        }
+
         if (byte.class == parameterType || Byte.class == parameterType) {
             paramMethod = "putByte";
         } else if (short.class == parameterType || Short.class == parameterType) {
@@ -635,6 +616,61 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
         return com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.I386
                 || com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.X86_64;
+    }
+
+    private static final Class getBoxedClass(Class c) {
+        if (!c.isPrimitive()) {
+            return c;
+        }
+
+        if (void.class == c) {
+            return Void.class;
+        } else if (byte.class == c) {
+            return Byte.class;
+        } else if (char.class == c) {
+            return Character.class;
+        } else if (short.class == c) {
+            return Short.class;
+        } else if (int.class == c) {
+            return Integer.class;
+        } else if (long.class == c) {
+            return Long.class;
+        } else if (float.class == c) {
+            return Float.class;
+        } else if (double.class == c) {
+            return Double.class;
+        } else if (boolean.class == c) {
+            return Boolean.class;
+        } else {
+            throw new IllegalArgumentException("unknown primitive class");
+        }
+    }
+
+    private static final Class getPrimitiveClass(Class c) {
+        if (!Number.class.isAssignableFrom(c)) {
+            return c;
+        }
+        if (Void.class == c) {
+            return void.class;
+        } else if (Byte.class == c) {
+            return byte.class;
+        } else if (Character.class == c) {
+            return char.class;
+        } else if (Short.class == c) {
+            return short.class;
+        } else if (Integer.class == c) {
+            return int.class;
+        } else if (Long.class == c) {
+            return long.class;
+        } else if (Float.class == c) {
+            return float.class;
+        } else if (Double.class == c) {
+            return double.class;
+        } else if (Boolean.class == c) {
+            return boolean.class;
+        } else {
+            throw new IllegalArgumentException("unknown number class");
+        }
     }
 
     final static boolean isFastIntResult(Class type) {
