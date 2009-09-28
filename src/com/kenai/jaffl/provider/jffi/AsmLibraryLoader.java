@@ -20,7 +20,6 @@ import com.kenai.jffi.Platform;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.Collections;
@@ -226,75 +225,46 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             if (parameterTypes[i].isArray() && parameterTypes[i].getComponentType().isPrimitive()) {
                 mv.pushInt(nativeArrayFlags);
-                // stack should be: [ Buffer, array, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE }));
+                marshal(mv, parameterTypes[i], int.class);
 
             } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
                 mv.pushInt(nativeArrayFlags);
-                // stack should be: [ Buffer, pointer, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Pointer.class), Type.INT_TYPE }));
+                marshal(mv, Pointer.class, int.class);
 
             } else if (Address.class.isAssignableFrom(parameterTypes[i])) {
-                // stack should be: [ Buffer, pointer, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Address.class) }));
-
+                marshal(mv, Pointer.class);
 
             } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
-                // stack should be: [ Buffer, pointer, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Enum.class) }));
+                marshal(mv, Enum.class);
 
             } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
                 mv.pushInt(nativeArrayFlags);
-                // stack should be: [ Buffer, array, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE }));
+                marshal(mv, parameterTypes[i], int.class);
 
             } else if (ByReference.class.isAssignableFrom(parameterTypes[i])) {
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ session, buffer, ref, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationSession.class), Type.getType(InvocationBuffer.class), Type.getType(ByReference.class), Type.INT_TYPE }));
-
+                sessionmarshal(mv, ByReference.class, int.class);
 
             } else if (StringBuilder.class.isAssignableFrom(parameterTypes[i]) || StringBuffer.class.isAssignableFrom(parameterTypes[i])) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ session, buffer, ref, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationSession.class), Type.getType(InvocationBuffer.class), Type.getType(parameterTypes[i]), Type.INT_TYPE, Type.INT_TYPE }));
+                sessionmarshal(mv, parameterTypes[i], int.class, int.class);
 
             } else if (CharSequence.class.isAssignableFrom(parameterTypes[i])) {
                 // stack should be: [ Buffer, array, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(CharSequence.class) }));
+                marshal(mv, CharSequence.class);
 
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
-                // stack should be: [ Buffer, array, flags ]
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class), Type.getType(Struct.class), Type.INT_TYPE, Type.INT_TYPE }));
+                marshal(mv, Struct.class, int.class, int.class);
 
             } else if (parameterTypes[i].isArray() && Struct.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
-                mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal",
-                    Type.getMethodDescriptor(Type.getType(void.class),
-                        new Type[] { Type.getType(InvocationBuffer.class),
-                                Type.getType(Struct[].class), Type.INT_TYPE, Type.INT_TYPE }));
+                marshal(mv, Struct[].class, int.class, int.class);
 
             } else if (parameterTypes[i].isPrimitive() || Number.class.isAssignableFrom(parameterTypes[i])) {
                 emitInvocationBufferIntParameter(mv, parameterTypes[i]);
@@ -472,8 +442,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             throw new IllegalArgumentException("invalid return type");
         }
 
-        mv.invokestatic(Type.getInternalName(objClass), "valueOf",
-                Type.getMethodDescriptor(Type.getType(objClass), new Type[] { Type.getType(primitiveClass) }));
+        invokestatic(mv, objClass, "valueOf", objClass, primitiveClass);
     }
 
     
@@ -556,6 +525,34 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 Type.getMethodDescriptor(Type.getType(void.class), new Type[] { Type.getType(paramClass) }));
     }
 
+    private final void invokestatic(SkinnyMethodAdapter mv, Class recv, String methodName, Class returnType, Class... parameterTypes) {
+        Type[] types = new Type[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            types[i] = Type.getType(parameterTypes[i]);
+        }
+        mv.invokestatic(Type.getInternalName(recv), methodName, Type.getMethodDescriptor(Type.getType(returnType), types));
+    }
+
+    private final void marshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
+        Type[] types = new Type[parameterTypes.length + 1];
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            types[i + 1] = Type.getType(parameterTypes[i]);
+        }
+        types[0] = Type.getType(InvocationBuffer.class);
+        mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal", Type.getMethodDescriptor(Type.VOID_TYPE, types));
+    }
+
+    private final void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
+        Type[] types = new Type[parameterTypes.length + 2];
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            types[i + 2] = Type.getType(parameterTypes[i]);
+        }
+        types[0] = Type.getType(InvocationSession.class);
+        types[1] = Type.getType(InvocationBuffer.class);
+
+        mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal", Type.getMethodDescriptor(Type.VOID_TYPE, types));
+    }
+    
     private static final Function getFunction(Method method, long address) {
         Class[] paramTypes = method.getParameterTypes();
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[paramTypes.length];
