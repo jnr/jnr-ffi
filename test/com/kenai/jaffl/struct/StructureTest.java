@@ -80,15 +80,15 @@ public class StructureTest {
         public final Signed8 first = new Signed8();
         public final Signed16 s = new Signed16();
     }
-    private static class Int32Align extends Struct {
+    public static class Int32Align extends Struct {
         public final Signed8 first = new Signed8();
         public final Signed32 i = new Signed32();
     }
-    private static class Int64Align extends Struct {
+    public static class Int64Align extends Struct {
         public final Signed8 first = new Signed8();
         public final Signed64 l = new Signed64();
     }
-    private static class LongAlign extends Struct {
+    public static class LongAlign extends Struct {
         public final Signed8 first = new Signed8();
         public final SignedLong l = new SignedLong();
     }

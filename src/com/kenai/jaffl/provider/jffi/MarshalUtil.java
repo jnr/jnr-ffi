@@ -276,4 +276,20 @@ public class MarshalUtil {
 
         return StringIO.getStringIO().fromNative(buf).toString();
     }
+
+    public static final MemoryIO newMemoryIO(long ptr) {
+        return ptr == 0 ? null : new DirectMemoryIO(ptr);
+    }
+
+    public static final void useMemory(long ptr, Struct s) {
+        s.useMemory(new DirectMemoryIO(ptr));
+    }
+
+    public static final Struct returnStruct(long ptr, Struct s) {
+        if (ptr == 0) {
+            return null;
+        }
+        s.useMemory(new DirectMemoryIO(ptr));
+        return s;
+    }
 }

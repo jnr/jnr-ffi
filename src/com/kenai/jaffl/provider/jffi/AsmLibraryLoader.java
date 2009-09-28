@@ -3,6 +3,7 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
+import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.CheckClassAdapter;
@@ -62,7 +64,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Long.class == type || Float.class == type
                 || Double.class == type || NativeLong.class == type
                 || Pointer.class == type || Address.class == type
-                || String.class == type;
+                || String.class == type
+                || Struct.class.isAssignableFrom(type);
         
     }
 
@@ -310,6 +313,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
 
         if (Struct.class.isAssignableFrom(returnType)) {
+            boxStructReturnValue(mv, returnType);
         } else if (String.class == returnType) {
             mv.invokevirtual(Type.getInternalName(MarshalUtil.class), "returnString",
                 Type.getMethodDescriptor(Type.getType(String.class), new Type[] { Type.LONG_TYPE }));
@@ -394,6 +398,27 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
 
         return sb.append("r").append(t).toString();
+    }
+    
+    private final void boxStructReturnValue(SkinnyMethodAdapter mv, Class returnType) {
+        mv.dup2();
+        Label nonnull = new Label();
+        mv.lconst_0();
+        mv.lcmp();
+        mv.ifne(nonnull);
+        mv.aconst_null();
+        mv.areturn();
+        mv.label(nonnull);
+        // Create an instance of the struct subclass
+        mv.newobj(Type.getInternalName(returnType));
+        mv.dup();
+        mv.invokespecial(Type.getInternalName(returnType), "<init>",
+                Type.getMethodDescriptor(Type.getType(void.class), new Type[]{}));
+        mv.dup_x2();
+
+        // associate the memory with the struct and return the struct
+        invokestatic(mv, MarshalUtil.class, "useMemory", void.class, long.class, Struct.class);
+        mv.areturn();
     }
 
     private final void boxIntReturnValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
