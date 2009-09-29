@@ -16,7 +16,10 @@ import java.nio.Buffer;
 
 final class InvokerUtil {
     static final Type getNativeReturnType(Method method) {
-        Class type = method.getReturnType();
+        return getNativeReturnType(method.getReturnType());
+    }
+    
+    static final Type getNativeReturnType(Class type) {
         if (Void.class.isAssignableFrom(type) || void.class == type) {
             return Type.VOID;
         } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {

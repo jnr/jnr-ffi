@@ -50,7 +50,9 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.INSTANCE;
         final long address = ((Library) library).findSymbolAddress(functionMapper.mapFunctionName(method.getName(), null));
 
-        TypeMapper typeMapper = (TypeMapper) options.get(LibraryOption.TypeMapper);
+        TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
+                ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
+
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];
         Type[] paramTypes = new Type[marshallers.length];
 
@@ -60,9 +62,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         Class returnType = method.getReturnType();
-        FromNativeConverter resultConverter = typeMapper != null
-                ? typeMapper.getFromNativeConverter(returnType)
-                : null;
+        FromNativeConverter resultConverter = typeMapper.getFromNativeConverter(returnType);
         if (resultConverter != null) {
             returnType = resultConverter.nativeType();
         }
@@ -151,7 +151,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
     private static final Type getNativeParameterType(Method method, int paramIndex, TypeMapper mapper) {
         Class type = method.getParameterTypes()[paramIndex];
-        ToNativeConverter converter = mapper != null ? mapper.getToNativeConverter(type) : null;
+        ToNativeConverter converter = mapper.getToNativeConverter(type);
         return getNativeParameterType(converter != null ? converter.nativeType() : type);
     }
 
