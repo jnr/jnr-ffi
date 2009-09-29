@@ -175,9 +175,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             String functionFieldName = "function_" + i;
 
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, Type.getDescriptor(Function.class), null, null);
-            
+            final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
+
             generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""), functionFieldName, m, nativeReturnType, nativeParameterTypes,
-                    m.getParameterAnnotations());
+                    m.getParameterAnnotations(), ignoreErrno);
 
             if (conversionRequired) {
                 generateConversionMethod(cv, className, m.getName(), i, returnType, parameterTypes, nativeReturnType, nativeParameterTypes);
@@ -323,7 +324,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void generateMethod(ClassVisitor cv, String className, String functionName, String functionFieldName, Method m,
-            Class returnType, Class[] parameterTypes, Annotation[][] parameterAnnotations) {
+            Class returnType, Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreErrno) {
 
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName, 
                 getMethodDescriptor(returnType, parameterTypes), null, null));
@@ -337,7 +338,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         mv.getfield(className, functionFieldName, Type.getDescriptor(Function.class));
 
         if (isFastIntMethod(returnType, parameterTypes)) {
-            generateFastIntInvocation(mv, returnType, parameterTypes);
+            generateFastIntInvocation(mv, returnType, parameterTypes, ignoreErrno);
         } else {
             generateBufferInvocation(mv, returnType, parameterTypes, parameterAnnotations);
         }
@@ -493,7 +494,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
     
-    private final void generateFastIntInvocation(SkinnyMethodAdapter mv, Class returnType, Class[] parameterTypes) {
+    private final void generateFastIntInvocation(SkinnyMethodAdapter mv, Class returnType, Class[] parameterTypes, boolean ignoreErrno) {
         // [ stack contains: Invoker, Function ]
 
         Class nativeIntType = getNativeIntType(returnType, parameterTypes);
@@ -521,7 +522,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         // stack now contains [ IntInvoker, Function, int args ]
         mv.invokevirtual(Type.getInternalName(com.kenai.jffi.Invoker.class),
-                getFastIntInvokerMethodName(parameterTypes.length, false, nativeIntType),
+                getFastIntInvokerMethodName(parameterTypes.length, ignoreErrno, nativeIntType),
                 Type.getMethodDescriptor(Type.getType(nativeIntType), paramTypes));
 
         if (isPrimitiveInt(returnType) || boolean.class == returnType) {
