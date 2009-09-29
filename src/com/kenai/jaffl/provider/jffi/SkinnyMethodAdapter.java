@@ -3,6 +3,8 @@ package com.kenai.jaffl.provider.jffi;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Map;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 
@@ -11,14 +13,13 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.util.TraceMethodVisitor;
 
 /**
  *
  * @author headius
  */
 public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
-    private final static boolean DEBUG = false; //SafePropertyAccessor.getBoolean("jruby.compile.dump");
+    private final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
     private MethodVisitor method;
     
     /** Creates a new instance of SkinnyMethodAdapter */
@@ -35,7 +36,13 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
     
     public void setMethodVisitor(MethodVisitor mv) {
         if (DEBUG) {
-            this.method = new TraceMethodVisitor(mv);
+            try {
+                Class tmvClass = Class.forName("org.objectweb.asm.util.TraceMethodVisitor");
+                Constructor c = tmvClass.getDeclaredConstructor(MethodVisitor.class);
+                this.method = (MethodVisitor) c.newInstance(mv);
+            } catch (Throwable t) {
+                this.method = mv;
+            }
         } else {
             this.method = mv;
         }
@@ -490,13 +497,24 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
     public void start() {
         getMethodVisitor().visitCode();
     }
-    
+    private final void dump() {
+        PrintWriter pw = new PrintWriter(System.out);
+
+        Class tmvClass = getMethodVisitor().getClass();
+        try {
+            Method print = tmvClass.getDeclaredMethod("print", PrintWriter.class);
+
+            pw.write("*** Dumping ***\n");
+
+            print.invoke(getMethodVisitor(), pw);
+        } catch (Exception ex) {
+        } finally {
+            pw.flush();
+        }
+    }
     public void end() {
         if (DEBUG) {
-            PrintWriter pw = new PrintWriter(System.out);
-            pw.write("*** Dumping ***\n");
-            ((TraceMethodVisitor)getMethodVisitor()).print(pw);
-            pw.flush();
+            dump();
         }
         getMethodVisitor().visitMaxs(1, 1);
         getMethodVisitor().visitEnd();
@@ -870,10 +888,7 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
 
     public void visitMaxs(int arg0, int arg1) {
         if (DEBUG) {
-            PrintWriter pw = new PrintWriter(System.out);
-            pw.write("*** Dumping ***\n");
-            ((TraceMethodVisitor)getMethodVisitor()).print(pw);
-            pw.flush();
+            dump();
         }
         getMethodVisitor().visitMaxs(arg0, arg1);
     }
