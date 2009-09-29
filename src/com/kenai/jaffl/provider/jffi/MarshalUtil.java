@@ -277,6 +277,10 @@ public class MarshalUtil {
         return StringIO.getStringIO().fromNative(buf).toString();
     }
 
+    public static final Pointer returnPointer(long ptr) {
+        return ptr != 0 ? new JFFIPointer(ptr) : null;
+    }
+
     public static final MemoryIO newMemoryIO(long ptr) {
         return ptr == 0 ? null : new DirectMemoryIO(ptr);
     }

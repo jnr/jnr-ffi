@@ -631,8 +631,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             primitiveClass = boolean.class;
             
         } else if (Pointer.class.isAssignableFrom(returnType)) {
-            primitiveClass = nativeReturnType;
-            objClass = JFFIPointer.class;
+            invokestatic(mv, MarshalUtil.class, "returnPointer", Pointer.class, long.class);
+            return;
 
         } else if (Address.class == returnType) {
             if (long.class != nativeReturnType) mv.i2l();
