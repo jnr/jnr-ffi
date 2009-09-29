@@ -2,7 +2,6 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Platform;
@@ -10,17 +9,15 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
+import com.kenai.jaffl.mapper.FunctionMapper;
 import com.kenai.jaffl.mapper.MethodResultContext;
 import com.kenai.jaffl.mapper.ToNativeContext;
 import com.kenai.jaffl.mapper.ToNativeConverter;
 import com.kenai.jaffl.mapper.TypeMapper;
-import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
-import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.InvocationSession;
 import com.kenai.jaffl.provider.Invoker;
 import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
-import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
@@ -31,7 +28,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -50,7 +46,9 @@ final class DefaultInvokerFactory implements InvokerFactory {
         return true; // The default factory supports everything
     }
     public final Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
-        final long address = ((Library) library).findSymbolAddress(method.getName());
+        FunctionMapper functionMapper = options.containsKey(LibraryOption.FunctionMapper)
+                ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.INSTANCE;
+        final long address = ((Library) library).findSymbolAddress(functionMapper.mapFunctionName(method.getName(), null));
 
         TypeMapper typeMapper = (TypeMapper) options.get(LibraryOption.TypeMapper);
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];

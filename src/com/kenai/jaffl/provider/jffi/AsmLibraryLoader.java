@@ -9,6 +9,7 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.byref.ByteByReference;
+import com.kenai.jaffl.mapper.FunctionMapper;
 import com.kenai.jaffl.provider.InvocationSession;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jffi.ArrayFlags;
@@ -90,7 +91,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return generateInterfaceImpl(library, interfaceClass, libraryOptions);
     }
 
-    private final <T> T generateInterfaceImpl(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    private final <T> T generateInterfaceImpl(final Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = new CheckClassAdapter(new TraceClassVisitor(cw, new PrintWriter(System.err)));
 //        ClassVisitor cv = cw;
@@ -120,9 +121,12 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         init.aload(0);
         init.aload(2);
 
+        FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
+                ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.INSTANCE;
+        
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
-            functions[i] = getFunction(m, library.findSymbolAddress(m.getName()));
+            functions[i] = getFunction(m, library.findSymbolAddress(functionMapper.mapFunctionName(m.getName(), null)));
 
             String functionFieldName = "function_" + i;
 
