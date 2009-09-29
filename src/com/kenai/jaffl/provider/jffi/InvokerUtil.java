@@ -46,6 +46,8 @@ final class InvokerUtil {
             return Type.POINTER;
         } else if (Struct.class.isAssignableFrom(type)) {
             return Type.POINTER;
+        } else if (String.class.isAssignableFrom(type)) {
+            return Type.POINTER;
         } else {
             throw new IllegalArgumentException("Unsupported return type: " + type);
         }
