@@ -248,12 +248,18 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.getfield(className, getResultConverterFieldName(idx), Type.getDescriptor(FromNativeConverter.class));
         }
 
-        // Invoke the real native method
+        
         mv.aload(0);
+
+        // Load and convert the parameters
         int lvar = 1;
         for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
             final boolean convertParameter = !parameterTypes[pidx].equals(nativeParameterTypes[pidx]);
-            
+            if (convertParameter) {
+                mv.aload(0);
+                mv.getfield(className, getParameterConverterFieldName(idx, pidx), Type.getDescriptor(ToNativeConverter.class));
+            }
+
             if (parameterTypes[pidx].isPrimitive()) {
                 if (float.class == parameterTypes[pidx]) {
                     mv.fload(lvar++);
@@ -267,22 +273,26 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                     mv.iload(lvar++);
                 }
             } else {
-                if (convertParameter) {
-                    mv.aload(0);
-                    mv.getfield(className, getParameterConverterFieldName(idx, pidx), Type.getDescriptor(ToNativeConverter.class));
-                    mv.aload(lvar++);
-                    mv.aconst_null();
-                    mv.invokeinterface(Type.getInternalName(ToNativeConverter.class), "toNative",
-                            getMethodDescriptor(Object.class, Object.class, ToNativeContext.class));
-                    mv.checkcast(Type.getInternalName(nativeParameterTypes[pidx]));
-                } else {
-                    mv.aload(lvar++);
-                }
+                mv.aload(lvar++);
             }
-            
+
+            if (convertParameter) {
+                if (parameterTypes[pidx].isPrimitive()) {
+                    boxPrimitive(mv, parameterTypes[pidx]);
+                }
+                mv.aconst_null();
+                mv.invokeinterface(Type.getInternalName(ToNativeConverter.class), "toNative",
+                        getMethodDescriptor(Object.class, Object.class, ToNativeContext.class));
+                mv.checkcast(Type.getInternalName(nativeParameterTypes[pidx]));
+            }
         }
+
+        // Invoke the real native method
         mv.invokevirtual(className, functionName + "$raw", getMethodDescriptor(nativeReturnType, nativeParameterTypes));
         if (!returnType.equals(nativeReturnType)) {
+            if (nativeReturnType.isPrimitive()) {
+                boxPrimitive(mv, nativeReturnType);
+            }
             mv.aconst_null();
             mv.invokeinterface(Type.getInternalName(FromNativeConverter.class), "fromNative",
                     getMethodDescriptor(Object.class, Object.class, FromNativeContext.class));
@@ -559,6 +569,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         mv.label(retnull);
         mv.aconst_null();
         mv.areturn();
+    }
+
+    private final void boxPrimitive(SkinnyMethodAdapter mv, Class primitiveType) {
+        Class objClass = getBoxedClass(primitiveType);
+        invokestatic(mv, objClass, "valueOf", objClass, primitiveType);
     }
 
     private final void boxIntReturnValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
@@ -913,7 +928,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     };
 
     public static interface TestLib {
-        public Long add_int32_t(Long i1, int i2);
+        public Long add_int32_t(long i1, int i2);
         public byte add_int8_t(byte i1, byte i2);
     }
 
@@ -930,7 +945,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             }
 
             public ToNativeConverter getToNativeConverter(Class type) {
-                if (Long.class.isAssignableFrom(type)) {
+                if (Long.class.isAssignableFrom(type) || long.class == type) {
                     return new IntToLong();
                 }
                 return null;
