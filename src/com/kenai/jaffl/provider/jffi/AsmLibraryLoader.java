@@ -159,8 +159,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 }
             }
 
+            try {
             functions[i] = getFunction(library.findSymbolAddress(functionMapper.mapFunctionName(m.getName(), null)),
                     nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m));
+            } catch (UnsatisfiedLinkError e) {
+                generateFunctionNotFound(cv, className, m.getName(), returnType, parameterTypes);
+                continue;
+            }
 
             String functionFieldName = "function_" + i;
 
@@ -229,6 +234,19 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final String getParameterConverterFieldName(int idx, int paramIndex) {
         return "parameterConverter_" + idx + "_" + paramIndex;
+    }
+
+    private final void generateFunctionNotFound(ClassVisitor cv, String className, String functionName,
+            Class returnType, Class[] parameterTypes) {
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
+                getMethodDescriptor(returnType, parameterTypes), null, null));
+        mv.start();
+        mv.newobj(Type.getInternalName(UnsatisfiedLinkError.class));
+        mv.dup();
+        mv.invokespecial(Type.getInternalName(UnsatisfiedLinkError.class), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] {}));
+        mv.athrow();
+        mv.visitMaxs(10, 10);
+        mv.visitEnd();
     }
 
     private final void generateConversionMethod(ClassVisitor cv, String className, String functionName, int idx,
