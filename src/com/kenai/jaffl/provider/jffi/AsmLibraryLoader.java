@@ -744,15 +744,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     }
 
-    
-    static final class AsmLoader extends ClassLoader {
-        static final AsmLoader INSTANCE = new AsmLoader();
-
-        public Class defineClass(String name, byte[] b) {
-            return defineClass(name, b, 0, b.length);
-        }
-    }
-
     static final int marshall(byte[] array) {
         if (array == null) {
             return 1;
