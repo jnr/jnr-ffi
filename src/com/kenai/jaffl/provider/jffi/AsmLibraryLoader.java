@@ -3,7 +3,6 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
@@ -402,13 +401,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     
     private final void boxStructReturnValue(SkinnyMethodAdapter mv, Class returnType) {
         mv.dup2();
-        Label nonnull = new Label();
+        Label retnull = new Label();
         mv.lconst_0();
         mv.lcmp();
-        mv.ifne(nonnull);
-        mv.aconst_null();
-        mv.areturn();
-        mv.label(nonnull);
+        mv.ifeq(retnull);
+
         // Create an instance of the struct subclass
         mv.newobj(Type.getInternalName(returnType));
         mv.dup();
@@ -418,6 +415,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         // associate the memory with the struct and return the struct
         invokestatic(mv, MarshalUtil.class, "useMemory", void.class, long.class, Struct.class);
+        mv.areturn();
+
+        mv.label(retnull);
+        mv.aconst_null();
         mv.areturn();
     }
 
@@ -492,6 +493,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         } else if (NativeLong.class.isAssignableFrom(parameterType)) {
             mv.invokevirtual(Type.getInternalName(parameterType), intValueMethod, intValueSignature);
+
+        } else if (Boolean.class.isAssignableFrom(parameterType)) {
+            mv.invokevirtual(Type.getInternalName(parameterType), "booleanValue", "()Z");
 
         } else {
             throw new IllegalArgumentException("unsupported Number subclass");
