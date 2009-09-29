@@ -234,10 +234,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private final void generateConversionMethod(ClassVisitor cv, String className, String functionName, int idx,
             Class returnType, Class[] parameterTypes, Class nativeReturnType, Class[] nativeParameterTypes) {
 
-        if (returnType.isPrimitive()) {
-            throw new IllegalArgumentException("primitive conversion returns not supported");
-        }
-
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
                 getMethodDescriptor(returnType, parameterTypes), null, null));
         mv.start();
@@ -296,9 +292,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.aconst_null();
             mv.invokeinterface(Type.getInternalName(FromNativeConverter.class), "fromNative",
                     getMethodDescriptor(Object.class, Object.class, FromNativeContext.class));
+            mv.checkcast(Type.getInternalName(returnType));
         }
-        mv.checkcast(Type.getInternalName(returnType));
-        mv.areturn();
+        emitReturnOp(mv, returnType);
         mv.visitMaxs(10, 10);
         mv.visitEnd();
     }
@@ -463,7 +459,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         if (Struct.class.isAssignableFrom(returnType)) {
             boxStructReturnValue(mv, returnType);
         } else if (String.class == returnType) {
-            mv.invokevirtual(Type.getInternalName(MarshalUtil.class), "returnString",
+            mv.invokestatic(Type.getInternalName(MarshalUtil.class), "returnString",
                 Type.getMethodDescriptor(Type.getType(String.class), new Type[] { Type.LONG_TYPE }));
             mv.areturn();
         } else if (!returnType.isPrimitive()) {
