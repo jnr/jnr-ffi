@@ -46,13 +46,18 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return INSTANCE;
     }
 
-    boolean isInterfaceSupported(Class interfaceClass) {
+    boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
+        TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
+                ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
+
         for (Method m : interfaceClass.getDeclaredMethods()) {
-            if (!isReturnTypeSupported(m.getReturnType())) {
+            if (!isReturnTypeSupported(m.getReturnType()) && typeMapper.getFromNativeConverter(m.getReturnType()) == null) {
+                System.err.println("Unsupported return type: " + m.getReturnType());
                 return false;
             }
             for (Class c: m.getParameterTypes()) {
-                if (!isParameterTypeSupported(c)) {
+                if (!isParameterTypeSupported(c) && typeMapper.getToNativeConverter(c) == null) {
+                    System.err.println("Unsupported parameter type: " + c);
                     return false;
                 }
             }
@@ -88,7 +93,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || StringBuilder.class.isAssignableFrom(type)
                 || StringBuffer.class.isAssignableFrom(type);
     }
-    
+
     @Override
     <T> T loadLibrary(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         return generateInterfaceImpl(library, interfaceClass, libraryOptions);

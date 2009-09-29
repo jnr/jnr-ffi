@@ -26,7 +26,7 @@ public class Provider extends com.kenai.jaffl.FFIProvider {
 
     private <T> T loadLibrary(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         try {
-            if (AsmLibraryLoader.getInstance().isInterfaceSupported(interfaceClass)) {
+            if (AsmLibraryLoader.getInstance().isInterfaceSupported(interfaceClass, libraryOptions)) {
                 return AsmLibraryLoader.getInstance().loadLibrary(library, interfaceClass, libraryOptions);
             }
         } catch (Exception ex) {
