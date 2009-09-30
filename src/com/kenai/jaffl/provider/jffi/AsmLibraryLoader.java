@@ -583,7 +583,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private static final Class<? extends Number> getNativeIntType(Class returnType, Class[] parameterTypes) {
 
         for (int i = 0; i < parameterTypes.length; ++i) {
-            if (true || requiresLong(parameterTypes[i])) {
+            if (requiresLong(parameterTypes[i])) {
                 return long.class;
             }
         }
