@@ -24,7 +24,7 @@ public class Library extends com.kenai.jaffl.provider.Library {
     }
 
     public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {
-        InvokerFactory[] factories = { AsmFastIntInvokerFactory.getInstance(), FastIntInvokerFactory.getInstance() };
+        InvokerFactory[] factories = { FastIntInvokerFactory.getInstance() };
         for (InvokerFactory factory : factories) {
             if (factory.isMethodSupported(method)) {
                 try {
