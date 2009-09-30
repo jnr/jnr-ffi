@@ -28,6 +28,8 @@ import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
 import com.kenai.jaffl.mapper.FunctionMapper;
+import com.kenai.jaffl.mapper.MethodParameterContext;
+import com.kenai.jaffl.mapper.MethodResultContext;
 import com.kenai.jaffl.mapper.ToNativeContext;
 import com.kenai.jaffl.mapper.ToNativeConverter;
 import com.kenai.jaffl.mapper.TypeMapper;
@@ -70,7 +72,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
 
         for (Method m : interfaceClass.getDeclaredMethods()) {
-            if (!isReturnTypeSupported(m.getReturnType()) && getResultConverter(m.getReturnType(), typeMapper) == null) {
+            if (!isReturnTypeSupported(m.getReturnType()) && getResultConverter(m, typeMapper) == null) {
                 System.err.println("Unsupported return type: " + m.getReturnType());
                 return false;
             }
@@ -163,7 +165,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             boolean conversionRequired = false;
 
-            resultConverters[i] = getResultConverter(returnType, typeMapper);
+            resultConverters[i] = getResultConverter(m, typeMapper);
             if (resultConverters[i] != null) {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL, getResultConverterFieldName(i), ci(FromNativeConverter.class), null, null);
                 nativeReturnType = resultConverters[i].nativeType();
@@ -172,11 +174,14 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             parameterConverters[i] = new ToNativeConverter[parameterTypes.length];
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
-                parameterConverters[i][pidx] = typeMapper.getToNativeConverter(parameterTypes[pidx]);
+                ToNativeConverter converter = typeMapper.getToNativeConverter(parameterTypes[pidx]);
                 if (parameterConverters[i][pidx] != null) {
                     cv.visitField(ACC_PRIVATE | ACC_FINAL, getParameterConverterFieldName(i, pidx),
                             ci(ToNativeConverter.class), null, null);
-                    nativeParameterTypes[pidx] = parameterConverters[i][pidx].nativeType();
+                    nativeParameterTypes[pidx] = converter.nativeType();
+                    
+                    parameterConverters[i][pidx] = new ToNativeProxy(converter,
+                            new MethodParameterContext(m, pidx));
                     conversionRequired = true;
                 } else {
                     nativeParameterTypes[pidx] = parameterTypes[pidx];
@@ -253,10 +258,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
-    private final FromNativeConverter getResultConverter(Class returnType, TypeMapper typeMapper) {
+    private final FromNativeConverter getResultConverter(Method m, TypeMapper typeMapper) {
+        Class returnType = m.getReturnType();
         FromNativeConverter conv = typeMapper.getFromNativeConverter(returnType);
         if (conv != null) {
-            return conv;
+            return new FromNativeProxy(conv, new MethodResultContext(m));
         } else if (Enum.class.isAssignableFrom(returnType)) {
             return new EnumResultConverter(returnType);
         } else {
@@ -711,7 +717,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
     
     private final void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
-        if (returnType.isPrimitive()) {
+        if (!returnType.isPrimitive()) {
             mv.areturn();
         } else if (isPrimitiveInt(returnType)) {
             mv.ireturn();
@@ -886,6 +892,42 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return new HeapInvocationBuffer(f);
         }
 
+    }
+
+    public static final class ToNativeProxy implements ToNativeConverter {
+        private final ToNativeConverter converter;
+        private final ToNativeContext ctx;
+
+        public ToNativeProxy(ToNativeConverter converter, ToNativeContext ctx) {
+            this.converter = converter;
+            this.ctx = ctx;
+        }
+
+        public Object toNative(Object value, ToNativeContext unused) {
+            return converter.toNative(value, ctx);
+        }
+
+        public Class nativeType() {
+            return converter.nativeType();
+        }
+    }
+
+    public static final class FromNativeProxy implements FromNativeConverter {
+        private final FromNativeConverter converter;
+        private final FromNativeContext ctx;
+
+        public FromNativeProxy(FromNativeConverter converter, FromNativeContext ctx) {
+            this.converter = converter;
+            this.ctx = ctx;
+        }
+
+        public Object fromNative(Object value, FromNativeContext unused) {
+            return converter.fromNative(value, ctx);
+        }
+
+        public Class nativeType() {
+            return converter.nativeType();
+        }
     }
 
     static final int marshall(byte[] array) {
