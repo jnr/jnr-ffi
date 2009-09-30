@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2009 Wayne Meissner
+ *
+ * This file is part of jffi.
+ *
+ * This code is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License version 3 only, as
+ * published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+ * version 3 for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 package com.kenai.jaffl.provider.jffi;
 
@@ -51,7 +69,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
 
         for (Method m : interfaceClass.getDeclaredMethods()) {
-            if (!isReturnTypeSupported(m.getReturnType()) && typeMapper.getFromNativeConverter(m.getReturnType()) == null) {
+            if (!isReturnTypeSupported(m.getReturnType()) && getResultConverter(m.getReturnType(), typeMapper) == null) {
                 System.err.println("Unsupported return type: " + m.getReturnType());
                 return false;
             }
@@ -101,7 +119,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final <T> T generateInterfaceImpl(final Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = new CheckClassAdapter(new TraceClassVisitor(cw, new PrintWriter(System.err)));
+        ClassVisitor cv = new CheckClassAdapter(new TraceClassVisitor(cw, new PrintWriter(System.out)));
+//        ClassVisitor cv = new CheckClassAdapter(cw);
 //        ClassVisitor cv = cw;
 
         String className = Type.getInternalName(AsmLibraryLoader.class).replace("/", "_")
@@ -144,7 +163,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             boolean conversionRequired = false;
 
-            resultConverters[i] = typeMapper.getFromNativeConverter(returnType);
+            resultConverters[i] = getResultConverter(returnType, typeMapper);
             if (resultConverters[i] != null) {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL, getResultConverterFieldName(i), Type.getDescriptor(FromNativeConverter.class), null, null);
                 nativeReturnType = resultConverters[i].nativeType();
@@ -227,6 +246,17 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return cons.newInstance(library, functions, resultConverters, parameterConverters);
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    private final FromNativeConverter getResultConverter(Class returnType, TypeMapper typeMapper) {
+        FromNativeConverter conv = typeMapper.getFromNativeConverter(returnType);
+        if (conv != null) {
+            return conv;
+        } else if (Enum.class.isAssignableFrom(returnType)) {
+            return new EnumResultConverter(returnType);
+        } else {
+            return null;
         }
     }
 
