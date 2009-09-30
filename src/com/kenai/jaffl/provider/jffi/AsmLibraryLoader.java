@@ -106,6 +106,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || (type.isArray() && type.getComponentType().isPrimitive())
                 || Struct.class.isAssignableFrom(type)
                 || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))
+                || (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType()))
                 || CharSequence.class.isAssignableFrom(type)
                 || ByReference.class.isAssignableFrom(type)
                 || StringBuilder.class.isAssignableFrom(type)
@@ -466,6 +467,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 marshal(mv, Struct[].class, int.class, int.class);
+            
+            } else if (parameterTypes[i].isArray() && Pointer.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
+                mv.pushInt(parameterFlags);
+                mv.pushInt(nativeArrayFlags);
+                sessionmarshal(mv, Pointer[].class, int.class, int.class);
 
             } else if (parameterTypes[i].isPrimitive() || Number.class.isAssignableFrom(parameterTypes[i])) {
                 emitInvocationBufferIntParameter(mv, parameterTypes[i]);
@@ -800,7 +806,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private static boolean isSessionRequired(Class parameterType) {
         return StringBuilder.class.isAssignableFrom(parameterType)
                 || StringBuffer.class.isAssignableFrom(parameterType)
-                || ByReference.class.isAssignableFrom(parameterType);
+                || ByReference.class.isAssignableFrom(parameterType)
+                || (parameterType.isArray() && !parameterType.getComponentType().isPrimitive());
     }
 
     private static boolean isSessionRequired(Class[] parameterTypes) {

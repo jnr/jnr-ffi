@@ -31,4 +31,6 @@ public interface Pointer {
     abstract public Pointer getPointer(long offset);
     abstract public void putPointer(long offset, Pointer value);
     abstract public String getString(long offset);
+    abstract public long getAddress();
+    abstract public boolean isDirect();
 }

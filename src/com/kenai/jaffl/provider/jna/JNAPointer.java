@@ -125,4 +125,12 @@ class JNAPointer implements com.kenai.jaffl.Pointer {
         return ptr.getString(offset);
     }
 
+    public long getAddress() {
+        return 0;
+    }
+
+    public boolean isDirect() {
+        return true;
+    }
+
 }

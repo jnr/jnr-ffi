@@ -145,6 +145,14 @@ public class JFFIPointer extends Number implements com.kenai.jaffl.Pointer {
         return (double) address;
     }
 
+    public final long getAddress() {
+        return address;
+    }
+
+    public final boolean isDirect() {
+        return true;
+    }
+
     public static final JFFIPointer valueOf(long address) {
         return new JFFIPointer(address);
     }

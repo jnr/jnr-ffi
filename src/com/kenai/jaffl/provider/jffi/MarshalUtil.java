@@ -268,6 +268,54 @@ public class MarshalUtil {
         buffer.putInt(EnumMapper.getInstance().intValue(parameter));
     }
 
+
+    public static final void marshal(InvocationSession session, InvocationBuffer buffer, Pointer[] parameter, int inout, int nativeArrayFlags) {
+        if (parameter == null) {
+            buffer.putAddress(0L);
+        } else {
+            final Pointer[] array = parameter;
+            if (Pointer.SIZE == 32) {
+                final int[] raw = new int[array.length];
+                for (int i = 0; i < raw.length; ++i) {
+                    raw[i] = (int) ((JFFIPointer) array[i]).getAddress();
+                }
+                buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
+
+                if (ParameterFlags.isOut(inout)) {
+                    session.addPostInvoke(new InvocationSession.PostInvoke() {
+
+                        public void postInvoke() {
+                            for (int i = 0; i < raw.length; ++i) {
+                                array[i] = new JFFIPointer(raw[i]);
+                            }
+                        }
+                    });
+                }
+            } else {
+                final long[] raw = new long[array.length];
+                for (int i = 0; i < raw.length; ++i) {
+                    if (!(array[i] instanceof JFFIPointer)) {
+                        throw new IllegalArgumentException("invalid pointer in array at index " + i);
+                    }
+                    raw[i] = ((JFFIPointer) array[i]).getAddress();
+                }
+
+                buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
+
+                if (ParameterFlags.isOut(inout)) {
+                    session.addPostInvoke(new InvocationSession.PostInvoke() {
+
+                        public void postInvoke() {
+                            for (int i = 0; i < raw.length; ++i) {
+                                array[i] = new JFFIPointer(raw[i]);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     public static final String returnString(long ptr) {
         if (ptr == 0) {
             return null;
