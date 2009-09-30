@@ -281,6 +281,10 @@ public class MarshalUtil {
         return ptr != 0 ? new JFFIPointer(ptr) : null;
     }
 
+    public static final Pointer returnPointer(int ptr) {
+        return ptr != 0 ? new JFFIPointer(ptr) : null;
+    }
+
     public static final MemoryIO newMemoryIO(long ptr) {
         return ptr == 0 ? null : new DirectMemoryIO(ptr);
     }

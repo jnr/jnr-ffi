@@ -632,8 +632,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             primitiveClass = boolean.class;
             
         } else if (Pointer.class.isAssignableFrom(returnType)) {
-            if (long.class != nativeReturnType) mv.i2l();
-            invokestatic(mv, MarshalUtil.class, "returnPointer", Pointer.class, long.class);
+            invokestatic(mv, MarshalUtil.class, "returnPointer", Pointer.class, nativeReturnType);
             return;
 
         } else if (Address.class == returnType) {
