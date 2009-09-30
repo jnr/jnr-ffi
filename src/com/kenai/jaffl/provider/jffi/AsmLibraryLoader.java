@@ -327,6 +327,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 if (parameterTypes[pidx].isPrimitive()) {
                     boxPrimitive(mv, parameterTypes[pidx]);
                 }
+
                 mv.aconst_null();
                 mv.invokeinterface(p(ToNativeConverter.class), "toNative",
                         sig(Object.class, Object.class, ToNativeContext.class));
@@ -340,6 +341,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             if (nativeReturnType.isPrimitive()) {
                 boxPrimitive(mv, nativeReturnType);
             }
+
             mv.aconst_null();
             mv.invokeinterface(p(FromNativeConverter.class), "fromNative",
                     sig(Object.class, Object.class, FromNativeContext.class));
@@ -499,17 +501,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
         }
 
-        if (Struct.class.isAssignableFrom(returnType)) {
-            boxStructReturnValue(mv, returnType);
-        } else if (String.class == returnType) {
-            mv.invokestatic(p(MarshalUtil.class), "returnString", sig(String.class, long.class));
-            mv.areturn();
-        } else if (!returnType.isPrimitive()) {
-            boxIntReturnValue(mv, returnType, nativeReturnType);
-            mv.areturn();
-        } else {
-            emitReturnOp(mv, returnType);
-        }
+        emitReturn(mv, returnType, nativeReturnType);
     }
     
     private final void generateFastIntInvocation(SkinnyMethodAdapter mv, Class returnType, Class[] parameterTypes, boolean ignoreErrno) {
@@ -535,19 +527,28 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 getFastIntInvokerMethodName(parameterTypes.length, ignoreErrno, nativeIntType),
                 sig(nativeIntType, ci(Function.class), params(nativeIntType, parameterTypes.length)));
 
-        if (!returnType.isPrimitive()) {
-            boxIntReturnValue(mv, returnType, nativeIntType);
-            mv.areturn();
-        } else if (isPrimitiveInt(returnType)) {
-            narrow(mv, nativeIntType, returnType);
-            mv.ireturn();
-        } else if (long.class == returnType) {
-            widen(mv, nativeIntType, returnType);
-            mv.lreturn();
-        } else if (void.class == returnType) {
-            mv.voidreturn();
+        emitReturn(mv, returnType, nativeIntType);
+    }
+
+    private final void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
+        if (returnType.isPrimitive()) {
+            if (long.class == returnType) {
+                widen(mv, nativeIntType, returnType);
+                mv.lreturn();
+            } else if (float.class == returnType) {
+                mv.freturn();
+            } else if (double.class == returnType) {
+                mv.dreturn();
+            } else if (void.class == returnType) {
+                mv.voidreturn();
+            } else {
+                narrow(mv, nativeIntType, int.class);
+                mv.ireturn();
+            }
+
         } else {
-            throw new IllegalArgumentException("unsupported return type: " + returnType);
+            boxValue(mv, returnType, nativeIntType);
+            mv.areturn();
         }
     }
 
@@ -609,13 +610,18 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return sb.append("r").append(t).toString();
     }
     
-    private final void boxStructReturnValue(SkinnyMethodAdapter mv, Class returnType) {
+    private final void boxStruct(SkinnyMethodAdapter mv, Class returnType) {
         mv.dup2();
-        Label retnull = new Label();
+        Label nonnull = new Label();
+        Label end = new Label();
         mv.lconst_0();
         mv.lcmp();
-        mv.ifeq(retnull);
+        mv.ifne(nonnull);
+        mv.pop2();
+        mv.aconst_null();
+        mv.go_to(end);
 
+        mv.label(nonnull);
         // Create an instance of the struct subclass
         mv.newobj(p(returnType));
         mv.dup();
@@ -624,65 +630,82 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         // associate the memory with the struct and return the struct
         invokestatic(mv, MarshalUtil.class, "useMemory", void.class, long.class, Struct.class);
-        mv.areturn();
-
-        mv.label(retnull);
-        mv.aconst_null();
-        mv.areturn();
+        mv.label(end);
     }
 
     private final void boxPrimitive(SkinnyMethodAdapter mv, Class primitiveType) {
-        Class objClass = NumberUtil.getBoxedClass(primitiveType);
+        Class objClass = getBoxedClass(primitiveType);
         invokestatic(mv, objClass, "valueOf", objClass, primitiveType);
     }
 
-    private final void boxIntReturnValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
-        Class primitiveClass, objClass = returnType;
-        if (Byte.class.isAssignableFrom(returnType)) {
-            narrow(mv, nativeReturnType, int.class);
-            mv.i2b();
-            primitiveClass = byte.class;
-            
-        } else if (Short.class.isAssignableFrom(returnType)) {
-            narrow(mv, nativeReturnType, int.class);
-            mv.i2s();
-            primitiveClass = short.class;
-            
-        } else if (Integer.class.isAssignableFrom(returnType)) {
-            narrow(mv, nativeReturnType, int.class);
-            primitiveClass = int.class;
-            
+    private final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativeType) {
+        Class primitiveClass = getPrimitiveClass(type);
 
-        } else if (Long.class.isAssignableFrom(returnType)) {
-            widen(mv, nativeReturnType, long.class);
+        if (Byte.class.isAssignableFrom(type)) {
+            if (byte.class != nativeType) {
+                narrow(mv, nativeType, int.class);
+                mv.i2b();
+            }
+
+        } else if (Character.class.isAssignableFrom(type)) {
+            if (char.class != nativeType) {
+                narrow(mv, nativeType, int.class);
+                mv.i2c();
+            }
+
+        } else if (Short.class.isAssignableFrom(type)) {
+            if (short.class != nativeType) {
+                narrow(mv, nativeType, int.class);
+                mv.i2s();
+            }
+
+        } else if (Integer.class.isAssignableFrom(type)) {
+            narrow(mv, nativeType, int.class);
+
+        } else if (Long.class.isAssignableFrom(type)) {
+            widen(mv, nativeType, long.class);
+
+        } else if (NativeLong.class.isAssignableFrom(type)) {
+            widen(mv, nativeType, long.class);
             primitiveClass = long.class;
-            
-        } else if (NativeLong.class.isAssignableFrom(returnType)) {
-            widen(mv, nativeReturnType, long.class);
-            primitiveClass = long.class;
 
-        } else if (Float.class.isAssignableFrom(returnType)) {
-            primitiveClass = float.class;
+        } else if (Boolean.class.isAssignableFrom(type)) {
+            narrow(mv, nativeType, int.class);
 
-        } else if (Double.class.isAssignableFrom(returnType)) {
-            primitiveClass = double.class;
+        } else {
+            throw new IllegalArgumentException("invalid Number subclass");
+        }
+        
+        invokestatic(mv, type, "valueOf", type, primitiveClass);
+    }
 
-        } else if (Boolean.class.isAssignableFrom(returnType)) {
+    private final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
+
+        if (Boolean.class.isAssignableFrom(returnType)) {
             narrow(mv, nativeReturnType, int.class);
-            primitiveClass = boolean.class;
+            invokestatic(mv, returnType, "valueOf", returnType, boolean.class);
             
         } else if (Pointer.class.isAssignableFrom(returnType)) {
             invokestatic(mv, MarshalUtil.class, "returnPointer", Pointer.class, nativeReturnType);
-            return;
 
         } else if (Address.class == returnType) {
             widen(mv, nativeReturnType, long.class);
-            primitiveClass = long.class;
-        } else {
-            throw new IllegalArgumentException("invalid return type");
-        }
+            invokestatic(mv, returnType, "valueOf", returnType, long.class);
 
-        invokestatic(mv, objClass, "valueOf", objClass, primitiveClass);
+        } else if (Struct.class.isAssignableFrom(returnType)) {
+            widen(mv, nativeReturnType, long.class);
+            boxStruct(mv, returnType);
+         
+        } else if (Number.class.isAssignableFrom(returnType)) {
+            boxNumber(mv, returnType, nativeReturnType);
+         
+        } else if (String.class == returnType) {
+            widen(mv, nativeReturnType, long.class);
+            mv.invokestatic(p(MarshalUtil.class), "returnString", sig(String.class, long.class));
+         
+        } else {
+            throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);
+        }
     }
 
     
@@ -719,8 +742,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private final void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
         if (!returnType.isPrimitive()) {
             mv.areturn();
-        } else if (isPrimitiveInt(returnType)) {
-            mv.ireturn();
         } else if (long.class == returnType) {
             mv.lreturn();
         } else if (float.class == returnType) {
@@ -729,6 +750,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.dreturn();
         } else if (void.class == returnType) {
             mv.voidreturn();
+        } else {
+            mv.ireturn();
         }
     }
 
@@ -858,6 +881,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Long.class.isAssignableFrom(type) || long.class == type
                 || NativeLong.class.isAssignableFrom(type)
                 || Pointer.class.isAssignableFrom(type)
+                || Struct.class.isAssignableFrom(type)
+                || String.class.isAssignableFrom(type)
                 ;
     }
     final static boolean isFastIntParam(Class type) {
@@ -874,6 +899,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return Long.class.isAssignableFrom(type) || long.class == type
                 || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 64)
                 || (Pointer.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 64)
+                || (Struct.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 64)
                 ;
     }
 
