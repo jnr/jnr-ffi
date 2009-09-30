@@ -51,9 +51,9 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
+import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
@@ -124,16 +124,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 //        ClassVisitor cv = new CheckClassAdapter(cw);
 //        ClassVisitor cv = cw;
 
-        String className = Type.getInternalName(AsmLibraryLoader.class).replace("/", "_")
+        String className = p(AsmLibraryLoader.class).replace("/", "_")
                 + "_" + interfaceClass.getSimpleName() + "_" + nextClassID.incrementAndGet();
 
-        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, Type.getInternalName(AbstractNativeInterface.class),
-                new String[] { Type.getInternalName(interfaceClass) });
+        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractNativeInterface.class),
+                new String[] { p(interfaceClass) });
 
         // Create the constructor to set the 'library' & functions fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
-                Type.getMethodDescriptor(Type.VOID_TYPE, 
-                    new Type[] { Type.getType(Library.class), Type.getType(Function[].class), Type.getType(FromNativeConverter[].class), Type.getType(ToNativeConverter[][].class) }),
+                sig(void.class, Library.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class),
                 null, null));
         init.start();
         // Invokes the super class constructor as super(Library)
@@ -141,8 +140,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         init.aload(0);
         init.aload(1);
 
-        init.invokespecial(Type.getInternalName(AbstractNativeInterface.class), "<init>",
-                Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] { Type.getType(Library.class) }));
+        init.invokespecial(p(AbstractNativeInterface.class), "<init>", sig(void.class, Library.class));
         
         final Method[] methods = interfaceClass.getDeclaredMethods();
         Function[] functions = new Function[methods.length];
@@ -166,7 +164,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             resultConverters[i] = getResultConverter(returnType, typeMapper);
             if (resultConverters[i] != null) {
-                cv.visitField(ACC_PRIVATE | ACC_FINAL, getResultConverterFieldName(i), Type.getDescriptor(FromNativeConverter.class), null, null);
+                cv.visitField(ACC_PRIVATE | ACC_FINAL, getResultConverterFieldName(i), ci(FromNativeConverter.class), null, null);
                 nativeReturnType = resultConverters[i].nativeType();
                 conversionRequired = true;
             }
@@ -176,7 +174,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 parameterConverters[i][pidx] = typeMapper.getToNativeConverter(parameterTypes[pidx]);
                 if (parameterConverters[i][pidx] != null) {
                     cv.visitField(ACC_PRIVATE | ACC_FINAL, getParameterConverterFieldName(i, pidx),
-                            Type.getDescriptor(ToNativeConverter.class), null, null);
+                            ci(ToNativeConverter.class), null, null);
                     nativeParameterTypes[pidx] = parameterConverters[i][pidx].nativeType();
                     conversionRequired = true;
                 } else {
@@ -194,7 +192,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             String functionFieldName = "function_" + i;
 
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, Type.getDescriptor(Function.class), null, null);
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
             generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""), functionFieldName, m, nativeReturnType, nativeParameterTypes,
@@ -210,7 +208,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             init.aload(2);
             init.pushInt(i);
             init.aaload();
-            init.putfield(className, functionFieldName, Type.getDescriptor(Function.class));
+            init.putfield(className, functionFieldName, ci(Function.class));
 
             // If there is a result converter for this function, put it in a field too
             if (resultConverters[i] != null) {
@@ -219,7 +217,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 init.aload(3);
                 init.pushInt(i);
                 init.aaload();
-                init.putfield(className, getResultConverterFieldName(i), Type.getDescriptor(FromNativeConverter.class));
+                init.putfield(className, getResultConverterFieldName(i), ci(FromNativeConverter.class));
             }
 
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
@@ -230,7 +228,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                     init.aaload();
                     init.pushInt(pidx);
                     init.aaload();
-                    init.putfield(className, getParameterConverterFieldName(i, pidx), Type.getDescriptor(ToNativeConverter.class));
+                    init.putfield(className, getParameterConverterFieldName(i, pidx), ci(ToNativeConverter.class));
                 }
             }
         }
@@ -276,11 +274,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private final void generateFunctionNotFound(ClassVisitor cv, String className, String functionName,
             Class returnType, Class[] parameterTypes) {
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
-                getMethodDescriptor(returnType, parameterTypes), null, null));
+                sig(returnType, parameterTypes), null, null));
         mv.start();
-        mv.newobj(Type.getInternalName(UnsatisfiedLinkError.class));
+        mv.newobj(p(UnsatisfiedLinkError.class));
         mv.dup();
-        mv.invokespecial(Type.getInternalName(UnsatisfiedLinkError.class), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, new Type[] {}));
+        mv.invokespecial(p(UnsatisfiedLinkError.class), "<init>", "()V");
         mv.athrow();
         mv.visitMaxs(10, 10);
         mv.visitEnd();
@@ -290,13 +288,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             Class returnType, Class[] parameterTypes, Class nativeReturnType, Class[] nativeParameterTypes) {
 
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
-                getMethodDescriptor(returnType, parameterTypes), null, null));
+                sig(returnType, parameterTypes), null, null));
         mv.start();
 
         // If there is a result converter, retrieve it and put on the stack
         if (!returnType.equals(nativeReturnType)) {
             mv.aload(0);
-            mv.getfield(className, getResultConverterFieldName(idx), Type.getDescriptor(FromNativeConverter.class));
+            mv.getfield(className, getResultConverterFieldName(idx), ci(FromNativeConverter.class));
         }
 
         
@@ -308,7 +306,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             final boolean convertParameter = !parameterTypes[pidx].equals(nativeParameterTypes[pidx]);
             if (convertParameter) {
                 mv.aload(0);
-                mv.getfield(className, getParameterConverterFieldName(idx, pidx), Type.getDescriptor(ToNativeConverter.class));
+                mv.getfield(className, getParameterConverterFieldName(idx, pidx), ci(ToNativeConverter.class));
             }
 
             if (parameterTypes[pidx].isPrimitive()) {
@@ -332,22 +330,22 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                     boxPrimitive(mv, parameterTypes[pidx]);
                 }
                 mv.aconst_null();
-                mv.invokeinterface(Type.getInternalName(ToNativeConverter.class), "toNative",
-                        getMethodDescriptor(Object.class, Object.class, ToNativeContext.class));
-                mv.checkcast(Type.getInternalName(nativeParameterTypes[pidx]));
+                mv.invokeinterface(p(ToNativeConverter.class), "toNative",
+                        sig(Object.class, Object.class, ToNativeContext.class));
+                mv.checkcast(p(nativeParameterTypes[pidx]));
             }
         }
 
         // Invoke the real native method
-        mv.invokevirtual(className, functionName + "$raw", getMethodDescriptor(nativeReturnType, nativeParameterTypes));
+        mv.invokevirtual(className, functionName + "$raw", sig(nativeReturnType, nativeParameterTypes));
         if (!returnType.equals(nativeReturnType)) {
             if (nativeReturnType.isPrimitive()) {
                 boxPrimitive(mv, nativeReturnType);
             }
             mv.aconst_null();
-            mv.invokeinterface(Type.getInternalName(FromNativeConverter.class), "fromNative",
-                    getMethodDescriptor(Object.class, Object.class, FromNativeContext.class));
-            mv.checkcast(Type.getInternalName(returnType));
+            mv.invokeinterface(p(FromNativeConverter.class), "fromNative",
+                    sig(Object.class, Object.class, FromNativeContext.class));
+            mv.checkcast(p(returnType));
         }
         emitReturnOp(mv, returnType);
         mv.visitMaxs(10, 10);
@@ -358,15 +356,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             Class returnType, Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreErrno) {
 
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName, 
-                getMethodDescriptor(returnType, parameterTypes), null, null));
+                sig(returnType, parameterTypes), null, null));
         mv.start();
         
         // Retrieve the static 'ffi' Invoker instance
-        mv.getstatic(Type.getInternalName(AbstractNativeInterface.class), "ffi", Type.getDescriptor(com.kenai.jffi.Invoker.class));
+        mv.getstatic(p(AbstractNativeInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
 
         // retrieve this.function
         mv.aload(0);
-        mv.getfield(className, functionFieldName, Type.getDescriptor(Function.class));
+        mv.getfield(className, functionFieldName, ci(Function.class));
 
         if (isFastIntMethod(returnType, parameterTypes)) {
             generateFastIntInvocation(mv, returnType, parameterTypes, ignoreErrno);
@@ -383,22 +381,20 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         final boolean sessionRequired = isSessionRequired(parameterTypes);
         final int lvarSession = sessionRequired ? getTotalParameterSize(parameterTypes) + 1 : -1;
         if (sessionRequired) {
-            mv.newobj(Type.getInternalName(InvocationSession.class));
+            mv.newobj(p(InvocationSession.class));
             mv.dup();
-            mv.invokespecial(Type.getInternalName(InvocationSession.class), "<init>",
-                    Type.getMethodDescriptor(Type.getType(void.class), new Type[]{}));
+            mv.invokespecial(p(InvocationSession.class), "<init>",sig(void.class));
             mv.astore(lvarSession);
         }
 
         // new HeapInvocationBuffer(function)
-        mv.newobj(Type.getInternalName(HeapInvocationBuffer.class));
+        mv.newobj(p(HeapInvocationBuffer.class));
         
         // [ ..., Function, Buffer ] => [ ..., Function, Buffer, Function, Buffer ]
         mv.dup2();
         // [ ..., Function, Buffer, Function, Buffer ] => [ ..., Function, Buffer, Buffer, Function ]
         mv.swap();
-        mv.invokespecial(Type.getInternalName(HeapInvocationBuffer.class), "<init>",
-                Type.getMethodDescriptor(Type.getType(void.class), new Type[] { Type.getType(Function.class) }));
+        mv.invokespecial(p(HeapInvocationBuffer.class), "<init>", sig(void.class, Function.class));
 
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; ++i) {
@@ -508,19 +504,18 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             throw new IllegalArgumentException("unsupported return type " + returnType);
         }
         
-        mv.invokevirtual(Type.getInternalName(com.kenai.jffi.Invoker.class), invokeMethod,
-                Type.getMethodDescriptor(Type.getType(nativeReturnType), new Type[] { Type.getType(Function.class), Type.getType(HeapInvocationBuffer.class) }));
+        mv.invokevirtual(p(com.kenai.jffi.Invoker.class), invokeMethod,
+                sig(nativeReturnType, Function.class, HeapInvocationBuffer.class));
 
         if (sessionRequired) {
             mv.aload(lvarSession);
-            mv.invokevirtual(Type.getInternalName(InvocationSession.class), "finish", "()V");
+            mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
         }
 
         if (Struct.class.isAssignableFrom(returnType)) {
             boxStructReturnValue(mv, returnType);
         } else if (String.class == returnType) {
-            mv.invokestatic(Type.getInternalName(MarshalUtil.class), "returnString",
-                Type.getMethodDescriptor(Type.getType(String.class), new Type[] { Type.LONG_TYPE }));
+            mv.invokestatic(p(MarshalUtil.class), "returnString", sig(String.class, long.class));
             mv.areturn();
         } else if (!returnType.isPrimitive()) {
             boxIntReturnValue(mv, returnType, nativeReturnType);
@@ -550,16 +545,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             }
         }
 
-        Type[] paramTypes = new Type[parameterTypes.length + 1];
-        paramTypes[0] = Type.getType(Function.class);
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            paramTypes[i + 1] = Type.getType(nativeIntType);
-        }
-
         // stack now contains [ IntInvoker, Function, int args ]
-        mv.invokevirtual(Type.getInternalName(com.kenai.jffi.Invoker.class),
+        mv.invokevirtual(p(com.kenai.jffi.Invoker.class),
                 getFastIntInvokerMethodName(parameterTypes.length, ignoreErrno, nativeIntType),
-                Type.getMethodDescriptor(Type.getType(nativeIntType), paramTypes));
+                sig(nativeIntType, ci(Function.class), params(nativeIntType, parameterTypes.length)));
 
         if (isPrimitiveInt(returnType) || boolean.class == returnType) {
             if (int.class != nativeIntType) mv.l2i();
@@ -612,10 +601,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         mv.ifeq(retnull);
 
         // Create an instance of the struct subclass
-        mv.newobj(Type.getInternalName(returnType));
+        mv.newobj(p(returnType));
         mv.dup();
-        mv.invokespecial(Type.getInternalName(returnType), "<init>",
-                Type.getMethodDescriptor(Type.getType(void.class), new Type[]{}));
+        mv.invokespecial(p(returnType), "<init>", "()V");
         mv.dup_x2();
 
         // associate the memory with the struct and return the struct
@@ -687,25 +675,25 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         String intValueSignature = long.class == nativeIntType ? "()J" : "()I";
 
         if (Byte.class == parameterType || Short.class == parameterType || Integer.class == parameterType) {
-            mv.invokevirtual(Type.getInternalName(parameterType), intValueMethod, intValueSignature);
+            mv.invokevirtual(p(parameterType), intValueMethod, intValueSignature);
 
         } else if (Long.class == parameterType) {
-            mv.invokevirtual(Type.getInternalName(parameterType), "longValue", "()J");
+            mv.invokevirtual(p(parameterType), "longValue", "()J");
 
         } else if (Float.class == parameterType) {
-            mv.invokevirtual(Type.getInternalName(parameterType), "floatValue", "()F");
+            mv.invokevirtual(p(parameterType), "floatValue", "()F");
 
         } else if (Double.class == parameterType) {
-            mv.invokevirtual(Type.getInternalName(parameterType), "doubleValue", "()D");
+            mv.invokevirtual(p(parameterType), "doubleValue", "()D");
 
         } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 64) {
-            mv.invokevirtual(Type.getInternalName(parameterType), "longValue", "()J");
+            mv.invokevirtual(p(parameterType), "longValue", "()J");
 
         } else if (NativeLong.class.isAssignableFrom(parameterType)) {
-            mv.invokevirtual(Type.getInternalName(parameterType), intValueMethod, intValueSignature);
+            mv.invokevirtual(p(parameterType), intValueMethod, intValueSignature);
 
         } else if (Boolean.class.isAssignableFrom(parameterType)) {
-            mv.invokevirtual(Type.getInternalName(parameterType), "booleanValue", "()Z");
+            mv.invokevirtual(p(parameterType), "booleanValue", "()Z");
 
         } else {
             throw new IllegalArgumentException("unsupported Number subclass");
@@ -760,36 +748,21 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         } else {
             throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
-        mv.invokevirtual(Type.getInternalName(HeapInvocationBuffer.class), paramMethod,
-                Type.getMethodDescriptor(Type.getType(void.class), new Type[] { Type.getType(paramClass) }));
+        mv.invokevirtual(p(HeapInvocationBuffer.class), paramMethod,
+                sig(void.class, paramClass));
     }
 
     private final void invokestatic(SkinnyMethodAdapter mv, Class recv, String methodName, Class returnType, Class... parameterTypes) {
-        Type[] types = new Type[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            types[i] = Type.getType(parameterTypes[i]);
-        }
-        mv.invokestatic(Type.getInternalName(recv), methodName, Type.getMethodDescriptor(Type.getType(returnType), types));
+        mv.invokestatic(p(recv), methodName, sig(returnType, parameterTypes));
     }
 
     private final void marshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
-        Type[] types = new Type[parameterTypes.length + 1];
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            types[i + 1] = Type.getType(parameterTypes[i]);
-        }
-        types[0] = Type.getType(InvocationBuffer.class);
-        mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal", Type.getMethodDescriptor(Type.VOID_TYPE, types));
+        mv.invokestatic(p(MarshalUtil.class), "marshal", sig(void.class, ci(InvocationBuffer.class), parameterTypes));
     }
 
     private final void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
-        Type[] types = new Type[parameterTypes.length + 2];
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            types[i + 2] = Type.getType(parameterTypes[i]);
-        }
-        types[0] = Type.getType(InvocationSession.class);
-        types[1] = Type.getType(InvocationBuffer.class);
-
-        mv.invokestatic(Type.getInternalName(MarshalUtil.class), "marshal", Type.getMethodDescriptor(Type.VOID_TYPE, types));
+        mv.invokestatic(p(MarshalUtil.class), "marshal",
+                sig(void.class, ci(InvocationSession.class) + ci(InvocationBuffer.class), parameterTypes));
     }
     
     private static final Function getFunction(long address, Class returnType, Class[] paramTypes, boolean requiresErrno) {
@@ -906,15 +879,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         } else {
             throw new IllegalArgumentException("unknown number class");
         }
-    }
-
-    private static final String getMethodDescriptor(Class returnType, Class... parameterTypes) {
-        Type[] types = new Type[parameterTypes.length];
-        for (int i = 0; i < types.length; ++i) {
-            types[i] = Type.getType(parameterTypes[i]);
-        }
-
-        return Type.getMethodDescriptor(Type.getType(returnType), types);
     }
 
     final static boolean isFastIntResult(Class type) {
