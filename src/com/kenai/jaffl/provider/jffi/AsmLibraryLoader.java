@@ -182,11 +182,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 }
             }
 
+            // Stash the name of the function in a static field
+            String functionName = functionMapper.mapFunctionName(m.getName(), null);
+            cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "name_" + i, ci(String.class), null, functionName);
             try {
-                functions[i] = getFunction(library.findSymbolAddress(functionMapper.mapFunctionName(m.getName(), null)),
+                functions[i] = getFunction(library.findSymbolAddress(functionName),
                     nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m));
             } catch (SymbolNotFoundError ex) {
-                generateFunctionNotFound(cv, className, m.getName(), returnType, parameterTypes);
+                cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "error_" + i, ci(String.class), null, ex.getMessage());
+                generateFunctionNotFound(cv, className, i, functionName, returnType, parameterTypes);
                 continue;
             }
 
@@ -271,14 +275,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return "parameterConverter_" + idx + "_" + paramIndex;
     }
 
-    private final void generateFunctionNotFound(ClassVisitor cv, String className, String functionName,
+    private final void generateFunctionNotFound(ClassVisitor cv, String className, int idx, String functionName,
             Class returnType, Class[] parameterTypes) {
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
                 sig(returnType, parameterTypes), null, null));
         mv.start();
         mv.newobj(p(UnsatisfiedLinkError.class));
         mv.dup();
-        mv.invokespecial(p(UnsatisfiedLinkError.class), "<init>", "()V");
+        mv.getstatic(className, "error_" + idx, ci(String.class));
+        mv.invokespecial(p(UnsatisfiedLinkError.class), "<init>", sig(void.class, String.class));
         mv.athrow();
         mv.visitMaxs(10, 10);
         mv.visitEnd();

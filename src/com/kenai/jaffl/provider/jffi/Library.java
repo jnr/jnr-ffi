@@ -58,7 +58,7 @@ public class Library extends com.kenai.jaffl.provider.Library {
     long findSymbolAddress(String name) {
         long address = getSymbolAddress(name);
         if (address == 0) {
-            throw new SymbolNotFoundError(name + " not found");
+            throw new SymbolNotFoundError(com.kenai.jffi.Library.getLastError());
         }
         return address;
     }
