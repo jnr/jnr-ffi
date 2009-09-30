@@ -807,7 +807,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return StringBuilder.class.isAssignableFrom(parameterType)
                 || StringBuffer.class.isAssignableFrom(parameterType)
                 || ByReference.class.isAssignableFrom(parameterType)
-                || (parameterType.isArray() && !parameterType.getComponentType().isPrimitive());
+                || (parameterType.isArray() && Pointer.class.isAssignableFrom(parameterType.getComponentType()));
     }
 
     private static boolean isSessionRequired(Class[] parameterTypes) {
@@ -985,8 +985,12 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     };
 
     public static interface TestLib {
+        public static final class s8 extends Struct {
+            public final Signed8 s8 = new Signed8();
+        }
         public Long add_int32_t(long i1, int i2);
         public byte add_int8_t(byte i1, byte i2);
+        byte ptr_ret_int8_t(s8[] s, int index);
     }
 
 
