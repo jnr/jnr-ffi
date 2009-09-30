@@ -314,22 +314,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 mv.getfield(className, getParameterConverterFieldName(idx, pidx), ci(ToNativeConverter.class));
             }
 
-            if (parameterTypes[pidx].isPrimitive()) {
-                if (float.class == parameterTypes[pidx]) {
-                    mv.fload(lvar++);
-                } else if (double.class == parameterTypes[pidx]) {
-                    mv.dload(lvar);
-                    lvar += 2;
-                } else if (long.class == parameterTypes[pidx]) {
-                    mv.lload(lvar);
-                    lvar += 2;
-                } else {
-                    mv.iload(lvar++);
-                }
-            } else {
-                mv.aload(lvar++);
-            }
-
+            lvar = loadParameter(mv, parameterTypes[pidx], lvar);
+            
             if (convertParameter) {
                 if (parameterTypes[pidx].isPrimitive()) {
                     boxPrimitive(mv, parameterTypes[pidx]);
@@ -408,19 +394,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 mv.aload(lvarSession);
                 mv.swap();
             }
-            if (!parameterTypes[i].isPrimitive()) {
-                mv.aload(lvar++);
-            } else if (long.class == parameterTypes[i]) {
-                mv.lload(lvar);
-                lvar += 2;
-            } else if (float.class == parameterTypes[i]) {
-                mv.fload(lvar++);
-            } else if (double.class == parameterTypes[i]) {
-                mv.dload(lvar);
-                lvar += 2;
-            } else {
-                mv.iload(lvar++);
-            }
+
+            lvar = loadParameter(mv, parameterTypes[i], lvar);
             
             final int parameterFlags = DefaultInvokerFactory.getParameterFlags(annotations[i]);
             final int nativeArrayFlags = DefaultInvokerFactory.getNativeArrayFlags(parameterFlags)
@@ -485,7 +460,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         String invokeMethod = null;
         Class nativeReturnType = null;
         
-        if (isPrimitiveInt(returnType) || void.class == returnType || boolean.class == returnType
+        if (isPrimitiveInt(returnType) || void.class == returnType
                 || Byte.class == returnType || Short.class == returnType || Integer.class == returnType) {
             invokeMethod = "invokeInt";
             nativeReturnType = int.class;
@@ -537,15 +512,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; ++i) {
-            if (isPrimitiveInt(parameterTypes[i]) || boolean.class == parameterTypes[i]) {
-                mv.iload(lvar++);
-                if (nativeIntType == long.class) {
-                    mv.i2l(); // sign extend to long
-                }
-            } else if (long.class == parameterTypes[i]) {
-                mv.lload(lvar); lvar += 2;
+            lvar = loadParameter(mv, parameterTypes[i], lvar);
+
+            if (parameterTypes[i].isPrimitive()) {
+                // widen to long if needed
+                widen(mv, parameterTypes[i], nativeIntType);
+
             } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
                 unboxIntParameter(mv, parameterTypes[i], nativeIntType);
             }
         }
@@ -555,24 +528,55 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 getFastIntInvokerMethodName(parameterTypes.length, ignoreErrno, nativeIntType),
                 sig(nativeIntType, ci(Function.class), params(nativeIntType, parameterTypes.length)));
 
-        if (isPrimitiveInt(returnType) || boolean.class == returnType) {
-            if (int.class != nativeIntType) mv.l2i();
+        if (!returnType.isPrimitive()) {
+            boxIntReturnValue(mv, returnType, nativeIntType);
+            mv.areturn();
+        } else if (isPrimitiveInt(returnType)) {
+            narrow(mv, nativeIntType, returnType);
             mv.ireturn();
         } else if (long.class == returnType) {
-            if (long.class != nativeIntType) mv.i2l();
+            widen(mv, nativeIntType, returnType);
             mv.lreturn();
         } else if (void.class == returnType) {
             mv.voidreturn();
         } else {
-            boxIntReturnValue(mv, returnType, nativeIntType);
-            mv.areturn();
+            throw new IllegalArgumentException("unsupported return type: " + returnType);
         }
+    }
+
+    private final void widen(SkinnyMethodAdapter mv, Class from, Class to) {
+        if (long.class == to && isPrimitiveInt(from)) {
+            mv.i2l();
+        }
+    }
+
+    private final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
+        if (long.class == from && isPrimitiveInt(to)) {
+            mv.l2i();
+        }
+    }
+
+    private final int loadParameter(SkinnyMethodAdapter mv, Class parameterType, int lvar) {
+        if (!parameterType.isPrimitive()) {
+            mv.aload(lvar++);
+        } else if (long.class == parameterType) {
+            mv.lload(lvar);
+            lvar += 2;
+        } else if (float.class == parameterType) {
+            mv.fload(lvar++);
+        } else if (double.class == parameterType) {
+            mv.dload(lvar);
+            lvar += 2;
+        } else {
+            mv.iload(lvar++);
+        }
+        return lvar;
     }
 
     private static final Class<? extends Number> getNativeIntType(Class returnType, Class[] parameterTypes) {
 
         for (int i = 0; i < parameterTypes.length; ++i) {
-            if (requiresLong(parameterTypes[i])) {
+            if (true || requiresLong(parameterTypes[i])) {
                 return long.class;
             }
         }
@@ -628,26 +632,26 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private final void boxIntReturnValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
         Class primitiveClass, objClass = returnType;
         if (Byte.class.isAssignableFrom(returnType)) {
-            if (long.class == nativeReturnType) mv.l2i();
+            narrow(mv, nativeReturnType, int.class);
             mv.i2b();
             primitiveClass = byte.class;
             
         } else if (Short.class.isAssignableFrom(returnType)) {
-            if (long.class == nativeReturnType) mv.l2i();
+            narrow(mv, nativeReturnType, int.class);
             mv.i2s();
             primitiveClass = short.class;
             
         } else if (Integer.class.isAssignableFrom(returnType)) {
-            if (long.class == nativeReturnType) mv.l2i();
+            narrow(mv, nativeReturnType, int.class);
             primitiveClass = int.class;
             
 
         } else if (Long.class.isAssignableFrom(returnType)) {
-            if (long.class != nativeReturnType) mv.i2l();
+            widen(mv, nativeReturnType, long.class);
             primitiveClass = long.class;
             
         } else if (NativeLong.class.isAssignableFrom(returnType)) {
-            if (long.class != nativeReturnType) mv.i2l();
+            widen(mv, nativeReturnType, long.class);
             primitiveClass = long.class;
 
         } else if (Float.class.isAssignableFrom(returnType)) {
@@ -657,7 +661,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             primitiveClass = double.class;
 
         } else if (Boolean.class.isAssignableFrom(returnType)) {
-            if (long.class == nativeReturnType) mv.l2i();
+            narrow(mv, nativeReturnType, int.class);
             primitiveClass = boolean.class;
             
         } else if (Pointer.class.isAssignableFrom(returnType)) {
@@ -665,7 +669,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return;
 
         } else if (Address.class == returnType) {
-            if (long.class != nativeReturnType) mv.i2l();
+            widen(mv, nativeReturnType, long.class);
             primitiveClass = long.class;
         } else {
             throw new IllegalArgumentException("invalid return type");
@@ -706,7 +710,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
     
     private final void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
-        if (isPrimitiveInt(returnType) || boolean.class == returnType) {
+        if (isPrimitiveInt(returnType)) {
             mv.ireturn();
         } else if (long.class == returnType) {
             mv.lreturn();
@@ -808,9 +812,16 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         return size;
     }
-    
+
+    private static boolean isInteger(Class c) {
+        return isPrimitiveInt(c) || Byte.class.isAssignableFrom(c)
+                || Short.class.isAssignableFrom(c)
+                || Integer.class.isAssignableFrom(c)
+                || Boolean.class.isAssignableFrom(c);
+    }
+
     private static boolean isPrimitiveInt(Class c) {
-        return byte.class == c || short.class == c || int.class == c;
+        return byte.class == c || short.class == c || int.class == c || boolean.class == c;
     }
 
     final static boolean isFastIntMethod(Class returnType, Class[] parameterTypes) {
@@ -985,5 +996,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         TestLib lib = AsmLibraryLoader.getInstance().loadLibrary(new Library("test"), TestLib.class, options);
         Number result = lib.add_int32_t(1L, 2);
         System.err.println("result=" + result);
+        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
     }
 }
