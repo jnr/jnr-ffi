@@ -710,7 +710,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
     
     private final void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
-        if (isPrimitiveInt(returnType)) {
+        if (returnType.isPrimitive()) {
+            mv.areturn();
+        } else if (isPrimitiveInt(returnType)) {
             mv.ireturn();
         } else if (long.class == returnType) {
             mv.lreturn();
@@ -720,8 +722,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.dreturn();
         } else if (void.class == returnType) {
             mv.voidreturn();
-        } else {
-            mv.areturn();
         }
     }
 
