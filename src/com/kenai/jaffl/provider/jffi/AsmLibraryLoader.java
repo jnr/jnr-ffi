@@ -54,6 +54,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
+import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
@@ -625,7 +626,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void boxPrimitive(SkinnyMethodAdapter mv, Class primitiveType) {
-        Class objClass = getBoxedClass(primitiveType);
+        Class objClass = NumberUtil.getBoxedClass(primitiveType);
         invokestatic(mv, objClass, "valueOf", objClass, primitiveType);
     }
 
@@ -802,12 +803,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return false;
     }
 
-    private static int getTotalParameterSize(Class[] parameterTypes) {
+    private static final int getParameterSize(Class parameterType) {
+        return long.class == parameterType || double.class == parameterType ? 1 : 2;
+    }
+
+    private static final int getTotalParameterSize(Class[] parameterTypes) {
         int size = 0;
+
         for (int i = 0; i < parameterTypes.length; ++i) {
-            size++;
-            if (long.class == parameterTypes[i] || double.class == parameterTypes[i])
-                size++;
+            size += getParameterSize(parameterTypes[i]);
         }
 
         return size;
@@ -820,10 +824,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Boolean.class.isAssignableFrom(c);
     }
 
-    private static boolean isPrimitiveInt(Class c) {
-        return byte.class == c || short.class == c || int.class == c || boolean.class == c;
-    }
-
+    
     final static boolean isFastIntMethod(Class returnType, Class[] parameterTypes) {
         if (parameterTypes.length > 3) {
             return false;
@@ -840,61 +841,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
         return com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.I386
                 || com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.X86_64;
-    }
-
-    private static final Class getBoxedClass(Class c) {
-        if (!c.isPrimitive()) {
-            return c;
-        }
-
-        if (void.class == c) {
-            return Void.class;
-        } else if (byte.class == c) {
-            return Byte.class;
-        } else if (char.class == c) {
-            return Character.class;
-        } else if (short.class == c) {
-            return Short.class;
-        } else if (int.class == c) {
-            return Integer.class;
-        } else if (long.class == c) {
-            return Long.class;
-        } else if (float.class == c) {
-            return Float.class;
-        } else if (double.class == c) {
-            return Double.class;
-        } else if (boolean.class == c) {
-            return Boolean.class;
-        } else {
-            throw new IllegalArgumentException("unknown primitive class");
-        }
-    }
-
-    private static final Class getPrimitiveClass(Class c) {
-        if (!Number.class.isAssignableFrom(c)) {
-            return c;
-        }
-        if (Void.class == c) {
-            return void.class;
-        } else if (Byte.class == c) {
-            return byte.class;
-        } else if (Character.class == c) {
-            return char.class;
-        } else if (Short.class == c) {
-            return short.class;
-        } else if (Integer.class == c) {
-            return int.class;
-        } else if (Long.class == c) {
-            return long.class;
-        } else if (Float.class == c) {
-            return float.class;
-        } else if (Double.class == c) {
-            return double.class;
-        } else if (Boolean.class == c) {
-            return boolean.class;
-        } else {
-            throw new IllegalArgumentException("unknown number class");
-        }
     }
 
     final static boolean isFastIntResult(Class type) {
