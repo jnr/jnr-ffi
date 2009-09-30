@@ -71,10 +71,71 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <target name="-pre-init">
+        <condition property="run.jvm.model" value="-d64">
+          <or>
+            <os arch="amd64"/>
+            <os arch="x86_64"/>
+            <os arch="sparcv9"/>
+            <os arch="s390x"/>
+          </or>
+        </condition>
+        <condition property="run.jvm.model" value="-d32">
+          <or>
+            <os arch="i386"/>
+            <os arch="x86"/>
+            <os arch="powerpc"/>
+            <os arch="sparc"/>
+          </or>
+        </condition>
+        <condition property="run.jvm.model" value="">
+            <not><isset property="run.jvm.model"/></not>
+        </condition>
+        <property name="run.jvmargs" value="${run.jvm.model} -Djaffl.library.path=build"/>
+    </target>
+    <target name="-post-init">
+        <!-- normalize the various os.arch naming conventions -->
+        <condition property="platform.cpu" value="i386">
+            <or>
+                <os arch="i386"/>
+                <os arch="x86"/>
+            </or>
+        </condition>
+        <condition property="platform.cpu" value="x86_64">
+            <or>
+                <os arch="amd64"/>
+                <os arch="x86_64"/>
+            </or>
+        </condition>
+        <condition property="platform.cpu" value="ppc">
+            <or>
+                <os arch="ppc"/>
+                <os arch="powerpc"/>
+            </or>
+        </condition>
+        <condition property="platform.os" value="Windows">
+            <os family="Windows"/>
+        </condition>
+        <!-- default to os.arch for the cpu -->
+        <condition property="platform.cpu" value="${os.arch}">
+            <not><isset property="platform.cpu"/></not>
+        </condition>
+        <condition property="platform.os" value="${os.name}">
+            <not><isset property="platform.os"/></not>
+        </condition>
+        <condition property="platform" value="Darwin">
+            <os family="Mac"/>
+        </condition>
+        <condition property="platform" value="${platform.cpu}-${platform.os}">
+            <not><isset property="platform"/></not>
+        </condition>
+    </target>
+    
     <target name="-post-compile-test">
       <exec dir="${basedir}" executable="make" failonerror="true">
         <arg line="-f libtest/GNUmakefile"/>
         <arg line="BUILD_DIR=${build.dir}"/>
+        <arg value="CPU=${platform.cpu}"/>
       </exec>
     </target>
 </project>
