@@ -165,9 +165,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             }
 
             try {
-            functions[i] = getFunction(library.findSymbolAddress(functionMapper.mapFunctionName(m.getName(), null)),
+                functions[i] = getFunction(library.findSymbolAddress(functionMapper.mapFunctionName(m.getName(), null)),
                     nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m));
-            } catch (UnsatisfiedLinkError e) {
+            } catch (SymbolNotFoundError ex) {
                 generateFunctionNotFound(cv, className, m.getName(), returnType, parameterTypes);
                 continue;
             }
