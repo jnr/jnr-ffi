@@ -250,7 +250,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         cv.visitEnd();
 
         try {
-            Class implClass = AsmLoader.INSTANCE.defineClass(className, cw.toByteArray());
+            Class implClass = new AsmLoader().defineClass(className, cw.toByteArray());
             Constructor<T> cons = implClass.getDeclaredConstructor(Library.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class);
             return cons.newInstance(library, functions, resultConverters, parameterConverters);
         } catch (Throwable ex) {
