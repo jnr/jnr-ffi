@@ -10,7 +10,7 @@ package com.kenai.jaffl;
  * a NativeLong.
  * </p>
  */
-public class NativeLong extends Number implements Comparable<NativeLong> {
+public final class NativeLong extends Number implements Comparable<NativeLong> {
     public static final int SIZE = Platform.getPlatform().longSize();
     public static final int SHIFT = SIZE == 32 ? 2 : 3;
     public static final long MASK = SIZE == 32 ? 0xffffffffL : 0xffffffffffffffffL;
@@ -115,42 +115,46 @@ public class NativeLong extends Number implements Comparable<NativeLong> {
     }
 
     /**
-     * Converts this <tt>NativeLong</tt> to its native representation.
-     * 
-     * @param marshaller the marshaller to use to convert to native.
-     * @param context marshalling context.
-     * @return a marshalling session.
+     * Internal cache of common native long values
      */
-//    public final Session marshal(Marshaller marshaller, MarshalContext context) {
-//        if (SIZE == 32) {
-//            marshaller.addInt32((int) value);
-//        } else {
-//            marshaller.addInt64(value);
-//        }
-//        return Marshaller.EMPTY_SESSION;
-//    }
     private static final class Cache {
-        private final NativeLong[] cache = new NativeLong[256];
-        private Cache() {
+        private Cache() {}
+
+        static final NativeLong[] cache = new NativeLong[256];
+
+        static {
             for (int i = 0; i < cache.length; ++i) {
-                cache[i] = new NativeLong(Long.valueOf(i - 128));
+                cache[i] = new NativeLong(i - 128);
             }
             cache[128 + 0] = ZERO;
             cache[128 + 1] = ONE;
             cache[128 - 1] = MINUS_ONE;
         }
-        public static final NativeLong get(long value) {
-            return INSTANCE.cache[128 + (int) value];
-        }
-        private static final Cache INSTANCE = new Cache();
+
     }
+
     private static final NativeLong _valueOf(final long value) {
-        if (value >= -128 && value <= 127) {
-            return Cache.get(value);
-        }
-        return new NativeLong(value);
+        return value >= -128 && value <= 127
+            ? Cache.cache[128 + (int) value] : new NativeLong(value);
     }
+
+    /**
+     * Returns a NativeLong instance representing the specified long value
+     *
+     * @param value a long value
+     * @return a <tt>NativeLong</tt> instance representing <tt>value</tt>
+     */
     public static final NativeLong valueOf(final long value) {
         return value == 0 ? ZERO : value == 1 ? ONE : value == -1 ? MINUS_ONE : _valueOf(value);
+    }
+
+    /**
+     * Returns a NativeLong instance representing the specified int value
+     *
+     * @param value a 32bit integer value
+     * @return a <tt>NativeLong</tt> instance representing <tt>value</tt>
+     */
+    public static final NativeLong valueOf(final int value) {
+        return valueOf((long) value);
     }
 }
