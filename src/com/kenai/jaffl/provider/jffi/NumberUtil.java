@@ -18,6 +18,8 @@
 
 package com.kenai.jaffl.provider.jffi;
 
+import com.kenai.jaffl.NativeLong;
+
 public final class NumberUtil {
     private NumberUtil() {}
     
@@ -28,52 +30,71 @@ public final class NumberUtil {
 
         if (void.class == c) {
             return Void.class;
+
         } else if (byte.class == c) {
             return Byte.class;
+        
         } else if (char.class == c) {
             return Character.class;
+
         } else if (short.class == c) {
             return Short.class;
+
         } else if (int.class == c) {
             return Integer.class;
+
         } else if (long.class == c) {
             return Long.class;
+
         } else if (float.class == c) {
             return Float.class;
+
         } else if (double.class == c) {
             return Double.class;
+
         } else if (boolean.class == c) {
             return Boolean.class;
+
         } else {
             throw new IllegalArgumentException("unknown primitive class");
         }
     }
 
-    public final Class getPrimitiveClass(Class c) {
+    static final Class getPrimitiveClass(Class c) {
         if (Void.class == c) {
             return void.class;
-        } else if (!Number.class.isAssignableFrom(c) || c.isPrimitive()) {
-            return c;
-        }
 
-        if (Byte.class == c) {
-            return byte.class;
-        } else if (Character.class == c) {
-            return char.class;
-        } else if (Short.class == c) {
-            return short.class;
-        } else if (Integer.class == c) {
-            return int.class;
-        } else if (Long.class == c) {
-            return long.class;
-        } else if (Float.class == c) {
-            return float.class;
-        } else if (Double.class == c) {
-            return double.class;
         } else if (Boolean.class == c) {
             return boolean.class;
+
+        } else if (Byte.class == c) {
+            return byte.class;
+
+        } else if (Character.class == c) {
+            return char.class;
+
+        } else if (Short.class == c) {
+            return short.class;
+
+        } else if (Integer.class == c) {
+            return int.class;
+
+        } else if (Long.class == c) {
+            return long.class;
+
+        } else if (Float.class == c) {
+            return float.class;
+
+        } else if (Double.class == c) {
+            return double.class;
+        
+        } else if (NativeLong.class == c) {
+            return long.class;
+
+        } else if (c.isPrimitive()) {
+            return c;
         } else {
-            throw new IllegalArgumentException("unknown number class");
+            throw new IllegalArgumentException("unsupported number class");
         }
     }
 
