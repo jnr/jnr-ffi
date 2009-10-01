@@ -65,8 +65,8 @@ abstract public class AbstractMemoryIO extends MemoryIO {
                 io.putInt(offset, (int) address);
             }
         }
-        public static class AddressIO64 {
-            public static final AddressIO _INSTANCE = new AddressIO32();
+        public static class AddressIO64 implements AddressIO {
+            public static final AddressIO _INSTANCE = new AddressIO64();
             public long getAddress(MemoryIO io, long offset) {
                 return io.getLong(offset);
             }
