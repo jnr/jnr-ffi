@@ -15,7 +15,7 @@ PREFIX = lib
 LIBEXT = so
 LIBNAME = $(PREFIX)test.$(LIBEXT)
 
-export MACOSX_DEPLOYMENT_TARGET=10.4
+export MACOSX_DEPLOYMENT_TARGET=10.5
 
 ifeq ($(OS),linux)
 CCACHE := $(shell /usr/bin/which ccache)
@@ -46,13 +46,14 @@ ifeq ($(OS), darwin)
   ifeq ($(CPU),i386)
     ARCHFLAGS += -arch i386 -arch x86_64
   endif
-  CFLAGS += $(ARCHFLAGS) -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DTARGET_RT_MAC_CFM=0
+  MACOSSDK = /Developer/SDKs/MacOSX10.5.sdk
+  CFLAGS += $(ARCHFLAGS) -isysroot $(MACOSSDK) -DTARGET_RT_MAC_CFM=0
   CFLAGS += -fno-common
-  LDFLAGS = $(ARCHFLAGS) -dynamiclib -Wl,-syslibroot,$(SDKROOT) -mmacosx-version-min=10.4
+  LDFLAGS = $(ARCHFLAGS) -dynamiclib -Wl,-syslibroot,$(SDKROOT) -mmacosx-version-min=10.5
   # link against the universal libraries on ppc machines
-  LDFLAGS += -L/Developer/SDKs/MacOSX10.4u.sdk/usr/lib
+  LDFLAGS += -L$(MACOSSDK)/usr/lib
   LIBEXT = dylib
-  FFI_CFLAGS += -isysroot /Developer/SDKs/MacOSX10.4u.sdk
+  FFI_CFLAGS += -isysroot $(MACOSSDK)
   PICFLAGS =
   SOFLAGS =
 endif
