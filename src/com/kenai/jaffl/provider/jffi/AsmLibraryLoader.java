@@ -175,7 +175,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             parameterConverters[i] = new ToNativeConverter[parameterTypes.length];
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
                 ToNativeConverter converter = typeMapper.getToNativeConverter(parameterTypes[pidx]);
-                if (parameterConverters[i][pidx] != null) {
+                if (converter != null) {
                     cv.visitField(ACC_PRIVATE | ACC_FINAL, getParameterConverterFieldName(i, pidx),
                             ci(ToNativeConverter.class), null, null);
                     nativeParameterTypes[pidx] = converter.nativeType();
