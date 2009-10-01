@@ -123,9 +123,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final <T> T generateInterfaceImpl(final Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = new CheckClassAdapter(new TraceClassVisitor(cw, new PrintWriter(System.out)));
+//        ClassVisitor cv = new CheckClassAdapter(new TraceClassVisitor(cw, new PrintWriter(System.out)));
 //        ClassVisitor cv = new CheckClassAdapter(cw);
-//        ClassVisitor cv = cw;
+        ClassVisitor cv = cw;
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
 
@@ -371,7 +371,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             generateBufferInvocation(mv, returnType, parameterTypes, parameterAnnotations);
         }
         
-        mv.visitMaxs(10, 10);
+        mv.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
         mv.visitEnd();
     }
 
@@ -832,7 +832,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private static final int getParameterSize(Class parameterType) {
-        return long.class == parameterType || double.class == parameterType ? 1 : 2;
+        return long.class == parameterType || double.class == parameterType ? 2 : 1;
     }
 
     private static final int getTotalParameterSize(Class[] parameterTypes) {
