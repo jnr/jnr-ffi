@@ -127,8 +127,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 //        ClassVisitor cv = new CheckClassAdapter(cw);
 //        ClassVisitor cv = cw;
 
-        String className = p(AsmLibraryLoader.class).replace("/", "_")
-                + "_" + interfaceClass.getSimpleName() + "_" + nextClassID.incrementAndGet();
+        String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
 
         cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractNativeInterface.class),
                 new String[] { p(interfaceClass) });
@@ -250,7 +249,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         cv.visitEnd();
 
         try {
-            Class implClass = new AsmLoader().defineClass(className, cw.toByteArray());
+            Class implClass = new AsmLoader().defineClass(className.replace("/", "."), cw.toByteArray());
             Constructor<T> cons = implClass.getDeclaredConstructor(Library.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class);
             return cons.newInstance(library, functions, resultConverters, parameterConverters);
         } catch (Throwable ex) {
@@ -979,7 +978,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     };
 
     public static interface TestLib {
-        public static final class s8 extends Struct {
+        static final class s8 extends Struct {
             public final Signed8 s8 = new Signed8();
         }
         public Long add_int32_t(long i1, int i2);
