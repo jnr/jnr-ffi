@@ -43,17 +43,17 @@ ifeq ($(OS), win32)
 endif
 ifeq ($(OS), darwin)
   ARCHFLAGS = -arch ppc
-  ifeq ($(CPU),i386)
+  ifneq ($(findstring $(CPU), i386 x86_64),)
     ARCHFLAGS += -arch i386 -arch x86_64
   endif
-  MACOSSDK = /Developer/SDKs/MacOSX10.5.sdk
-  CFLAGS += $(ARCHFLAGS) -isysroot $(MACOSSDK) -DTARGET_RT_MAC_CFM=0
+  MACSDK = /Developer/SDKs/MacOSX10.5.sdk
+  CFLAGS += $(ARCHFLAGS) -isysroot $(MACSDK) -DTARGET_RT_MAC_CFM=0
   CFLAGS += -fno-common
-  LDFLAGS = $(ARCHFLAGS) -dynamiclib -Wl,-syslibroot,$(SDKROOT) -mmacosx-version-min=10.5
+  LDFLAGS = $(ARCHFLAGS) -dynamiclib -Wl,-syslibroot,$(MACSDK) -mmacosx-version-min=10.5
   # link against the universal libraries on ppc machines
-  LDFLAGS += -L$(MACOSSDK)/usr/lib
+  LDFLAGS += -L$(MACSDK)/usr/lib
   LIBEXT = dylib
-  FFI_CFLAGS += -isysroot $(MACOSSDK)
+  FFI_CFLAGS += -isysroot $(MACSDK)
   PICFLAGS =
   SOFLAGS =
 endif
