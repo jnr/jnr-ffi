@@ -4,10 +4,10 @@
   <groupId>org.jruby.extras</groupId>
   <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
-  <version>0.3.1</version>
+  <version>0.3.2</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
-  <url>http://jaffl.kenai.com</url>
+  <url>http://jnr.kenai.com</url>
   <licenses>
     <license>
       <name>GNU Lesser General Public License Version 3</name>
