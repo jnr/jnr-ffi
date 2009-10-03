@@ -3,7 +3,6 @@ package com.kenai.jaffl.provider.jffi;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Map;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
@@ -35,17 +34,7 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
     }
     
     public void setMethodVisitor(MethodVisitor mv) {
-        if (DEBUG) {
-            try {
-                Class tmvClass = Class.forName("org.objectweb.asm.util.TraceMethodVisitor");
-                Constructor c = tmvClass.getDeclaredConstructor(MethodVisitor.class);
-                this.method = (MethodVisitor) c.newInstance(mv);
-            } catch (Throwable t) {
-                this.method = mv;
-            }
-        } else {
-            this.method = mv;
-        }
+        this.method = DEBUG ? AsmUtil.newTraceMethodVisitor(mv) : mv;
     }
     
     public void aload(int arg0) {
