@@ -5,6 +5,7 @@ import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.mapper.FunctionMapper;
 import com.kenai.jaffl.util.EnumMapper;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
@@ -21,7 +22,9 @@ class FastIntInvokerFactory implements InvokerFactory {
         return SingletonHolder.INSTANCE;
     }
     public com.kenai.jaffl.provider.Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
-        final long address = ((Library) library).findSymbolAddress(method.getName());
+        FunctionMapper functionMapper = options.containsKey(LibraryOption.FunctionMapper)
+                ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.INSTANCE;
+        final long address = ((Library) library).findSymbolAddress(functionMapper.mapFunctionName(method.getName(), null));
 
         Class returnType = method.getReturnType();
         Class[] paramTypes = method.getParameterTypes();
