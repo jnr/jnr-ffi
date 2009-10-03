@@ -10,6 +10,7 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
+import com.kenai.jaffl.mapper.FunctionMapper;
 import com.kenai.jaffl.mapper.MethodResultContext;
 import com.kenai.jaffl.mapper.ToNativeContext;
 import com.kenai.jaffl.mapper.ToNativeConverter;
@@ -50,7 +51,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         return true; // The default factory supports everything
     }
     public final Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
-        final long address = ((Library) library).findSymbolAddress(method.getName());
+        FunctionMapper functionMapper = options.containsKey(LibraryOption.FunctionMapper)
+                ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : null;
+        String functionName = functionMapper != null ? functionMapper.mapFunctionName(method.getName(), null) : method.getName();
+        final long address = ((Library) library).findSymbolAddress(functionName);
 
         TypeMapper typeMapper = (TypeMapper) options.get(LibraryOption.TypeMapper);
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];
