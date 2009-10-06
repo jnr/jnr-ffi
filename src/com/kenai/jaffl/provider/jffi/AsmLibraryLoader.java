@@ -520,7 +520,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         // stack now contains [ IntInvoker, Function, int args ]
         mv.invokevirtual(p(com.kenai.jffi.Invoker.class),
                 getFastIntInvokerMethodName(parameterTypes.length, ignoreErrno, nativeIntType),
-                sig(nativeIntType, ci(Function.class), params(nativeIntType, parameterTypes.length)));
+                getFastIntInvokerSignature(parameterTypes.length, nativeIntType));
 
         emitReturn(mv, returnType, nativeIntType);
     }
@@ -604,6 +604,19 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         return sb.append("r").append(t).toString();
     }
+
+    static final String getFastIntInvokerSignature(int parameterCount, Class nativeIntType) {
+        final String t = int.class == nativeIntType ? "I" : "J";
+        StringBuilder sb = new StringBuilder();
+        sb.append("(");
+        sb.append(ci(Function.class));
+        for (int i = 0; i < parameterCount; ++i) {
+            sb.append(t);
+        }
+        sb.append(")").append(t);
+        return sb.toString();
+    }
+
     
     private final void boxStruct(SkinnyMethodAdapter mv, Class returnType) {
         mv.dup2();
