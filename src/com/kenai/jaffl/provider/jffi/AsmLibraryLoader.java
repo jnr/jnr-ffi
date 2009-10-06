@@ -58,6 +58,7 @@ import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     public final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
+    private static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
     private final AtomicLong nextClassID = new AtomicLong(0);
     private final AtomicLong nextIvarID = new AtomicLong(0);
 
@@ -363,6 +364,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         if (isFastIntMethod(returnType, parameterTypes)) {
             generateFastIntInvocation(mv, returnType, parameterTypes, ignoreErrno);
+        } else if (FAST_NUMERIC_AVAILABLE && isFastNumericMethod(returnType, parameterTypes)) {
+            generateFastNumericInvocation(mv, returnType, parameterTypes);
         } else {
             generateBufferInvocation(mv, returnType, parameterTypes, parameterAnnotations);
         }
@@ -513,7 +516,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 widen(mv, parameterTypes[i], nativeIntType);
 
             } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
-                unboxIntParameter(mv, parameterTypes[i], nativeIntType);
+                unboxNumber(mv, parameterTypes[i], nativeIntType);
             }
         }
 
@@ -523,6 +526,61 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 getFastIntInvokerSignature(parameterTypes.length, nativeIntType));
 
         emitReturn(mv, returnType, nativeIntType);
+    }
+
+    private final void generateFastNumericInvocation(SkinnyMethodAdapter mv, Class returnType, Class[] parameterTypes) {
+        // [ stack contains: Invoker, Function ]
+
+        int lvar = 1;
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            lvar = loadParameter(mv, parameterTypes[i], lvar);
+
+            if (!parameterTypes[i].isPrimitive()) {
+                unboxNumber(mv, returnType, long.class);
+            }
+
+            if (Float.class == parameterTypes[i] || float.class == parameterTypes[i]) {
+                mv.invokestatic(p(Float.class), "floatToRawIntBits", "(F)I");
+                mv.i2l();
+
+            } else if (Double.class == parameterTypes[i] || double.class == parameterTypes[i]) {
+                mv.invokestatic(p(Double.class), "doubleToRawLongBits", "(D)J");
+
+            } else if (parameterTypes[i].isPrimitive()) {
+                // widen to long if needed
+                widen(mv, parameterTypes[i], long.class);
+            }
+        }
+
+        StringBuilder sb = new StringBuilder("invoke");
+        if (parameterTypes.length == 0) {
+            sb.append("V");
+        } else {
+            for (int i = 0; i < parameterTypes.length; ++i) {
+                sb.append("N");
+            }
+        }
+        sb.append("rN");
+
+        final String invoke = sb.toString();
+        sb = new StringBuilder("(").append(ci(Function.class));
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            sb.append("J");
+        }
+        final String sig = sb.append(")J").toString();
+
+        // stack now contains [ IntInvoker, Function, int args ]
+        mv.invokevirtual(p(com.kenai.jffi.Invoker.class), invoke, sig);
+
+        // Convert the result from long to the correct return type
+        if (Float.class == returnType || float.class == returnType) {
+            mv.l2i();
+            mv.invokestatic(p(Float.class), "intBitsToFloat", "(I)F");
+
+        } else if (Double.class == returnType || double.class == returnType) {
+            mv.invokestatic(p(Double.class), "longBitsToDouble", "(J)D");
+        }
+        emitReturn(mv, returnType, long.class);
     }
 
     private final void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
@@ -548,13 +606,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void widen(SkinnyMethodAdapter mv, Class from, Class to) {
-        if (long.class == to && isPrimitiveInt(from)) {
+        if (long.class == to && long.class != from && isPrimitiveInt(from)) {
             mv.i2l();
         }
     }
 
     private final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
-        if (long.class == from && isPrimitiveInt(to)) {
+        if (long.class == from && long.class != to && isPrimitiveInt(to)) {
             mv.l2i();
         }
     }
@@ -680,6 +738,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         } else if (Boolean.class.isAssignableFrom(type)) {
             narrow(mv, nativeType, int.class);
 
+        } else if (Float.class == type || Double.class == type) {
+            // nothing to do
         } else {
             throw new IllegalArgumentException("invalid Number subclass");
         }
@@ -717,30 +777,31 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     
-    private final void unboxIntParameter(final SkinnyMethodAdapter mv, final Class parameterType, final Class nativeIntType) {
+    private final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeIntType) {
         String intValueMethod = long.class == nativeIntType ? "longValue" : "intValue";
         String intValueSignature = long.class == nativeIntType ? "()J" : "()I";
 
-        if (Byte.class == parameterType || Short.class == parameterType || Integer.class == parameterType) {
-            mv.invokevirtual(p(parameterType), intValueMethod, intValueSignature);
+        if (Byte.class == boxedType || Short.class == boxedType || Integer.class == boxedType) {
+            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
 
-        } else if (Long.class == parameterType) {
-            mv.invokevirtual(p(parameterType), "longValue", "()J");
+        } else if (Long.class == boxedType) {
+            mv.invokevirtual(p(boxedType), "longValue", "()J");
 
-        } else if (Float.class == parameterType) {
-            mv.invokevirtual(p(parameterType), "floatValue", "()F");
+        } else if (Float.class == boxedType) {
+            mv.invokevirtual(p(boxedType), "floatValue", "()F");
 
-        } else if (Double.class == parameterType) {
-            mv.invokevirtual(p(parameterType), "doubleValue", "()D");
+        } else if (Double.class == boxedType) {
+            mv.invokevirtual(p(boxedType), "doubleValue", "()D");
 
-        } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 64) {
-            mv.invokevirtual(p(parameterType), "longValue", "()J");
+        } else if (NativeLong.class.isAssignableFrom(boxedType) && Platform.getPlatform().longSize() == 64) {
+            mv.invokevirtual(p(boxedType), "longValue", "()J");
 
-        } else if (NativeLong.class.isAssignableFrom(parameterType)) {
-            mv.invokevirtual(p(parameterType), intValueMethod, intValueSignature);
+        } else if (NativeLong.class.isAssignableFrom(boxedType)) {
+            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
 
-        } else if (Boolean.class.isAssignableFrom(parameterType)) {
-            mv.invokevirtual(p(parameterType), "booleanValue", "()Z");
+        } else if (Boolean.class.isAssignableFrom(boxedType)) {
+            mv.invokevirtual(p(boxedType), "booleanValue", "()Z");
+            widen(mv, boolean.class, nativeIntType);
 
         } else {
             throw new IllegalArgumentException("unsupported Number subclass");
@@ -768,7 +829,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         Class paramClass = int.class;
         
         if (!parameterType.isPrimitive()) {
-            unboxIntParameter(mv, parameterType, null);
+            unboxNumber(mv, parameterType, null);
         }
 
         if (byte.class == parameterType || Byte.class == parameterType) {
@@ -861,7 +922,24 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Boolean.class.isAssignableFrom(c);
     }
 
-    
+    final static boolean isFastNumericMethod(Class returnType, Class[] parameterTypes) {
+        if (parameterTypes.length > 3) {
+            return false;
+        }
+
+        if (!isFastNumericResult(returnType)) {
+            return false;
+        }
+
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            if (!isFastNumericParam(parameterTypes[i])) {
+                return false;
+            }
+        }
+        return com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.I386
+                || com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.X86_64;
+    }
+
     final static boolean isFastIntMethod(Class returnType, Class[] parameterTypes) {
         if (parameterTypes.length > 3) {
             return false;
@@ -893,6 +971,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || String.class.isAssignableFrom(type)
                 ;
     }
+
     final static boolean isFastIntParam(Class type) {
         return Byte.class.isAssignableFrom(type) || byte.class == type
                 || Short.class.isAssignableFrom(type) || short.class == type
@@ -903,6 +982,28 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 ;
     }
 
+    final static boolean isFastNumericResult(Class type) {
+        return isFastIntResult(type)
+                || float.class == type || Float.class == type
+                || double.class == type || Double.class == type;
+    }
+
+    final static boolean isFastNumericParam(Class type) {
+        return isFastIntParam(type)
+                || float.class == type || Float.class == type
+                || double.class == type || Double.class == type;
+    }
+
+    final static boolean isFastNumericAvailable() {
+        try {
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNrN", Function.class, long.class);
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNNrN", Function.class, long.class, long.class);
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNNNrN", Function.class, long.class, long.class, long.class);
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
     private final static boolean requiresLong(Class type) {
         return Long.class.isAssignableFrom(type) || long.class == type
                 || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 64)
@@ -991,7 +1092,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             public final Signed8 s8 = new Signed8();
         }
         public Long add_int32_t(long i1, int i2);
-        public byte add_int8_t(byte i1, byte i2);
+        public Float add_float(float f1, float f2);
+        public Double add_double(Double f1, double f2);
+//        public byte add_int8_t(byte i1, byte i2);
         byte ptr_ret_int8_t(s8[] s, int index);
     }
 
@@ -1018,6 +1121,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         TestLib lib = AsmLibraryLoader.getInstance().loadLibrary(new Library("test"), TestLib.class, options);
         Number result = lib.add_int32_t(1L, 2);
         System.err.println("result=" + result);
-        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
+//        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
+        System.err.println("adding floats=" + lib.add_float(1.0f, 2.0f));
+        System.err.println("adding doubles=" + lib.add_double(1.0, 2.0));
     }
 }
