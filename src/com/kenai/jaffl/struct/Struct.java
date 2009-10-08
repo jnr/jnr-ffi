@@ -36,6 +36,7 @@ public abstract class Struct /*implements Marshallable */{
         static final int ADDRESS_SIZE = Platform.getPlatform().addressSize();
         static final long LONG_MASK = LONG_SIZE == 32 ? 0x7FFFFFFFL : 0x7FFFFFFFFFFFFFFFL;
         static final int LONG_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
+        static final int INT64_ALIGN = Platform.getPlatform().isUnix() ? LONG_ALIGN : 64;
         static final int ADDRESS_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
         static final int DOUBLE_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
         static final int FLOAT_ALIGN = isSparc() ? 64 : 32;
@@ -975,7 +976,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 64 bit integer field.
          */
         public Signed64() {
-            super(64, Constants.LONG_ALIGN);
+            super(64, Constants.INT64_ALIGN);
         }
 
         /**
@@ -984,7 +985,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Signed64(Offset offset) {
-            super(64, Constants.LONG_ALIGN, offset);
+            super(64, Constants.INT64_ALIGN, offset);
         }
 
         /**
@@ -1048,7 +1049,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 64 bit integer field.
          */
         public Unsigned64() {
-            super(64, Constants.LONG_ALIGN);
+            super(64, Constants.INT64_ALIGN);
         }
         
         /**
@@ -1057,7 +1058,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Unsigned64(Offset offset) {
-            super(64, Constants.LONG_ALIGN, offset);
+            super(64, Constants.INT64_ALIGN, offset);
         }
         
         /**
