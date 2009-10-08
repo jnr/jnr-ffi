@@ -996,9 +996,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     final static boolean isFastNumericAvailable() {
         try {
-            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNrN", Function.class, long.class);
-            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNNrN", Function.class, long.class, long.class);
-            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNNNrN", Function.class, long.class, long.class, long.class);
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNNNNNNrN", Function.class, long.class, long.class, long.class, long.class, long.class, long.class);
             return true;
         } catch (Throwable t) {
             return false;
