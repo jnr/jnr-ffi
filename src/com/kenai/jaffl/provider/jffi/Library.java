@@ -14,13 +14,12 @@ class Library extends com.kenai.jaffl.provider.Library {
     private final String[] libraryNames;
     
     private volatile List<com.kenai.jffi.Library> nativeLibraries = Collections.EMPTY_LIST;
-    
-    Library(String name) {
-        this.libraryNames = new String[] { name };
-    }
 
-    Library(String... names) {
+    Library(String[] names, Map<LibraryOption, ?> options) {
         this.libraryNames = (String[]) names.clone();
+        if (Boolean.TRUE.equals(options.get(LibraryOption.LoadNow))) {
+            nativeLibraries = loadNativeLibraries();
+        }
     }
 
     public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {

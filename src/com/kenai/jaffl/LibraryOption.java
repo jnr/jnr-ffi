@@ -32,5 +32,10 @@ public enum LibraryOption {
      * The type of calling convention.
      * @see CallingConvention
      */
-    CallingConvention;
+    CallingConvention,
+
+    /**
+     * Load the library into memory immediately, instead of lazily loading it
+     */
+    LoadNow;
 }

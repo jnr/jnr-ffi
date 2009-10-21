@@ -17,13 +17,12 @@ public class Provider extends com.kenai.jaffl.FFIProvider {
 
     @Override
     public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        return interfaceClass.cast(NativeInvocationHandler.wrapInterface(new Library(libraryName),
-                interfaceClass, libraryOptions));
+        return loadLibrary(interfaceClass, libraryOptions, libraryName);
     }
 
     @Override
     public <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, String... libraryNames) {
-        return interfaceClass.cast(NativeInvocationHandler.wrapInterface(new Library(libraryNames),
+        return interfaceClass.cast(NativeInvocationHandler.wrapInterface(new Library(libraryNames, libraryOptions),
                 interfaceClass, libraryOptions));
     }
 
