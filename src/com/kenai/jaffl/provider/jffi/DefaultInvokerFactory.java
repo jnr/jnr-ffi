@@ -53,6 +53,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
 
+        com.kenai.jffi.CallingConvention convention = InvokerUtil.getCallingConvention(options);
+
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];
         Type[] paramTypes = new Type[marshallers.length];
 
@@ -67,7 +69,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             returnType = resultConverter.nativeType();
         }
         Function function = new Function(address, getNativeReturnType(returnType),
-                paramTypes, CallingConvention.DEFAULT, InvokerUtil.requiresErrno(method));
+                paramTypes, convention, InvokerUtil.requiresErrno(method));
         FunctionInvoker invoker = getFunctionInvoker(returnType);
         if (resultConverter != null) {
             MethodResultContext context = new MethodResultContext(method);

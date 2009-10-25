@@ -151,7 +151,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         TypeMapper typeMapper = libraryOptions.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
-        
+        com.kenai.jffi.CallingConvention convention = InvokerUtil.getCallingConvention(libraryOptions);
+
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
             final Class returnType = m.getReturnType();
@@ -189,7 +190,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "name_" + i, ci(String.class), null, functionName);
             try {
                 functions[i] = getFunction(library.findSymbolAddress(functionName),
-                    nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m));
+                    nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m), convention);
             } catch (SymbolNotFoundError ex) {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "error_" + i, ci(String.class), null, ex.getMessage());
                 generateFunctionNotFound(cv, className, i, functionName, returnType, parameterTypes);
@@ -873,14 +874,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 sig(void.class, ci(InvocationSession.class) + ci(InvocationBuffer.class), parameterTypes));
     }
     
-    private static final Function getFunction(long address, Class returnType, Class[] paramTypes, boolean requiresErrno) {
+    private static final Function getFunction(long address, Class returnType, Class[] paramTypes, 
+            boolean requiresErrno, CallingConvention convention) {
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[paramTypes.length];
         for (int i = 0; i < nativeParamTypes.length; ++i) {
             nativeParamTypes[i] = InvokerUtil.getNativeParameterType(paramTypes[i]);
         }
 
         return new Function(address, InvokerUtil.getNativeReturnType(returnType),
-                nativeParamTypes, CallingConvention.DEFAULT, requiresErrno);
+                nativeParamTypes, convention, requiresErrno);
 
     }
 

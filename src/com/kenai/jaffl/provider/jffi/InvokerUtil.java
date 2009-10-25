@@ -2,6 +2,7 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
+import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
@@ -13,6 +14,7 @@ import com.kenai.jffi.Type;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
+import java.util.Map;
 
 final class InvokerUtil {
     static final Type getNativeReturnType(Method method) {
@@ -100,5 +102,18 @@ final class InvokerUtil {
             }
         }
         return saveError;
+    }
+
+    public static final com.kenai.jffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
+        com.kenai.jaffl.CallingConvention convention = (com.kenai.jaffl.CallingConvention) libraryOptions.get(LibraryOption.CallingConvention);
+
+        if (convention != null) switch (convention) {
+            case DEFAULT:
+                return com.kenai.jffi.CallingConvention.DEFAULT;
+            case STDCALL:
+                return com.kenai.jffi.CallingConvention.STDCALL;
+        }
+
+        return com.kenai.jffi.CallingConvention.DEFAULT;
     }
 }
