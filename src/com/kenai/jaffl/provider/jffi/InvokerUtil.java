@@ -105,13 +105,21 @@ final class InvokerUtil {
     }
 
     public static final com.kenai.jffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
-        com.kenai.jaffl.CallingConvention convention = (com.kenai.jaffl.CallingConvention) libraryOptions.get(LibraryOption.CallingConvention);
+        Object convention = (com.kenai.jaffl.CallingConvention) libraryOptions.get(LibraryOption.CallingConvention);
 
-        if (convention != null) switch (convention) {
+        // If someone passed in the jffi calling convention, just use it.
+        if (convention instanceof com.kenai.jffi.CallingConvention) {
+            return (com.kenai.jffi.CallingConvention) convention;
+        }
+        
+        if (convention instanceof com.kenai.jaffl.CallingConvention) switch ((com.kenai.jaffl.CallingConvention) convention) {
             case DEFAULT:
                 return com.kenai.jffi.CallingConvention.DEFAULT;
             case STDCALL:
                 return com.kenai.jffi.CallingConvention.STDCALL;
+
+        } else if (convention != null) {
+            throw new IllegalArgumentException("unknown calling convention: " + convention);
         }
 
         return com.kenai.jffi.CallingConvention.DEFAULT;
