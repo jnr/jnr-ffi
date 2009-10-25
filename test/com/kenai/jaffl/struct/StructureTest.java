@@ -18,6 +18,7 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.TstUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -255,5 +256,20 @@ public class StructureTest {
         final long MAGIC = (long) Integer.MAX_VALUE + 1;
         s.ul.set(MAGIC);
         assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue());
+    }
+
+    private class InnerStruct extends Struct {
+        public final Signed8 s8 = new Signed8();
+    }
+    private class InnerTest extends Struct {
+        public final Signed32 i32 = new Signed32();
+        public final InnerStruct s = inner(new InnerStruct());
+    }
+    @Test public void innerStruct() {
+        InnerTest t = new InnerTest();
+        MemoryIO io = StructUtil.getMemoryIO(t);
+        io.putInt(0, 0xdeadbeef);
+        io.putByte(4, (byte) 0x12);
+        assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get());
     }
 }
