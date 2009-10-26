@@ -1,8 +1,10 @@
 
 package com.kenai.jaffl.provider;
 
+import com.kenai.jaffl.CallingConvention;
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.Platform;
+import com.kenai.jaffl.annotations.StdCall;
 import com.kenai.jaffl.annotations.Synchronized;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -18,7 +20,7 @@ public class NativeInvocationHandler implements InvocationHandler {
 
     private final InvokerMap invokers;
     private final Library library;
-    private final Map<LibraryOption, ?> optionsMap;
+    private final Map<LibraryOption, Object> optionsMap;
     private final Class<?> interfaceClass;
     
     /**
@@ -34,6 +36,9 @@ public class NativeInvocationHandler implements InvocationHandler {
         this.library = library;
         this.interfaceClass = interfaceClass;
         this.optionsMap = new HashMap<LibraryOption, Object>(optionsMap);
+        if (interfaceClass.getAnnotation(StdCall.class) != null) {
+            this.optionsMap.put(LibraryOption.CallingConvention, CallingConvention.STDCALL);
+        }
         
         invokers = new InvokerMap(interfaceClass.getDeclaredMethods().length);
     }

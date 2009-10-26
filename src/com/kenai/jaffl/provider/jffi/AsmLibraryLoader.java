@@ -24,6 +24,7 @@ import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.annotations.StdCall;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
@@ -151,7 +152,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         TypeMapper typeMapper = libraryOptions.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
-        com.kenai.jffi.CallingConvention convention = InvokerUtil.getCallingConvention(libraryOptions);
+        com.kenai.jffi.CallingConvention convention = getCallingConvention(interfaceClass, libraryOptions);
 
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
@@ -190,7 +191,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "name_" + i, ci(String.class), null, functionName);
             try {
                 functions[i] = getFunction(library.findSymbolAddress(functionName),
-                    nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m), convention);
+                    nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m),
+                    m.getAnnotation(StdCall.class) != null ? CallingConvention.STDCALL : convention);
             } catch (SymbolNotFoundError ex) {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "error_" + i, ci(String.class), null, ex.getMessage());
                 generateFunctionNotFound(cv, className, i, functionName, returnType, parameterTypes);
@@ -267,6 +269,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
+    private static final com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
+        if (interfaceClass.getAnnotation(StdCall.class) != null) {
+            return com.kenai.jffi.CallingConvention.STDCALL;
+        }
+        return InvokerUtil.getCallingConvention(options);
+    }
+    
     private final String getFunctionFieldName(int idx) {
         return "function_" + idx;
     }
