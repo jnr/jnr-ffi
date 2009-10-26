@@ -6,6 +6,7 @@ import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.annotations.StdCall;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
 import com.kenai.jaffl.mapper.FromNativeConverter;
@@ -19,7 +20,6 @@ import com.kenai.jaffl.provider.Invoker;
 import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.util.EnumMapper;
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.InvocationBuffer;
@@ -53,7 +53,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
 
-        com.kenai.jffi.CallingConvention convention = InvokerUtil.getCallingConvention(options);
+        com.kenai.jffi.CallingConvention convention = method.getAnnotation(StdCall.class) != null
+                ? com.kenai.jffi.CallingConvention.STDCALL : InvokerUtil.getCallingConvention(options);
 
         Marshaller[] marshallers = new Marshaller[method.getParameterTypes().length];
         Type[] paramTypes = new Type[marshallers.length];
