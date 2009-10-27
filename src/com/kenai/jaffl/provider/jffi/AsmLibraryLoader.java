@@ -142,7 +142,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         init.invokespecial(p(AbstractNativeInterface.class), "<init>", sig(void.class, Library.class));
         
-        final Method[] methods = interfaceClass.getDeclaredMethods();
+        final Method[] methods = interfaceClass.getMethods();
         Function[] functions = new Function[methods.length];
         FromNativeConverter[] resultConverters = new FromNativeConverter[methods.length];
         ToNativeConverter[][] parameterConverters = new ToNativeConverter[methods.length][0];
