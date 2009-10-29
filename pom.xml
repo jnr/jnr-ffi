@@ -86,6 +86,12 @@
       <version>3.0.9</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>3.2</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <!--
