@@ -975,11 +975,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Byte.class.isAssignableFrom(type) || byte.class == type
                 || Short.class.isAssignableFrom(type) || short.class == type
                 || Integer.class.isAssignableFrom(type) || int.class == type
-                || Long.class.isAssignableFrom(type) || long.class == type
-                || NativeLong.class.isAssignableFrom(type)
-                || Pointer.class.isAssignableFrom(type)
-                || Struct.class.isAssignableFrom(type)
-                || String.class.isAssignableFrom(type)
+                || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32)
+                || (Pointer.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 32)
+                || (Struct.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 32)
+                || (String.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 32)
                 ;
     }
 
@@ -988,19 +987,29 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Short.class.isAssignableFrom(type) || short.class == type
                 || Integer.class.isAssignableFrom(type) || int.class == type
                 || Long.class.isAssignableFrom(type) || long.class == type
-                || NativeLong.class.isAssignableFrom(type)
+                || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32)
                 || Boolean.class.isAssignableFrom(type) || boolean.class == type
                 ;
     }
 
     final static boolean isFastNumericResult(Class type) {
         return isFastIntResult(type)
+                || Long.class.isAssignableFrom(type) || long.class == type
+                || NativeLong.class.isAssignableFrom(type)
+                || Pointer.class.isAssignableFrom(type)
+                || Struct.class.isAssignableFrom(type)
+                || String.class.isAssignableFrom(type)
                 || float.class == type || Float.class == type
                 || double.class == type || Double.class == type;
     }
 
     final static boolean isFastNumericParam(Class type) {
         return isFastIntParam(type)
+                || Long.class.isAssignableFrom(type) || long.class == type
+                || NativeLong.class.isAssignableFrom(type)
+                || Pointer.class.isAssignableFrom(type)
+                || Struct.class.isAssignableFrom(type)
+                || String.class.isAssignableFrom(type)
                 || float.class == type || Float.class == type
                 || double.class == type || Double.class == type;
     }
