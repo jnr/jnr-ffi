@@ -546,7 +546,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             lvar = loadParameter(mv, parameterTypes[i], lvar);
 
             if (!parameterTypes[i].isPrimitive()) {
-                unboxNumber(mv, returnType, long.class);
+                unboxNumber(mv, parameterTypes[i], long.class);
             }
 
             if (Float.class == parameterTypes[i] || float.class == parameterTypes[i]) {
@@ -814,7 +814,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             widen(mv, boolean.class, nativeIntType);
 
         } else {
-            throw new IllegalArgumentException("unsupported Number subclass");
+            throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
         }
     }
     
@@ -1007,8 +1007,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return isFastIntParam(type)
                 || Long.class.isAssignableFrom(type) || long.class == type
                 || NativeLong.class.isAssignableFrom(type)
-                || Pointer.class.isAssignableFrom(type)
-                || Struct.class.isAssignableFrom(type)
+                //|| Pointer.class.isAssignableFrom(type)
+                //|| Struct.class.isAssignableFrom(type)
                 || String.class.isAssignableFrom(type)
                 || float.class == type || Float.class == type
                 || double.class == type || Double.class == type;
