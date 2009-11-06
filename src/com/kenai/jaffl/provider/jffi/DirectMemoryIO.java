@@ -135,8 +135,10 @@ class DirectMemoryIO extends AbstractMemoryIO {
     public void putPointer(long offset, Pointer value) {
         if (value == null) {
             IO.putAddress(address + offset, 0L);
-        } else if (value.isDirect()) {
-            IO.putAddress(address + offset, value.getAddress());
+        } else if (value instanceof JFFIPointer) {
+            IO.putAddress(address + offset, ((JFFIPointer) value).address);
+        } else if (value instanceof DirectMemoryIO) {
+            IO.putAddress(address + offset, ((DirectMemoryIO) value).address);
         }
         throw new IllegalArgumentException("Invalid Pointer");
     }

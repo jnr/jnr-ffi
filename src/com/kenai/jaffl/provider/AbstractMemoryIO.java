@@ -1,7 +1,6 @@
 
 package com.kenai.jaffl.provider;
 
-import com.kenai.jaffl.provider.jna.*;
 import com.kenai.jaffl.*;
 
 /**
@@ -28,11 +27,13 @@ abstract public class AbstractMemoryIO extends MemoryIO {
     public final long getNativeLong(long offset) {
         return NativeLongIO.INSTANCE.getLong(this, offset);
     }
+
     public MemoryIO slice(long offset) {
-        return MemoryUtil.slice(this, offset);
+        return new ShareMemoryIO(this, offset);
     }
+
     public MemoryIO slice(long offset, long size) {
-        return MemoryUtil.slice(this, offset, size);
+        return new BoundedMemoryIO(this, offset, size);
     }
 
     public void putNativeLong(long offset, long value) {
