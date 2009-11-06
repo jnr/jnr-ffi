@@ -78,8 +78,8 @@ public class MarshalUtil {
     public static final void marshal(InvocationBuffer buffer, Pointer ptr, int nativeArrayFlags) {
         if (ptr == null) {
             buffer.putAddress(0L);
-        } else if (ptr instanceof JFFIPointer) {
-            buffer.putAddress(((JFFIPointer) ptr).address);
+        } else if (ptr.isDirect()) {
+            buffer.putAddress(ptr.getAddress());
         } else if (ptr instanceof AbstractArrayMemoryIO) {
             AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) ptr;
             buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
@@ -277,7 +277,10 @@ public class MarshalUtil {
             if (Pointer.SIZE == 32) {
                 final int[] raw = new int[array.length];
                 for (int i = 0; i < raw.length; ++i) {
-                    raw[i] = (int) ((JFFIPointer) array[i]).getAddress();
+                    if (!array[i].isDirect()) {
+                        throw new IllegalArgumentException("invalid pointer in array at index " + i);
+                    }
+                    raw[i] = (int) array[i].getAddress();
                 }
                 buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
 
@@ -286,7 +289,7 @@ public class MarshalUtil {
 
                         public void postInvoke() {
                             for (int i = 0; i < raw.length; ++i) {
-                                array[i] = new JFFIPointer(raw[i]);
+                                array[i] = MemoryUtil.newPointer(raw[i]);
                             }
                         }
                     });
@@ -294,10 +297,10 @@ public class MarshalUtil {
             } else {
                 final long[] raw = new long[array.length];
                 for (int i = 0; i < raw.length; ++i) {
-                    if (!(array[i] instanceof JFFIPointer)) {
+                    if (!array[i].isDirect()) {
                         throw new IllegalArgumentException("invalid pointer in array at index " + i);
                     }
-                    raw[i] = ((JFFIPointer) array[i]).getAddress();
+                    raw[i] = array[i].getAddress();
                 }
 
                 buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
@@ -307,7 +310,7 @@ public class MarshalUtil {
 
                         public void postInvoke() {
                             for (int i = 0; i < raw.length; ++i) {
-                                array[i] = new JFFIPointer(raw[i]);
+                                array[i] = MemoryUtil.newPointer(raw[i]);
                             }
                         }
                     });
@@ -326,11 +329,11 @@ public class MarshalUtil {
     }
 
     public static final Pointer returnPointer(long ptr) {
-        return ptr != 0 ? new JFFIPointer(ptr) : null;
+        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
 
     public static final Pointer returnPointer(int ptr) {
-        return ptr != 0 ? new JFFIPointer(ptr) : null;
+        return ptr != 0 ? new DirectMemoryIO((long) ptr & 0xffffffffL) : null;
     }
 
     public static final MemoryIO newMemoryIO(long ptr) {

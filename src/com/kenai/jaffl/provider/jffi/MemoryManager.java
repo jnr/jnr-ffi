@@ -3,7 +3,6 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
-import com.kenai.jaffl.provider.NullMemoryIO;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
@@ -22,19 +21,22 @@ public class MemoryManager implements com.kenai.jaffl.provider.MemoryManager {
     }
 
     public MemoryIO wrap(Pointer ptr) {
-        if (ptr instanceof JFFIPointer) {
-            long address = ((JFFIPointer) ptr).address;
-            return address != 0 ? new DirectMemoryIO(address) : new NullMemoryIO();
+        if (ptr instanceof MemoryIO) {
+            return (MemoryIO) ptr;
+
+        } else if (ptr.isDirect()) {
+            return MemoryUtil.newMemoryIO(ptr.getAddress());
         }
-        throw new UnsupportedOperationException("Unsupported Pointer type");
+
+        throw new UnsupportedOperationException("Unsupported Pointer type: " + ptr.getClass());
     }
 
     public MemoryIO wrap(Pointer ptr, int size) {
-        if (ptr instanceof JFFIPointer) {
-            long address = ((JFFIPointer) ptr).address;
-            return address != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(address), 0, size) : new NullMemoryIO();
+        if (ptr.isDirect()) {
+            return MemoryUtil.newMemoryIO(ptr.getAddress(), size);
         }
-        throw new UnsupportedOperationException("Unsupported Pointer type");
+
+        throw new UnsupportedOperationException("Unsupported Pointer type: " + ptr.getClass());
     }
 
     public MemoryIO wrap(ByteBuffer buffer) {

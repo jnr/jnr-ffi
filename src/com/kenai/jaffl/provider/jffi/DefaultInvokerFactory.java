@@ -446,8 +446,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class PointerInvoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new PointerInvoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
-            final long ptr = invoker.invokeAddress(function, buffer);
-            return ptr != 0 ? new JFFIPointer(ptr) : null;
+            return MemoryUtil.newPointer(invoker.invokeAddress(function, buffer));
         }
     }
     static final class StructInvoker extends BaseInvoker {
@@ -536,7 +535,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class PointerMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new PointerMarshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putAddress(((JFFIPointer) parameter).address);
+            buffer.putAddress(((Pointer) parameter).getAddress());
         }
     }
     

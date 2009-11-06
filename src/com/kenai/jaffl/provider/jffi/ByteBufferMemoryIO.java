@@ -4,7 +4,6 @@ package com.kenai.jaffl.provider.jffi;
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.provider.AbstractBufferMemoryIO;
-import com.kenai.jaffl.provider.NullMemoryIO;
 import java.nio.ByteBuffer;
 
 public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
@@ -13,26 +12,18 @@ public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
         super(buffer);
     }
     public MemoryIO getMemoryIO(long offset) {
-        final long address = getAddress(offset);
-        return address != 0 ? new DirectMemoryIO(address) : new NullMemoryIO();
+        return MemoryUtil.newMemoryIO(getAddress(offset));
     }
 
     public MemoryIO getMemoryIO(long offset, long size) {
-        final long address = getAddress(offset);
-        return address != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(address), 0, size) : new NullMemoryIO();
+        return MemoryUtil.newMemoryIO(getAddress(offset), size);
     }
 
     public Pointer getPointer(long offset) {
-        long ptr = getAddress(offset);
-        return ptr != 0 ? new JFFIPointer(ptr) : null;
+        return MemoryUtil.newPointer(getAddress(offset));
     }
 
     public void putPointer(long offset, Pointer value) {
-        if (value == null) {
-            putAddress(offset, 0L);
-        } else if (value instanceof JFFIPointer) {
-            putAddress(offset, ((JFFIPointer) value).address);
-        }
-        throw new IllegalArgumentException("Invalid Pointer");
+        putAddress(offset, value.getAddress());
     }
 }

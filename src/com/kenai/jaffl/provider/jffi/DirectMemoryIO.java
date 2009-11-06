@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl.provider.jffi;
 
+import com.kenai.jaffl.Address;
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.provider.AbstractMemoryIO;
@@ -14,7 +15,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
     protected final long address;
 
     DirectMemoryIO(long address) {
-        this.address = address;
+        this.address = address & Address.MASK;
     }
     public final long getAddress() {
         return address;
@@ -116,8 +117,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
     }
 
     public MemoryIO getMemoryIO(long offset) {
-        final long ptr = IO.getAddress(this.address + offset);
-        return ptr != 0 ? new DirectMemoryIO(ptr) : new NullMemoryIO();
+        return MemoryUtil.newMemoryIO(IO.getAddress(address + offset));
     }
 
     public MemoryIO getMemoryIO(long offset, long size) {
@@ -127,20 +127,12 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     @Override
     public Pointer getPointer(long offset) {
-        long ptr = IO.getAddress(address + offset);
-        return ptr != 0 ? new JFFIPointer(ptr) : null;
+        return MemoryUtil.newPointer(IO.getAddress(address + offset));
     }
 
     @Override
     public void putPointer(long offset, Pointer value) {
-        if (value == null) {
-            IO.putAddress(address + offset, 0L);
-        } else if (value instanceof JFFIPointer) {
-            IO.putAddress(address + offset, ((JFFIPointer) value).address);
-        } else if (value instanceof DirectMemoryIO) {
-            IO.putAddress(address + offset, ((DirectMemoryIO) value).address);
-        }
-        throw new IllegalArgumentException("Invalid Pointer");
+        IO.putAddress(address + offset, value.getAddress());
     }
 
     @Override
