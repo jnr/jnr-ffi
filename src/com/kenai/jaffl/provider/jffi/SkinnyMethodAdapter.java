@@ -40,21 +40,51 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
     public void aload(int arg0) {
         getMethodVisitor().visitVarInsn(ALOAD, arg0);
     }
+
+    public void aload(int... args) {
+        for (int arg : args) {
+            getMethodVisitor().visitVarInsn(ALOAD, arg);
+        }
+    }
     
     public void iload(int arg0) {
         getMethodVisitor().visitVarInsn(ILOAD, arg0);
+    }
+
+    public void iload(int... args) {
+        for (int arg : args) {
+            getMethodVisitor().visitVarInsn(ILOAD, arg);
+        }
     }
     
     public void lload(int arg0) {
         getMethodVisitor().visitVarInsn(LLOAD, arg0);
     }
+
+    public void lload(int... args) {
+        for (int arg : args) {
+            getMethodVisitor().visitVarInsn(LLOAD, arg);
+        }
+    }
     
     public void fload(int arg0) {
         getMethodVisitor().visitVarInsn(FLOAD, arg0);
     }
+
+    public void fload(int... args) {
+        for (int arg : args) {
+            getMethodVisitor().visitVarInsn(FLOAD, arg);
+        }
+    }
     
     public void dload(int arg0) {
         getMethodVisitor().visitVarInsn(DLOAD, arg0);
+    }
+
+    public void dload(int... args) {
+        for (int arg : args) {
+            getMethodVisitor().visitVarInsn(DLOAD, arg);
+        }
     }
     
     public void astore(int arg0) {
