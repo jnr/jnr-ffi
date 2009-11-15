@@ -2,6 +2,7 @@
 package com.kenai.jaffl;
 
 import com.kenai.jaffl.provider.MemoryManager;
+import com.kenai.jaffl.provider.NativeType;
 import java.util.Map;
 
 /**
@@ -65,6 +66,9 @@ public abstract class FFIProvider {
      */
     public abstract void setLastError(int error);
 
+
+    public abstract Type getType(NativeType type);
+    
     private static final class SingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();
         private static final FFIProvider getInstance() {
