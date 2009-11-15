@@ -1778,6 +1778,16 @@ public abstract class Struct /*implements Marshallable */{
             super(Integer.MAX_VALUE, Charset.forName("ASCII"));
         }
     }
+
+    /**
+     * Specialized padding fields for structs.  Use this instead of arrays of other
+     * members for more efficient struct construction.
+     */
+    public final class Padding extends AbstractMember {
+        Padding(Type type, int length) {
+            super(type.size() * 8 * length, type.alignment() * 8);
+        }
+    }
     /*
     public final Marshaller.Session marshal(Marshaller marshaller, MarshalContext context) {
         return __info.marshal(marshaller, context);
