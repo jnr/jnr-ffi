@@ -12,7 +12,7 @@ package com.kenai.jaffl.struct;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.ParameterFlags;
-import com.kenai.jaffl.Platform;
+import com.kenai.jaffl.Type;
 import com.kenai.jaffl.util.EnumMapper;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
@@ -27,18 +27,13 @@ public abstract class Struct /*implements Marshallable */{
      * Various platform-dependent constants needed for Struct construction
      */
     protected static final class Constants {
-        private static final boolean isSparc() { return Platform.getPlatform().getCPU() == Platform.CPU.SPARC; }
-        /*
-         * Most arches align data types on the same size as a native long (or a
-         * pointer). Sparc (32bit) and Windows align some types on larger boundaries
-         */
-        static final int LONG_SIZE = Platform.getPlatform().longSize();
-        static final int ADDRESS_SIZE = Platform.getPlatform().addressSize();
+        static final int LONG_SIZE = Type.SLONG.size() * 8;
+        static final int ADDRESS_SIZE = Type.ADDRESS.size() * 8;
         static final long LONG_MASK = LONG_SIZE == 32 ? 0x7FFFFFFFL : 0x7FFFFFFFFFFFFFFFL;
-        static final int LONG_ALIGN = ADDRESS_SIZE;
-        static final int INT64_ALIGN = isSparc() || !Platform.getPlatform().isUnix() ? 64 : LONG_ALIGN;
-        static final int DOUBLE_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
-        static final int FLOAT_ALIGN = 32;
+        static final int LONG_ALIGN = Type.SLONG.alignment() * 8;
+        static final int INT64_ALIGN = Type.SLONGLONG.alignment() * 8;
+        static final int DOUBLE_ALIGN = Type.DOUBLE.alignment() * 8;
+        static final int FLOAT_ALIGN = Type.FLOAT.alignment() * 8;;
     }
 
     static final class Info {
