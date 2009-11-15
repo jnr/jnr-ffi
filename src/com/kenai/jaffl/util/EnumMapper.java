@@ -77,7 +77,7 @@ public class EnumMapper {
                 //
                 // No default, so just give up and throw an exception
                 //
-                throw new IllegalArgumentException("No known Enum mapping for " + enumClass.getName());
+                throw new IllegalArgumentException("No known Enum mapping for value " + value + " of type " + enumClass.getName());
             }
         }
         return enumClass.cast(e);

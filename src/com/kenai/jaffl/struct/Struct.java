@@ -1609,9 +1609,10 @@ public abstract class Struct /*implements Marshallable */{
          */
         @Override
         public final int intValue() {
-            return getMemoryIO().getInt(offset());
+            return getMemoryIO().getByte(offset());
         }
     }
+
     public class Enum16<E extends java.lang.Enum<E>> extends EnumField<E> {
         public Enum16(Class<E> enumClass) {
             super(16, enumClass);
