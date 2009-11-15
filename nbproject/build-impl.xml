@@ -42,23 +42,27 @@ is divided into following sections:
         <property file="nbproject/private/configs/${config}.properties"/>
         <property file="nbproject/private/private.properties"/>
     </target>
-    <target depends="-pre-init,-init-private" name="-init-libraries">
-        <property location="./lib/nblibraries.properties" name="libraries.1.path"/>
-        <dirname file="${libraries.1.path}" property="libraries.1.dir.nativedirsep"/>
-        <pathconvert dirsep="/" property="libraries.1.dir">
-            <path path="${libraries.1.dir.nativedirsep}"/>
+    <target name="-pre-init-libraries">
+        <property location="./lib/nblibraries.properties" name="libraries.path"/>
+        <dirname file="${libraries.path}" property="libraries.dir.nativedirsep"/>
+        <pathconvert dirsep="/" property="libraries.dir">
+            <path path="${libraries.dir.nativedirsep}"/>
         </pathconvert>
-        <basename file="${libraries.1.path}" property="libraries.1.basename" suffix=".properties"/>
-        <touch file="${libraries.1.dir}/${libraries.1.basename}-private.properties"/>
-        <loadproperties encoding="ISO-8859-1" srcfile="${libraries.1.dir}/${libraries.1.basename}-private.properties">
+        <basename file="${libraries.path}" property="libraries.basename" suffix=".properties"/>
+        <available file="${libraries.dir}/${libraries.basename}-private.properties" property="private.properties.available"/>
+    </target>
+    <target depends="-pre-init-libraries" if="private.properties.available" name="-init-private-libraries">
+        <loadproperties encoding="ISO-8859-1" srcfile="${libraries.dir}/${libraries.basename}-private.properties">
             <filterchain>
-                <replacestring from="$${base}" to="${libraries.1.dir}"/>
+                <replacestring from="$${base}" to="${libraries.dir}"/>
                 <escapeunicode/>
             </filterchain>
         </loadproperties>
-        <loadproperties encoding="ISO-8859-1" srcfile="${libraries.1.path}">
+    </target>
+    <target depends="-pre-init,-init-private,-init-private-libraries" name="-init-libraries">
+        <loadproperties encoding="ISO-8859-1" srcfile="${libraries.path}">
             <filterchain>
-                <replacestring from="$${base}" to="${libraries.1.dir}"/>
+                <replacestring from="$${base}" to="${libraries.dir}"/>
                 <escapeunicode/>
             </filterchain>
         </loadproperties>
@@ -76,20 +80,51 @@ is divided into following sections:
     </target>
     <target depends="-pre-init,-init-private,-init-libraries,-init-user,-init-project,-init-macrodef-property" name="-do-init">
         <available file="${manifest.file}" property="manifest.available"/>
-        <condition property="manifest.available+main.class">
+        <condition property="main.class.available">
             <and>
-                <isset property="manifest.available"/>
                 <isset property="main.class"/>
                 <not>
                     <equals arg1="${main.class}" arg2="" trim="true"/>
                 </not>
             </and>
         </condition>
+        <condition property="manifest.available+main.class">
+            <and>
+                <isset property="manifest.available"/>
+                <isset property="main.class.available"/>
+            </and>
+        </condition>
+        <condition property="do.mkdist">
+            <and>
+                <isset property="libs.CopyLibs.classpath"/>
+                <not>
+                    <istrue value="${mkdist.disabled}"/>
+                </not>
+            </and>
+        </condition>
         <condition property="manifest.available+main.class+mkdist.available">
             <and>
                 <istrue value="${manifest.available+main.class}"/>
-                <isset property="libs.CopyLibs.classpath"/>
+                <isset property="do.mkdist"/>
             </and>
+        </condition>
+        <condition property="manifest.available+mkdist.available">
+            <and>
+                <istrue value="${manifest.available}"/>
+                <isset property="do.mkdist"/>
+            </and>
+        </condition>
+        <condition property="manifest.available-mkdist.available">
+            <or>
+                <istrue value="${manifest.available}"/>
+                <isset property="do.mkdist"/>
+            </or>
+        </condition>
+        <condition property="manifest.available+main.class-mkdist.available">
+            <or>
+                <istrue value="${manifest.available+main.class}"/>
+                <isset property="do.mkdist"/>
+            </or>
         </condition>
         <condition property="have.tests">
             <or>
@@ -125,6 +160,7 @@ is divided into following sections:
         <property name="javadoc.preview" value="true"/>
         <property name="application.args" value=""/>
         <property name="source.encoding" value="${file.encoding}"/>
+        <property name="runtime.encoding" value="${source.encoding}"/>
         <condition property="javadoc.encoding.used" value="${javadoc.encoding}">
             <and>
                 <isset property="javadoc.encoding"/>
@@ -140,11 +176,9 @@ is divided into following sections:
         <condition property="do.depend.true">
             <istrue value="${do.depend}"/>
         </condition>
-        <condition else="" property="javac.compilerargs.jaxws" value="-Djava.endorsed.dirs='${jaxws.endorsed.dir}'">
-            <and>
-                <isset property="jaxws.endorsed.dir"/>
-                <available file="nbproject/jaxws-build.xml"/>
-            </and>
+        <path id="endorsed.classpath.path" path="${endorsed.classpath}"/>
+        <condition else="" property="endorsed.classpath.cmd.line.arg" value="-Xbootclasspath/p:'${toString:endorsed.classpath.path}'">
+            <length length="0" string="${endorsed.classpath}" when="greater"/>
         </condition>
     </target>
     <target name="-post-init">
@@ -195,7 +229,8 @@ is divided into following sections:
                     <classpath>
                         <path path="@{classpath}"/>
                     </classpath>
-                    <compilerarg line="${javac.compilerargs} ${javac.compilerargs.jaxws}"/>
+                    <compilerarg line="${endorsed.classpath.cmd.line.arg}"/>
+                    <compilerarg line="${javac.compilerargs}"/>
                     <customize/>
                 </javac>
             </sequential>
@@ -249,6 +284,7 @@ is divided into following sections:
                     </syspropertyset>
                     <formatter type="brief" usefile="false"/>
                     <formatter type="xml"/>
+                    <jvmarg line="${endorsed.classpath.cmd.line.arg}"/>
                     <jvmarg line="${run.jvmargs}"/>
                 </junit>
             </sequential>
@@ -305,10 +341,11 @@ is divided into following sections:
             <element name="customize" optional="true"/>
             <sequential>
                 <java classname="@{classname}" dir="${work.dir}" fork="true">
+                    <jvmarg line="${endorsed.classpath.cmd.line.arg}"/>
                     <jvmarg line="${debug-args-line}"/>
                     <jvmarg value="-Xrunjdwp:transport=${debug-transport},address=${jpda.address}"/>
-                    <jvmarg value="-Dfile.encoding=${source.encoding}"/>
-                    <redirector errorencoding="${source.encoding}" inputencoding="${source.encoding}" outputencoding="${source.encoding}"/>
+                    <jvmarg value="-Dfile.encoding=${runtime.encoding}"/>
+                    <redirector errorencoding="${runtime.encoding}" inputencoding="${runtime.encoding}" outputencoding="${runtime.encoding}"/>
                     <jvmarg line="${run.jvmargs}"/>
                     <classpath>
                         <path path="@{classpath}"/>
@@ -329,8 +366,9 @@ is divided into following sections:
             <element name="customize" optional="true"/>
             <sequential>
                 <java classname="@{classname}" dir="${work.dir}" fork="true">
-                    <jvmarg value="-Dfile.encoding=${source.encoding}"/>
-                    <redirector errorencoding="${source.encoding}" inputencoding="${source.encoding}" outputencoding="${source.encoding}"/>
+                    <jvmarg line="${endorsed.classpath.cmd.line.arg}"/>
+                    <jvmarg value="-Dfile.encoding=${runtime.encoding}"/>
+                    <redirector errorencoding="${runtime.encoding}" inputencoding="${runtime.encoding}" outputencoding="${runtime.encoding}"/>
                     <jvmarg line="${run.jvmargs}"/>
                     <classpath>
                         <path path="@{classpath}"/>
@@ -357,8 +395,22 @@ is divided into following sections:
                 COMPILATION SECTION
                 ===================
             -->
-    <target depends="init" name="deps-jar" unless="no.deps">
-        <ant antfile="${project.JNA_Library}/build.xml" inheritall="false" target="jar"/>
+    <target name="-deps-jar-init" unless="built-jar.properties">
+        <property location="${build.dir}/built-jar.properties" name="built-jar.properties"/>
+        <delete file="${built-jar.properties}" quiet="true"/>
+    </target>
+    <target depends="init,-deps-jar-init" name="deps-jar" unless="no.deps">
+        <mkdir dir="${build.dir}"/>
+        <touch file="${built-jar.properties}" verbose="false"/>
+        <property file="${built-jar.properties}" prefix="already.built.jar."/>
+        <fail message="Cycle detected: jaffl was already built">
+            <condition>
+                <isset property="already.built.jar.${basedir}"/>
+            </condition>
+        </fail>
+        <propertyfile file="${built-jar.properties}">
+            <entry key="${basedir}" value=""/>
+        </propertyfile>
     </target>
     <target depends="init,-check-automatic-build,-clean-after-automatic-build" name="-verify-automatic-build"/>
     <target depends="init" name="-check-automatic-build">
@@ -420,10 +472,10 @@ is divided into following sections:
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
     </target>
-    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="-do-jar-without-manifest" unless="manifest.available">
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" name="-do-jar-without-manifest" unless="manifest.available-mkdist.available">
         <j2seproject1:jar/>
     </target>
-    <target depends="init,compile,-pre-pre-jar,-pre-jar" if="manifest.available" name="-do-jar-with-manifest" unless="manifest.available+main.class">
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" if="manifest.available" name="-do-jar-with-manifest" unless="manifest.available+main.class-mkdist.available">
         <j2seproject1:jar manifest="${manifest.file}"/>
     </target>
     <target depends="init,compile,-pre-pre-jar,-pre-jar" if="manifest.available+main.class" name="-do-jar-with-mainclass" unless="manifest.available+main.class+mkdist.available">
@@ -466,7 +518,28 @@ is divided into following sections:
         <property location="${dist.jar}" name="dist.jar.resolved"/>
         <echo>java -jar "${dist.jar.resolved}"</echo>
     </target>
-    <target depends="init,compile,-pre-pre-jar,-pre-jar" if="libs.CopyLibs.classpath" name="-do-jar-with-libraries-without-manifest" unless="manifest.available+main.class">
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" if="manifest.available+mkdist.available" name="-do-jar-with-libraries-without-mainclass" unless="main.class.available">
+        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
+        <pathconvert property="run.classpath.without.build.classes.dir">
+            <path path="${run.classpath}"/>
+            <map from="${build.classes.dir.resolved}" to=""/>
+        </pathconvert>
+        <pathconvert pathsep=" " property="jar.classpath">
+            <path path="${run.classpath.without.build.classes.dir}"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+        <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
+        <copylibs compress="${jar.compress}" jarfile="${dist.jar}" manifest="${manifest.file}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
+            <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </copylibs>
+    </target>
+    <target depends="init,compile,-pre-pre-jar,-pre-jar" if="do.mkdist" name="-do-jar-with-libraries-without-manifest" unless="manifest.available">
         <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
         <pathconvert property="run.classpath.without.build.classes.dir">
             <path path="${run.classpath}"/>
@@ -482,13 +555,16 @@ is divided into following sections:
         <taskdef classname="org.netbeans.modules.java.j2seproject.copylibstask.CopyLibs" classpath="${libs.CopyLibs.classpath}" name="copylibs"/>
         <copylibs compress="${jar.compress}" jarfile="${dist.jar}" runtimeclasspath="${run.classpath.without.build.classes.dir}">
             <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
         </copylibs>
     </target>
     <target name="-post-jar">
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
     </target>
-    <target depends="init,compile,-pre-jar,-do-jar-with-manifest,-do-jar-without-manifest,-do-jar-with-mainclass,-do-jar-with-libraries,-do-jar-with-libraries-without-manifest,-post-jar" description="Build JAR." name="jar"/>
+    <target depends="init,compile,-pre-jar,-do-jar-with-manifest,-do-jar-without-manifest,-do-jar-with-mainclass,-do-jar-with-libraries,-do-jar-with-libraries-without-mainclass,-do-jar-with-libraries-without-manifest,-post-jar" description="Build JAR." name="jar"/>
     <!--
                 =================
                 EXECUTION SECTION
@@ -710,8 +786,22 @@ is divided into following sections:
                 CLEANUP SECTION
                 ===============
             -->
-    <target depends="init" name="deps-clean" unless="no.deps">
-        <ant antfile="${project.JNA_Library}/build.xml" inheritall="false" target="clean"/>
+    <target name="-deps-clean-init" unless="built-clean.properties">
+        <property location="${build.dir}/built-clean.properties" name="built-clean.properties"/>
+        <delete file="${built-clean.properties}" quiet="true"/>
+    </target>
+    <target depends="init,-deps-clean-init" name="deps-clean" unless="no.deps">
+        <mkdir dir="${build.dir}"/>
+        <touch file="${built-clean.properties}" verbose="false"/>
+        <property file="${built-clean.properties}" prefix="already.built.clean."/>
+        <fail message="Cycle detected: jaffl was already built">
+            <condition>
+                <isset property="already.built.clean.${basedir}"/>
+            </condition>
+        </fail>
+        <propertyfile file="${built-clean.properties}">
+            <entry key="${basedir}" value=""/>
+        </propertyfile>
     </target>
     <target depends="init" name="-do-clean">
         <delete dir="${build.dir}"/>
@@ -722,4 +812,20 @@ is divided into following sections:
         <!-- You can override this target in the ../build.xml file. -->
     </target>
     <target depends="init,deps-clean,-do-clean,-post-clean" description="Clean build products." name="clean"/>
+    <target name="-check-call-dep">
+        <property file="${call.built.properties}" prefix="already.built."/>
+        <condition property="should.call.dep">
+            <not>
+                <isset property="already.built.${call.subproject}"/>
+            </not>
+        </condition>
+    </target>
+    <target depends="-check-call-dep" if="should.call.dep" name="-maybe-call-dep">
+        <ant antfile="${call.script}" inheritall="false" target="${call.target}">
+            <propertyset>
+                <propertyref prefix="transfer."/>
+                <mapper from="transfer.*" to="*" type="glob"/>
+            </propertyset>
+        </ant>
+    </target>
 </project>
