@@ -29,16 +29,16 @@ public abstract class Struct /*implements Marshallable */{
     protected static final class Constants {
         private static final boolean isSparc() { return Platform.getPlatform().getCPU() == Platform.CPU.SPARC; }
         /*
-         * Most arches align long/double on the same size as a native long (or a pointer)
-         * Sparc (32bit) requires it to be aligned on an 8 byte boundary
+         * Most arches align data types on the same size as a native long (or a
+         * pointer). Sparc (32bit) and Windows align some types on larger boundaries
          */
         static final int LONG_SIZE = Platform.getPlatform().longSize();
         static final int ADDRESS_SIZE = Platform.getPlatform().addressSize();
         static final long LONG_MASK = LONG_SIZE == 32 ? 0x7FFFFFFFL : 0x7FFFFFFFFFFFFFFFL;
-        static final int LONG_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
-        static final int INT64_ALIGN = Platform.getPlatform().isUnix() ? LONG_ALIGN : 64;
+        static final int LONG_ALIGN = ADDRESS_SIZE;
+        static final int INT64_ALIGN = isSparc() || !Platform.getPlatform().isUnix() ? 64 : LONG_ALIGN;
         static final int DOUBLE_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
-        static final int FLOAT_ALIGN = isSparc() ? 64 : 32;
+        static final int FLOAT_ALIGN = 32;
     }
 
     static final class Info {
@@ -1656,7 +1656,7 @@ public abstract class Struct /*implements Marshallable */{
     
     public class Enum64<E extends java.lang.Enum<E>> extends EnumField<E> {
         public Enum64(Class<E> enumClass) {
-            super(64, Constants.LONG_ALIGN, enumClass);
+            super(64, Constants.INT64_ALIGN, enumClass);
         }
         public final E get() {
             return EnumMapper.getInstance().valueOf(intValue(), enumClass);
