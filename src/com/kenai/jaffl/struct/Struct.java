@@ -37,7 +37,6 @@ public abstract class Struct /*implements Marshallable */{
         static final long LONG_MASK = LONG_SIZE == 32 ? 0x7FFFFFFFL : 0x7FFFFFFFFFFFFFFFL;
         static final int LONG_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
         static final int INT64_ALIGN = Platform.getPlatform().isUnix() ? LONG_ALIGN : 64;
-        static final int ADDRESS_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
         static final int DOUBLE_ALIGN = isSparc() ? 64 : ADDRESS_SIZE;
         static final int FLOAT_ALIGN = isSparc() ? 64 : 32;
     }
@@ -1376,10 +1375,10 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new <tt>Address</tt> field.
          */
         public Address() {
-            super(Constants.ADDRESS_SIZE, Constants.ADDRESS_ALIGN);
+            super(Constants.ADDRESS_SIZE);
         }
         public Address(Offset offset) {
-            super(Constants.ADDRESS_SIZE, Constants.ADDRESS_ALIGN, offset);
+            super(Constants.ADDRESS_SIZE, offset);
         }
         
         /**
@@ -1441,10 +1440,10 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new <tt>Address</tt> field.
          */
         public Pointer() {
-            super(Constants.ADDRESS_SIZE, Constants.ADDRESS_ALIGN);
+            super(Constants.ADDRESS_SIZE);
         }
         public Pointer(Offset offset) {
-            super(Constants.ADDRESS_SIZE, Constants.ADDRESS_ALIGN, offset);
+            super(Constants.ADDRESS_SIZE, offset);
         }
 
         /**
