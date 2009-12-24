@@ -986,7 +986,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return Byte.class.isAssignableFrom(type) || byte.class == type
                 || Short.class.isAssignableFrom(type) || short.class == type
                 || Integer.class.isAssignableFrom(type) || int.class == type
-                || Long.class.isAssignableFrom(type) || long.class == type
                 || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32)
                 || Boolean.class.isAssignableFrom(type) || boolean.class == type
                 ;
