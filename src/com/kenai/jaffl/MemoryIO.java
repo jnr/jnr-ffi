@@ -346,5 +346,5 @@ public abstract class MemoryIO implements Pointer {
      * @return The native address of this memory object.
      * @throws UnsupportedOperationException If this memory object is not backed by native memory.
      */
-    abstract public long getAddress();
+    abstract public long address();
 }

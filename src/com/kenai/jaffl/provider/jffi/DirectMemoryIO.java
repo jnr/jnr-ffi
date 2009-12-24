@@ -17,7 +17,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
     DirectMemoryIO(long address) {
         this.address = address & Address.MASK;
     }
-    public final long getAddress() {
+    public final long address() {
         return address;
     }
     public final byte getByte(long offset) {
@@ -132,7 +132,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     @Override
     public void putPointer(long offset, Pointer value) {
-        IO.putAddress(address + offset, value.getAddress());
+        IO.putAddress(address + offset, value.address());
     }
 
     @Override

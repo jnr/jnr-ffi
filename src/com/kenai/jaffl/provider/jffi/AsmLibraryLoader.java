@@ -21,6 +21,7 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
+import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
@@ -57,7 +58,7 @@ import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
-    public final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
+    public final static boolean DEBUG = true; //Boolean.getBoolean("jaffl.compile.dump");
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     private static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
     private final AtomicLong nextClassID = new AtomicLong(0);
@@ -374,6 +375,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         if (isFastIntMethod(returnType, parameterTypes)) {
             generateFastIntInvocation(mv, returnType, parameterTypes, ignoreErrno);
+        } else if (mayBeFastIntMethod(returnType, parameterTypes)) {
+            generatePossibleFastIntInvocation(mv, returnType, parameterTypes, parameterAnnotations, ignoreErrno);
         } else if (FAST_NUMERIC_AVAILABLE && isFastNumericMethod(returnType, parameterTypes)) {
             generateFastNumericInvocation(mv, returnType, parameterTypes);
         } else {
@@ -527,6 +530,16 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
                 unboxNumber(mv, parameterTypes[i], nativeIntType);
+
+            } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Pointer.class));
+                // narrow to int if needed
+                narrow(mv, long.class, nativeIntType);
+
+            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Struct.class));
+                // narrow to int if needed
+                narrow(mv, long.class, nativeIntType);
             }
         }
 
@@ -591,6 +604,36 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.invokestatic(p(Double.class), "longBitsToDouble", "(J)D");
         }
         emitReturn(mv, returnType, long.class);
+    }
+
+    private final void generatePossibleFastIntInvocation(SkinnyMethodAdapter mv,
+            Class returnType, Class[] parameterTypes, Annotation[][] annotations,
+            boolean ignoreErrno) {
+
+        int lvar = 1;
+        Label notFastInt = new Label();
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                mv.aload(lvar++);
+                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Pointer.class));
+                mv.iffalse(notFastInt);
+            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                mv.aload(lvar++);
+                mv.pushInt(DefaultInvokerFactory.getNativeArrayFlags(annotations[i]));
+                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Struct.class, int.class));
+                mv.iffalse(notFastInt);
+            } else if (long.class == parameterTypes[i] || double.class == parameterTypes[i]) {
+                lvar += 2;
+            } else {
+                lvar++;
+            }
+        }
+        // generate the fast-int body
+        generateFastIntInvocation(mv, returnType, parameterTypes, ignoreErrno);
+
+        // now the fall back code to handle heap-based memory
+        mv.label(notFastInt);
+        generateBufferInvocation(mv, returnType, parameterTypes, annotations);
     }
 
     private final void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
@@ -1021,6 +1064,32 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return false;
         }
     }
+
+    final static boolean mayBeFastIntMethod(Class returnType, Class[] parameterTypes) {
+        if (parameterTypes.length > 3) {
+            return false;
+        }
+
+        if (!isFastIntResult(returnType)) {
+            return false;
+        }
+
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            if (!mayBeFastIntParam(parameterTypes[i])) {
+                return false;
+            }
+        }
+
+        return com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.I386
+                || com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.X86_64;
+    }
+
+    final static boolean mayBeFastIntParam(Class parameterType) {
+        return isFastIntParam(parameterType)
+                || (Pointer.class.isAssignableFrom(parameterType) && Platform.getPlatform().addressSize() == 32)
+                || (Struct.class.isAssignableFrom(parameterType) && Platform.getPlatform().addressSize() == 32);
+    }
+
     private final static boolean requiresLong(Class type) {
         return Long.class.isAssignableFrom(type) || long.class == type
                 || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 64)
@@ -1113,10 +1182,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         public Double add_double(Double f1, double f2);
 //        public byte add_int8_t(byte i1, byte i2);
         byte ptr_ret_int8_t(s8[] s, int index);
+        byte ptr_ret_int8_t(Pointer p, int index);
+        byte ptr_ret_int8_t(s8 s, int index);
     }
 
 
     public static void main(String[] args) {
+        System.setProperty("jaffl.compile.dump", "true");
         final Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
         options.put(LibraryOption.TypeMapper, new TypeMapper() {
 
@@ -1141,5 +1213,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 //        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
         System.err.println("adding floats=" + lib.add_float(1.0f, 2.0f));
         System.err.println("adding doubles=" + lib.add_double(1.0, 2.0));
+        Pointer p = MemoryIO.allocateDirect(1024);
+        lib.ptr_ret_int8_t(p, 0);
+        lib.ptr_ret_int8_t(MemoryIO.allocate(1024), 0);
     }
 }

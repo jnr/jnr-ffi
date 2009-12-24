@@ -151,7 +151,7 @@ public final class NullMemoryIO extends AbstractMemoryIO {
     }
 
     @Override
-    public long getAddress() {
+    public long address() {
         return 0;
     }
 

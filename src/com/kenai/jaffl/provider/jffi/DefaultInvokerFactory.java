@@ -209,6 +209,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
         return nflags;
     }
 
+    static final int getNativeArrayFlags(Annotation[] annotations) {
+        return getNativeArrayFlags(getParameterFlags(annotations));
+    }
+
     static final Marshaller getMarshaller(Method method, int paramIndex, TypeMapper mapper) {
         Class type = method.getParameterTypes()[paramIndex];
         ToNativeConverter converter = mapper != null ? mapper.getToNativeConverter(type) : null;
@@ -535,7 +539,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class PointerMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new PointerMarshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putAddress(((Pointer) parameter).getAddress());
+            buffer.putAddress(((Pointer) parameter).address());
         }
     }
     

@@ -25,7 +25,7 @@ public class MemoryManager implements com.kenai.jaffl.provider.MemoryManager {
             return (MemoryIO) ptr;
 
         } else if (ptr.isDirect()) {
-            return MemoryUtil.newMemoryIO(ptr.getAddress());
+            return MemoryUtil.newMemoryIO(ptr.address());
         }
 
         throw new UnsupportedOperationException("Unsupported Pointer type: " + ptr.getClass());
@@ -33,7 +33,7 @@ public class MemoryManager implements com.kenai.jaffl.provider.MemoryManager {
 
     public MemoryIO wrap(Pointer ptr, int size) {
         if (ptr.isDirect()) {
-            return MemoryUtil.newMemoryIO(ptr.getAddress(), size);
+            return MemoryUtil.newMemoryIO(ptr.address(), size);
         }
 
         throw new UnsupportedOperationException("Unsupported Pointer type: " + ptr.getClass());
