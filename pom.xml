@@ -7,7 +7,7 @@
   <version>0.4.1</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
-  <url>http://jaffl.kenai.com</url>
+  <url>http://jnr.kenai.com</url>
   <licenses>
     <license>
       <name>GNU Lesser General Public License Version 3</name>
@@ -16,8 +16,8 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:hg:https://kenai.com/hg/jaffl~mercurial</connection>
-    <url>https://kenai.com/hg/jaffl~mercurial</url>
+    <connection>scm:hg:https://kenai.com/hg/jnr~jaffl</connection>
+    <url>https://kenai.com/hg/jnr~jaffl</url>
   </scm>
   <distributionManagement>
      <repository>
