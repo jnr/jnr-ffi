@@ -152,7 +152,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         TypeMapper typeMapper = libraryOptions.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
-        com.kenai.jffi.CallingConvention convention = getCallingConvention(interfaceClass, libraryOptions);
+        com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
@@ -189,10 +189,14 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             // Stash the name of the function in a static field
             String functionName = functionMapper.mapFunctionName(m.getName(), null);
             cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "name_" + i, ci(String.class), null, functionName);
+
+            // Allow individual methods to set the calling convention to stdcall
+            CallingConvention callingConvention = m.getAnnotation(StdCall.class) != null
+                    ? CallingConvention.STDCALL : libraryCallingConvention;
             try {
                 functions[i] = getFunction(library.findSymbolAddress(functionName),
                     nativeReturnType, nativeParameterTypes, InvokerUtil.requiresErrno(m),
-                    m.getAnnotation(StdCall.class) != null ? CallingConvention.STDCALL : convention);
+                    callingConvention);
             } catch (SymbolNotFoundError ex) {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "error_" + i, ci(String.class), null, ex.getMessage());
                 generateFunctionNotFound(cv, className, i, functionName, returnType, parameterTypes);
@@ -205,7 +209,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
             generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""), functionFieldName, m, nativeReturnType, nativeParameterTypes,
-                    m.getParameterAnnotations(), ignoreErrno);
+                    m.getParameterAnnotations(), callingConvention, ignoreErrno);
 
             if (conversionRequired) {
                 generateConversionMethod(cv, className, m.getName(), i, returnType, parameterTypes, nativeReturnType, nativeParameterTypes);
@@ -359,7 +363,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void generateMethod(ClassVisitor cv, String className, String functionName, String functionFieldName, Method m,
-            Class returnType, Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreErrno) {
+            Class returnType, Class[] parameterTypes, Annotation[][] parameterAnnotations,
+            CallingConvention convention, boolean ignoreErrno) {
 
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName, 
                 sig(returnType, parameterTypes), null, null));
@@ -372,9 +377,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         mv.aload(0);
         mv.getfield(className, functionFieldName, ci(Function.class));
 
-        if (isFastIntMethod(returnType, parameterTypes)) {
+        if (convention == CallingConvention.DEFAULT && isFastIntMethod(returnType, parameterTypes)) {
             generateFastIntInvocation(mv, returnType, parameterTypes, ignoreErrno);
-        } else if (FAST_NUMERIC_AVAILABLE && isFastNumericMethod(returnType, parameterTypes)) {
+        } else if (convention == CallingConvention.DEFAULT && FAST_NUMERIC_AVAILABLE && isFastNumericMethod(returnType, parameterTypes)) {
             generateFastNumericInvocation(mv, returnType, parameterTypes);
         } else {
             generateBufferInvocation(mv, returnType, parameterTypes, parameterAnnotations);
