@@ -171,20 +171,38 @@ final class X86_64StubCompiler extends StubCompiler {
             // Need to align the stack to 16 bytes for function call.
             // It already has 8 bytes pushed (the return address), so making space
             // to save the return value from the function neatly aligns it to 16 bytes
-            a.sub(rsp, imm(8));
-
+            int space = returnType == float.class || returnType == double.class
+                    ? 24 : 8;
+            a.sub(rsp, imm(space));
+            
             // Call to the actual native function
             a.mov(rax, imm(function.getFunctionAddress()));
             a.call(rax);
 
-            // Save the integer return on the stack
-            a.mov(qword_ptr(rsp, 0), rax);
+            // Save the return on the stack
+            if (returnType == float.class) {
+                a.movss(ptr(rsp, 0), xmm0);
+            } else if (returnType == double.class) {
+                a.movsd(ptr(rsp, 0), xmm0);
+            } else {
+                a.mov(ptr(rsp, 0), rax);
+            }
 
             // Save the errno in a thread-local variable
             a.mov(rax, imm(Internals.getErrnoSaveFunction()));
             a.call(rax);
-            // Retrieve return value, and restore rsp to original position
-            a.pop(rax);
+            
+            // Retrieve return value and put it back in the appropriate return register
+            if (returnType == float.class) {
+                a.movss(xmm0, ptr(rsp, 0));
+            } else if (returnType == double.class) {
+                a.movsd(xmm0, ptr(rsp, 0));
+            } else {
+                a.mov(rax, ptr(rsp, 0));
+            }
+
+            // Restore rsp to original position
+            a.add(rsp, imm(space));
             a.ret();
         } else {
             // Since there is no need to return here to save the errno, and the
