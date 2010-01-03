@@ -57,7 +57,7 @@ import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
-    public final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
+    public final static boolean DEBUG = true || Boolean.getBoolean("jaffl.compile.dump");
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     private static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
     private final AtomicLong nextClassID = new AtomicLong(0);
@@ -154,6 +154,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
+        StubCompiler compiler = StubCompiler.newCompiler();
+
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
             final Class returnType = m.getReturnType();
@@ -208,8 +210,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
-            generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""), functionFieldName, m, nativeReturnType, nativeParameterTypes,
-                    m.getParameterAnnotations(), callingConvention, ignoreErrno);
+            if (canCompile(compiler, returnType, parameterTypes, callingConvention)) {
+                // The method can be generated via a direct java -> jni mapping
+                compile(compiler, functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
+                        nativeReturnType, nativeParameterTypes, callingConvention, ignoreErrno);
+            } else {
+                generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
+                        functionFieldName, m, nativeReturnType, nativeParameterTypes,
+                        m.getParameterAnnotations(), callingConvention, ignoreErrno);
+            }
 
             if (conversionRequired) {
                 generateConversionMethod(cv, className, m.getName(), i, returnType, parameterTypes, nativeReturnType, nativeParameterTypes);
@@ -255,7 +264,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         try {
             Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), cw.toByteArray());
             Constructor<T> cons = implClass.getDeclaredConstructor(Library.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class);
-            return cons.newInstance(library, functions, resultConverters, parameterConverters);
+            T result = cons.newInstance(library, functions, resultConverters, parameterConverters);
+
+            // Attach any native method stubs - we have to delay this until the
+            // implementation class is loaded for it to work.
+            compiler.attach(implClass);
+
+            return result;
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }
@@ -360,6 +375,63 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         emitReturnOp(mv, returnType);
         mv.visitMaxs(10, 10);
         mv.visitEnd();
+    }
+
+    private final boolean canCompile(StubCompiler compiler, Class returnType, Class[] parameterTypes,
+            CallingConvention convention) {
+
+        Class[] nativeParameterTypes = new Class[parameterTypes.length];
+        for (int i = 0; i < nativeParameterTypes.length; ++i) {
+            nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+        }
+
+        return compiler.canCompile(AsmUtil.unboxedReturnType(returnType), nativeParameterTypes, convention);
+    }
+
+    private final void compile(StubCompiler compiler, Function function,
+            ClassVisitor cv, String className, String functionName,
+            Class returnType, Class[] parameterTypes,
+            CallingConvention convention, boolean ignoreErrno) {
+
+        Class[] nativeParameterTypes = new Class[parameterTypes.length];
+        boolean unboxing = false;
+        for (int i = 0; i < nativeParameterTypes.length; ++i) {
+            nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+            unboxing |= nativeParameterTypes[i] != parameterTypes[i];
+        }
+        Class nativeReturnType = AsmUtil.unboxedReturnType(returnType);
+        unboxing |= nativeReturnType != returnType;
+
+        String stubName = functionName + (unboxing ? "$stub" : "");
+        
+        // If unboxing of parameters is required, generate a wrapper
+        if (unboxing) {
+            SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
+                    functionName, sig(returnType, parameterTypes), null, null));
+            mv.start();
+            mv.aload(0);
+
+            for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
+                lvar = loadParameter(mv, parameterTypes[i], lvar);
+                if (parameterTypes[i] != nativeParameterTypes[i]) {
+                    unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
+                }
+            }
+
+            // invoke the compiled stub
+            mv.invokevirtual(className, stubName, sig(nativeReturnType, nativeParameterTypes));
+
+            emitReturn(mv, returnType, nativeReturnType);
+            mv.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
+            mv.visitEnd();
+        }
+
+        cv.visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE,
+                stubName, sig(nativeReturnType, nativeParameterTypes), null, null);
+        
+
+        compiler.compile(function, stubName, nativeReturnType, nativeParameterTypes,
+                convention, !ignoreErrno);
     }
 
     private final void generateMethod(ClassVisitor cv, String className, String functionName, String functionFieldName, Method m,
