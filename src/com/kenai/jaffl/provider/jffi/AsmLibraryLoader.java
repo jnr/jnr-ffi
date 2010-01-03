@@ -57,7 +57,7 @@ import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
-    public final static boolean DEBUG = true || Boolean.getBoolean("jaffl.compile.dump");
+    public final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     private static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
     private final AtomicLong nextClassID = new AtomicLong(0);
