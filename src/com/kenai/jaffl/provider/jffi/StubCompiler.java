@@ -28,9 +28,20 @@ import com.kenai.jffi.Function;
 abstract class StubCompiler {
     
     public static final StubCompiler newCompiler() {
-        return Platform.getPlatform().getCPU() == Platform.CPU.X86_64
-                && Platform.getPlatform().getOS() == Platform.OS.LINUX
-                ? new X86_64StubCompiler() : new DummyStubCompiler();
+        switch (Platform.getPlatform().getCPU()) {
+            case I386:
+                if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
+                    return new X86_32StubCompiler();
+                }
+                break;
+            case X86_64:
+                if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
+                    return new X86_64StubCompiler();
+                }
+                break;
+        }
+
+        return new DummyStubCompiler();
     }
 
     abstract boolean canCompile(Class returnType, Class[] parameterTypes, CallingConvention convention);
