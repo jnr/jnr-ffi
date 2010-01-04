@@ -1305,7 +1305,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         static final class s8 extends Struct {
             public final Signed8 s8 = new Signed8();
         }
-        public Long add_int32_t(long i1, int i2);
+        public Integer add_int32_t(Integer i1, int i2);
         public Float add_float(float f1, float f2);
         public Double add_double(Double f1, double f2);
 //        public byte add_int8_t(byte i1, byte i2);
@@ -1337,7 +1337,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 //        });
 
         TestLib lib = AsmLibraryLoader.getInstance().loadLibrary(new Library("test"), TestLib.class, options);
-        Number result = lib.add_int32_t(1L, 2);
+        Number result = lib.add_int32_t(1, 2);
         System.err.println("result=" + result);
 //        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
         System.err.println("adding floats=" + lib.add_float(1.0f, 2.0f));
