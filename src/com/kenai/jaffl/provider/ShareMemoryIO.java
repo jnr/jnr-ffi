@@ -22,8 +22,8 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     }
 
     @Override
-    public long getAddress() {
-        return io.getAddress() + base;
+    public long address() {
+        return io.address() + base;
     }
 
 

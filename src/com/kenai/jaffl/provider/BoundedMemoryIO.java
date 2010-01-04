@@ -22,8 +22,8 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
         return getDelegatedMemoryIO().isDirect();
     }
     
-    public long getAddress() {
-        return getDelegatedMemoryIO().getAddress();
+    public long address() {
+        return getDelegatedMemoryIO().address();
     }
 
     public MemoryIO getDelegatedMemoryIO() {

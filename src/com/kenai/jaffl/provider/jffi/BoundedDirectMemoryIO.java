@@ -9,8 +9,8 @@ class BoundedDirectMemoryIO extends BoundedMemoryIO {
     }
 
     @Override
-    public long getAddress() {
-        return getDelegatedMemoryIO().getAddress();
+    public long address() {
+        return getDelegatedMemoryIO().address();
     }
 
 }
