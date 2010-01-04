@@ -32,16 +32,6 @@ ifeq ($(OS),linux)
 CCACHE := $(shell /usr/bin/which ccache)
 endif
 
-ifeq ($(OS),win32)
-  PREFIX=
-  LIBEXT = dll
-endif
-
-ifeq ($(OS),win64)
-  PREFIX =
-  LIBEXT = dll
-endif
-
 TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)
 TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(TEST_SRCS))
 	
@@ -59,9 +49,21 @@ IFLAGS = -I"$(BUILD_DIR)"
 CFLAGS = $(OFLAGS) $(WFLAGS) $(IFLAGS) $(PICFLAGS) -D_REENTRANT
 
 ifeq ($(OS), win32)
-	CC += -mno-cygwin
-	LDFLAGS += -mno-cygwin -Wl,--add-stdcall-alias
+    CC += -mno-cygwin
+    LDFLAGS += -mno-cygwin -Wl,--add-stdcall-alias
+    PREFIX =
+    LIBEXT = dll
+    PICFLAGS =
 endif
+
+ifeq ($(OS),win64)
+  CC += -mno-cygwin
+  LDFLAGS += -mno-cygwin -Wl,--add-stdcall-alias
+  PREFIX =
+  LIBEXT = dll
+  PICFLAGS =
+endif
+
 ifeq ($(OS), darwin)
   ARCHFLAGS = -arch ppc
   ifneq ($(findstring $(CPU), i386 x86_64),)
