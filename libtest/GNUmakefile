@@ -1,10 +1,21 @@
 # -*- makefile -*-
-OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
+BUILD_OS := $(strip $(shell uname -s | tr '[:upper:]' '[:lower:]'))
+OS ?= $(BUILD_OS)
 CPU = $(shell uname -m | sed -e 's/i[345678]86/i386/')
 MODEL = 32 # Default to 32bit compiles
 PLATFORM = $(CPU)-$(OS)
 ifeq ($(OS), sunos)
   OS = solaris
+endif
+
+# Default value of $OS on Windows is Windows_NT
+ifeq ($(OS), Windows_NT)
+    # that's how we detect x64...
+    ifneq ($(findstring 64, $(BUILD_OS)),)
+      OS = win64
+    else
+      OS = win32
+    endif
 endif
 
 SRC_DIR = libtest
@@ -19,6 +30,16 @@ export MACOSX_DEPLOYMENT_TARGET=10.5
 
 ifeq ($(OS),linux)
 CCACHE := $(shell /usr/bin/which ccache)
+endif
+
+ifeq ($(OS),win32)
+  PREFIX=
+  LIBEXT = dll
+endif
+
+ifeq ($(OS),win64)
+  PREFIX =
+  LIBEXT = dll
 endif
 
 TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)

@@ -72,6 +72,10 @@
 
     -->
     <target name="-pre-init">
+        <!-- d32/d64 options are not supported on Windows -->
+        <condition property="run.jvm.model" value="">
+            <os family="Windows"/>
+        </condition>
         <condition property="run.jvm.model" value="-d64">
           <or>
             <os arch="amd64"/>
