@@ -331,11 +331,11 @@ public final class AsmRuntime {
         return StringIO.getStringIO().fromNative(buf).toString();
     }
 
-    public static final Pointer returnPointer(long ptr) {
+    public static final Pointer pointerValue(long ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
 
-    public static final Pointer returnPointer(int ptr) {
+    public static final Pointer pointerValue(int ptr) {
         return ptr != 0 ? new DirectMemoryIO((long) ptr & 0xffffffffL) : null;
     }
 

@@ -955,10 +955,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         } else if (Boolean.class.isAssignableFrom(returnType)) {
             narrow(mv, nativeReturnType, int.class);
-            invokestatic(mv, returnType, "valueOf", returnType, boolean.class);
+            mv.invokestatic(p(Boolean.class), "valueOf", sig(Boolean.class, boolean.class));
             
         } else if (Pointer.class.isAssignableFrom(returnType)) {
-            invokestatic(mv, AsmRuntime.class, "returnPointer", Pointer.class, nativeReturnType);
+            mv.invokestatic(p(AsmRuntime.class), "pointerValue", sig(Pointer.class, nativeReturnType));
 
         } else if (Address.class == returnType) {
             widen(mv, nativeReturnType, long.class);
