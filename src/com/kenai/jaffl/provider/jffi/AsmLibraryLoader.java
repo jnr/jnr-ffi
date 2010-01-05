@@ -410,7 +410,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         Class nativeReturnType = AsmUtil.unboxedReturnType(returnType);
         unboxing |= nativeReturnType != returnType;
 
-        String stubName = functionName + (unboxing || ptrCheck ? "$stub$" + nextMethodID.getAndIncrement() : "");
+        String stubName = functionName + (unboxing || ptrCheck ? "$jni$" + nextMethodID.getAndIncrement() : "");
         
         // If unboxing of parameters is required, generate a wrapper
         if (unboxing || ptrCheck) {
@@ -430,14 +430,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                         unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
 
                     } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
-                        mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Pointer.class));
-                        // narrow to int if needed
-                        narrow(mv, long.class, nativeParameterTypes[i]);
-
+                        unboxPointer(mv, nativeParameterTypes[i]);
+                        
                     } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
-                        mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Struct.class));
-                        // narrow to int if needed
-                        narrow(mv, long.class, nativeParameterTypes[i]);
+                        unboxStruct(mv, nativeParameterTypes[i]);
+                        
                     }
                 }
             }
@@ -460,7 +457,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                     lvar = loadParameter(mv, parameterTypes[i], lvar);
                 }
                 mv.invokevirtual(className, bufInvoke, sig(returnType, parameterTypes));
-                emitReturn(mv, returnType, returnType);
+                emitReturnOp(mv, returnType);
             }
             mv.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
             mv.visitEnd();
@@ -666,14 +663,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 unboxNumber(mv, parameterTypes[i], nativeIntType);
 
             } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
-                mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Pointer.class));
-                // narrow to int if needed
-                narrow(mv, long.class, nativeIntType);
+                unboxPointer(mv, nativeIntType);
 
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
-                mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Struct.class));
-                // narrow to int if needed
-                narrow(mv, long.class, nativeIntType);
+                unboxStruct(mv, nativeIntType);
+
             }
         }
 
@@ -702,10 +696,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             lvar = loadParameter(mv, parameterTypes[i], lvar);
 
             if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
-                mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Pointer.class));
-
+                unboxPointer(mv, long.class);
+                
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
-                mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Struct.class));
+                unboxStruct(mv, long.class);
+
             } else {
                 
                 if (!parameterTypes[i].isPrimitive() && Number.class.isAssignableFrom(parameterTypes[i])) {
@@ -1025,6 +1020,22 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         } else {
             throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
+        }
+    }
+
+    private final void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
+        if (int.class == nativeType) {
+            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, Pointer.class));
+        } else {
+            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, Pointer.class));
+        }
+    }
+
+    private final void unboxStruct(final SkinnyMethodAdapter mv, final Class nativeType) {
+        if (int.class == nativeType) {
+            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, Struct.class));
+        } else {
+            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, Struct.class));
         }
     }
     

@@ -347,10 +347,15 @@ public class MarshalUtil {
     public static final boolean isDirect(Pointer ptr) {
         return ptr == null || ptr.isDirect();
     }
-    
-    public static final long address(Pointer ptr) {
+
+    public static final int intValue(Pointer ptr) {
+        return ptr != null ? (int) ptr.address() : 0;
+    }
+
+    public static final long longValue(Pointer ptr) {
         return ptr != null ? ptr.address() : 0L;
     }
+
 
     public static final boolean isDirect(Struct s) {
         return s == null || StructUtil.isDirect(s);
@@ -360,7 +365,11 @@ public class MarshalUtil {
         return s == null || StructUtil.getMemoryIO(s, flags).isDirect();
     }
 
-    public static final long address(Struct s) {
+    public static final int intValue(Struct s) {
+        return s != null ? (int) StructUtil.getMemoryIO(s).address() : 0;
+    }
+
+    public static final long longValue(Struct s) {
         return s != null ? StructUtil.getMemoryIO(s).address() : 0L;
     }
 }
