@@ -754,12 +754,12 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
             if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
                 mv.aload(lvar++);
-                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Pointer.class));
+                mv.invokestatic(p(AsmRuntime.class), "isDirect", sig(boolean.class, Pointer.class));
                 mv.iffalse(notFastInt);
                 needBufferInvocation = true;
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
                 mv.aload(lvar++);
-                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Struct.class));
+                mv.invokestatic(p(AsmRuntime.class), "isDirect", sig(boolean.class, Struct.class));
                 mv.iffalse(notFastInt);
                 needBufferInvocation = true;
             } else if (long.class == parameterTypes[i] || double.class == parameterTypes[i]) {
@@ -897,7 +897,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         mv.dup_x2();
 
         // associate the memory with the struct and return the struct
-        invokestatic(mv, MarshalUtil.class, "useMemory", void.class, long.class, Struct.class);
+        invokestatic(mv, AsmRuntime.class, "useMemory", void.class, long.class, Struct.class);
         mv.label(end);
     }
 
@@ -958,7 +958,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             invokestatic(mv, returnType, "valueOf", returnType, boolean.class);
             
         } else if (Pointer.class.isAssignableFrom(returnType)) {
-            invokestatic(mv, MarshalUtil.class, "returnPointer", Pointer.class, nativeReturnType);
+            invokestatic(mv, AsmRuntime.class, "returnPointer", Pointer.class, nativeReturnType);
 
         } else if (Address.class == returnType) {
             widen(mv, nativeReturnType, long.class);
@@ -973,7 +973,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
          
         } else if (String.class == returnType) {
             widen(mv, nativeReturnType, long.class);
-            mv.invokestatic(p(MarshalUtil.class), "returnString", sig(String.class, long.class));
+            mv.invokestatic(p(AsmRuntime.class), "returnString", sig(String.class, long.class));
          
         } else {
             throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);
@@ -1053,11 +1053,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void marshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
-        mv.invokestatic(p(MarshalUtil.class), "marshal", sig(void.class, ci(InvocationBuffer.class), parameterTypes));
+        mv.invokestatic(p(AsmRuntime.class), "marshal", sig(void.class, ci(InvocationBuffer.class), parameterTypes));
     }
 
     private final void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
-        mv.invokestatic(p(MarshalUtil.class), "marshal",
+        mv.invokestatic(p(AsmRuntime.class), "marshal",
                 sig(void.class, ci(InvocationSession.class) + ci(InvocationBuffer.class), parameterTypes));
     }
     

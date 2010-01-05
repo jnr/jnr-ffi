@@ -22,10 +22,13 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-public class MarshalUtil {
+/**
+ * Utility methods that are used at runtime by generated code.
+ */
+public final class AsmRuntime {
     public static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
 
-    private MarshalUtil() {}
+    private AsmRuntime() {}
 
     public static final void marshal(InvocationBuffer buffer, byte[] array, int flags) {
         if (array == null) {

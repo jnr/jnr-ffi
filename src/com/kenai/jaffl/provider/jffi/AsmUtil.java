@@ -124,9 +124,9 @@ class AsmUtil {
 
     private static final void unboxPointerOrStruct(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
         if (int.class == nativeType) {
-            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, type));
+            mv.invokestatic(p(AsmRuntime.class), "intValue", sig(int.class, type));
         } else {
-            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, type));
+            mv.invokestatic(p(AsmRuntime.class), "longValue", sig(long.class, type));
         }
     }
 

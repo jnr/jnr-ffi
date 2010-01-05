@@ -546,7 +546,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class CharSequenceMarshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new CharSequenceMarshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (CharSequence) parameter);
+            AsmRuntime.marshal(buffer, (CharSequence) parameter);
         }
     }
 
@@ -571,7 +571,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         
         @Override
         public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(session, buffer, (StringBuilder) parameter, inout, nflags);
+            AsmRuntime.marshal(session, buffer, (StringBuilder) parameter, inout, nflags);
         }
     }
 
@@ -585,7 +585,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         @Override
         public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(session, buffer, (StringBuffer) parameter, inout, nflags);
+            AsmRuntime.marshal(session, buffer, (StringBuffer) parameter, inout, nflags);
         }
     }
             
@@ -596,7 +596,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, byte[].class.cast(parameter), flags);
+            AsmRuntime.marshal(buffer, byte[].class.cast(parameter), flags);
         }
     }
     static final class ShortArrayMarshaller extends BaseMarshaller {
@@ -606,7 +606,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, short[].class.cast(parameter), flags);
+            AsmRuntime.marshal(buffer, short[].class.cast(parameter), flags);
         }
     }
     static final class IntArrayMarshaller extends BaseMarshaller {
@@ -616,7 +616,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, int[].class.cast(parameter), flags);
+            AsmRuntime.marshal(buffer, int[].class.cast(parameter), flags);
         }
     }
 
@@ -627,7 +627,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, long[].class.cast(parameter), flags);
+            AsmRuntime.marshal(buffer, long[].class.cast(parameter), flags);
         }
     }
 
@@ -638,7 +638,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, float[].class.cast(parameter), flags);
+            AsmRuntime.marshal(buffer, float[].class.cast(parameter), flags);
         }
     }
     
@@ -649,7 +649,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, double[].class.cast(parameter), flags);
+            AsmRuntime.marshal(buffer, double[].class.cast(parameter), flags);
         }
     }
 
@@ -660,7 +660,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (ByteBuffer) parameter, flags);
+            AsmRuntime.marshal(buffer, (ByteBuffer) parameter, flags);
         }
     }
 
@@ -671,7 +671,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (ShortBuffer) parameter, flags);
+            AsmRuntime.marshal(buffer, (ShortBuffer) parameter, flags);
         }
     }
 
@@ -682,7 +682,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (IntBuffer) parameter, flags);
+            AsmRuntime.marshal(buffer, (IntBuffer) parameter, flags);
         }
     }
 
@@ -693,7 +693,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (LongBuffer) parameter, flags);
+            AsmRuntime.marshal(buffer, (LongBuffer) parameter, flags);
         }
     }
 
@@ -704,7 +704,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (FloatBuffer) parameter, flags);
+            AsmRuntime.marshal(buffer, (FloatBuffer) parameter, flags);
         }
     }
 
@@ -715,7 +715,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (DoubleBuffer) parameter, flags);
+            AsmRuntime.marshal(buffer, (DoubleBuffer) parameter, flags);
         }
     }
     
@@ -727,7 +727,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         @Override
         public final void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(session, buffer, (ByReference) parameter, flags);
+            AsmRuntime.marshal(session, buffer, (ByReference) parameter, flags);
         }
     }
 
@@ -739,7 +739,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, (Struct) parameter, flags, nflags);
+            AsmRuntime.marshal(buffer, (Struct) parameter, flags, nflags);
         }
     }
 
@@ -751,7 +751,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
         
         public final void marshal(InvocationBuffer buffer, Object parameter) {
-            MarshalUtil.marshal(buffer, Struct[].class.cast(parameter), flags, nflags);
+            AsmRuntime.marshal(buffer, Struct[].class.cast(parameter), flags, nflags);
         }
     }
 
