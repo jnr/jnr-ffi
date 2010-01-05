@@ -139,11 +139,11 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
 
             // Save the return on the stack
             if (returnType == float.class) {
-                a.movss(ptr(rsp, 0), xmm0);
+                a.movss(dword_ptr(rsp, 0), xmm0);
             } else if (returnType == double.class) {
-                a.movsd(ptr(rsp, 0), xmm0);
+                a.movsd(qword_ptr(rsp, 0), xmm0);
             } else {
-                a.mov(ptr(rsp, 0), rax);
+                a.mov(qword_ptr(rsp, 0), rax);
             }
 
             // Save the errno in a thread-local variable
@@ -152,11 +152,11 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             
             // Retrieve return value and put it back in the appropriate return register
             if (returnType == float.class) {
-                a.movss(xmm0, ptr(rsp, 0));
+                a.movss(xmm0, dword_ptr(rsp, 0));
             } else if (returnType == double.class) {
-                a.movsd(xmm0, ptr(rsp, 0));
+                a.movsd(xmm0, qword_ptr(rsp, 0));
             } else {
-                a.mov(rax, ptr(rsp, 0));
+                a.mov(rax, dword_ptr(rsp, 0));
             }
 
             // Restore rsp to original position
