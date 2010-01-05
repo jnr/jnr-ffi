@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
+import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
+import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 
 class AsmUtil {
     private AsmUtil() {}
@@ -101,5 +103,38 @@ class AsmUtil {
         } else {
             return type;
         }
+    }
+
+    
+    static final void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
+        if (!returnType.isPrimitive()) {
+            mv.areturn();
+        } else if (long.class == returnType) {
+            mv.lreturn();
+        } else if (float.class == returnType) {
+            mv.freturn();
+        } else if (double.class == returnType) {
+            mv.dreturn();
+        } else if (void.class == returnType) {
+            mv.voidreturn();
+        } else {
+            mv.ireturn();
+        }
+    }
+
+    private static final void unboxPointerOrStruct(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
+        if (int.class == nativeType) {
+            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, type));
+        } else {
+            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, type));
+        }
+    }
+
+    static final void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
+        unboxPointerOrStruct(mv, Pointer.class, nativeType);
+    }
+
+    static final void unboxStruct(final SkinnyMethodAdapter mv, final Class nativeType) {
+        unboxPointerOrStruct(mv, Struct.class, nativeType);
     }
 }

@@ -56,6 +56,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
+import static com.kenai.jaffl.provider.jffi.AsmUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     public final static boolean DEBUG = false || Boolean.getBoolean("jaffl.compile.dump");
@@ -793,18 +794,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
-    private final void widen(SkinnyMethodAdapter mv, Class from, Class to) {
-        if (long.class == to && long.class != from && isPrimitiveInt(from)) {
-            mv.i2l();
-        }
-    }
-
-    private final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
-        if (long.class == from && long.class != to && isPrimitiveInt(to)) {
-            mv.l2i();
-        }
-    }
-
     private final int loadParameter(SkinnyMethodAdapter mv, Class parameterType, int lvar) {
         if (!parameterType.isPrimitive()) {
             mv.aload(lvar++);
@@ -1020,38 +1009,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         } else {
             throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
-        }
-    }
-
-    private final void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
-        if (int.class == nativeType) {
-            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, Pointer.class));
-        } else {
-            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, Pointer.class));
-        }
-    }
-
-    private final void unboxStruct(final SkinnyMethodAdapter mv, final Class nativeType) {
-        if (int.class == nativeType) {
-            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, Struct.class));
-        } else {
-            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, Struct.class));
-        }
-    }
-    
-    private final void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
-        if (!returnType.isPrimitive()) {
-            mv.areturn();
-        } else if (long.class == returnType) {
-            mv.lreturn();
-        } else if (float.class == returnType) {
-            mv.freturn();
-        } else if (double.class == returnType) {
-            mv.dreturn();
-        } else if (void.class == returnType) {
-            mv.voidreturn();
-        } else {
-            mv.ireturn();
         }
     }
 
@@ -1345,14 +1302,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return converter.nativeType();
         }
     }
-
-    static final int marshall(byte[] array) {
-        if (array == null) {
-            return 1;
-        } else {
-            return array[0];
-        }
-    }
+    
     public static final class IntToLong implements FromNativeConverter, ToNativeConverter {
 
         public Object fromNative(Object nativeValue, FromNativeContext context) {

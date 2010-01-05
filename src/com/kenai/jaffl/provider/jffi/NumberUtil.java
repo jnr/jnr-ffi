@@ -102,4 +102,18 @@ public final class NumberUtil {
         return byte.class == c || short.class == c || int.class == c || boolean.class == c;
     }
 
+
+    public static final void widen(SkinnyMethodAdapter mv, Class from, Class to) {
+        if (long.class == to && long.class != from && isPrimitiveInt(from)) {
+            mv.i2l();
+        }
+    }
+
+    public static final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
+        if (long.class == from && long.class != to && isPrimitiveInt(to)) {
+            mv.l2i();
+        }
+    }
+
+
 }
