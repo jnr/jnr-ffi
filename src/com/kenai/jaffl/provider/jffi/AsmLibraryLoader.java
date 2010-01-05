@@ -21,6 +21,7 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
+import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
@@ -57,11 +58,13 @@ import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
-    public final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
+    public final static boolean DEBUG = false || Boolean.getBoolean("jaffl.compile.dump");
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     private static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
+    private static final boolean FAST_LONG_AVAILABLE = isFastLongAvailable();
     private final AtomicLong nextClassID = new AtomicLong(0);
     private final AtomicLong nextIvarID = new AtomicLong(0);
+    private final AtomicLong nextMethodID = new AtomicLong(0);
 
     static final LibraryLoader getInstance() {
         return INSTANCE;
@@ -123,7 +126,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final <T> T generateInterfaceImpl(final Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(AsmUtil.newTraceClassVisitor(cw, System.out)) : cw;
+        ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(AsmUtil.newTraceClassVisitor(cw, System.err)) : cw;
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
 
@@ -210,13 +213,14 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
-            if (canCompile(compiler, returnType, parameterTypes, callingConvention)) {
+            if (canCompile(compiler, nativeReturnType, nativeParameterTypes, callingConvention)) {
                 // The method can be generated via a direct java -> jni mapping
                 compile(compiler, functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                        nativeReturnType, nativeParameterTypes, callingConvention, ignoreErrno);
+                        functionFieldName, nativeReturnType, nativeParameterTypes,
+                        m.getParameterAnnotations(), callingConvention, ignoreErrno);
             } else {
                 generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                        functionFieldName, m, nativeReturnType, nativeParameterTypes,
+                        functionFieldName, nativeReturnType, nativeParameterTypes,
                         m.getParameterAnnotations(), callingConvention, ignoreErrno);
             }
 
@@ -389,41 +393,91 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void compile(StubCompiler compiler, Function function,
-            ClassVisitor cv, String className, String functionName,
-            Class returnType, Class[] parameterTypes,
+            ClassVisitor cv, String className, String functionName, String functionFieldName,
+            Class returnType, Class[] parameterTypes, Annotation[][] annotations,
             CallingConvention convention, boolean ignoreErrno) {
 
         Class[] nativeParameterTypes = new Class[parameterTypes.length];
         boolean unboxing = false;
+        boolean ptrCheck = false;
         for (int i = 0; i < nativeParameterTypes.length; ++i) {
             nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
             unboxing |= nativeParameterTypes[i] != parameterTypes[i];
+            ptrCheck |= Pointer.class.isAssignableFrom(parameterTypes[i])
+                    || Struct.class.isAssignableFrom(parameterTypes[i]);
         }
+        
         Class nativeReturnType = AsmUtil.unboxedReturnType(returnType);
         unboxing |= nativeReturnType != returnType;
 
-        String stubName = functionName + (unboxing ? "$stub" : "");
+        String stubName = functionName + (unboxing || ptrCheck ? "$jni$" + nextMethodID.getAndIncrement() : "");
         
         // If unboxing of parameters is required, generate a wrapper
-        if (unboxing) {
+        if (unboxing || ptrCheck) {
             SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
                     functionName, sig(returnType, parameterTypes), null, null));
             mv.start();
             mv.aload(0);
 
+            Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes);
+            
+            // Emit the unboxing wrapper
             for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
                 lvar = loadParameter(mv, parameterTypes[i], lvar);
                 if (parameterTypes[i] != nativeParameterTypes[i]) {
-                    unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
+
+                    if (Number.class.isAssignableFrom(parameterTypes[i])) {
+                        unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
+
+                    } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                        unboxPointer(mv, nativeParameterTypes[i]);
+                        
+                    } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                        unboxStruct(mv, nativeParameterTypes[i]);
+                        
+                    }
                 }
             }
 
             // invoke the compiled stub
             mv.invokevirtual(className, stubName, sig(nativeReturnType, nativeParameterTypes));
 
+            // emitReturn will box the return value if needed
             emitReturn(mv, returnType, nativeReturnType);
+
+            String bufInvoke = null;
+            if (bufferInvocationLabel != null) {
+                // If there was a non-direct pointer in the parameters, need to
+                // handle it via a call to the slow buffer invocation
+                mv.label(bufferInvocationLabel);
+
+                bufInvoke = functionName + "$buf$" + nextMethodID.getAndIncrement();
+                // reload all the parameters
+                for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
+                    lvar = loadParameter(mv, parameterTypes[i], lvar);
+                }
+                mv.invokevirtual(className, bufInvoke, sig(returnType, parameterTypes));
+                emitReturnOp(mv, returnType);
+            }
             mv.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
             mv.visitEnd();
+
+            if (bufInvoke != null) {
+                SkinnyMethodAdapter bi = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
+                        bufInvoke, sig(returnType, parameterTypes), null, null));
+                bi.start();
+
+                // Retrieve the static 'ffi' Invoker instance
+                bi.getstatic(p(AbstractNativeInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
+
+                // retrieve this.function
+                bi.aload(0);
+                bi.getfield(className, functionFieldName, ci(Function.class));
+
+                generateBufferInvocation(bi, returnType, parameterTypes, annotations);
+                bi.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
+                bi.visitEnd();
+            }
         }
 
         cv.visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE,
@@ -434,7 +488,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 convention, !ignoreErrno);
     }
 
-    private final void generateMethod(ClassVisitor cv, String className, String functionName, String functionFieldName, Method m,
+    private final void generateMethod(ClassVisitor cv, String className, String functionName,
+            String functionFieldName,
             Class returnType, Class[] parameterTypes, Annotation[][] parameterAnnotations,
             CallingConvention convention, boolean ignoreErrno) {
 
@@ -449,10 +504,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         mv.aload(0);
         mv.getfield(className, functionFieldName, ci(Function.class));
 
-        if (convention == CallingConvention.DEFAULT && isFastIntMethod(returnType, parameterTypes)) {
-            generateFastIntInvocation(mv, returnType, parameterTypes, ignoreErrno);
+        if (convention == CallingConvention.DEFAULT && isFastIntegerMethod(returnType, parameterTypes)) {
+            generateFastIntegerInvocation(mv, returnType, parameterTypes, parameterAnnotations, ignoreErrno);
         } else if (convention == CallingConvention.DEFAULT && FAST_NUMERIC_AVAILABLE && isFastNumericMethod(returnType, parameterTypes)) {
-            generateFastNumericInvocation(mv, returnType, parameterTypes);
+            generateFastNumericInvocation(mv, returnType, parameterTypes, parameterAnnotations);
         } else {
             generateBufferInvocation(mv, returnType, parameterTypes, parameterAnnotations);
         }
@@ -589,13 +644,15 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         emitReturn(mv, returnType, nativeReturnType);
     }
     
-    private final void generateFastIntInvocation(SkinnyMethodAdapter mv, Class returnType, Class[] parameterTypes, boolean ignoreErrno) {
+    private final void generateFastIntegerInvocation(SkinnyMethodAdapter mv, Class returnType,
+            Class[] parameterTypes, Annotation[][] annotations, boolean ignoreErrno) {
         // [ stack contains: Invoker, Function ]
 
-        Class nativeIntType = getNativeIntType(returnType, parameterTypes);
+        Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes);
 
-        int lvar = 1;
-        for (int i = 0; i < parameterTypes.length; ++i) {
+        Class nativeIntType = getNativeIntType(returnType, parameterTypes);
+        // Emit fast-int invocation
+        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
             lvar = loadParameter(mv, parameterTypes[i], lvar);
 
             if (parameterTypes[i].isPrimitive()) {
@@ -604,6 +661,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
                 unboxNumber(mv, parameterTypes[i], nativeIntType);
+
+            } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                unboxPointer(mv, nativeIntType);
+
+            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                unboxStruct(mv, nativeIntType);
+
             }
         }
 
@@ -613,51 +677,55 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 getFastIntInvokerSignature(parameterTypes.length, nativeIntType));
 
         emitReturn(mv, returnType, nativeIntType);
+
+        // Now emit the fall back code to handle heap-based memory
+        if (bufferInvocationLabel != null) {
+            mv.label(bufferInvocationLabel);
+            generateBufferInvocation(mv, returnType, parameterTypes, annotations);
+        }
     }
 
-    private final void generateFastNumericInvocation(SkinnyMethodAdapter mv, Class returnType, Class[] parameterTypes) {
+    private final void generateFastNumericInvocation(SkinnyMethodAdapter mv, Class returnType, 
+            Class[] parameterTypes, Annotation[][] annotations) {
         // [ stack contains: Invoker, Function ]
 
-        int lvar = 1;
-        for (int i = 0; i < parameterTypes.length; ++i) {
+        Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes);
+
+        // Emit fast-numeric invocation
+        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
             lvar = loadParameter(mv, parameterTypes[i], lvar);
 
-            if (!parameterTypes[i].isPrimitive()) {
-                unboxNumber(mv, parameterTypes[i], long.class);
-            }
+            if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                unboxPointer(mv, long.class);
+                
+            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                unboxStruct(mv, long.class);
 
-            if (Float.class == parameterTypes[i] || float.class == parameterTypes[i]) {
-                mv.invokestatic(p(Float.class), "floatToRawIntBits", "(F)I");
-                mv.i2l();
+            } else {
+                
+                if (!parameterTypes[i].isPrimitive() && Number.class.isAssignableFrom(parameterTypes[i])) {
+                    unboxNumber(mv, parameterTypes[i], long.class);
+                }
 
-            } else if (Double.class == parameterTypes[i] || double.class == parameterTypes[i]) {
-                mv.invokestatic(p(Double.class), "doubleToRawLongBits", "(D)J");
+                if (Float.class == parameterTypes[i] || float.class == parameterTypes[i]) {
+                    mv.invokestatic(p(Float.class), "floatToRawIntBits", "(F)I");
+                    mv.i2l();
 
-            } else if (parameterTypes[i].isPrimitive()) {
-                // widen to long if needed
-                widen(mv, parameterTypes[i], long.class);
+                } else if (Double.class == parameterTypes[i] || double.class == parameterTypes[i]) {
+                    mv.invokestatic(p(Double.class), "doubleToRawLongBits", "(D)J");
+
+                } else {
+                    // widen to long if needed
+                    widen(mv, parameterTypes[i], long.class);
+
+                }
             }
         }
-
-        StringBuilder sb = new StringBuilder("invoke");
-        if (parameterTypes.length == 0) {
-            sb.append("V");
-        } else {
-            for (int i = 0; i < parameterTypes.length; ++i) {
-                sb.append("N");
-            }
-        }
-        sb.append("rN");
-
-        final String invoke = sb.toString();
-        sb = new StringBuilder("(").append(ci(Function.class));
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            sb.append("J");
-        }
-        final String sig = sb.append(")J").toString();
 
         // stack now contains [ IntInvoker, Function, int args ]
-        mv.invokevirtual(p(com.kenai.jffi.Invoker.class), invoke, sig);
+        mv.invokevirtual(p(com.kenai.jffi.Invoker.class), 
+                getFastNumericInvokerMethodName(parameterTypes.length, returnType),
+                getFastNumericInvokerSignature(parameterTypes.length));
 
         // Convert the result from long to the correct return type
         if (Float.class == returnType || float.class == returnType) {
@@ -667,7 +735,40 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         } else if (Double.class == returnType || double.class == returnType) {
             mv.invokestatic(p(Double.class), "longBitsToDouble", "(J)D");
         }
+
         emitReturn(mv, returnType, long.class);
+
+        if (bufferInvocationLabel != null) {
+            // Now emit the alternate path for any parameters that might require it
+            mv.label(bufferInvocationLabel);
+            generateBufferInvocation(mv, returnType, parameterTypes, annotations);
+        }
+    }
+
+    private static final Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes) {
+
+        // Iterate through any parameters that might require a HeapInvocationBuffer
+        Label notFastInt = new Label();
+        boolean needBufferInvocation = false;
+        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
+            if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                mv.aload(lvar++);
+                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Pointer.class));
+                mv.iffalse(notFastInt);
+                needBufferInvocation = true;
+            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                mv.aload(lvar++);
+                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Struct.class));
+                mv.iffalse(notFastInt);
+                needBufferInvocation = true;
+            } else if (long.class == parameterTypes[i] || double.class == parameterTypes[i]) {
+                lvar += 2;
+            } else {
+                lvar++;
+            }
+        }
+
+        return needBufferInvocation ? notFastInt : null;
     }
 
     private final void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
@@ -762,6 +863,31 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return sb.toString();
     }
 
+    static final String getFastNumericInvokerMethodName(int parameterCount, Class nativeParamType) {
+        StringBuilder sb = new StringBuilder("invoke");
+
+        if (parameterCount < 1) {
+            sb.append("V");
+        } else for (int i = 0; i < parameterCount; ++i) {
+            sb.append("N");
+        }
+
+        return sb.append("r").append("N").toString();
+    }
+
+    static final String getFastNumericInvokerSignature(int parameterCount) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("(");
+        sb.append(ci(Function.class));
+        for (int i = 0; i < parameterCount; ++i) {
+            sb.append("J");
+        }
+        sb.append(")").append("J");
+
+        return sb.toString();
+    }
+
+
     
     private final void boxStruct(SkinnyMethodAdapter mv, Class returnType) {
         mv.dup2();
@@ -835,8 +961,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
+        if (returnType == nativeReturnType) {
+            return;
 
-        if (Boolean.class.isAssignableFrom(returnType)) {
+        } else if (Boolean.class.isAssignableFrom(returnType)) {
             narrow(mv, nativeReturnType, int.class);
             invokestatic(mv, returnType, "valueOf", returnType, boolean.class);
             
@@ -892,6 +1020,22 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         } else {
             throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
+        }
+    }
+
+    private final void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
+        if (int.class == nativeType) {
+            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, Pointer.class));
+        } else {
+            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, Pointer.class));
+        }
+    }
+
+    private final void unboxStruct(final SkinnyMethodAdapter mv, final Class nativeType) {
+        if (int.class == nativeType) {
+            mv.invokestatic(p(MarshalUtil.class), "intValue", sig(int.class, Struct.class));
+        } else {
+            mv.invokestatic(p(MarshalUtil.class), "longValue", sig(long.class, Struct.class));
         }
     }
     
@@ -1003,15 +1147,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return size;
     }
 
-    private static boolean isInteger(Class c) {
-        return isPrimitiveInt(c) || Byte.class.isAssignableFrom(c)
-                || Short.class.isAssignableFrom(c)
-                || Integer.class.isAssignableFrom(c)
-                || Boolean.class.isAssignableFrom(c);
-    }
-
     final static boolean isFastNumericMethod(Class returnType, Class[] parameterTypes) {
-        if (parameterTypes.length > 3) {
+        if (!FAST_NUMERIC_AVAILABLE || parameterTypes.length > 6) {
             return false;
         }
 
@@ -1028,17 +1165,17 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.X86_64;
     }
 
-    final static boolean isFastIntMethod(Class returnType, Class[] parameterTypes) {
+    final static boolean isFastIntegerMethod(Class returnType, Class[] parameterTypes) {
         if (parameterTypes.length > 3) {
             return false;
         }
 
-        if (!isFastIntResult(returnType)) {
+        if (!isFastIntegerResult(returnType)) {
             return false;
         }
         
         for (int i = 0; i < parameterTypes.length; ++i) {
-            if (!isFastIntParam(parameterTypes[i])) {
+            if (!isFastIntegerParam(parameterTypes[i])) {
                 return false;
             }
         }
@@ -1046,31 +1183,70 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.X86_64;
     }
 
-    final static boolean isFastIntResult(Class type) {
-        return Void.class.isAssignableFrom(type) || void.class == type
-                || Boolean.class.isAssignableFrom(type) || boolean.class == type
+    final static boolean isInt32(Class type) {
+        return Boolean.class.isAssignableFrom(type) || boolean.class == type
                 || Byte.class.isAssignableFrom(type) || byte.class == type
                 || Short.class.isAssignableFrom(type) || short.class == type
-                || Integer.class.isAssignableFrom(type) || int.class == type
-                || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32)
-                || (Pointer.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 32)
-                || (Struct.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 32)
-                || (String.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 32)
-                ;
+                || Integer.class.isAssignableFrom(type) || int.class == type;
     }
 
-    final static boolean isFastIntParam(Class type) {
-        return Byte.class.isAssignableFrom(type) || byte.class == type
-                || Short.class.isAssignableFrom(type) || short.class == type
-                || Integer.class.isAssignableFrom(type) || int.class == type
-                || Long.class.isAssignableFrom(type) || long.class == type
-                || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32)
-                || Boolean.class.isAssignableFrom(type) || boolean.class == type
-                ;
+    final static boolean isInt32Result(Class type) {
+        return isInt32(type) || Void.class.isAssignableFrom(type) || void.class == type;
+    }
+
+    final static boolean isPointerResult(Class type) {
+        return Pointer.class.isAssignableFrom(type)
+                || Struct.class.isAssignableFrom(type)
+                || String.class.isAssignableFrom(type);
+    }
+    
+    final static boolean isPointerParam(Class type) {
+        return Pointer.class.isAssignableFrom(type)
+                || Struct.class.isAssignableFrom(type);
+    }
+
+    private final static boolean isFastIntegerResult(Class type) {
+        if (isInt32Result(type)) {
+            return true;
+        }
+
+        final boolean isPointer = isPointerResult(type);
+        if (isPointer && Platform.getPlatform().addressSize() == 32) {
+            return true;
+        }
+
+        if (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32) {
+            return true;
+        }
+
+        // For x86_64, any args that promote up to 64bit can be accepted.
+        final boolean isLong = Long.class == type || long.class == type;
+        return Platform.getPlatform().addressSize() == 64 && FAST_LONG_AVAILABLE &&
+                (isPointer || NativeLong.class.isAssignableFrom(type) || isLong);
+    }
+
+    private final static boolean isFastIntegerParam(Class type) {
+        if (isInt32(type)) {
+            return true;
+        }
+
+        final boolean isPointer = isPointerParam(type);
+        if (isPointer && Platform.getPlatform().addressSize() == 32) {
+            return true;
+        }
+
+        if (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32) {
+            return true;
+        }
+
+        // For x86_64, any args that promote up to 64bit can be accepted.
+        final boolean isLong = Long.class == type || long.class == type;
+        return Platform.getPlatform().addressSize() == 64 && FAST_LONG_AVAILABLE &&
+                (isPointer || NativeLong.class.isAssignableFrom(type) || isLong);
     }
 
     final static boolean isFastNumericResult(Class type) {
-        return isFastIntResult(type)
+        return isFastIntegerResult(type)
                 || Long.class.isAssignableFrom(type) || long.class == type
                 || NativeLong.class.isAssignableFrom(type)
                 || Pointer.class.isAssignableFrom(type)
@@ -1081,12 +1257,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     final static boolean isFastNumericParam(Class type) {
-        return isFastIntParam(type)
+        return isFastIntegerParam(type)
                 || Long.class.isAssignableFrom(type) || long.class == type
                 || NativeLong.class.isAssignableFrom(type)
-                //|| Pointer.class.isAssignableFrom(type)
-                //|| Struct.class.isAssignableFrom(type)
-                || String.class.isAssignableFrom(type)
+                || Pointer.class.isAssignableFrom(type)
+                || Struct.class.isAssignableFrom(type)
                 || float.class == type || Float.class == type
                 || double.class == type || Double.class == type;
     }
@@ -1099,11 +1274,22 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return false;
         }
     }
+
+    final static boolean isFastLongAvailable() {
+        try {
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeLLLLLLrL", Function.class, long.class, long.class, long.class, long.class, long.class, long.class);
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+    
     private final static boolean requiresLong(Class type) {
         return Long.class.isAssignableFrom(type) || long.class == type
                 || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 64)
                 || (Pointer.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 64)
                 || (Struct.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 64)
+                || (String.class.isAssignableFrom(type) && Platform.getPlatform().addressSize() == 64)
                 ;
     }
 
@@ -1186,38 +1372,45 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         static final class s8 extends Struct {
             public final Signed8 s8 = new Signed8();
         }
-        public Long add_int32_t(long i1, int i2);
+        public Integer add_int32_t(Integer i1, int i2);
         public Float add_float(float f1, float f2);
         public Double add_double(Double f1, double f2);
 //        public byte add_int8_t(byte i1, byte i2);
         byte ptr_ret_int8_t(s8[] s, int index);
+        Byte ptr_ret_int8_t(Pointer p, int index);
+        byte ptr_ret_int8_t(s8 s, int index);
     }
 
 
     public static void main(String[] args) {
+        System.setProperty("jaffl.compile.dump", "true");
+        System.out.println("cpu=" + Platform.getPlatform().getCPU());
         final Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
-        options.put(LibraryOption.TypeMapper, new TypeMapper() {
-
-            public FromNativeConverter getFromNativeConverter(Class type) {
-                if (Long.class.isAssignableFrom(type)) {
-                    return new IntToLong();
-                }
-                return null;
-            }
-
-            public ToNativeConverter getToNativeConverter(Class type) {
-                if (Long.class.isAssignableFrom(type) || long.class == type) {
-                    return new IntToLong();
-                }
-                return null;
-            }
-        });
+//        options.put(LibraryOption.TypeMapper, new TypeMapper() {
+//
+//            public FromNativeConverter getFromNativeConverter(Class type) {
+//                if (Long.class.isAssignableFrom(type)) {
+//                    return new IntToLong();
+//                }
+//                return null;
+//            }
+//
+//            public ToNativeConverter getToNativeConverter(Class type) {
+//                if (Long.class.isAssignableFrom(type) || long.class == type) {
+//                    return new IntToLong();
+//                }
+//                return null;
+//            }
+//        });
 
         TestLib lib = AsmLibraryLoader.getInstance().loadLibrary(new Library("test"), TestLib.class, options);
-        Number result = lib.add_int32_t(1L, 2);
+        Number result = lib.add_int32_t(1, 2);
         System.err.println("result=" + result);
 //        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
         System.err.println("adding floats=" + lib.add_float(1.0f, 2.0f));
         System.err.println("adding doubles=" + lib.add_double(1.0, 2.0));
+        Pointer p = MemoryIO.allocateDirect(1024);
+        lib.ptr_ret_int8_t(p, 0);
+        lib.ptr_ret_int8_t(MemoryIO.allocate(1024), 0);
     }
 }

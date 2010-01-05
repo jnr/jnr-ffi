@@ -51,6 +51,11 @@ public abstract class Struct /*implements Marshallable */{
         public final MemoryIO getMemoryIO() {
             return getMemoryIO(ParameterFlags.TRANSIENT);
         }
+
+        final boolean isDirect() {
+            return (enclosing != null && enclosing.__info.isDirect()) || (io != null && io.isDirect());
+        }
+
         final int size() {
             return size;
         }

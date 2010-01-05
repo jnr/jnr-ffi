@@ -21,6 +21,11 @@ public final class StructUtil {
     public final static int getMinimumAlignment(Struct struct) {
         return struct.__info.getMinimumAlignment();
     }
+    
+    public final static boolean isDirect(Struct struct) {
+        return struct.__info.isDirect();
+    }
+
     @SuppressWarnings("unchecked")
     public static final <T extends Struct> T[] newArray(Class<T> type, int length) {
         try {

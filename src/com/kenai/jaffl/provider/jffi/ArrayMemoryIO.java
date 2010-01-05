@@ -29,6 +29,6 @@ public final class ArrayMemoryIO extends AbstractArrayMemoryIO {
 
     @Override
     public void putPointer(long offset, Pointer value) {
-        putAddress(offset, value.getAddress());
+        putAddress(offset, value.address());
     }
 }

@@ -18,67 +18,25 @@
 
 package com.kenai.jaffl.provider.jffi;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.List;
-
-
+import com.kenai.jffi.CallingConvention;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.Internals;
 import static com.kenai.jnr.x86asm.Asm.*;
 import com.kenai.jnr.x86asm.Assembler;
-import com.kenai.jffi.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.WeakHashMap;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 
 /**
  * Compilers method trampoline stubs for x86_64 
  */
-final class X86_64StubCompiler extends StubCompiler {
-    // Keep a reference from the loaded class to the pages holding the code for that class.
-    private static final Map<Class, PageHolder> pages
-            = Collections.synchronizedMap(new WeakHashMap<Class, PageHolder>());
-
-    private final List<Stub> stubs = new LinkedList<Stub>();
-    
-
-    final class Stub {
-        final String name;
-        final String signature;
-        final Assembler assembler;
-
-        public Stub(String name, String signature, Assembler assembler) {
-            this.name = name;
-            this.signature = signature;
-            this.assembler = assembler;
-        }    
-    }
-
-    final class PageHolder {
-        final long memory;
-        final long pageCount;
-
-        public PageHolder(long memory, long pageCount) {
-            this.memory = memory;
-            this.pageCount = pageCount;
-        }
-
-        @Override
-        protected void finalize() throws Throwable {
-            PageManager.getInstance().freePages(memory, (int) pageCount);
-        }
-
-    }
-
+final class X86_64StubCompiler extends AbstractX86StubCompiler {
     
 
     @Override
     final boolean canCompile(Class returnType, Class[] parameterTypes, CallingConvention convention) {
         
         if (returnType != byte.class && returnType != short.class && returnType != int.class
-                && returnType != long.class && returnType != float.class && returnType != double.class) {
+                && returnType != long.class && returnType != float.class && returnType != double.class
+                && returnType != void.class) {
             return false;
         }
 
@@ -181,11 +139,11 @@ final class X86_64StubCompiler extends StubCompiler {
 
             // Save the return on the stack
             if (returnType == float.class) {
-                a.movss(ptr(rsp, 0), xmm0);
+                a.movss(dword_ptr(rsp, 0), xmm0);
             } else if (returnType == double.class) {
-                a.movsd(ptr(rsp, 0), xmm0);
+                a.movsd(qword_ptr(rsp, 0), xmm0);
             } else {
-                a.mov(ptr(rsp, 0), rax);
+                a.mov(qword_ptr(rsp, 0), rax);
             }
 
             // Save the errno in a thread-local variable
@@ -194,11 +152,11 @@ final class X86_64StubCompiler extends StubCompiler {
             
             // Retrieve return value and put it back in the appropriate return register
             if (returnType == float.class) {
-                a.movss(xmm0, ptr(rsp, 0));
+                a.movss(xmm0, dword_ptr(rsp, 0));
             } else if (returnType == double.class) {
-                a.movsd(xmm0, ptr(rsp, 0));
+                a.movsd(xmm0, qword_ptr(rsp, 0));
             } else {
-                a.mov(rax, ptr(rsp, 0));
+                a.mov(rax, dword_ptr(rsp, 0));
             }
 
             // Restore rsp to original position
@@ -214,52 +172,5 @@ final class X86_64StubCompiler extends StubCompiler {
 
 
         stubs.add(new Stub(name, sig(returnType, parameterTypes), a));
-    }
-
-    @Override
-    void attach(Class clazz) {
-
-        if (stubs.isEmpty()) {
-            return;
-        }
-
-        long codeSize = 0;
-        for (Stub stub : stubs) {
-            // add 8 bytes for alignment
-            codeSize += stub.assembler.codeSize() + 8;
-        }
-        
-        PageManager pm = PageManager.getInstance();
-
-        long npages = (codeSize + pm.pageSize() - 1) / pm.pageSize();
-        // Allocate some native memory for it
-        long code = pm.allocatePages((int) npages, PageManager.PROT_READ | PageManager.PROT_WRITE);
-        if (code == 0) {
-            throw new OutOfMemoryError("allocatePages failed for codeSize=" + codeSize);
-        }
-        PageHolder page = new PageHolder(code, npages);
-
-        // Now relocate/copy all the assembler stubs into the real code area
-        List<NativeMethod> methods = new ArrayList<NativeMethod>(stubs.size());
-        long fn = code;
-        for (Stub stub : stubs) {
-            Assembler asm = stub.assembler;
-            // align the start of all functions on a 8 byte boundary
-            fn = align(fn, 8);
-            ByteBuffer buf = MemoryIO.getInstance().newDirectByteBuffer(fn, asm.codeSize()).order(ByteOrder.LITTLE_ENDIAN);
-            stub.assembler.relocCode(buf, fn);
-
-            methods.add(new NativeMethod(fn, stub.name, stub.signature));
-            fn += asm.codeSize();
-        }
-        
-        pm.protectPages(code, (int) npages, PageManager.PROT_READ | PageManager.PROT_EXEC);
-        
-        NativeMethods.register(clazz, methods);
-        pages.put(clazz, page);
-    }
-
-    private static final long align(long offset, long align) {
-        return align + ((offset - 1) & ~(align - 1));
     }
 }

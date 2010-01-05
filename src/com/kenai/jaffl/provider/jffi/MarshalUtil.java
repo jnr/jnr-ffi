@@ -79,7 +79,7 @@ public class MarshalUtil {
         if (ptr == null) {
             buffer.putAddress(0L);
         } else if (ptr.isDirect()) {
-            buffer.putAddress(ptr.getAddress());
+            buffer.putAddress(ptr.address());
         } else if (ptr instanceof AbstractArrayMemoryIO) {
             AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) ptr;
             buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
@@ -175,7 +175,7 @@ public class MarshalUtil {
                 AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
                 buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
             } else if (io.isDirect()) {
-                buffer.putAddress(io.getAddress());
+                buffer.putAddress(io.address());
             }
         }
     }
@@ -194,7 +194,7 @@ public class MarshalUtil {
                 AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
                 buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
             } else if (io.isDirect()) {
-                buffer.putAddress(io.getAddress());
+                buffer.putAddress(io.address());
             }
         }
     }
@@ -280,7 +280,7 @@ public class MarshalUtil {
                     if (!array[i].isDirect()) {
                         throw new IllegalArgumentException("invalid pointer in array at index " + i);
                     }
-                    raw[i] = (int) array[i].getAddress();
+                    raw[i] = (int) array[i].address();
                 }
                 buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
 
@@ -300,7 +300,7 @@ public class MarshalUtil {
                     if (!array[i].isDirect()) {
                         throw new IllegalArgumentException("invalid pointer in array at index " + i);
                     }
-                    raw[i] = array[i].getAddress();
+                    raw[i] = array[i].address();
                 }
 
                 buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
@@ -342,5 +342,34 @@ public class MarshalUtil {
 
     public static final void useMemory(long ptr, Struct s) {
         s.useMemory(new DirectMemoryIO(ptr));
+    }
+
+    public static final boolean isDirect(Pointer ptr) {
+        return ptr == null || ptr.isDirect();
+    }
+
+    public static final int intValue(Pointer ptr) {
+        return ptr != null ? (int) ptr.address() : 0;
+    }
+
+    public static final long longValue(Pointer ptr) {
+        return ptr != null ? ptr.address() : 0L;
+    }
+
+
+    public static final boolean isDirect(Struct s) {
+        return s == null || StructUtil.isDirect(s);
+    }
+
+    public static final boolean isDirect(Struct s, int flags) {
+        return s == null || StructUtil.getMemoryIO(s, flags).isDirect();
+    }
+
+    public static final int intValue(Struct s) {
+        return s != null ? (int) StructUtil.getMemoryIO(s).address() : 0;
+    }
+
+    public static final long longValue(Struct s) {
+        return s != null ? StructUtil.getMemoryIO(s).address() : 0L;
     }
 }
