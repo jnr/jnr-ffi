@@ -110,10 +110,19 @@ public final class NumberUtil {
     }
 
     public static final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
-        if (long.class == from && long.class != to && isPrimitiveInt(to)) {
-            mv.l2i();
+        if (!from.equals(to)) {
+            if (byte.class == to || short.class == to || char.class == to || int.class == to) {
+                if (long.class == from) {
+                    mv.l2i();
+                }
+                if (byte.class == to) {
+                    mv.i2b();
+                } else if (short.class == to) {
+                    mv.i2s();
+                } else if (char.class == to) {
+                    mv.i2c();
+                }
+            }
         }
     }
-
-
 }

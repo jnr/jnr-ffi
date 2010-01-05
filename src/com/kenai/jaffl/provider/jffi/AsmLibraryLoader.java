@@ -910,22 +910,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         Class primitiveClass = getPrimitiveClass(type);
 
         if (Byte.class.isAssignableFrom(type)) {
-            if (byte.class != nativeType) {
-                narrow(mv, nativeType, int.class);
-                mv.i2b();
-            }
+            narrow(mv, nativeType, byte.class);
 
         } else if (Character.class.isAssignableFrom(type)) {
-            if (char.class != nativeType) {
-                narrow(mv, nativeType, int.class);
-                mv.i2c();
-            }
+            narrow(mv, nativeType, char.class);
 
         } else if (Short.class.isAssignableFrom(type)) {
-            if (short.class != nativeType) {
-                narrow(mv, nativeType, int.class);
-                mv.i2s();
-            }
+            narrow(mv, nativeType, short.class);
 
         } else if (Integer.class.isAssignableFrom(type)) {
             narrow(mv, nativeType, int.class);
