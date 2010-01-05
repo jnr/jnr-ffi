@@ -35,7 +35,8 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
     final boolean canCompile(Class returnType, Class[] parameterTypes, CallingConvention convention) {
         
         if (returnType != byte.class && returnType != short.class && returnType != int.class
-                && returnType != long.class && returnType != float.class && returnType != double.class) {
+                && returnType != long.class && returnType != float.class && returnType != double.class
+                && returnType != void.class) {
             return false;
         }
 

@@ -352,6 +352,10 @@ public class MarshalUtil {
         return ptr != null ? ptr.address() : 0L;
     }
 
+    public static final boolean isDirect(Struct s) {
+        return s == null || StructUtil.isDirect(s);
+    }
+
     public static final boolean isDirect(Struct s, int flags) {
         return s == null || StructUtil.getMemoryIO(s, flags).isDirect();
     }

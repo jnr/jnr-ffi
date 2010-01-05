@@ -58,12 +58,13 @@ import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
-    public final static boolean DEBUG = true; //Boolean.getBoolean("jaffl.compile.dump");
+    public final static boolean DEBUG = false || Boolean.getBoolean("jaffl.compile.dump");
     private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     private static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
     private static final boolean FAST_LONG_AVAILABLE = isFastLongAvailable();
     private final AtomicLong nextClassID = new AtomicLong(0);
     private final AtomicLong nextIvarID = new AtomicLong(0);
+    private final AtomicLong nextMethodID = new AtomicLong(0);
 
     static final LibraryLoader getInstance() {
         return INSTANCE;
@@ -125,7 +126,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final <T> T generateInterfaceImpl(final Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(AsmUtil.newTraceClassVisitor(cw, System.out)) : cw;
+        ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(AsmUtil.newTraceClassVisitor(cw, System.err)) : cw;
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
 
@@ -212,13 +213,14 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
-            if (canCompile(compiler, returnType, parameterTypes, callingConvention)) {
+            if (canCompile(compiler, nativeReturnType, nativeParameterTypes, callingConvention)) {
                 // The method can be generated via a direct java -> jni mapping
                 compile(compiler, functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                        nativeReturnType, nativeParameterTypes, callingConvention, ignoreErrno);
+                        functionFieldName, nativeReturnType, nativeParameterTypes,
+                        m.getParameterAnnotations(), callingConvention, ignoreErrno);
             } else {
                 generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                        functionFieldName, m, nativeReturnType, nativeParameterTypes,
+                        functionFieldName, nativeReturnType, nativeParameterTypes,
                         m.getParameterAnnotations(), callingConvention, ignoreErrno);
             }
 
@@ -391,41 +393,94 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void compile(StubCompiler compiler, Function function,
-            ClassVisitor cv, String className, String functionName,
-            Class returnType, Class[] parameterTypes,
+            ClassVisitor cv, String className, String functionName, String functionFieldName,
+            Class returnType, Class[] parameterTypes, Annotation[][] annotations,
             CallingConvention convention, boolean ignoreErrno) {
 
         Class[] nativeParameterTypes = new Class[parameterTypes.length];
         boolean unboxing = false;
+        boolean ptrCheck = false;
         for (int i = 0; i < nativeParameterTypes.length; ++i) {
             nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
             unboxing |= nativeParameterTypes[i] != parameterTypes[i];
+            ptrCheck |= Pointer.class.isAssignableFrom(parameterTypes[i])
+                    || Struct.class.isAssignableFrom(parameterTypes[i]);
         }
+        
         Class nativeReturnType = AsmUtil.unboxedReturnType(returnType);
         unboxing |= nativeReturnType != returnType;
 
-        String stubName = functionName + (unboxing ? "$stub" : "");
+        String stubName = functionName + (unboxing || ptrCheck ? "$stub$" + nextMethodID.getAndIncrement() : "");
         
         // If unboxing of parameters is required, generate a wrapper
-        if (unboxing) {
+        if (unboxing || ptrCheck) {
             SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
                     functionName, sig(returnType, parameterTypes), null, null));
             mv.start();
             mv.aload(0);
 
+            Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes);
+            
+            // Emit the unboxing wrapper
             for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
                 lvar = loadParameter(mv, parameterTypes[i], lvar);
                 if (parameterTypes[i] != nativeParameterTypes[i]) {
-                    unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
+
+                    if (Number.class.isAssignableFrom(parameterTypes[i])) {
+                        unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
+
+                    } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                        mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Pointer.class));
+                        // narrow to int if needed
+                        narrow(mv, long.class, nativeParameterTypes[i]);
+
+                    } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                        mv.invokestatic(p(MarshalUtil.class), "address", sig(long.class, Struct.class));
+                        // narrow to int if needed
+                        narrow(mv, long.class, nativeParameterTypes[i]);
+                    }
                 }
             }
 
             // invoke the compiled stub
             mv.invokevirtual(className, stubName, sig(nativeReturnType, nativeParameterTypes));
 
+            // emitReturn will box the return value if needed
             emitReturn(mv, returnType, nativeReturnType);
+
+            String bufInvoke = null;
+            if (bufferInvocationLabel != null) {
+                // If there was a non-direct pointer in the parameters, need to
+                // handle it via a call to the slow buffer invocation
+                mv.label(bufferInvocationLabel);
+
+                bufInvoke = functionName + "$buf$" + nextMethodID.getAndIncrement();
+                // reload all the parameters
+                for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
+                    lvar = loadParameter(mv, parameterTypes[i], lvar);
+                }
+                mv.invokevirtual(className, bufInvoke, sig(returnType, parameterTypes));
+                emitReturn(mv, returnType, returnType);
+            }
             mv.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
             mv.visitEnd();
+
+            if (bufInvoke != null) {
+                SkinnyMethodAdapter bi = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
+                        bufInvoke, sig(returnType, parameterTypes), null, null));
+                bi.start();
+
+                // Retrieve the static 'ffi' Invoker instance
+                bi.getstatic(p(AbstractNativeInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
+
+                // retrieve this.function
+                bi.aload(0);
+                bi.getfield(className, functionFieldName, ci(Function.class));
+
+                generateBufferInvocation(bi, returnType, parameterTypes, annotations);
+                bi.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
+                bi.visitEnd();
+            }
         }
 
         cv.visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE,
@@ -436,7 +491,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 convention, !ignoreErrno);
     }
 
-    private final void generateMethod(ClassVisitor cv, String className, String functionName, String functionFieldName, Method m,
+    private final void generateMethod(ClassVisitor cv, String className, String functionName,
+            String functionFieldName,
             Class returnType, Class[] parameterTypes, Annotation[][] parameterAnnotations,
             CallingConvention convention, boolean ignoreErrno) {
 
@@ -595,7 +651,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             Class[] parameterTypes, Annotation[][] annotations, boolean ignoreErrno) {
         // [ stack contains: Invoker, Function ]
 
-        Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes, annotations);
+        Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes);
 
         Class nativeIntType = getNativeIntType(returnType, parameterTypes);
         // Emit fast-int invocation
@@ -639,7 +695,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             Class[] parameterTypes, Annotation[][] annotations) {
         // [ stack contains: Invoker, Function ]
 
-        Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes, annotations);
+        Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes);
 
         // Emit fast-numeric invocation
         for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
@@ -694,8 +750,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
-    private static final Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes,
-            Annotation[][] annotations) {
+    private static final Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes) {
 
         // Iterate through any parameters that might require a HeapInvocationBuffer
         Label notFastInt = new Label();
@@ -708,8 +763,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 needBufferInvocation = true;
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
                 mv.aload(lvar++);
-                mv.pushInt(DefaultInvokerFactory.getNativeArrayFlags(annotations[i]));
-                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Struct.class, int.class));
+                mv.invokestatic(p(MarshalUtil.class), "isDirect", sig(boolean.class, Struct.class));
                 mv.iffalse(notFastInt);
                 needBufferInvocation = true;
             } else if (long.class == parameterTypes[i] || double.class == parameterTypes[i]) {
@@ -912,8 +966,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     private final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
+        if (returnType == nativeReturnType) {
+            return;
 
-        if (Boolean.class.isAssignableFrom(returnType)) {
+        } else if (Boolean.class.isAssignableFrom(returnType)) {
             narrow(mv, nativeReturnType, int.class);
             invokestatic(mv, returnType, "valueOf", returnType, boolean.class);
             
@@ -1310,7 +1366,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         public Double add_double(Double f1, double f2);
 //        public byte add_int8_t(byte i1, byte i2);
         byte ptr_ret_int8_t(s8[] s, int index);
-        byte ptr_ret_int8_t(Pointer p, int index);
+        Byte ptr_ret_int8_t(Pointer p, int index);
         byte ptr_ret_int8_t(s8 s, int index);
     }
 

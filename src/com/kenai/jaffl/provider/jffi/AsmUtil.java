@@ -76,6 +76,8 @@ class AsmUtil {
             return boolean.class;
         } else if (boxedType == NativeLong.class) {
             return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
+        } else if (Pointer.class.isAssignableFrom(boxedType) || Struct.class.isAssignableFrom(boxedType)) {
+            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
         } else {
             return boxedType;
         }
