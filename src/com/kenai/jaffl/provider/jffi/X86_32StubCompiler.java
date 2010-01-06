@@ -127,7 +127,7 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
             }
 
             // Save the errno in a thread-local variable
-            a.mov(eax, imm(Internals.getErrnoSaveFunction()));
+            a.mov(eax, imm(errnoFunctionAddress));
             a.call(eax);
 
             // Retrieve return value and put it back in the appropriate return register
