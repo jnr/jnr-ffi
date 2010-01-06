@@ -22,6 +22,7 @@ import com.kenai.jaffl.Platform;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Internals;
+import com.kenai.jffi.PageManager;
 
 /**
  * Compiles asm trampoline stubs for java class methods
@@ -30,9 +31,10 @@ abstract class StubCompiler {
     // If the version of jffi exports the jffi_save_errno function address,
     // then it is recent enough to support PageManager and NativeMethods as well.
     static final long errnoFunctionAddress = getErrnoSaveFunction();
+    static final boolean hasPageManager = hasPageManager();
     
     public static final StubCompiler newCompiler() {
-        if (errnoFunctionAddress != 0) {
+        if (errnoFunctionAddress != 0 && hasPageManager) {
             switch (Platform.getPlatform().getCPU()) {
                 case I386:
                     if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
@@ -81,6 +83,17 @@ abstract class StubCompiler {
             
         } catch (Throwable t) {
             return 0;
+        }
+    }
+
+    private static final boolean hasPageManager() {
+        try {
+            // Just try and allocate/free a page to check the PageManager is working
+            long page = PageManager.getInstance().allocatePages(1, PageManager.PROT_READ | PageManager.PROT_WRITE);
+            PageManager.getInstance().freePages(page, 1);
+            return true;
+        } catch (Throwable t) {
+            return false;
         }
     }
 }
