@@ -784,7 +784,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             } else if (void.class == returnType) {
                 mv.voidreturn();
             } else {
-                narrow(mv, nativeIntType, int.class);
+                narrow(mv, nativeIntType, returnType);
                 mv.ireturn();
             }
 
