@@ -460,7 +460,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 mv.invokevirtual(className, bufInvoke, sig(returnType, parameterTypes));
                 emitReturnOp(mv, returnType);
             }
-            mv.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
+            mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
             mv.visitEnd();
 
             if (bufInvoke != null) {
@@ -476,7 +476,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 bi.getfield(className, functionFieldName, ci(Function.class));
 
                 generateBufferInvocation(bi, returnType, parameterTypes, annotations);
-                bi.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
+                bi.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
                 bi.visitEnd();
             }
         }
@@ -513,14 +513,14 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             generateBufferInvocation(mv, returnType, parameterTypes, parameterAnnotations);
         }
         
-        mv.visitMaxs(100, getTotalParameterSize(parameterTypes) + 10);
+        mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
         mv.visitEnd();
     }
 
     private final void generateBufferInvocation(SkinnyMethodAdapter mv, Class returnType, Class[] parameterTypes, Annotation[][] annotations) {
         // [ stack contains: Invoker, Function ]
         final boolean sessionRequired = isSessionRequired(parameterTypes);
-        final int lvarSession = sessionRequired ? getTotalParameterSize(parameterTypes) + 1 : -1;
+        final int lvarSession = sessionRequired ? calculateLocalVariableSpace(parameterTypes) + 1 : -1;
         if (sessionRequired) {
             mv.newobj(p(InvocationSession.class));
             mv.dup();
@@ -762,10 +762,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 mv.invokestatic(p(AsmRuntime.class), "isDirect", sig(boolean.class, Struct.class));
                 mv.iffalse(notFastInt);
                 needBufferInvocation = true;
-            } else if (long.class == parameterTypes[i] || double.class == parameterTypes[i]) {
-                lvar += 2;
             } else {
-                lvar++;
+                lvar += calculateLocalVariableSpace(parameterTypes[i]);
             }
         }
 
@@ -1047,21 +1045,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
 
         return false;
-    }
-
-    private static final int getParameterSize(Class parameterType) {
-        return long.class == parameterType || double.class == parameterType ? 2 : 1;
-    }
-
-    private static final int getTotalParameterSize(Class[] parameterTypes) {
-        int size = 0;
-
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            size += getParameterSize(parameterTypes[i]);
-        }
-
-        return size;
-    }
+    }    
 
     final static boolean isFastNumericMethod(Class returnType, Class[] parameterTypes) {
         if (!FAST_NUMERIC_AVAILABLE || parameterTypes.length > 6) {

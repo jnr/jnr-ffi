@@ -122,6 +122,32 @@ class AsmUtil {
         }
     }
 
+    /**
+     * Calculates the size of a local variable
+     *
+     * @param type The type of parameter
+     * @return The size in parameter units
+     */
+    static final int calculateLocalVariableSpace(Class type) {
+        return long.class == type || double.class == type ? 2 : 1;
+    }
+
+    /**
+     * Calculates the size of a list of types in the local variable area.
+     *
+     * @param type The type of parameter
+     * @return The size in parameter units
+     */
+    static final int calculateLocalVariableSpace(Class... types) {
+        int size = 0;
+
+        for (int i = 0; i < types.length; ++i) {
+            size += calculateLocalVariableSpace(types[i]);
+        }
+
+        return size;
+    }
+
     private static final void unboxPointerOrStruct(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
         mv.invokestatic(p(AsmRuntime.class), long.class == nativeType ? "longValue" : "intValue",
             sig(nativeType, type));
