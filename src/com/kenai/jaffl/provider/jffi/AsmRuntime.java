@@ -322,6 +322,10 @@ public final class AsmRuntime {
         }
     }
 
+    public static final UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {
+        return new UnsatisfiedLinkError(msg);
+    }
+
     public static final String returnString(long ptr) {
         if (ptr == 0) {
             return null;

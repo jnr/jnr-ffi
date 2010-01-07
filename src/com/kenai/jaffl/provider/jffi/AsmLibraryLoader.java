@@ -317,10 +317,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
                 sig(returnType, parameterTypes), null, null));
         mv.start();
-        mv.newobj(p(UnsatisfiedLinkError.class));
-        mv.dup();
         mv.getstatic(className, "error_" + idx, ci(String.class));
-        mv.invokespecial(UnsatisfiedLinkError.class, "<init>", void.class, String.class);
+        mv.invokestatic(AsmRuntime.class, "newUnsatisifiedLinkError", UnsatisfiedLinkError.class, String.class);
         mv.athrow();
         mv.visitMaxs(10, 10);
         mv.visitEnd();
@@ -1268,6 +1266,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         byte ptr_ret_int8_t(s8[] s, int index);
         Byte ptr_ret_int8_t(Pointer p, int index);
         byte ptr_ret_int8_t(s8 s, int index);
+        void not_found_function();
     }
 
 
