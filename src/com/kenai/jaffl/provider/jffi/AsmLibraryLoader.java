@@ -971,38 +971,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
-    
-    private final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeIntType) {
-        String intValueMethod = long.class == nativeIntType ? "longValue" : "intValue";
-        String intValueSignature = long.class == nativeIntType ? "()J" : "()I";
-
-        if (Byte.class == boxedType || Short.class == boxedType || Integer.class == boxedType) {
-            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
-
-        } else if (Long.class == boxedType) {
-            mv.invokevirtual(p(boxedType), "longValue", "()J");
-
-        } else if (Float.class == boxedType) {
-            mv.invokevirtual(p(boxedType), "floatValue", "()F");
-
-        } else if (Double.class == boxedType) {
-            mv.invokevirtual(p(boxedType), "doubleValue", "()D");
-
-        } else if (NativeLong.class.isAssignableFrom(boxedType) && Platform.getPlatform().longSize() == 64) {
-            mv.invokevirtual(p(boxedType), "longValue", "()J");
-
-        } else if (NativeLong.class.isAssignableFrom(boxedType)) {
-            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
-
-        } else if (Boolean.class.isAssignableFrom(boxedType)) {
-            mv.invokevirtual(p(boxedType), "booleanValue", "()Z");
-            widen(mv, boolean.class, nativeIntType);
-
-        } else {
-            throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
-        }
-    }
-
     private final void emitInvocationBufferIntParameter(final SkinnyMethodAdapter mv, final Class parameterType) {
         String paramMethod = null;
         Class paramClass = int.class;

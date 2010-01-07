@@ -123,11 +123,8 @@ class AsmUtil {
     }
 
     private static final void unboxPointerOrStruct(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
-        if (int.class == nativeType) {
-            mv.invokestatic(p(AsmRuntime.class), "intValue", sig(int.class, type));
-        } else {
-            mv.invokestatic(p(AsmRuntime.class), "longValue", sig(long.class, type));
-        }
+        mv.invokestatic(p(AsmRuntime.class), long.class == nativeType ? "longValue" : "intValue",
+            sig(nativeType, type));
     }
 
     static final void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
@@ -136,5 +133,33 @@ class AsmUtil {
 
     static final void unboxStruct(final SkinnyMethodAdapter mv, final Class nativeType) {
         unboxPointerOrStruct(mv, Struct.class, nativeType);
+    }
+
+    static final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeType) {
+        String intValueMethod = long.class == nativeType ? "longValue" : "intValue";
+        String intValueSignature = long.class == nativeType ? "()J" : "()I";
+
+        if (Byte.class == boxedType || Short.class == boxedType || Integer.class == boxedType) {
+            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
+
+        } else if (Long.class == boxedType) {
+            mv.invokevirtual(p(boxedType), "longValue", "()J");
+
+        } else if (Float.class == boxedType) {
+            mv.invokevirtual(p(boxedType), "floatValue", "()F");
+
+        } else if (Double.class == boxedType) {
+            mv.invokevirtual(p(boxedType), "doubleValue", "()D");
+
+        } else if (NativeLong.class.isAssignableFrom(boxedType)) {
+            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
+        
+        } else if (Boolean.class.isAssignableFrom(boxedType)) {
+            mv.invokevirtual(p(boxedType), "booleanValue", "()Z");
+            widen(mv, boolean.class, nativeType);
+
+        } else {
+            throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
+        }
     }
 }
