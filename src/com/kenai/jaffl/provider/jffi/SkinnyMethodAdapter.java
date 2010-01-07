@@ -161,23 +161,39 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
     public void invokestatic(String arg1, String arg2, String arg3) {
         getMethodVisitor().visitMethodInsn(INVOKESTATIC, arg1, arg2, arg3);
     }
+
+    public void invokestatic(Class recv, String methodName, Class returnType, Class... parameterTypes) {
+        getMethodVisitor().visitMethodInsn(INVOKESTATIC, p(recv), methodName, sig(returnType, parameterTypes));
+    }
     
     public void invokespecial(String arg1, String arg2, String arg3) {
         getMethodVisitor().visitMethodInsn(INVOKESPECIAL, arg1, arg2, arg3);
     }
+
+    public void invokespecial(Class recv, String methodName, Class returnType, Class... parameterTypes) {
+        getMethodVisitor().visitMethodInsn(INVOKESPECIAL, p(recv), methodName, sig(returnType, parameterTypes));
+    }
     
     public void invokevirtual(String arg1, String arg2, String arg3) {
         getMethodVisitor().visitMethodInsn(INVOKEVIRTUAL, arg1, arg2, arg3);
+    }
+
+    public void invokevirtual(Class recv, String methodName, Class returnType, Class... parameterTypes) {
+        getMethodVisitor().visitMethodInsn(INVOKEVIRTUAL, p(recv), methodName, sig(returnType, parameterTypes));
     }
     
     public void invokeinterface(String arg1, String arg2, String arg3) {
         getMethodVisitor().visitMethodInsn(INVOKEINTERFACE, arg1, arg2, arg3);
     }
 
+    public void invokeinterface(Class recv, String methodName, Class returnType, Class... parameterTypes) {
+        getMethodVisitor().visitMethodInsn(INVOKEINTERFACE, p(recv), methodName, sig(returnType, parameterTypes));
+    }
+
     public void invokedynamic(String arg1, String arg2, String arg3) {
         getMethodVisitor().visitMethodInsn(INVOKEDYNAMIC, arg1, arg2, arg3);
     }
-    
+
     public void aprintln() {
         dup();
         getstatic(p(System.class), "out", ci(PrintStream.class));
