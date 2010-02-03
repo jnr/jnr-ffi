@@ -23,6 +23,8 @@ import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Internals;
 import com.kenai.jffi.PageManager;
+import com.kenai.jnr.x86asm.Assembler;
+import com.kenai.jnr.x86asm.CPU;
 
 /**
  * Compiles asm trampoline stubs for java class methods
@@ -32,9 +34,10 @@ abstract class StubCompiler {
     // then it is recent enough to support PageManager and NativeMethods as well.
     static final long errnoFunctionAddress = getErrnoSaveFunction();
     static final boolean hasPageManager = hasPageManager();
+    static final boolean hasAssembler = hasAssembler();
     
     public static final StubCompiler newCompiler() {
-        if (errnoFunctionAddress != 0 && hasPageManager) {
+        if (errnoFunctionAddress != 0 && hasPageManager && hasAssembler) {
             switch (Platform.getPlatform().getCPU()) {
                 case I386:
                     if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
@@ -92,6 +95,23 @@ abstract class StubCompiler {
             long page = PageManager.getInstance().allocatePages(1, PageManager.PROT_READ | PageManager.PROT_WRITE);
             PageManager.getInstance().freePages(page, 1);
             return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static final boolean hasAssembler() {
+        try {
+            switch (Platform.getPlatform().getCPU()) {
+                case I386:
+                    new Assembler(CPU.X86_32);
+                    return true;
+                case X86_64:
+                    new Assembler(CPU.X86_64);
+                    return true;
+                default:
+                    return false;
+            }
         } catch (Throwable t) {
             return false;
         }
