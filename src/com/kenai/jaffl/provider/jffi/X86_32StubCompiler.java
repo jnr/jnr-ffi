@@ -97,7 +97,7 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
         //        
         final int stackadj = align(Math.max(psize, rsize) + 4, 16) - 4;
 
-        Assembler a = new Assembler(I386);
+        Assembler a = new Assembler(X86_32);
 
         a.sub(esp, imm(stackadj));
 
