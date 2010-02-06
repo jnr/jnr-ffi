@@ -14,7 +14,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class Library {
     private static final Map<String, List<String>> customSearchPaths
             = new ConcurrentHashMap<String, List<String>>();
+    
+    /** The name of this library */
     private final String name;
+
     private Library(String libraryName) {
         name = libraryName;
     }
@@ -87,6 +90,14 @@ public final class Library {
         }
         customPaths.add(path.getAbsolutePath());
     }
+
+    /**
+     * Gets the custom search path for a library.
+     *
+     * @param libraryName The library to retrieve the path for.
+     *
+     * @return A <tt>List</tt> of <tt>String</tt> instances.
+     */
     public static List<String> getLibraryPath(String libraryName) {
         List<String> customPaths = customSearchPaths.get(libraryName);
         if (customPaths != null) {
@@ -94,12 +105,27 @@ public final class Library {
         }
         return Collections.emptyList();
     }
+
     public static final Library getInstance(String libraryName) {
         return new Library(libraryName);
     }
-    public boolean hasFunction(String method) {
+
+    /**
+     * Checks if a specific function exists in the library.
+     * 
+     * @param function The function
+     * @return true if the function exists
+     * @deprecated this method is no longer supported.
+     */
+    public boolean hasFunction(String function) {
         return false;
     }
+    
+    /**
+     * Gets the name of this library
+     * 
+     * @return The name of this library as a <tt>String</tt> 
+     */
     public String getName() {
         return name;
     }

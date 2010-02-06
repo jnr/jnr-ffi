@@ -6,8 +6,7 @@ import com.kenai.jaffl.provider.NativeType;
 import java.util.Map;
 
 /**
- *
- * @author wayne
+ * This class defines the facilities a jaffl FFI provider must provide.
  */
 public abstract class FFIProvider {
     /**
