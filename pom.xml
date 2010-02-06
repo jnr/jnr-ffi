@@ -4,10 +4,10 @@
   <groupId>org.jruby.extras</groupId>
   <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
-  <version>0.4.1</version>
+  <version>0.5</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
-  <url>http://jnr.kenai.com</url>
+  <url>http://github.com/wmeissner/jaffl</url>
   <licenses>
     <license>
       <name>GNU Lesser General Public License Version 3</name>
@@ -16,8 +16,8 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:hg:https://kenai.com/hg/jnr~jaffl</connection>
-    <url>https://kenai.com/hg/jnr~jaffl</url>
+    <connection>scm:git:http://github.com/wmeissner/jaffl.git</connection>
+    <url>http://github.com/wmeissner/jaffl</url>
   </scm>
   <distributionManagement>
      <repository>
@@ -77,13 +77,7 @@
     <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jffi</artifactId>
-      <version>0.6</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.java.dev.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>3.0.9</version>
+      <version>0.6.5</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -92,25 +86,16 @@
       <version>3.2</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jruby.extras</groupId>
+      <artifactId>jnr-x86asm</artifactId>
+      <version>0.1</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
-    <!--
-    <directory>build</directory>
-    <outputDirectory>build/classes</outputDirectory>
-    <testOutputDirectory>build/test/classes</testOutputDirectory>
-    -->
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
-    <!--
-    <resources>
-        <resource>
-            <directory>src/com/kenai/jaffl/provider/jffi</directory>
-            <excludes>
-                <exclude>**/*.java</exclude>
-            </excludes>
-        </resource>
-    </resources>
-    -->
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -121,16 +106,6 @@
           <target>1.5</target>
         </configuration>
       </plugin>
-      <!--
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestFile>MANIFEST.MF</manifestFile>
-          </archive>
-        </configuration>
-      </plugin>
-      -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.1</version>
