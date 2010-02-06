@@ -5,4 +5,5 @@
 nbproject/private
 build
 dist
+target
 lib/nblibraries-private.properties
