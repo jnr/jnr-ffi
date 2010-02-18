@@ -58,16 +58,15 @@ public class Library extends com.kenai.jaffl.provider.Library {
 
     private synchronized List<com.kenai.jffi.Library> loadNativeLibraries() {
         List<com.kenai.jffi.Library> libs = new ArrayList<com.kenai.jffi.Library>();
-        List<String> errors = new ArrayList<String>(0);
-
+        
         for (String libraryName : libraryNames) {
             com.kenai.jffi.Library lib;
             
-            lib = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY);
+            lib = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.LOCAL);
             if (lib == null) {
                 String path;
                 if (libraryName != null && (path = locateLibrary(libraryName)) != null && !libraryName.equals(path)) {
-                    lib = com.kenai.jffi.Library.getCachedInstance(path, com.kenai.jffi.Library.LAZY);
+                    lib = com.kenai.jffi.Library.getCachedInstance(path, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.LOCAL);
                 }
             }
             if (lib == null) {
