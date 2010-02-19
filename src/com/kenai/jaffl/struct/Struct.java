@@ -1461,7 +1461,7 @@ public abstract class Struct /*implements Marshallable */{
          * @return the size of the Pointer
          */
         public final int size() {
-            return com.kenai.jaffl.Address.SIZE;
+            return Constants.ADDRESS_SIZE;
         }
         
         /**
