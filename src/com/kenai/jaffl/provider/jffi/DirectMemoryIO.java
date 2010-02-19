@@ -12,10 +12,11 @@ import java.nio.charset.Charset;
 
 class DirectMemoryIO extends AbstractMemoryIO {
     static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
+    static final long ADDRESS_MASK = com.kenai.jffi.Platform.getPlatform().addressSize() == 32 ? 0xffffffffL : 0xffffffffffffffffL;
     protected final long address;
 
     DirectMemoryIO(long address) {
-        this.address = address & Address.MASK;
+        this.address = address & ADDRESS_MASK;
     }
     public final long address() {
         return address;

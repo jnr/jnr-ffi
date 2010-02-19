@@ -6,8 +6,6 @@ package com.kenai.jaffl;
  */
 public class Address extends Number implements Comparable<Address> {
     public static final int SIZE = Platform.getPlatform().addressSize();
-    public static final int SHIFT = SIZE == 32 ? 2 : 3;
-    public static final long MASK = SIZE == 32 ? 0xffffffffL : 0xffffffffffffffffL;
 
     protected final long address;
 
@@ -21,7 +19,7 @@ public class Address extends Number implements Comparable<Address> {
      * @param address the native address.
      */
     public Address(long address) {
-        this.address = address & MASK;
+        this.address = address;
     }
     
     /**

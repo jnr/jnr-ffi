@@ -12,7 +12,9 @@ package com.kenai.jaffl.struct;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.ParameterFlags;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.Type;
+import com.kenai.jaffl.provider.NativeType;
 import com.kenai.jaffl.util.EnumMapper;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
@@ -23,18 +25,6 @@ import java.nio.charset.Charset;
  * <b>Note:</b> This class is not threadsafe.
  */
 public abstract class Struct /*implements Marshallable */{
-    /**
-     * Various platform-dependent constants needed for Struct construction
-     */
-    protected static final class Constants {
-        static final int LONG_SIZE = Type.SLONG.size() * 8;
-        static final int ADDRESS_SIZE = Type.ADDRESS.size() * 8;
-        static final long LONG_MASK = LONG_SIZE == 32 ? 0x7FFFFFFFL : 0x7FFFFFFFFFFFFFFFL;
-        static final int LONG_ALIGN = Type.SLONG.alignment() * 8;
-        static final int INT64_ALIGN = Type.SLONGLONG.alignment() * 8;
-        static final int DOUBLE_ALIGN = Type.DOUBLE.alignment() * 8;
-        static final int FLOAT_ALIGN = Type.FLOAT.alignment() * 8;;
-    }
 
     static final class Info {
         Struct enclosing = null;
@@ -114,18 +104,36 @@ public abstract class Struct /*implements Marshallable */{
         
     }
     final Info __info = new Info();
-    
+
+    protected final Runtime runtime;
+
     /**
      * Creates a new <tt>Struct</tt>.
      */
-    protected Struct() {}
-    
+    protected Struct() {
+        this(Runtime.DEFAULT);
+    }
+
+    protected Struct(Runtime runtime) {
+        this.runtime = runtime;
+    }
+
     /**
      * Creates a new <tt>Struct</tt>.
      * 
      * @param isUnion if this Struct is a Union
      */
     Struct(final boolean isUnion) {
+        this(Runtime.DEFAULT, isUnion);
+    }
+
+    /**
+     * Creates a new <tt>Struct</tt>.
+     *
+     * @param isUnion if this Struct is a Union
+     */
+    Struct(Runtime runtime, final boolean isUnion) {
+        this(runtime);
         __info.resetIndex = isUnion;
     }
 
@@ -525,17 +533,15 @@ public abstract class Struct /*implements Marshallable */{
          * Offset from the start of the <tt>Struct</tt> memory this field is located at.
          */
         private final int offset;
-        protected NumberField(int size) {
-            this(size, size);
+  
+        protected NumberField(NativeType type) {
+            Type t = runtime.findType(type);
+            this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
         }
-        protected NumberField(int size, Offset offset) {
-            this(size, size, offset);
-        }
-        protected NumberField(int size, int align, Offset offset) {
-            this.offset = __info.addField(size, align, offset);
-        }
-        protected NumberField(int size, int align) {
-            this.offset = __info.addField(size, align);
+
+        protected NumberField(NativeType type, Offset offset) {
+            Type t = runtime.findType(type);
+            this.offset = __info.addField(t.size() * 8, t.alignment() * 8, offset);
         }
         
         /**
@@ -619,7 +625,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 8 bit integer field.
          */
         public Signed8() {
-            super(8);
+            super(NativeType.SCHAR);
         }
 
         /**
@@ -628,7 +634,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area
          */
         public Signed8(Offset offset) {
-            super(8, offset);
+            super(NativeType.SCHAR, offset);
         }
         
         /**
@@ -692,7 +698,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 8 bit unsigned integer field.
          */
         public Unsigned8() {
-            super(8);
+            super(NativeType.UCHAR);
         }
 
         /**
@@ -701,7 +707,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Unsigned8(Offset offset) {
-            super(8, offset);
+            super(NativeType.UCHAR, offset);
         }
         
         /**
@@ -756,7 +762,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 16 bit integer field.
          */
         public Signed16() {
-            super(16);
+            super(NativeType.SSHORT);
         }
 
         /**
@@ -765,7 +771,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Signed16(Offset offset) {
-            super(16, offset);
+            super(NativeType.SSHORT, offset);
         }
 
         /**
@@ -819,7 +825,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 16 bit integer field.
          */
         public Unsigned16() {
-            super(16);
+            super(NativeType.USHORT);
         }
 
         /**
@@ -828,7 +834,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Unsigned16(Offset offset) {
-            super(16, offset);
+            super(NativeType.USHORT, offset);
         }
 
         /**
@@ -873,7 +879,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 32 bit integer field.
          */
         public Signed32() {
-            super(32);
+            super(NativeType.SINT);
         }
 
         /**
@@ -882,7 +888,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Signed32(Offset offset) {
-            super(32, offset);
+            super(NativeType.SINT, offset);
         }
 
         /**
@@ -926,7 +932,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 32 bit integer field.
          */
         public Unsigned32() {
-            super(32);
+            super(NativeType.UINT);
         }
 
         /**
@@ -935,7 +941,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Unsigned32(Offset offset) {
-            super(32, offset);
+            super(NativeType.SINT, offset);
         }
 
         /**
@@ -990,7 +996,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 64 bit integer field.
          */
         public Signed64() {
-            super(64, Constants.INT64_ALIGN);
+            super(NativeType.SLONGLONG);
         }
 
         /**
@@ -999,7 +1005,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Signed64(Offset offset) {
-            super(64, Constants.INT64_ALIGN, offset);
+            super(NativeType.SLONGLONG, offset);
         }
 
         /**
@@ -1063,7 +1069,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new 64 bit integer field.
          */
         public Unsigned64() {
-            super(64, Constants.INT64_ALIGN);
+            super(NativeType.ULONGLONG);
         }
         
         /**
@@ -1072,7 +1078,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Unsigned64(Offset offset) {
-            super(64, Constants.INT64_ALIGN, offset);
+            super(NativeType.ULONGLONG, offset);
         }
         
         /**
@@ -1136,7 +1142,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new native long field.
          */
         public SignedLong() {
-            super(Constants.LONG_SIZE, Constants.LONG_ALIGN);
+            super(NativeType.SLONG);
         }
 
         /**
@@ -1145,7 +1151,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public SignedLong(Offset offset) {
-            super(Constants.LONG_SIZE, Constants.LONG_ALIGN, offset);
+            super(NativeType.SLONG, offset);
         }
 
         /**
@@ -1210,7 +1216,7 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new native long field.
          */
         public UnsignedLong() {
-            super(Constants.LONG_SIZE, Constants.LONG_ALIGN);
+            super(NativeType.ULONG);
         }
 
         /**
@@ -1219,7 +1225,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public UnsignedLong(Offset offset) {
-            super(Constants.LONG_SIZE, Constants.LONG_ALIGN, offset);
+            super(NativeType.ULONG, offset);
         }
 
         /**
@@ -1229,8 +1235,9 @@ public abstract class Struct /*implements Marshallable */{
          */
         public final long get() {
             long value = getMemoryIO().getNativeLong(offset());
+            final long mask = runtime.findType(NativeType.SLONG).size() == 32 ? 0xffffffff : 0xffffffffffffffffL;
             return value < 0 
-                    ? (long) ((value & Constants.LONG_MASK) + Constants.LONG_MASK + 1) 
+                    ? (long) ((value & mask) + mask + 1)
                     : value;
         }
         
@@ -1280,7 +1287,7 @@ public abstract class Struct /*implements Marshallable */{
     
     public class Float extends NumberField {
         public Float() {
-            super(java.lang.Float.SIZE, Constants.FLOAT_ALIGN);
+            super(NativeType.FLOAT);
         }
         /**
          * Creates a new float field at a specific offset
@@ -1288,7 +1295,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param offset The offset within the memory area for this field.
          */
         public Float(Offset offset) {
-            super(java.lang.Float.SIZE, Constants.FLOAT_ALIGN, offset);
+            super(NativeType.FLOAT, offset);
         }
         
         public final float get() {
@@ -1325,12 +1332,13 @@ public abstract class Struct /*implements Marshallable */{
             return java.lang.String.valueOf(get());
         }
     }
+
     public final class Double extends NumberField {
         public Double() {
-            super(java.lang.Double.SIZE, Constants.DOUBLE_ALIGN);
+            super(NativeType.DOUBLE);
         }
         public Double(Offset offset) {
-            super(java.lang.Double.SIZE, Constants.DOUBLE_ALIGN, offset);
+            super(NativeType.DOUBLE, offset);
         }
         public final double get() {
             return getMemoryIO().getDouble(offset());
@@ -1375,10 +1383,10 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new <tt>Address</tt> field.
          */
         public Address() {
-            super(Constants.ADDRESS_SIZE);
+            super(NativeType.ADDRESS);
         }
         public Address(Offset offset) {
-            super(Constants.ADDRESS_SIZE, offset);
+            super(NativeType.ADDRESS, offset);
         }
         
         /**
@@ -1440,10 +1448,10 @@ public abstract class Struct /*implements Marshallable */{
          * Creates a new <tt>Address</tt> field.
          */
         public Pointer() {
-            super(Constants.ADDRESS_SIZE);
+            super(NativeType.ADDRESS);
         }
         public Pointer(Offset offset) {
-            super(Constants.ADDRESS_SIZE, offset);
+            super(NativeType.ADDRESS, offset);
         }
 
         /**
@@ -1461,7 +1469,7 @@ public abstract class Struct /*implements Marshallable */{
          * @return the size of the Pointer
          */
         public final int size() {
-            return Constants.ADDRESS_SIZE;
+            return runtime.findType(NativeType.ADDRESS).size() * 8;
         }
         
         /**
@@ -1512,48 +1520,18 @@ public abstract class Struct /*implements Marshallable */{
      */
     protected abstract class EnumField<E> extends NumberField {
         protected final Class<E> enumClass;
+
         /**
          * Constructs a new Enum field.
          * 
-         * @param size the size of the native integer.
+         * @param type the native type of the enum.
          * @param enumClass the Enum class.
          */
-        public EnumField(int size, Class<E> enumClass) {
-            this(size, size, enumClass);
-        }
-        
-        /**
-         * Constructs a new Enum field.
-         *
-         * @param size the size of the native integer.
-         * * @param offset the offset from the start of the struct memory area.
-         * @param enumClass the Enum class.
-         */
-        public EnumField(int size, Offset offset, Class<E> enumClass) {
-            this(size, size, offset, enumClass);
-        }
-        
-        /**
-         * Constructs a new Enum field.
-         * @param size the size of the native integer.
-         * @param align the minimum alignment of the native integer
-         * @param enumClass the Enum class.
-         */
-        public EnumField(int size, int align, Class<E> enumClass) {
-            super(size, align);
+        public EnumField(NativeType type, Class<E> enumClass) {
+            super(type);
             this.enumClass = enumClass;
         }
-        /**
-         * Constructs a new Enum field.
-         * @param size the size of the native integer.
-         * @param align the minimum alignment of the native integer
-         * @param offset the offset from the start of the struct memory area
-         * @param enumClass the Enum class.
-         */
-        public EnumField(int size, int align, Offset offset, Class<E> enumClass) {
-            super(size, align, offset);
-            this.enumClass = enumClass;
-        }
+        
         /**
          * Gets a java Enum value representing the native integer value.
          * 
@@ -1583,7 +1561,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param enumClass the class of the {@link java.lang.Enum}.
          */
         public Enum8(Class<E> enumClass) {
-            super(8, enumClass);
+            super(NativeType.SCHAR, enumClass);
         }
         
         /**
@@ -1620,7 +1598,7 @@ public abstract class Struct /*implements Marshallable */{
 
     public class Enum16<E extends java.lang.Enum<E>> extends EnumField<E> {
         public Enum16(Class<E> enumClass) {
-            super(16, enumClass);
+            super(NativeType.SSHORT, enumClass);
         }
         public final E get() {
             return EnumMapper.getInstance().valueOf(intValue(), enumClass);
@@ -1636,9 +1614,10 @@ public abstract class Struct /*implements Marshallable */{
             return getMemoryIO().getShort(offset());
         }
     }
+
     public class Enum32<E extends java.lang.Enum<E>> extends EnumField<E> {
         public Enum32(Class<E> enumClass) {
-            super(32, enumClass);
+            super(NativeType.SINT, enumClass);
         }
         public final E get() {
             return EnumMapper.getInstance().valueOf(intValue(), enumClass);
@@ -1657,7 +1636,7 @@ public abstract class Struct /*implements Marshallable */{
     
     public class Enum64<E extends java.lang.Enum<E>> extends EnumField<E> {
         public Enum64(Class<E> enumClass) {
-            super(64, Constants.INT64_ALIGN, enumClass);
+            super(NativeType.SLONGLONG, enumClass);
         }
         public final E get() {
             return EnumMapper.getInstance().valueOf(intValue(), enumClass);
@@ -1677,9 +1656,10 @@ public abstract class Struct /*implements Marshallable */{
             return getMemoryIO().getLong(offset());
         }
     }
+
     public class EnumLong<E extends java.lang.Enum<E>> extends EnumField<E> {
         public EnumLong(Class<E> enumClass) {
-            super(Constants.LONG_SIZE, Constants.LONG_ALIGN, enumClass);
+            super(NativeType.SLONG, enumClass);
         }
         
         public final E get() {
@@ -1738,6 +1718,7 @@ public abstract class Struct /*implements Marshallable */{
             return get();
         }
     }
+
     public class UTFString extends String {
         public UTFString(int length, Charset cs) {
             super(length * 8, 8, length, cs); // FIXME: This won't work for non-ASCII
@@ -1759,7 +1740,8 @@ public abstract class Struct /*implements Marshallable */{
     }
     public class UTFStringRef extends String {
         public UTFStringRef(int length, Charset cs) {
-            super(Constants.ADDRESS_SIZE, Constants.ADDRESS_SIZE, length, cs);
+            super(runtime.findType(NativeType.ADDRESS).size() * 8, runtime.findType(NativeType.ADDRESS).alignment() * 8,
+                    length, cs);
         }
         public UTFStringRef(Charset cs) {
             this(Integer.MAX_VALUE, cs);
