@@ -16,7 +16,9 @@ public class InvocationSession {
     }
     public void finish() {
         if (list != null) for (PostInvoke p : list) {
-            p.postInvoke();
+            try {
+                p.postInvoke();
+            } catch (Throwable t) {}
         }
     }
     public void addPostInvoke(PostInvoke postInvoke) {
