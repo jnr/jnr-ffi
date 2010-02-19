@@ -69,6 +69,10 @@ public abstract class Platform {
         SPARCV9,
         /** IBM zSeries S/390 64 bit */
         S390X,
+
+        /** 32 bit MIPS (used by nestedvm) */
+        MIPS32,
+
         /** Unknown CPU */
         UNKNOWN;
 
@@ -77,7 +81,7 @@ public abstract class Platform {
     }
 
     private static final class SingletonHolder {
-        static final Platform PLATFORM = determinePlatform(determineOS());
+        static final Platform PLATFORM = determinePlatform();
     }
 
     /**
@@ -126,6 +130,21 @@ public abstract class Platform {
                 return new Default(os);
         }
     }
+
+    private static final Platform determinePlatform() {
+        String providerName = System.getProperty("jaffl.provider");
+        try {
+            Class c = Class.forName(providerName + "$Platform");
+            return (Platform) c.newInstance();
+        } catch (ClassNotFoundException ex) {
+            return determinePlatform(determineOS());
+        } catch (IllegalAccessException ex) {
+            throw new ExceptionInInitializerError(ex);
+        } catch (InstantiationException ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
+    
     private static final CPU determineCPU() {
         String archString = System.getProperty("os.arch").toLowerCase();
         if ("x86".equals(archString) || "i386".equals(archString) || "i86pc".equals(archString)) {
@@ -143,6 +162,15 @@ public abstract class Platform {
         }
     }
 
+    public Platform(OS os, CPU cpu, int addressSize, String libPattern) {
+        this.os = os;
+        this.cpu = cpu;
+        this.addressSize = addressSize;
+        this.addressMask = addressSize == 32 ? 0xffffffffL : 0xffffffffffffffffL;
+        this.javaVersionMajor = determineJavaVersion();
+        this.libPattern = Pattern.compile(libPattern);
+    }
+    
     private Platform(OS os) {
         this.os = os;
         this.cpu = determineCPU();
@@ -166,17 +194,8 @@ public abstract class Platform {
         }
         addressSize = dataModel;
         addressMask = addressSize == 32 ? 0xffffffffL : 0xffffffffffffffffL;
-        int version = 5;
-        try {
-            String versionString = System.getProperty("java.version");
-            if (versionString != null) {
-                String[] v = versionString.split("\\.");
-                version = Integer.valueOf(v[1]);
-            }
-        } catch (Exception ex) {
-            throw new ExceptionInInitializerError("Could not determine java version");
-        }
-        javaVersionMajor = version;
+        
+        javaVersionMajor = determineJavaVersion();
         String libpattern = null;
         switch (os) {
             case WINDOWS:
@@ -191,6 +210,20 @@ public abstract class Platform {
         }
         libPattern = Pattern.compile(libpattern);
     }
+
+    private static int determineJavaVersion() {
+        try {
+            String versionString = System.getProperty("java.version");
+            if (versionString != null) {
+                String[] v = versionString.split("\\.");
+                return Integer.valueOf(v[1]);
+            }
+            return 5;
+        } catch (Exception ex) {
+            throw new ExceptionInInitializerError("Could not determine java version");
+        }
+    }
+
     /**
      * Gets the current <tt>Platform</tt>
      *
