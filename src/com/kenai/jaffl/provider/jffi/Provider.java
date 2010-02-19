@@ -2,6 +2,7 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
+import com.kenai.jaffl.Type;
 import com.kenai.jaffl.provider.MemoryManager;
 import com.kenai.jaffl.provider.NativeType;
 import com.kenai.jffi.LastError;
@@ -10,6 +11,19 @@ import java.util.Map;
 
 public class Provider extends com.kenai.jaffl.FFIProvider {
     private final MemoryManager memoryManager = new com.kenai.jaffl.provider.jffi.MemoryManager();
+    private final Type[] types;
+
+    public Provider() {
+        NativeType[] nativeTypes = NativeType.values();
+        
+        Type[] t = new Type[nativeTypes.length];
+        for (int i = 0; i < nativeTypes.length; ++i) {
+            t[i] = jafflType(nativeTypes[i]);
+        }
+        this.types = t;
+    }
+
+
     @Override
     public MemoryManager getMemoryManager() {
         return memoryManager;
@@ -81,6 +95,10 @@ public class Provider extends com.kenai.jaffl.FFIProvider {
     
     @Override
     public com.kenai.jaffl.Type getType(NativeType type) {
+        return types[type.ordinal()];
+    }
+
+    private static final com.kenai.jaffl.Type jafflType(NativeType type) {
         switch (type) {
             case VOID:
                 return new TypeDelegate(com.kenai.jffi.Type.VOID);
