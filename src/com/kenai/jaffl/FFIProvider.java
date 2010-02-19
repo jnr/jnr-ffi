@@ -70,24 +70,18 @@ public abstract class FFIProvider {
     
     private static final class SingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();
+
         private static final FFIProvider getInstance() {
-            final boolean useJNA = Boolean.getBoolean("jaffl.usejna");
-            FFIProvider provider = null;
-            String prefix = FFIProvider.class.getPackage().getName() + ".provider";
-            if (!useJNA) {
-                try {
-                    provider = (FFIProvider) Class.forName(prefix + ".jffi.Provider").newInstance();
-                } catch (Throwable ex) {
-                }
+            String providerName = System.getProperty("jaffl.provider");
+            if (providerName == null) {
+                providerName = FFIProvider.class.getPackage().getName() + ".provider.jffi.Provider";
             }
-            if (provider == null) {
-                try {
-                    provider = (FFIProvider) Class.forName(prefix + ".jna.JNAProvider").newInstance();
-                } catch (Throwable ex) {
-                    throw new RuntimeException("Could not load FFI provider", ex);
-                }
+            
+            try {
+                return (FFIProvider) Class.forName(providerName).newInstance();
+            } catch (Throwable ex) {
+                throw new RuntimeException("Could not load FFI provider " + providerName, ex);
             }
-            return provider;
         }
     }
     protected FFIProvider() {}
