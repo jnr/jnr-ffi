@@ -3,7 +3,6 @@ package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -16,5 +15,4 @@ public interface MemoryManager {
     public abstract MemoryIO wrap(Pointer address);
     public abstract MemoryIO wrap(Pointer address, int size);
     public abstract MemoryIO wrap(ByteBuffer buffer);
-    public abstract Pointer getBufferPointer(Buffer buffer);
 }
