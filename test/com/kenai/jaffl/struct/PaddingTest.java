@@ -1,6 +1,8 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.NativeType;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.Type;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -33,10 +35,12 @@ public class PaddingTest {
 
     static final class LongPadding extends Struct {
         public final Signed8 s8 = new Signed8();
-        public final Padding pad = new Padding(Type.SLONG, 3);
+        public final Padding pad = new Padding(NativeType.SLONG, 3);
     }
+
     @Test public void longPadding() throws Throwable {
-        final int SIZE = Type.SLONG.alignment() + (Type.SLONG.size() * 3);
+        Type longType = Runtime.DEFAULT.findType(NativeType.SLONG);
+        final int SIZE = longType.alignment() + (longType.size() * 3);
         assertEquals("incorrect size", SIZE, StructUtil.getSize(new LongPadding()));
     }
 
