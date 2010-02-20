@@ -14,7 +14,7 @@ import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.Type;
-import com.kenai.jaffl.provider.NativeType;
+import com.kenai.jaffl.NativeType;
 import com.kenai.jaffl.util.EnumMapper;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
@@ -1774,6 +1774,9 @@ public abstract class Struct /*implements Marshallable */{
     public final class Padding extends AbstractMember {
         Padding(Type type, int length) {
             super(type.size() * 8 * length, type.alignment() * 8);
+        }
+        Padding(NativeType type, int length) {
+            super(runtime.findType(type).size() * 8 * length, runtime.findType(type).alignment() * 8);
         }
     }
     /*

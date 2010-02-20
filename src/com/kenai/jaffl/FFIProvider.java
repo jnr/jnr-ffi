@@ -2,7 +2,6 @@
 package com.kenai.jaffl;
 
 import com.kenai.jaffl.provider.MemoryManager;
-import com.kenai.jaffl.provider.NativeType;
 import java.util.Map;
 
 /**

@@ -1,8 +1,6 @@
 
 package com.kenai.jaffl;
 
-import com.kenai.jaffl.provider.NativeType;
-
 /**
  * Accessor for various runtime specific parameters
  */

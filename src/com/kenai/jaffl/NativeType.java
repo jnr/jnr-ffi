@@ -1,5 +1,5 @@
 
-package com.kenai.jaffl.provider;
+package com.kenai.jaffl;
 
 public enum NativeType {
     VOID,

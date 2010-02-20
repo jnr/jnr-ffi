@@ -1,5 +1,7 @@
 package com.kenai.jaffl.provider;
 
+import com.kenai.jaffl.NativeType;
+
 /**
  *
  */

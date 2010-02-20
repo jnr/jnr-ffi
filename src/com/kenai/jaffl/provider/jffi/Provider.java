@@ -3,8 +3,9 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.Type;
+import com.kenai.jaffl.provider.BadType;
 import com.kenai.jaffl.provider.MemoryManager;
-import com.kenai.jaffl.provider.NativeType;
+import com.kenai.jaffl.NativeType;
 import com.kenai.jffi.LastError;
 import java.util.Map;
 
@@ -74,22 +75,6 @@ public class Provider extends com.kenai.jaffl.FFIProvider {
 
         public int size() {
             return type.size();
-        }
-    }
-
-    private static final class BadType implements com.kenai.jaffl.Type {
-        private final NativeType type;
-
-        public BadType(NativeType type) {
-            this.type = type;
-        }
-
-        public int alignment() {
-            throw new RuntimeException("invalid type: " + type);
-        }
-
-        public int size() {
-            throw new RuntimeException("invalid type: " + type);
         }
     }
     
