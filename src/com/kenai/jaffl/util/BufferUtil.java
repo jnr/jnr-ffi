@@ -115,26 +115,6 @@ public final class BufferUtil {
         }
         return -1;
     }
-
-    public final static long getAddress(ByteBuffer buf, int position) {
-        return getAddress(Runtime.getDefault(), buf, position);
-    }
-
-    public final static long getAddress(Runtime runtime, ByteBuffer buf, int position) {
-        return runtime.addressSize() == 4 ? buf.getInt(position) : buf.getLong(position);
-    }
-
-    public final static void putAddress(ByteBuffer buf, int position, long address) {
-        putAddress(Runtime.getDefault(), buf, position, address);
-    }
-
-    public final static void putAddress(Runtime runtime, ByteBuffer buf, int position, long address) {
-        if (runtime.addressSize() == 4) {
-            buf.putInt(position, (int) address);
-        } else {
-            buf.putLong(position, address);
-        }
-    }
     
     public static ByteBuffer slice(final ByteBuffer buffer, final int position) {
         final ByteBuffer tmp = buffer.duplicate();
