@@ -18,7 +18,7 @@ public abstract class MemoryIO implements Pointer {
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
     public static final MemoryIO allocate(int size) {
-        return allocate(Runtime.DEFAULT, size);
+        return allocate(Runtime.getDefault(), size);
     }
     /**
      * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
@@ -29,7 +29,7 @@ public abstract class MemoryIO implements Pointer {
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
     public static final MemoryIO allocateDirect(int size) {
-        return allocateDirect(Runtime.DEFAULT, size);
+        return allocateDirect(Runtime.getDefault(), size);
     }
 
     /**
@@ -43,19 +43,19 @@ public abstract class MemoryIO implements Pointer {
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
     public static final MemoryIO allocateDirect(int size, boolean clear) {
-        return allocateDirect(Runtime.DEFAULT, size, clear);
+        return allocateDirect(Runtime.getDefault(), size, clear);
     }
 
     public static final MemoryIO wrap(Pointer ptr) {
-        return wrap(Runtime.DEFAULT, ptr);
+        return wrap(Runtime.getDefault(), ptr);
     }
 
     public static final MemoryIO wrap(Pointer ptr, int size) {
-        return wrap(Runtime.DEFAULT, ptr, size);
+        return wrap(Runtime.getDefault(), ptr, size);
     }
 
     public static final MemoryIO wrap(ByteBuffer buffer) {
-        return wrap(Runtime.DEFAULT, buffer);
+        return wrap(Runtime.getDefault(), buffer);
     }
 
     /**

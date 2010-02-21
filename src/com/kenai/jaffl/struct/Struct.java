@@ -116,7 +116,7 @@ public abstract class Struct /*implements Marshallable */{
      * Creates a new <tt>Struct</tt>.
      */
     protected Struct() {
-        this(Runtime.DEFAULT);
+        this(Runtime.getDefault());
     }
 
     protected Struct(Runtime runtime) {
@@ -129,7 +129,7 @@ public abstract class Struct /*implements Marshallable */{
      * @param isUnion if this Struct is a Union
      */
     Struct(final boolean isUnion) {
-        this(Runtime.DEFAULT, isUnion);
+        this(Runtime.getDefault(), isUnion);
     }
 
     /**

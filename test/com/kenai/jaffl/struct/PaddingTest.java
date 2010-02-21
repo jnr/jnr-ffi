@@ -39,7 +39,7 @@ public class PaddingTest {
     }
 
     @Test public void longPadding() throws Throwable {
-        Type longType = Runtime.DEFAULT.findType(NativeType.SLONG);
+        Type longType = Runtime.getDefault().findType(NativeType.SLONG);
         final int SIZE = longType.alignment() + (longType.size() * 3);
         assertEquals("incorrect size", SIZE, StructUtil.getSize(new LongPadding()));
     }
