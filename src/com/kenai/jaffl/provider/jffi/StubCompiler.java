@@ -18,7 +18,7 @@
 
 package com.kenai.jaffl.provider.jffi;
 
-import com.kenai.jaffl.Platform;
+import com.kenai.jffi.Platform;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Internals;

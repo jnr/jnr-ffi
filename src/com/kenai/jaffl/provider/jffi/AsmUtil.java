@@ -2,9 +2,9 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.NativeLong;
-import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.struct.Struct;
+import com.kenai.jffi.Platform;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
