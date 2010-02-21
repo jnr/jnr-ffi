@@ -27,13 +27,18 @@ import java.nio.charset.Charset;
 public abstract class Struct /*implements Marshallable */{
 
     static final class Info {
+        final Runtime runtime;
         Struct enclosing = null;
         int offset = 0; // offset within enclosing Struct
-        MemoryIO io;
+        MemoryIO io = null;
         int size = 0;
         int minAlign = 1;
         boolean isUnion = false;
         boolean resetIndex = false;
+
+        public Info(Runtime runtime) {
+            this.runtime = runtime;
+        }
 
         public final MemoryIO getMemoryIO(int flags) {
             return enclosing != null ? enclosing.__info.getMemoryIO(flags) : io != null ? io : (io = allocateMemory(flags));
@@ -49,14 +54,16 @@ public abstract class Struct /*implements Marshallable */{
         final int size() {
             return size;
         }
+
         final int getMinimumAlignment() {
             return minAlign;
         }
+
         private final MemoryIO allocateMemory(int flags) {
             if (ParameterFlags.isDirect(flags)) {
-                return MemoryIO.allocateDirect(size(), true);
+                return MemoryIO.allocateDirect(runtime, size(), true);
             } else {
-                return MemoryIO.allocate(size());
+                return MemoryIO.allocate(runtime, size());
             }
         }
         /*
@@ -103,9 +110,7 @@ public abstract class Struct /*implements Marshallable */{
 
         
     }
-    final Info __info = new Info();
-
-    protected final Runtime runtime;
+    final Info __info;
 
     /**
      * Creates a new <tt>Struct</tt>.
@@ -115,7 +120,7 @@ public abstract class Struct /*implements Marshallable */{
     }
 
     protected Struct(Runtime runtime) {
-        this.runtime = runtime;
+        this.__info = new Info(runtime);
     }
 
     /**
@@ -135,6 +140,10 @@ public abstract class Struct /*implements Marshallable */{
     Struct(Runtime runtime, final boolean isUnion) {
         this(runtime);
         __info.resetIndex = isUnion;
+    }
+
+    public final Runtime getRuntime() {
+        return __info.runtime;
     }
 
     /**
@@ -535,12 +544,12 @@ public abstract class Struct /*implements Marshallable */{
         private final int offset;
   
         protected NumberField(NativeType type) {
-            Type t = runtime.findType(type);
+            Type t = getRuntime().findType(type);
             this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
         }
 
         protected NumberField(NativeType type, Offset offset) {
-            Type t = runtime.findType(type);
+            Type t = getRuntime().findType(type);
             this.offset = __info.addField(t.size() * 8, t.alignment() * 8, offset);
         }
         
@@ -1235,7 +1244,7 @@ public abstract class Struct /*implements Marshallable */{
          */
         public final long get() {
             long value = getMemoryIO().getNativeLong(offset());
-            final long mask = runtime.findType(NativeType.SLONG).size() == 32 ? 0xffffffff : 0xffffffffffffffffL;
+            final long mask = getRuntime().findType(NativeType.SLONG).size() == 32 ? 0xffffffff : 0xffffffffffffffffL;
             return value < 0 
                     ? (long) ((value & mask) + mask + 1)
                     : value;
@@ -1469,7 +1478,7 @@ public abstract class Struct /*implements Marshallable */{
          * @return the size of the Pointer
          */
         public final int size() {
-            return runtime.findType(NativeType.ADDRESS).size() * 8;
+            return getRuntime().findType(NativeType.ADDRESS).size() * 8;
         }
         
         /**
@@ -1740,7 +1749,7 @@ public abstract class Struct /*implements Marshallable */{
     }
     public class UTFStringRef extends String {
         public UTFStringRef(int length, Charset cs) {
-            super(runtime.findType(NativeType.ADDRESS).size() * 8, runtime.findType(NativeType.ADDRESS).alignment() * 8,
+            super(getRuntime().findType(NativeType.ADDRESS).size() * 8, getRuntime().findType(NativeType.ADDRESS).alignment() * 8,
                     length, cs);
         }
         public UTFStringRef(Charset cs) {
@@ -1776,7 +1785,7 @@ public abstract class Struct /*implements Marshallable */{
             super(type.size() * 8 * length, type.alignment() * 8);
         }
         Padding(NativeType type, int length) {
-            super(runtime.findType(type).size() * 8 * length, runtime.findType(type).alignment() * 8);
+            super(getRuntime().findType(type).size() * 8 * length, getRuntime().findType(type).alignment() * 8);
         }
     }
     /*

@@ -13,7 +13,7 @@ public final class LastError {
      * @return An integer containing the errno value.
      */
     public static final int getLastError() {
-        return FFIProvider.getProvider().getLastError();
+        return Runtime.DEFAULT.getLastError();
     }
 
     /**
@@ -22,6 +22,6 @@ public final class LastError {
      * @param error The value to set errno to.
      */
     public static final void setLastError(int error) {
-        FFIProvider.getProvider().setLastError(error);
+        Runtime.DEFAULT.setLastError(error);
     }
 }
