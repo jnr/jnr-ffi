@@ -1,7 +1,9 @@
 
 package com.kenai.jaffl.byref;
 
-import java.nio.ByteBuffer;
+
+import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Runtime;
 
 /**
  * A class to pass a reference (or address of) an Integer to a method.
@@ -21,7 +23,7 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(ByteBuffer buffer) {
+    public void marshal(MemoryIO buffer) {
         buffer.putInt(0, value);
     }
 
@@ -30,7 +32,7 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(ByteBuffer buffer) {
+    public void unmarshal(MemoryIO buffer) {
         value = buffer.getInt(0);
     }
     
@@ -39,7 +41,7 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * 
      * @return Integer.SIZE
      */
-    public int nativeSize() {
+    public int nativeSize(Runtime runtime) {
         return Integer.SIZE / 8;
     }
     

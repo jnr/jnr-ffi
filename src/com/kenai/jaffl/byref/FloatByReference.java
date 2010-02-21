@@ -1,7 +1,9 @@
 
 package com.kenai.jaffl.byref;
 
-import java.nio.ByteBuffer;
+
+import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Runtime;
 
 /**
  *
@@ -22,7 +24,7 @@ public class FloatByReference extends AbstractPrimitiveReference<Float> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(ByteBuffer buffer) {
+    public void marshal(MemoryIO buffer) {
         buffer.putFloat(0, value);
     }
 
@@ -31,7 +33,7 @@ public class FloatByReference extends AbstractPrimitiveReference<Float> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(ByteBuffer buffer) {
+    public void unmarshal(MemoryIO buffer) {
         value = buffer.getFloat(0);
     }
     
@@ -40,7 +42,7 @@ public class FloatByReference extends AbstractPrimitiveReference<Float> {
      * 
      * @return the size of a byte in bytes
      */
-    public final int nativeSize() {
+    public final int nativeSize(Runtime runtime) {
         return Float.SIZE / 8;
     }
 }

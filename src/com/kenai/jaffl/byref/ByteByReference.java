@@ -1,7 +1,9 @@
 
 package com.kenai.jaffl.byref;
 
-import java.nio.ByteBuffer;
+import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Runtime;
+
 
 /**
  *
@@ -22,8 +24,8 @@ public class ByteByReference extends AbstractPrimitiveReference<Byte> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(ByteBuffer buffer) {
-        buffer.put(0, value);
+    public void marshal(MemoryIO buffer) {
+        buffer.putByte(0, value);
     }
 
     /**
@@ -31,8 +33,8 @@ public class ByteByReference extends AbstractPrimitiveReference<Byte> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(ByteBuffer buffer) {
-        value = buffer.get(0);
+    public void unmarshal(MemoryIO buffer) {
+        value = buffer.getByte(0);
     }
     
     /**
@@ -40,7 +42,7 @@ public class ByteByReference extends AbstractPrimitiveReference<Byte> {
      * 
      * @return the size of a byte in bytes
      */
-    public final int nativeSize() {
+    public final int nativeSize(Runtime runtime) {
         return Byte.SIZE / 8;
     }
 }

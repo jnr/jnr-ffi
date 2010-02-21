@@ -1,7 +1,8 @@
 
 package com.kenai.jaffl.byref;
 
-import java.nio.ByteBuffer;
+import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Runtime;
 
 /**
  *
@@ -22,7 +23,7 @@ public class DoubleByReference extends AbstractPrimitiveReference<Double> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(ByteBuffer buffer) {
+    public void marshal(MemoryIO buffer) {
         buffer.putDouble(0, value);
     }
 
@@ -31,7 +32,7 @@ public class DoubleByReference extends AbstractPrimitiveReference<Double> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(ByteBuffer buffer) {
+    public void unmarshal(MemoryIO buffer) {
         value = buffer.getDouble(0);
     }
     
@@ -40,7 +41,7 @@ public class DoubleByReference extends AbstractPrimitiveReference<Double> {
      * 
      * @return the size of a byte in bytes
      */
-    public final int nativeSize() {
+    public final int nativeSize(Runtime runtime) {
         return Double.SIZE / 8;
     }
 }

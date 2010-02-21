@@ -208,16 +208,17 @@ public final class AsmRuntime {
             buffer.putAddress(0L);
         } else {
             final ByReference ref = (ByReference) parameter;
-            final ByteBuffer buf = ByteBuffer.allocate(ref.nativeSize()).order(ByteOrder.nativeOrder());
-            buf.clear();
+            int size = ref.nativeSize(NativeRuntime.getInstance());
+            final ArrayMemoryIO memory = new ArrayMemoryIO(size);
+            
             if (com.kenai.jffi.ArrayFlags.isIn(flags)) {
-                ref.marshal(buf);
+                ref.marshal(memory);
             }
-            buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
+            buffer.putArray(memory.array(), memory.offset(), size, flags);
             if (com.kenai.jffi.ArrayFlags.isOut(flags)) {
                 session.addPostInvoke(new InvocationSession.PostInvoke() {
                     public void postInvoke() {
-                        ref.unmarshal(buf);
+                        ref.unmarshal(memory);
                     }
                 });
             }
