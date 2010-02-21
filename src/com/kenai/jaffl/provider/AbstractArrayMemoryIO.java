@@ -2,6 +2,7 @@
 package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.Platform;
+import com.kenai.jaffl.Runtime;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -13,17 +14,19 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     protected final byte[] buffer;
     protected final int offset, length;
 
-    public AbstractArrayMemoryIO(byte[] buffer, int offset, int length) {
+    protected AbstractArrayMemoryIO(Runtime runtime, byte[] buffer, int offset, int length) {
+        super(runtime);
         this.buffer = buffer;
         this.offset = offset;
         this.length = length;
     }
-    public AbstractArrayMemoryIO(byte[] buffer) {
-        this(buffer, 0, buffer.length);
+
+    protected AbstractArrayMemoryIO(Runtime runtime, byte[] buffer) {
+        this(runtime, buffer, 0, buffer.length);
     }
 
-    public AbstractArrayMemoryIO(int size) {
-        this(new byte[size], 0, size);
+    protected AbstractArrayMemoryIO(Runtime runtime, int size) {
+        this(runtime, new byte[size], 0, size);
     }
 
     public final byte[] array() {

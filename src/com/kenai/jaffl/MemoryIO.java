@@ -9,6 +9,8 @@ import java.nio.charset.Charset;
  * Interface to reading/writing various types of memory
  */
 public abstract class MemoryIO implements Pointer {
+    private final Runtime runtime;
+
     /**
      * Allocates a new block of java heap memory and wraps it in a {@link MemoryIO}
      * accessor.
@@ -105,6 +107,14 @@ public abstract class MemoryIO implements Pointer {
 
     public static final MemoryIO wrap(Runtime runtime, ByteBuffer buffer) {
         return runtime.getMemoryManager().wrap(buffer);
+    }
+
+    protected MemoryIO(Runtime runtime) {
+        this.runtime = runtime;
+    }
+
+    public final Runtime getRuntime() {
+        return runtime;
     }
 
     /**

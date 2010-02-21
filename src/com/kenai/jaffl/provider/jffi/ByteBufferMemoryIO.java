@@ -9,8 +9,9 @@ import java.nio.ByteBuffer;
 public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
 
     public ByteBufferMemoryIO(ByteBuffer buffer) {
-        super(buffer);
+        super(NativeRuntime.getInstance(), buffer);
     }
+    
     public MemoryIO getMemoryIO(long offset) {
         return MemoryUtil.newMemoryIO(getAddress(offset));
     }

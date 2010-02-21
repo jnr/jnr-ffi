@@ -15,39 +15,37 @@ public abstract class Runtime {
 
     /** singleton holder for the default Runtime */
     private static final class SingletonHolder {
-        public static final Runtime DEFAULT_RUNTIME = new Default();
+        public static final Runtime DEFAULT_RUNTIME = FFIProvider.getProvider().getRuntime();
     }
 
     /** Looks up the runtime-specific that corresponds to the pseudo-type */
     public abstract Type findType(NativeType type);
 
-    /** Gets the memory manager instance used by the runtime */
+    /** 
+     * Gets the native memory manager instance for this runtime
+     *
+     * @return a {@link MemoryManager}
+     */
     public abstract MemoryManager getMemoryManager();
 
-    /** Gets the last error that occurred on the current thread for this runtime */
+    /**
+     * Gets the last native error code.
+     * <p>
+     * This returns the errno value that was set at the time of the last native
+     * function call.
+     *
+     * @return The errno value.
+     */
     public abstract int getLastError();
 
-    /** Sets the errno value for this runtime */
+    /**
+     * Sets the native error code.
+     *
+     * @param error The value to set errno to.
+     */
     public abstract void setLastError(int error);
 
-    /** The default runtime */
-    private static final class Default extends Runtime {
-        public final Type findType(NativeType type) {
-            return FFIProvider.getProvider().getType(type);
-        }
-
-        @Override
-        public MemoryManager getMemoryManager() {
-            return FFIProvider.getProvider().getMemoryManager();
-        }
-
-        public final int getLastError() {
-            return FFIProvider.getProvider().getLastError();
-        }
-
-        public final void setLastError(int error) {
-            FFIProvider.getProvider().setLastError(error);
-        }
-
-    }
+    /** Gets the address mask for this runtime */
+    public abstract long addressMask();
+    
 }

@@ -13,15 +13,12 @@ public abstract class FFIProvider {
      *
      * @return an instance of <tt>FFIProvider</tt>
      */
-    public static final FFIProvider getProvider() {
+    static final FFIProvider getProvider() {
         return SingletonHolder.INSTANCE;
     }
-    /**
-     * Gets the native memory manager for this provider.
-     *
-     * @return a {@link MemoryManager}
-     */
-    public abstract MemoryManager getMemoryManager();
+
+    /** Gets the default <tt>Runtime</tt> for this provider */
+    public abstract Runtime getRuntime();
     
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
@@ -46,26 +43,6 @@ public abstract class FFIProvider {
      */
     public abstract <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames);
-
-    /**
-     * Gets the last native error code.
-     * <p>
-     * This returns the errno value that was set at the time of the last native
-     * function call.
-     *
-     * @return The errno value.
-     */
-    public abstract int getLastError();
-
-    /**
-     * Sets the native error code.
-     *
-     * @param error The value to set errno to.
-     */
-    public abstract void setLastError(int error);
-
-
-    public abstract Type getType(NativeType type);
     
     private static final class SingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();

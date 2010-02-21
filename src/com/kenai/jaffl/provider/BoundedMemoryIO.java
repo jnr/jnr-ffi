@@ -13,6 +13,7 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
     private final MemoryIO io;
 
     public BoundedMemoryIO(MemoryIO parent, long offset, long size) {
+        super(parent.getRuntime());
         this.io = parent;
         this.base = offset;
         this.size = size;

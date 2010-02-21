@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl.provider;
 
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.util.BufferUtil;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -12,7 +13,8 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
 
     protected final ByteBuffer buffer;
 
-    public AbstractBufferMemoryIO(ByteBuffer buffer) {
+    public AbstractBufferMemoryIO(Runtime runtime, ByteBuffer buffer) {
+        super(runtime);
         this.buffer = buffer;
     }
 

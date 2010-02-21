@@ -2,6 +2,7 @@
 package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.*;
+import com.kenai.jaffl.Runtime;
 
 /**
  * Base implementations of some MemoryIO operations.
@@ -12,6 +13,11 @@ abstract public class AbstractMemoryIO extends MemoryIO {
             throw new IndexOutOfBoundsException();
         }
     }
+
+    protected AbstractMemoryIO(Runtime runtime) {
+        super(runtime);
+    }
+
     public int indexOf(long offset, byte value) {
         return indexOf(offset, value, Integer.MAX_VALUE);
     }

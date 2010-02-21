@@ -3,12 +3,15 @@ package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.Runtime;
 import java.nio.charset.Charset;
 
 public final class NullMemoryIO extends AbstractMemoryIO {
     private static final String msg = "Attempted access to a NULL memory address";
 
-    public static final MemoryIO INSTANCE = new NullMemoryIO();
+    public NullMemoryIO(Runtime runtime) {
+        super(runtime);
+    }
 
     private static final NullPointerException npe() {
         return new NullPointerException(msg);

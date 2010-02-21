@@ -5,6 +5,7 @@ import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.provider.NullMemoryIO;
 
 public final class MemoryUtil {
+    private static final MemoryIO NULL = new NullMemoryIO(NativeRuntime.getInstance());
 
     private MemoryUtil() {}
 
@@ -13,11 +14,11 @@ public final class MemoryUtil {
     }
 
     static final com.kenai.jaffl.MemoryIO newMemoryIO(long ptr) {
-        return ptr != 0 ? new DirectMemoryIO(ptr) : NullMemoryIO.INSTANCE;
+        return ptr != 0 ? new DirectMemoryIO(ptr) : NULL;
     }
 
     static final com.kenai.jaffl.MemoryIO newMemoryIO(long ptr, long size) {
-        return ptr != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(ptr), 0, size) : NullMemoryIO.INSTANCE;
+        return ptr != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(ptr), 0, size) : NULL;
     }
 
     static final long getAddress(MemoryIO ptr) {

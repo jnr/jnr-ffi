@@ -3,13 +3,18 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
 
 
 public final class ArrayMemoryIO extends AbstractArrayMemoryIO {
 
+    public ArrayMemoryIO(Runtime runtime, int size) {
+        super(runtime, size);
+    }
+
     public ArrayMemoryIO(int size) {
-        super(size);
+        super(NativeRuntime.getInstance(), size);
     }
 
     @Override

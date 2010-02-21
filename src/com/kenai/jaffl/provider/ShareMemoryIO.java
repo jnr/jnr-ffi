@@ -13,6 +13,7 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     private final long base;
 
     public ShareMemoryIO(MemoryIO parent, long offset) {
+        super(parent.getRuntime());
         this.io = parent;
         this.base = offset;
     }

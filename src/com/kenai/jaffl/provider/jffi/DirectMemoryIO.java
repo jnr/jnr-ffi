@@ -1,9 +1,9 @@
 
 package com.kenai.jaffl.provider.jffi;
 
-import com.kenai.jaffl.Address;
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.provider.AbstractMemoryIO;
 import com.kenai.jaffl.provider.NullMemoryIO;
 import com.kenai.jaffl.provider.StringIO;
@@ -15,9 +15,15 @@ class DirectMemoryIO extends AbstractMemoryIO {
     static final long ADDRESS_MASK = com.kenai.jffi.Platform.getPlatform().addressSize() == 32 ? 0xffffffffL : 0xffffffffffffffffL;
     protected final long address;
 
-    DirectMemoryIO(long address) {
+    DirectMemoryIO(Runtime runtime, long address) {
+        super(runtime);
         this.address = address & ADDRESS_MASK;
     }
+
+    DirectMemoryIO(long address) {
+        this(NativeRuntime.getInstance(), address);
+    }
+
     public final long address() {
         return address;
     }
@@ -123,7 +129,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     public MemoryIO getMemoryIO(long offset, long size) {
         final long ptr = IO.getAddress(this.address + offset);
-        return ptr != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(ptr), 0, size) : new NullMemoryIO();
+        return ptr != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(getRuntime(), ptr), 0, size) : new NullMemoryIO(getRuntime());
     }
 
     @Override
