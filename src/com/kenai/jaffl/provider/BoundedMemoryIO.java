@@ -67,17 +67,17 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
         return io.getDouble(base + offset);
     }
     public Pointer getPointer(long offset) {
-        checkBounds(size, offset, Address.SIZE / 8);
+        checkBounds(size, offset, getRuntime().addressSize());
         return io.getPointer(base + offset);
     }
 
     public MemoryIO getMemoryIO(long offset) {
-        checkBounds(this.size, base + offset, Address.SIZE / 8);
+        checkBounds(this.size, base + offset, getRuntime().addressSize());
         return io.getMemoryIO(base + offset);
     }
 
     public MemoryIO getMemoryIO(long offset, long size) {
-        checkBounds(this.size, base + offset, Address.SIZE / 8);
+        checkBounds(this.size, base + offset, getRuntime().addressSize());
         return io.getMemoryIO(base + offset, size);
     }
     @Override
@@ -116,7 +116,7 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
         io.putDouble(base + offset, value);
     }
     public void putPointer(long offset, Pointer value) {
-        checkBounds(size, offset, Address.SIZE / 8);
+        checkBounds(size, offset, getRuntime().addressSize());
         io.putPointer(base + offset, value);
     }
     @Override
@@ -193,7 +193,7 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
 
     @Override
     public long getAddress(long offset) {
-        checkBounds(size, offset, Address.SIZE >> 3);
+        checkBounds(size, offset, getRuntime().addressSize());
         return io.getAddress(base + offset);
     }
 
@@ -210,13 +210,13 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
 
     @Override
     public void putAddress(long offset, long value) {
-        checkBounds(size, offset, Address.SIZE >> 3);
+        checkBounds(size, offset, getRuntime().addressSize());
         io.putAddress(base + offset, value);
     }
 
     @Override
     public void putAddress(long offset, Address value) {
-        checkBounds(size, offset, Address.SIZE >> 3);
+        checkBounds(size, offset, getRuntime().addressSize());
         io.putAddress(base + offset, value);
     }
 

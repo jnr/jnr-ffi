@@ -1,7 +1,7 @@
 
 package com.kenai.jaffl.util;
 
-import com.kenai.jaffl.Platform;
+import com.kenai.jaffl.Runtime;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -115,52 +115,27 @@ public final class BufferUtil {
         }
         return -1;
     }
-    private static interface AddressIO {
-        public long getAddress(ByteBuffer io, int offset);
-        public void putAddress(ByteBuffer io, int offset, long address);
-        public static class AddressIO32 implements AddressIO {
 
-            public static final AddressIO IMPL = new AddressIO32();
+    public final static long getAddress(ByteBuffer buf, int position) {
+        return getAddress(Runtime.getDefault(), buf, position);
+    }
 
-            public long getAddress(ByteBuffer io, int offset) {
-                return io.getInt(offset);
-            }
+    public final static long getAddress(Runtime runtime, ByteBuffer buf, int position) {
+        return runtime.addressSize() == 4 ? buf.getInt(position) : buf.getLong(position);
+    }
 
-            public void putAddress(ByteBuffer io, int offset, long address) {
-                io.putInt(offset, (int) address);
-            }
+    public final static void putAddress(ByteBuffer buf, int position, long address) {
+        putAddress(Runtime.getDefault(), buf, position, address);
+    }
+
+    public final static void putAddress(Runtime runtime, ByteBuffer buf, int position, long address) {
+        if (runtime.addressSize() == 4) {
+            buf.putInt(position, (int) address);
+        } else {
+            buf.putLong(position, address);
         }
-
-        public static class AddressIO64 implements AddressIO {
-
-            public static final AddressIO IMPL = new AddressIO64();
-
-            public long getAddress(ByteBuffer io, int offset) {
-                return io.getLong(offset);
-            }
-
-            public void putAddress(ByteBuffer io, int offset, long address) {
-                io.putLong(offset, address);
-            }
-        }
-        public static final AddressIO INSTANCE = Platform.getPlatform().addressSize() == 32
-                ? AddressIO32.IMPL : AddressIO64.IMPL;
     }
     
-    public final static long getAddress(ByteBuffer buf, int position) {
-        return AddressIO.INSTANCE.getAddress(buf, position);
-    }
-    public final static void putAddress(ByteBuffer buf, int position, long address) {
-        AddressIO.INSTANCE.putAddress(buf, position, address);
-    }
-    /*
-    public final static Pointer getPointer(ByteBuffer buf, int position) {
-        return new Pointer(getAddress(buf, position));
-    }
-    public final static void putPointer(ByteBuffer buf, int position, Pointer value) {
-        putAddress(buf, position, value.nativeAddress());
-    }
-    */
     public static ByteBuffer slice(final ByteBuffer buffer, final int position) {
         final ByteBuffer tmp = buffer.duplicate();
         tmp.position(position);

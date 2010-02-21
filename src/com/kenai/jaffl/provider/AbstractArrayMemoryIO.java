@@ -1,7 +1,6 @@
 
 package com.kenai.jaffl.provider;
 
-import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Runtime;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,13 +8,13 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
-    protected static final ArrayIO IO = getArrayIO();
-    protected static final int LONG_SIZE = Platform.getPlatform().longSize();
+    private final ArrayIO io;
     protected final byte[] buffer;
     protected final int offset, length;
 
     protected AbstractArrayMemoryIO(Runtime runtime, byte[] buffer, int offset, int length) {
         super(runtime);
+        this.io = ArrayIO.getArrayIO(runtime);
         this.buffer = buffer;
         this.offset = offset;
         this.length = length;
@@ -29,6 +28,10 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         this(runtime, new byte[size], 0, size);
     }
 
+    protected final ArrayIO getArrayIO() {
+        return io;
+    }
+    
     public final byte[] array() {
         return buffer;
     }
@@ -48,29 +51,7 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     public long address() {
         throw new UnsupportedOperationException("Not a direct memory object");
     }
-
-
-    private static final ArrayIO getArrayIO() {
-        if (ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-            return Platform.getPlatform().addressSize() == 64
-                    ? newBE64ArrayIO() : newBE32ArrayIO();
-        } else {
-            return Platform.getPlatform().addressSize() == 64
-                    ? newLE64ArrayIO() : newLE32ArrayIO();
-        }
-    }
-    private static final ArrayIO newBE64ArrayIO() {
-        return new BE64ArrayIO();
-    }
-    private static final ArrayIO newBE32ArrayIO() {
-        return new BE32ArrayIO();
-    }
-    private static final ArrayIO newLE64ArrayIO() {
-        return new LE64ArrayIO();
-    }
-    private static final ArrayIO newLE32ArrayIO() {
-        return new LE32ArrayIO();
-    }
+    
     protected final int index(long off) {
         return this.offset + (int) off;
     }
@@ -101,28 +82,28 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     }
 
     public final short getShort(long offset) {
-        return IO.getInt16(buffer, index(offset));
+        return io.getInt16(buffer, index(offset));
     }
 
     public final int getInt(long offset) {
-        return IO.getInt32(buffer, index(offset));
+        return io.getInt32(buffer, index(offset));
     }
 
     public final long getLong(long offset) {
-        return IO.getInt64(buffer, index(offset));
+        return io.getInt64(buffer, index(offset));
     }
 
     @Override
     public final long getAddress(long offset) {
-        return IO.getAddress(buffer, index(offset));
+        return io.getAddress(buffer, index(offset));
     }
 
     public final float getFloat(long offset) {
-        return IO.getFloat32(buffer, index(offset));
+        return io.getFloat32(buffer, index(offset));
     }
 
     public final double getDouble(long offset) {
-        return IO.getFloat64(buffer, index(offset));
+        return io.getFloat64(buffer, index(offset));
     }
     
     public final void putByte(long offset, byte value) {
@@ -130,28 +111,28 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     }
 
     public final void putShort(long offset, short value) {
-        IO.putInt16(buffer, index(offset), value);
+        io.putInt16(buffer, index(offset), value);
     }
 
     public final void putInt(long offset, int value) {
-        IO.putInt32(buffer, index(offset), value);
+        io.putInt32(buffer, index(offset), value);
     }
 
     public final void putLong(long offset, long value) {
-        IO.putInt64(buffer, index(offset), value);
+        io.putInt64(buffer, index(offset), value);
     }
 
     @Override
     public final void putAddress(long offset, long value) {
-        IO.putAddress(buffer, index(offset), value);
+        io.putAddress(buffer, index(offset), value);
     }
 
     public final void putFloat(long offset, float value) {
-        IO.putFloat32(buffer, index(offset), value);
+        io.putFloat32(buffer, index(offset), value);
     }
 
     public final void putDouble(long offset, double value) {
-        IO.putFloat64(buffer, index(offset), value);
+        io.putFloat64(buffer, index(offset), value);
     }
 
     public final void get(long offset, byte[] dst, int off, int len) {
@@ -165,70 +146,70 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     public final void get(long offset, short[] dst, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            dst[off + i] = IO.getInt16(buffer, begin + (i << 1));
+            dst[off + i] = io.getInt16(buffer, begin + (i << 1));
         }
     }
 
     public final void put(long offset, short[] src, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            IO.putInt16(buffer, begin + (i << 1), src[off + i]);
+            io.putInt16(buffer, begin + (i << 1), src[off + i]);
         }
     }
 
     public final void get(long offset, int[] dst, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            dst[off + i] = IO.getInt32(buffer, begin + (i << 2));
+            dst[off + i] = io.getInt32(buffer, begin + (i << 2));
         }
     }
 
     public final void put(long offset, int[] src, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            IO.putInt32(buffer, begin + (i << 2), src[off + i]);
+            io.putInt32(buffer, begin + (i << 2), src[off + i]);
         }
     }
 
     public final void get(long offset, long[] dst, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            dst[off + i] = IO.getInt64(buffer, begin + (i << 3));
+            dst[off + i] = io.getInt64(buffer, begin + (i << 3));
         }
     }
 
     public final void put(long offset, long[] src, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            IO.putInt64(buffer, begin + (i << 3), src[off + i]);
+            io.putInt64(buffer, begin + (i << 3), src[off + i]);
         }
     }
 
     public final void get(long offset, float[] dst, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            dst[off + i] = IO.getFloat32(buffer, begin + (i << 2));
+            dst[off + i] = io.getFloat32(buffer, begin + (i << 2));
         }
     }
 
     public final void put(long offset, float[] src, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            IO.putFloat32(buffer, begin + (i << 2), src[off + i]);
+            io.putFloat32(buffer, begin + (i << 2), src[off + i]);
         }
     }
 
     public final void get(long offset, double[] dst, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            dst[off + i] = IO.getFloat64(buffer, begin + (i << 3));
+            dst[off + i] = io.getFloat64(buffer, begin + (i << 3));
         }
     }
 
     public final void put(long offset, double[] src, int off, int len) {
         int begin = index(offset);
         for (int i = 0; i < len; ++i) {
-            IO.putFloat64(buffer, begin + (i << 3), src[off + i]);
+            io.putFloat64(buffer, begin + (i << 3), src[off + i]);
         }
     }
 
@@ -260,8 +241,19 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     public final void clear() {
         Arrays.fill(buffer, offset, length, (byte) 0);
     }
+
     protected static abstract class ArrayIO {
-        
+
+        public static final ArrayIO getArrayIO(Runtime runtime) {
+            if (runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)) {
+                return runtime.addressSize() == 8
+                        ? BE64ArrayIO.INSTANCE : BE32ArrayIO.INSTANCE;
+            } else {
+                return runtime.addressSize() == 8
+                        ? LE64ArrayIO.INSTANCE : LE32ArrayIO.INSTANCE;
+            }
+        }
+
         public abstract short getInt16(byte[] buffer, int offset);
         public abstract int getInt32(byte[] buffer, int offset);
         public abstract long getInt64(byte[] buffer, int offset);
@@ -287,6 +279,7 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
             putInt64(buffer, offset, Double.doubleToRawLongBits(value));
         }
     }
+
     private static abstract class LittleEndianArrayIO extends ArrayIO {
         public final short getInt16(byte[] array, int offset) {
             return (short) ((array[offset] & 0xff) | ((array[offset + 1] & 0xff) << 8));
@@ -328,6 +321,7 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
             buffer[offset + 7] = (byte) (value >> 56);
         }
     }
+
     private static abstract class BigEndianArrayIO extends ArrayIO {
         public short getInt16(byte[] array, int offset) {
             return (short) (((array[offset + 0] & 0xff) << 8)
@@ -370,7 +364,10 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
             buffer[offset + 7] = (byte) (value >> 0);
         }
     }
+
     private static final class LE32ArrayIO extends LittleEndianArrayIO {
+        public static final ArrayIO INSTANCE = new LE32ArrayIO();
+
         public final long getAddress(byte[] buffer, int offset) {
             return ((long) getInt32(buffer, offset)) & 0xffffffffL;
         }
@@ -379,6 +376,8 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         }
     }
     private static final class LE64ArrayIO extends LittleEndianArrayIO {
+        public static final ArrayIO INSTANCE = new LE64ArrayIO();
+
         public final long getAddress(byte[] buffer, int offset) {
             return getInt64(buffer, offset);
         }
@@ -386,7 +385,10 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
             putInt64(buffer, offset, value);
         }
     }
+    
     private static final class BE32ArrayIO extends BigEndianArrayIO {
+        public static final ArrayIO INSTANCE = new BE32ArrayIO();
+
         public final long getAddress(byte[] buffer, int offset) {
             return ((long) getInt32(buffer, offset)) & 0xffffffffL;
         }
@@ -394,7 +396,10 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
             putInt32(buffer, offset, (int) value);
         }
     }
+    
     private static final class BE64ArrayIO extends BigEndianArrayIO {
+        public static final ArrayIO INSTANCE = new BE64ArrayIO();
+
         public final long getAddress(byte[] buffer, int offset) {
             return getInt64(buffer, offset);
         }

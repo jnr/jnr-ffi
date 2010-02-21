@@ -11,9 +11,7 @@ package com.kenai.jaffl;
  * </p>
  */
 public final class NativeLong extends Number implements Comparable<NativeLong> {
-    public static final int SIZE = Platform.getPlatform().longSize();
-    public static final int SHIFT = SIZE == 32 ? 2 : 3;
-    public static final long MASK = SIZE == 32 ? 0xffffffffL : 0xffffffffffffffffL;
+
     private static final NativeLong ZERO = new NativeLong(0);
     private static final NativeLong ONE = new NativeLong(1);
     private static final NativeLong MINUS_ONE = new NativeLong(-1);

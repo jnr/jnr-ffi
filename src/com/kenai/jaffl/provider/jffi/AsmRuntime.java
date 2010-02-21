@@ -14,6 +14,7 @@ import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
 import com.kenai.jffi.InvocationBuffer;
+import com.kenai.jffi.Platform;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
@@ -277,7 +278,7 @@ public final class AsmRuntime {
             buffer.putAddress(0L);
         } else {
             final Pointer[] array = parameter;
-            if (Pointer.SIZE == 32) {
+            if (Platform.getPlatform().addressSize() == 32) {
                 final int[] raw = new int[array.length];
                 for (int i = 0; i < raw.length; ++i) {
                     if (!array[i].isDirect()) {

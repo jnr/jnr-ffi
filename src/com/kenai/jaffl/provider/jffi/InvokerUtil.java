@@ -4,7 +4,6 @@ package com.kenai.jaffl.provider.jffi;
 import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
-import com.kenai.jaffl.Platform;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.annotations.IgnoreError;
 import com.kenai.jaffl.annotations.SaveError;
@@ -35,7 +34,7 @@ final class InvokerUtil {
         } else if (Long.class.isAssignableFrom(type) || long.class == type) {
             return Type.SINT64;
         } else if (NativeLong.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().longSize() == 32 ? Type.SINT32: Type.SINT64;
+            return Type.SLONG;
         } else if (Float.class.isAssignableFrom(type) || float.class == type) {
             return Type.FLOAT;
         } else if (Double.class.isAssignableFrom(type) || double.class == type) {
@@ -64,7 +63,7 @@ final class InvokerUtil {
         } else if (Long.class.isAssignableFrom(type) || long.class == type) {
             return Type.SINT64;
         } else if (NativeLong.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().longSize() == 32 ? Type.SINT32: Type.SINT64;
+            return Type.SLONG;
         } else if (Float.class.isAssignableFrom(type) || float.class == type) {
             return Type.FLOAT;
         } else if (Double.class.isAssignableFrom(type) || double.class == type) {

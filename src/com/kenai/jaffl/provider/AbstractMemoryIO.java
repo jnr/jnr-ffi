@@ -21,17 +21,29 @@ abstract public class AbstractMemoryIO extends MemoryIO {
     public int indexOf(long offset, byte value) {
         return indexOf(offset, value, Integer.MAX_VALUE);
     }
+
     public long getAddress(long offset) {
-        return AddressIO.INSTANCE.getAddress(this, offset);
+        return getRuntime().addressSize() == 4 ? getInt(offset) : getLong(offset);
     }
+
     public void putAddress(long offset, long value) {
-        AddressIO.INSTANCE.putAddress(this, offset, value);
+        if (getRuntime().addressSize() == 4) {
+            putInt(offset, (int) value);
+        } else {
+            putLong(offset, value);
+        }
     }
+
     public void putAddress(long offset, Address value) {
-        AddressIO.INSTANCE.putAddress(this, offset, value.longValue());
+        if (getRuntime().addressSize() == 4) {
+            putInt(offset, value.intValue());
+        } else {
+            putLong(offset, value.longValue());
+        }
     }
+
     public final long getNativeLong(long offset) {
-        return NativeLongIO.INSTANCE.getLong(this, offset);
+        return getRuntime().longSize() == 4 ? getInt(offset) : getLong(offset);
     }
 
     public MemoryIO slice(long offset) {
@@ -43,7 +55,11 @@ abstract public class AbstractMemoryIO extends MemoryIO {
     }
 
     public void putNativeLong(long offset, long value) {
-        NativeLongIO.INSTANCE.putLong(this, offset, value);
+        if (getRuntime().longSize() == 4) {
+            putInt(offset, (int) value);
+        } else {
+            putLong(offset, value);
+        }
     }
 
     public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
@@ -56,59 +72,5 @@ abstract public class AbstractMemoryIO extends MemoryIO {
         for (long i = 0; i < count; ++i) {
             putByte(offset + i, other.getByte(otherOffset + i));
         }
-    }
-    //
-    // Optimize reading/writing pointers.
-    //
-    private static interface AddressIO {
-        public long getAddress(MemoryIO io, long offset);
-        public void putAddress(MemoryIO io, long offset, long address);
-        public static class AddressIO32 implements AddressIO {
-            public static final AddressIO _INSTANCE = new AddressIO32();
-            public long getAddress(MemoryIO io, long offset) {
-                return io.getInt(offset);
-            }
-            public void putAddress(MemoryIO io, long offset, long address) {
-                io.putInt(offset, (int) address);
-            }
-        }
-        public static class AddressIO64 implements AddressIO {
-            public static final AddressIO _INSTANCE = new AddressIO64();
-            public long getAddress(MemoryIO io, long offset) {
-                return io.getLong(offset);
-            }
-            public void putAddress(MemoryIO io, long offset, long address) {
-                io.putLong(offset, address);
-            }
-        }
-        public static final AddressIO INSTANCE = Platform.getPlatform().addressSize() == 32
-                ? AddressIO32._INSTANCE : AddressIO64._INSTANCE;
-    }
-    //
-    // Optimize reading/writing native long values.
-    //
-    private static interface NativeLongIO {
-        public long getLong(MemoryIO io, long offset);
-        public void putLong(MemoryIO io, long offset, long value);
-        public static class LongIO32 implements NativeLongIO {
-            public static final NativeLongIO _INSTANCE = new LongIO32();
-            public long getLong(MemoryIO io, long offset) {
-                return io.getInt(offset);
-            }
-            public void putLong(MemoryIO io, long offset, long value) {
-                io.putInt(offset, (int) value);
-            }
-        }
-        public static class LongIO64 implements NativeLongIO {
-            public static final NativeLongIO _INSTANCE = new LongIO64();
-            public long getLong(MemoryIO io, long offset) {
-                return io.getLong(offset);
-            }
-            public void putLong(MemoryIO io, long offset, long value) {
-                io.putLong(offset, value);
-            }
-        }
-        public static final NativeLongIO INSTANCE = Platform.getPlatform().longSize() == 32
-                ? LongIO32._INSTANCE : LongIO64._INSTANCE;
     }
 }

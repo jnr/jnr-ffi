@@ -5,8 +5,7 @@ package com.kenai.jaffl;
  * Represents a native memory address.
  */
 public class Address extends Number implements Comparable<Address> {
-    public static final int SIZE = Platform.getPlatform().addressSize();
-
+    
     protected final long address;
 
     public static final Address valueOf(long address) {

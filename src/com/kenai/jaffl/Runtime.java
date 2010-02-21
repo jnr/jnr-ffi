@@ -2,6 +2,7 @@
 package com.kenai.jaffl;
 
 import com.kenai.jaffl.provider.MemoryManager;
+import java.nio.ByteOrder;
 
 /**
  * Accessor for various runtime specific parameters
@@ -47,5 +48,26 @@ public abstract class Runtime {
 
     /** Gets the address mask for this runtime */
     public abstract long addressMask();
+
+    /**
+     * Gets the size of an address (e.g. a pointer) for this runtime
+     *
+     * @return The size of an address in bytes.
+     */
+    public abstract int addressSize();
+
+    /**
+     * Gets the size of a C long integer for this runtime
+     *
+     * @return The size of a C long integer in bytes.
+     */
+    public abstract int longSize();
+
+    /**
+     * Retrieves this runtime's native byte order.
+     *
+     * @return this runtime's byte order
+     */
+    public abstract ByteOrder byteOrder();
     
 }

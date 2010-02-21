@@ -5,12 +5,15 @@ import com.kenai.jaffl.NativeType;
 import com.kenai.jaffl.Type;
 import com.kenai.jaffl.provider.BadType;
 import com.kenai.jaffl.provider.MemoryManager;
+import java.nio.ByteOrder;
 
 /**
  *
  */
 public class NativeRuntime extends com.kenai.jaffl.Runtime {
     private final MemoryManager memoryManager = new com.kenai.jaffl.provider.jffi.MemoryManager();
+    private final int longSize;
+    private final int addressSize;
     private final long addressMask;
     private final Type[] types;
 
@@ -23,6 +26,8 @@ public class NativeRuntime extends com.kenai.jaffl.Runtime {
     }
 
     private NativeRuntime() {
+        longSize = com.kenai.jffi.Type.SLONG.size();
+        addressSize = com.kenai.jffi.Type.POINTER.size();
         addressMask = com.kenai.jffi.Type.POINTER.size() == 4 ? 0xffffffffL : 0xffffffffffffffffL;
         NativeType[] nativeTypes = NativeType.values();
 
@@ -35,8 +40,23 @@ public class NativeRuntime extends com.kenai.jaffl.Runtime {
 
 
     @Override
-    public long addressMask() {
+    public final long addressMask() {
         return addressMask;
+    }
+
+    @Override
+    public final int addressSize() {
+        return addressSize;
+    }
+
+    @Override
+    public final int longSize() {
+        return longSize;
+    }
+
+    @Override
+    public final ByteOrder byteOrder() {
+        return ByteOrder.nativeOrder();
     }
 
     @Override
