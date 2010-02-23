@@ -10,7 +10,8 @@ import java.nio.ByteOrder;
  *
  */
 public final class NativeRuntime extends com.kenai.jaffl.Runtime {
-    
+    private final MemoryManager mm = new MemoryManager();
+
     public static final NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
     }
@@ -20,7 +21,7 @@ public final class NativeRuntime extends com.kenai.jaffl.Runtime {
     }
 
     private NativeRuntime() {
-        super(ByteOrder.nativeOrder(), new com.kenai.jaffl.provider.jffi.MemoryManager(), buildTypeArray());
+        super(ByteOrder.nativeOrder(), buildTypeArray());
     }
 
     private static Type[] buildTypeArray() {
@@ -34,7 +35,10 @@ public final class NativeRuntime extends com.kenai.jaffl.Runtime {
         return t;
     }
 
-
+    public final MemoryManager getMemoryManager() {
+        return mm;
+    }
+    
     @Override
     public int getLastError() {
         return com.kenai.jffi.LastError.getInstance().get();

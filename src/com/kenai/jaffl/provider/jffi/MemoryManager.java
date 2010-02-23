@@ -42,9 +42,4 @@ public class MemoryManager implements com.kenai.jaffl.provider.MemoryManager {
     public MemoryIO wrap(ByteBuffer buffer) {
         return new ByteBufferMemoryIO(buffer);
     }
-
-    public Pointer getBufferPointer(Buffer buffer) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
 }

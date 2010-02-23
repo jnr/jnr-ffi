@@ -8,7 +8,6 @@ import java.nio.ByteOrder;
  * Accessor for various runtime specific parameters
  */
 public abstract class Runtime {
-    private final MemoryManager memoryManager;
     private final Type[] types;
     private final long addressMask;
     private final int addressSize;
@@ -25,9 +24,8 @@ public abstract class Runtime {
         public static final Runtime DEFAULT_RUNTIME = FFIProvider.getProvider().getRuntime();
     }
 
-    public Runtime(ByteOrder byteOrder, MemoryManager memoryManager, Type[] types) {
+    public Runtime(ByteOrder byteOrder, Type[] types) {
         this.byteOrder = byteOrder;
-        this.memoryManager = memoryManager;
         this.types = types;
         this.addressSize = types[NativeType.ADDRESS.ordinal()].size();
         this.longSize = types[NativeType.SLONG.ordinal()].size();
@@ -45,9 +43,7 @@ public abstract class Runtime {
      *
      * @return a {@link MemoryManager}
      */
-    public final MemoryManager getMemoryManager() {
-        return memoryManager;
-    }
+    public abstract MemoryManager getMemoryManager();
 
     /**
      * Gets the last native error code.
