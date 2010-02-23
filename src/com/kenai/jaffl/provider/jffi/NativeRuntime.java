@@ -10,7 +10,7 @@ import java.nio.ByteOrder;
  *
  */
 public final class NativeRuntime extends com.kenai.jaffl.Runtime {
-    private final MemoryManager mm = new MemoryManager();
+    private final NativeMemoryManager mm = new NativeMemoryManager();
 
     public static final NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
@@ -35,7 +35,7 @@ public final class NativeRuntime extends com.kenai.jaffl.Runtime {
         return t;
     }
 
-    public final MemoryManager getMemoryManager() {
+    public final NativeMemoryManager getMemoryManager() {
         return mm;
     }
     

@@ -6,7 +6,7 @@ import com.kenai.jaffl.Pointer;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-public class MemoryManager implements com.kenai.jaffl.provider.MemoryManager {
+public class NativeMemoryManager implements com.kenai.jaffl.provider.MemoryManager {
 
     public MemoryIO allocate(int size) {
         return new ArrayMemoryIO(size);
