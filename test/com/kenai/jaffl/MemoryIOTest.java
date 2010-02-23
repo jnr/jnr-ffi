@@ -18,7 +18,6 @@
 
 package com.kenai.jaffl;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.junit.After;
@@ -34,12 +33,19 @@ import static org.junit.Assert.*;
  * @author wayne
  */
 public class MemoryIOTest {
+    public static interface TestLib {
+    }
 
+    static TestLib testlib;
+    static Runtime runtime;
+    
     public MemoryIOTest() {
     }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
     }
 
     @AfterClass
@@ -63,10 +69,10 @@ public class MemoryIOTest {
         return MemoryIO.wrap(ptr);
     }
     private static final MemoryIO wrap(ByteBuffer buffer) {
-        return MemoryIO.wrap(buffer);
+        return MemoryIO.wrap(runtime, buffer);
     }
     private static final MemoryIO allocateDirect(int size) {
-        return MemoryIO.allocateDirect(size);
+        return MemoryIO.allocateDirect(runtime, size);
     }
     private final void testPutByte(MemoryIO io, ByteBuffer buffer, int size) {
         for (int i = 0; i < size; ++i) {
@@ -369,8 +375,8 @@ public class MemoryIOTest {
     }
     @Test public void transferDirectToHeap() throws Exception {
         ByteBuffer buf = ByteBuffer.allocate(1024);
-        MemoryIO dst = MemoryIO.wrap(buf);
-        MemoryIO src = MemoryIO.allocateDirect(1024);
+        MemoryIO dst = MemoryIO.wrap(runtime, buf);
+        MemoryIO src = MemoryIO.allocateDirect(runtime, 1024);
         byte[] MAGIC = "MAGIC".getBytes();
         src.put(0, MAGIC, 0, MAGIC.length);
         src.transferTo(0, dst, 0, MAGIC.length);
@@ -382,8 +388,8 @@ public class MemoryIOTest {
         }
     }
     @Test public void transferDirectToDirect() throws Exception {
-        MemoryIO dst = MemoryIO.allocateDirect(1024);
-        MemoryIO src = MemoryIO.allocateDirect(1024);
+        MemoryIO dst = MemoryIO.allocateDirect(runtime, 1024);
+        MemoryIO src = MemoryIO.allocateDirect(runtime, 1024);
         final byte[] MAGIC = "MAGIC".getBytes();
         final int SRCOFF = 100;
         final int DSTOFF = 123;

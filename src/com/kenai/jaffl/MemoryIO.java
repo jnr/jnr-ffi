@@ -11,53 +11,12 @@ import java.nio.charset.Charset;
 public abstract class MemoryIO implements Pointer {
     private final Runtime runtime;
 
-    /**
-     * Allocates a new block of java heap memory and wraps it in a {@link MemoryIO}
-     * accessor.
-     *
-     * @param size The size in bytes of memory to allocate.
-     *
-     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
-     */
-    public static final MemoryIO allocate(int size) {
-        return allocate(Runtime.getDefault(), size);
-    }
-    /**
-     * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
-     * accessor.
-     *
-     * @param size The size in bytes of memory to allocate.
-     *
-     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
-     */
-    public static final MemoryIO allocateDirect(int size) {
-        return allocateDirect(Runtime.getDefault(), size);
-    }
-
-    /**
-     * Allocates a new block of native memory and wraps it in a {@link MemoryIO}
-     * accessor.
-     *
-     * @param size The size in bytes of memory to allocate.
-     * @param clear Whether the memory contents should be cleared, or left as
-     * random data.
-     *
-     * @return A new <tt>MemoryIO</tt> instance that can access the memory.
-     */
-    public static final MemoryIO allocateDirect(int size, boolean clear) {
-        return allocateDirect(Runtime.getDefault(), size, clear);
-    }
-
     public static final MemoryIO wrap(Pointer ptr) {
-        return wrap(Runtime.getDefault(), ptr);
+        return ptr.getRuntime().getMemoryManager().wrap(ptr);
     }
 
     public static final MemoryIO wrap(Pointer ptr, int size) {
-        return wrap(Runtime.getDefault(), ptr, size);
-    }
-
-    public static final MemoryIO wrap(ByteBuffer buffer) {
-        return wrap(Runtime.getDefault(), buffer);
+        return ptr.getRuntime().getMemoryManager().wrap(ptr, size);
     }
 
     /**
@@ -96,15 +55,7 @@ public abstract class MemoryIO implements Pointer {
     public static final MemoryIO allocateDirect(Runtime runtime, int size, boolean clear) {
         return runtime.getMemoryManager().allocateDirect(size, clear);
     }
-
-    public static final MemoryIO wrap(Runtime runtime, Pointer ptr) {
-        return runtime.getMemoryManager().wrap(ptr);
-    }
-
-    public static final MemoryIO wrap(Runtime runtime, Pointer ptr, int size) {
-        return runtime.getMemoryManager().wrap(ptr, size);
-    }
-
+    
     public static final MemoryIO wrap(Runtime runtime, ByteBuffer buffer) {
         return runtime.getMemoryManager().wrap(buffer);
     }

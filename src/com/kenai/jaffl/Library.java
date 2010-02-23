@@ -22,6 +22,10 @@ public final class Library {
         name = libraryName;
     }
 
+    public static final Runtime getRuntime(Object obj) {
+        return Runtime.getDefault();
+    }
+
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.

@@ -2,6 +2,7 @@
 package com.kenai.jaffl;
 
 public interface Pointer {
+    abstract public Runtime getRuntime();
     abstract public byte getByte(long offset);
     abstract public short getShort(long offset);
     abstract public int getInt(long offset);

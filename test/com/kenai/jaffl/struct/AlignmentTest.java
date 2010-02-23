@@ -5,7 +5,10 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.Library;
 import com.kenai.jaffl.Runtime;
+import com.kenai.jaffl.TstUtil;
+import com.kenai.jaffl.struct.AlignmentTest.TestLib.PointerStruct;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -18,12 +21,27 @@ import static org.junit.Assert.*;
  * @author wayne
  */
 public class AlignmentTest {
+    public static interface TestLib {
+        class PointerStruct extends Struct {
 
+            public final Signed8 s8 = new Signed8();
+            public final Pointer p = new Pointer();
+
+            public PointerStruct() {
+                super(runtime);
+            }
+        }
+    }
+
+    static TestLib testlib;
+    static Runtime runtime;
     public AlignmentTest() {
     }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
     }
 
     @AfterClass
@@ -43,10 +61,7 @@ public class AlignmentTest {
     //
     // @Test
     // public void hello() {}
-    class PointerStruct extends Struct {
-        public final Signed8 s8 = new Signed8();
-        public final Pointer p = new Pointer();
-    }
+    
 
     @Test public void alignPointer() throws Throwable {
         PointerStruct s = new PointerStruct();

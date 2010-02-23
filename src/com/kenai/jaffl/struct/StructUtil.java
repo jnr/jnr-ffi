@@ -2,6 +2,7 @@
 package com.kenai.jaffl.struct;
 
 import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Runtime;
 import java.lang.reflect.Array;
 
 /**
@@ -27,7 +28,7 @@ public final class StructUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static final <T extends Struct> T[] newArray(Class<T> type, int length) {
+    public static final <T extends Struct> T[] newArray(Runtime runtime, Class<T> type, int length) {
         try {
             T[] array = (T[]) Array.newInstance(type, length);
             for (int i = 0; i < length; ++i) {
@@ -40,7 +41,7 @@ public final class StructUtil {
                 if ((structSize & mask) != 0) {
                     structSize = (structSize & ~mask) + align;
                 }
-                MemoryIO memory = MemoryIO.allocateDirect(structSize * length);
+                MemoryIO memory = MemoryIO.allocateDirect(runtime, structSize * length);
                 for (int i = 0; i < array.length; ++i) {
                     array[i].useMemory(memory.slice(structSize * i, structSize));
                 }

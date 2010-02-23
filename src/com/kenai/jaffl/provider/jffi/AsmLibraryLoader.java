@@ -1297,8 +1297,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 //        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
         System.err.println("adding floats=" + lib.add_float(1.0f, 2.0f));
         System.err.println("adding doubles=" + lib.add_double(1.0, 2.0));
-        Pointer p = MemoryIO.allocateDirect(1024);
+        Pointer p = MemoryIO.allocateDirect(NativeRuntime.getInstance(), 1024);
         lib.ptr_ret_int8_t(p, 0);
-        lib.ptr_ret_int8_t(MemoryIO.allocate(1024), 0);
+        lib.ptr_ret_int8_t(MemoryIO.allocate(NativeRuntime.getInstance(), 1024), 0);
     }
 }
