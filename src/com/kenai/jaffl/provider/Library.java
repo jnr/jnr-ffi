@@ -36,7 +36,7 @@ public abstract class Library {
         //
         searchPath.addAll(0, com.kenai.jaffl.Library.getLibraryPath(libraryName));
         searchPath.addAll(userLibraryPath);
-        String path = Platform.getPlatform().locateLibrary(libraryName, searchPath);
+        String path = Platform.getNativePlatform().locateLibrary(libraryName, searchPath);
         return path != null ? path : null;
     }
     

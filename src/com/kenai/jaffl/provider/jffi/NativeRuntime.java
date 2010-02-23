@@ -4,19 +4,13 @@ package com.kenai.jaffl.provider.jffi;
 import com.kenai.jaffl.NativeType;
 import com.kenai.jaffl.Type;
 import com.kenai.jaffl.provider.BadType;
-import com.kenai.jaffl.provider.MemoryManager;
 import java.nio.ByteOrder;
 
 /**
  *
  */
-public class NativeRuntime extends com.kenai.jaffl.Runtime {
-    private final MemoryManager memoryManager = new com.kenai.jaffl.provider.jffi.MemoryManager();
-    private final int longSize;
-    private final int addressSize;
-    private final long addressMask;
-    private final Type[] types;
-
+public final class NativeRuntime extends com.kenai.jaffl.Runtime {
+    
     public static final NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
     }
@@ -26,49 +20,20 @@ public class NativeRuntime extends com.kenai.jaffl.Runtime {
     }
 
     private NativeRuntime() {
-        longSize = com.kenai.jffi.Type.SLONG.size();
-        addressSize = com.kenai.jffi.Type.POINTER.size();
-        addressMask = com.kenai.jffi.Type.POINTER.size() == 4 ? 0xffffffffL : 0xffffffffffffffffL;
+        super(ByteOrder.nativeOrder(), new com.kenai.jaffl.provider.jffi.MemoryManager(), buildTypeArray());
+    }
+
+    private static Type[] buildTypeArray() {
         NativeType[] nativeTypes = NativeType.values();
 
         Type[] t = new Type[nativeTypes.length];
         for (int i = 0; i < nativeTypes.length; ++i) {
             t[i] = jafflType(nativeTypes[i]);
         }
-        this.types = t;
+
+        return t;
     }
 
-
-    @Override
-    public final long addressMask() {
-        return addressMask;
-    }
-
-    @Override
-    public final int addressSize() {
-        return addressSize;
-    }
-
-    @Override
-    public final int longSize() {
-        return longSize;
-    }
-
-    @Override
-    public final ByteOrder byteOrder() {
-        return ByteOrder.nativeOrder();
-    }
-
-    @Override
-    public Type findType(NativeType type) {
-        return types[type.ordinal()];
-    }
-
-
-    @Override
-    public MemoryManager getMemoryManager() {
-        return memoryManager;
-    }
 
     @Override
     public int getLastError() {

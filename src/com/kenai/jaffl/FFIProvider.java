@@ -1,7 +1,6 @@
 
 package com.kenai.jaffl;
 
-import com.kenai.jaffl.provider.MemoryManager;
 import java.util.Map;
 
 /**

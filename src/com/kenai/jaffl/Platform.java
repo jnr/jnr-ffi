@@ -11,74 +11,7 @@ import java.util.regex.Pattern;
 public abstract class Platform {
     private final OS os;
     private final CPU cpu;
-    private final int addressSize;
-    private final long addressMask;
-    private final int javaVersionMajor;
     protected final Pattern libPattern;
-
-    /**
-     * The common names of operating systems.
-     *
-     * <b>Note</b> The names of the enum values are used in other parts of the
-     * code to determine where to find the native stub library.  Do not rename.
-     */
-    public enum OS {
-        /** MacOSX */
-        DARWIN,
-        /** FreeBSD */
-        FREEBSD,
-        /** NetBSD */
-        NETBSD,
-        /** OpenBSD */
-        OPENBSD,
-        /** Linux */
-        LINUX,
-        /** Solaris (and OpenSolaris) */
-        SOLARIS,
-        /** The evil borg operating system */
-        WINDOWS,
-        /** IBM AIX */
-        AIX,
-        /** IBM zOS **/
-        ZLINUX,
-        /** No idea what the operating system is */
-        UNKNOWN;
-
-        @Override
-        public String toString() { return name().toLowerCase(); }
-    }
-
-    /**
-     * The common names of cpu architectures.
-     *
-     * <b>Note</b> The names of the enum values are used in other parts of the
-     * code to determine where to find the native stub library.  Do not rename.
-     */
-    public enum CPU {
-        /** Intel ia32 */
-        I386,
-        /** AMD 64 bit (aka EM64T/X64) */
-        X86_64,
-        /** Power PC 32 bit */
-        PPC,
-        /** Power PC 64 bit */
-        PPC64,
-        /** Sun sparc 32 bit */
-        SPARC,
-        /** Sun sparc 64 bit */
-        SPARCV9,
-        /** IBM zSeries S/390 64 bit */
-        S390X,
-
-        /** 32 bit MIPS (used by nestedvm) */
-        MIPS32,
-
-        /** Unknown CPU */
-        UNKNOWN;
-
-        @Override
-        public String toString() { return name().toLowerCase(); }
-    }
 
     private static final class SingletonHolder {
         static final Platform PLATFORM = determinePlatform();
@@ -162,12 +95,9 @@ public abstract class Platform {
         }
     }
 
-    public Platform(OS os, CPU cpu, int addressSize, String libPattern) {
+    public Platform(OS os, CPU cpu, String libPattern) {
         this.os = os;
         this.cpu = cpu;
-        this.addressSize = addressSize;
-        this.addressMask = addressSize == 32 ? 0xffffffffL : 0xffffffffffffffffL;
-        this.javaVersionMajor = determineJavaVersion();
         this.libPattern = Pattern.compile(libPattern);
     }
     
@@ -192,10 +122,7 @@ public abstract class Platform {
                     throw new ExceptionInInitializerError("Cannot determine cpu address size");
             }
         }
-        addressSize = dataModel;
-        addressMask = addressSize == 32 ? 0xffffffffL : 0xffffffffffffffffL;
         
-        javaVersionMajor = determineJavaVersion();
         String libpattern = null;
         switch (os) {
             case WINDOWS:
@@ -210,26 +137,13 @@ public abstract class Platform {
         }
         libPattern = Pattern.compile(libpattern);
     }
-
-    private static int determineJavaVersion() {
-        try {
-            String versionString = System.getProperty("java.version");
-            if (versionString != null) {
-                String[] v = versionString.split("\\.");
-                return Integer.valueOf(v[1]);
-            }
-            return 5;
-        } catch (Exception ex) {
-            throw new ExceptionInInitializerError("Could not determine java version");
-        }
-    }
-
+    
     /**
-     * Gets the current <tt>Platform</tt>
+     * Gets the native <tt>Platform</tt>
      *
      * @return The current platform.
      */
-    public static final Platform getPlatform() {
+    public static final Platform getNativePlatform() {
         return SingletonHolder.PLATFORM;
     }
 
@@ -250,46 +164,12 @@ public abstract class Platform {
     public final CPU getCPU() {
         return cpu;
     }
-
-    /**
-     * Gets the version of the Java Virtual Machine (JVM) jffi is running on.
-     *
-     * @return A number representing the java version.  e.g. 5 for java 1.5, 6 for java 1.6
-     */
-    public final int getJavaMajorVersion() {
-        return javaVersionMajor;
-    }
+    
     public final boolean isBSD() {
         return os == OS.FREEBSD || os == os.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
     }
     public final boolean isUnix() {
         return os != OS.WINDOWS;
-    }
-    /**
-     * Gets the size of a C 'long' on the native platform.
-     *
-     * @return the size of a long in bits
-     */
-    public final int longSize() {
-        return addressSize;
-    }
-
-    /**
-     * Gets the size of a C address/pointer on the native platform.
-     *
-     * @return the size of a pointer in bits
-     */
-    public final int addressSize() {
-        return addressSize;
-    }
-
-    /**
-     * Gets the 32/64bit mask of a C address/pointer on the native platform.
-     *
-     * @return the size of a pointer in bits
-     */
-    public final long addressMask() {
-        return addressMask;
     }
 
     /**
