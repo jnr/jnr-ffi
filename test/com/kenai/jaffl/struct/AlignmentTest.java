@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package com.kenai.jaffl.struct;
 
@@ -18,7 +14,6 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author wayne
  */
 public class AlignmentTest {
     public static interface TestLib {
@@ -65,7 +60,7 @@ public class AlignmentTest {
 
     @Test public void alignPointer() throws Throwable {
         PointerStruct s = new PointerStruct();
-        final int SIZE = Runtime.getDefault().addressSize() == 4 ? 8 : 16;
+        final int SIZE = runtime.addressSize() == 4 ? 8 : 16;
         assertEquals("Incorrect pointer field alignment", SIZE, StructUtil.getSize(s));
     }
 
