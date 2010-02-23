@@ -3,6 +3,7 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.provider.Invoker;
+import com.kenai.jaffl.provider.LoadedLibrary;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +25,10 @@ public class Library extends com.kenai.jaffl.provider.Library {
     }
 
     public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {
+        if (method.getDeclaringClass().equals(LoadedLibrary.class)) {
+            return new GetRuntimeInvoker();
+        }
+
         return DefaultInvokerFactory.getInstance().createInvoker(method, this, options);
     }
 
@@ -76,5 +81,12 @@ public class Library extends com.kenai.jaffl.provider.Library {
         }
 
         return Collections.unmodifiableList(libs);
+    }
+
+    private static final class GetRuntimeInvoker implements Invoker {
+
+        public Object invoke(Object[] parameters) {
+            return NativeRuntime.getInstance();
+        }
     }
 }

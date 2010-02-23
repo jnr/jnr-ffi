@@ -56,7 +56,7 @@ public class NativeInvocationHandler implements InvocationHandler {
     public static <T> T wrapInterface(Library library, Class<T> interfaceClass,
             Map<LibraryOption, ?> optionsMap) {
         return interfaceClass.cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(), 
-                new Class[]{ interfaceClass }, 
+                new Class[]{ interfaceClass, LoadedLibrary.class },
                 new NativeInvocationHandler(library, interfaceClass, optionsMap)));
     }
     

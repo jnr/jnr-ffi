@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl.provider.jffi;
 
+import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
@@ -112,6 +113,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return Float64Invoker.INSTANCE;
         } else if (Pointer.class.isAssignableFrom(returnType)) {
             return PointerInvoker.INSTANCE;
+        } else if (Address.class.isAssignableFrom(returnType)) {
+            return AddressInvoker.INSTANCE;
         } else if (Struct.class.isAssignableFrom(returnType)) {
             return new StructInvoker(returnType);
         } else if (String.class.isAssignableFrom(returnType)) {
@@ -142,6 +145,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
         } else if (Enum.class.isAssignableFrom(type)) {
             return Type.SINT32;
         } else if (Pointer.class.isAssignableFrom(type)) {
+            return Type.POINTER;
+        } else if (Address.class.isAssignableFrom(type)) {
             return Type.POINTER;
         } else if (Struct.class.isAssignableFrom(type)) {
             return Type.POINTER;
@@ -453,6 +458,14 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return MemoryUtil.newPointer(invoker.invokeAddress(function, buffer));
         }
     }
+
+    static final class AddressInvoker extends BaseInvoker {
+        static final FunctionInvoker INSTANCE = new AddressInvoker();
+        public final Object invoke(Function function, HeapInvocationBuffer buffer) {
+            return new Address(invoker.invokeAddress(function, buffer));
+        }
+    }
+
     static final class StructInvoker extends BaseInvoker {
         private final Class structClass;
         public StructInvoker(Class structClass) {

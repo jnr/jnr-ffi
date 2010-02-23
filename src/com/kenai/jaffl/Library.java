@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl;
 
+import com.kenai.jaffl.provider.LoadedLibrary;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +24,7 @@ public final class Library {
     }
 
     public static final Runtime getRuntime(Object obj) {
-        return Runtime.getDefault();
+        return ((LoadedLibrary) obj).__jaffl_runtime__();
     }
 
     /**

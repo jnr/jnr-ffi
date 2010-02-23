@@ -25,6 +25,7 @@ import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.annotations.StdCall;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
@@ -36,6 +37,7 @@ import com.kenai.jaffl.mapper.ToNativeContext;
 import com.kenai.jaffl.mapper.ToNativeConverter;
 import com.kenai.jaffl.mapper.TypeMapper;
 import com.kenai.jaffl.provider.InvocationSession;
+import com.kenai.jaffl.provider.LoadedLibrary;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jffi.ArrayFlags;
 import com.kenai.jffi.CallingConvention;
@@ -1188,7 +1190,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     
-    public static abstract class AbstractNativeInterface {
+    public static abstract class AbstractNativeInterface implements LoadedLibrary {
         public static final com.kenai.jffi.Invoker ffi = com.kenai.jffi.Invoker.getInstance();
         
         // Strong ref to keep the library alive
@@ -1202,6 +1204,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return new HeapInvocationBuffer(f);
         }
 
+        public final Runtime __jaffl_runtime__() {
+            return NativeRuntime.getInstance();
+        }
     }
 
     public static final class ToNativeProxy implements ToNativeConverter {
