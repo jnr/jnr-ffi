@@ -63,7 +63,7 @@ public class PointerTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
-        libc = Library.loadLibrary("c", Libc.class);
+//        libc = Library.loadLibrary("c", Libc.class);
     }
 
     @AfterClass
@@ -240,9 +240,9 @@ public class PointerTest {
         }      
     }
     
-    @Test
-    public void testLibcMalloc() {
-        Pointer p = libc.malloc(SIZE);
-        libc.free(p);
-    }
+//    @Test
+//    public void testLibcMalloc() {
+//        Pointer p = libc.malloc(SIZE);
+//        libc.free(p);
+//    }
 }

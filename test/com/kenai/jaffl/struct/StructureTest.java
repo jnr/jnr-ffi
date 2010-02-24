@@ -18,7 +18,10 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.Library;
 import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.NativeLong;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.TstUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -34,6 +37,7 @@ public class StructureTest {
 
     public StructureTest() {
     }
+    
     public static interface TestLib {
         byte struct_field_Signed8(struct1 s);
         short struct_field_Signed16(struct1 s);
@@ -44,16 +48,19 @@ public class StructureTest {
         short struct_align_Signed16(Int16Align s);
         int struct_align_Signed32(Int32Align s);
         long struct_align_Signed64(Int64Align s);
-        long struct_align_SignedLong(LongAlign s);
+        NativeLong struct_align_SignedLong(LongAlign s);
         struct1 struct_make_struct(byte b, short s, int i, long ll, float f, double d);
 //        float struct_align_Float32(Float32Align s);
 //        double struct_align_Float64(Float64Align s);
 //        void struct_set_string(struct1 s, String string);
     }
     static TestLib testlib;
+    static Runtime runtime;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
     }
     
 
@@ -76,34 +83,63 @@ public class StructureTest {
         public final SignedLong l = new SignedLong();
         public final Float f = new Float();
         public final Double d = new Double();
+
+        public struct1() {
+            super(runtime);
+        }
+
+
     }
     public static class Int16Align extends Struct {
         public final Signed8 first = new Signed8();
         public final Signed16 s = new Signed16();
+
+        public Int16Align() {
+            super(runtime);
+        }
+
     }
     public static class Int32Align extends Struct {
         public final Signed8 first = new Signed8();
         public final Signed32 i = new Signed32();
+
+        public Int32Align() {
+            super(runtime);
+        }
+
     }
     public static class Int64Align extends Struct {
         public final Signed8 first = new Signed8();
         public final Signed64 l = new Signed64();
+
+        public Int64Align() {
+            super(runtime);
+        }
+
     }
     public static class LongAlign extends Struct {
         public final Signed8 first = new Signed8();
         public final SignedLong l = new SignedLong();
+
+        public LongAlign() {
+            super(runtime);
+        }
+
     }
+
     @Test public void testInt8InitialValue() {
         struct1 s = new struct1();
         assertEquals("default value not zero", (byte) 0, s.b.get());
     }
+
     @Test public void testInt8Set() {
         struct1 s = new struct1();
         final byte MAGIC = (byte) 0xfe;
         s.b.set(MAGIC);
         assertEquals("Byte value not set correctly", MAGIC, s.b.get());
     }
-    @Test 
+
+    @Test
     public void byteField() {
         final byte MAGIC = (byte) 0xbe;
         struct1 s = new struct1();
@@ -113,7 +149,8 @@ public class StructureTest {
         s.b.set((byte) 0);
         assertEquals("byte field not cleared", (byte) 0, testlib.struct_field_Signed8(s));
     }
-    @Test 
+
+    @Test
     public void shortField() {
         final short MAGIC = (short) 0xbeef;
         struct1 s = new struct1();
@@ -123,7 +160,8 @@ public class StructureTest {
         s.s.set((short) 0);
         assertEquals("short field not cleared", (short) 0, testlib.struct_field_Signed16(s));
     }
-    @Test 
+
+    @Test
     public void intField() {
         final int MAGIC = 0xdeadbeef;
         struct1 s = new struct1();
@@ -134,7 +172,7 @@ public class StructureTest {
         assertEquals("int field not cleared", 0, testlib.struct_field_Signed32(s));
     }
     @Test 
-    public void longField() {
+    public void int64Field() {
         final long MAGIC = 0x1234deadbeef5678L;
         struct1 s = new struct1();
         s.i64.set(MAGIC);
@@ -169,7 +207,7 @@ public class StructureTest {
     }
     @Test 
     public void alignSignedLongField() {
-        final long MAGIC = 0xdeadbeef;
+        final NativeLong MAGIC = new NativeLong(0xdeadbeef);
         LongAlign s = new LongAlign();
         s.l.set(MAGIC);
         
@@ -194,6 +232,11 @@ public class StructureTest {
     }
     private static final class ArrayTest extends Struct {
         public final Signed8[] byteArray = array(new Signed8[8]);
+
+        public ArrayTest() {
+            super(runtime);
+        }
+
     }
     @Test
     public void arrayMember() {
@@ -204,6 +247,11 @@ public class StructureTest {
     }
     private static final class Unsigned8Test extends Struct {
         public final Unsigned8 u8 = new Unsigned8();
+
+        public Unsigned8Test() {
+            super(runtime);
+        }
+
     }
     @Test
     public void unsigned8() {
@@ -214,6 +262,11 @@ public class StructureTest {
     }
     private static final class Unsigned16Test extends Struct {
         public final Unsigned16 u16 = new Unsigned16();
+
+        public Unsigned16Test() {
+            super(runtime);
+        }
+
     }
     @Test
     public void unsigned16() {
@@ -224,6 +277,11 @@ public class StructureTest {
     }
     private static final class Unsigned32Test extends Struct {
         public final Unsigned32 u32 = new Unsigned32();
+
+        public Unsigned32Test() {
+            super(runtime);
+        }
+
     }
     @Test
     public void unsigned32() {
@@ -235,6 +293,11 @@ public class StructureTest {
     
     private static final class Unsigned64Test extends Struct {
         public final Unsigned64 u64 = new Unsigned64();
+
+        public Unsigned64Test() {
+            super(runtime);
+        }
+
     }
     @Test
     public void unsigned64() {
@@ -249,21 +312,36 @@ public class StructureTest {
     
     private static final class UnsignedLongTest extends Struct {
         public final UnsignedLong ul = new UnsignedLong();
+
+        public UnsignedLongTest() {
+            super(runtime);
+        }
+
     }
     @Test
     public void unsignedLong() {
         UnsignedLongTest s = new UnsignedLongTest();
         final long MAGIC = (long) Integer.MAX_VALUE + 1;
         s.ul.set(MAGIC);
-        assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue());
+        assertEquals("Incorrect unsigned long value", (long) (int) MAGIC, s.ul.longValue());
     }
 
     private class InnerStruct extends Struct {
         public final Signed8 s8 = new Signed8();
+
+        public InnerStruct() {
+            super(runtime);
+        }
+
     }
     private class InnerTest extends Struct {
         public final Signed32 i32 = new Signed32();
         public final InnerStruct s = inner(new InnerStruct());
+
+        public InnerTest() {
+            super(runtime);
+        }
+
     }
     @Test public void innerStruct() {
         InnerTest t = new InnerTest();

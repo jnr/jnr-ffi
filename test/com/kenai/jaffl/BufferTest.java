@@ -20,6 +20,7 @@ package com.kenai.jaffl;
 
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.Out;
+import com.kenai.jaffl.Runtime;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -72,9 +73,11 @@ public class BufferTest {
         void copyIntBuffer(@Out int[] dst, @In int[] src, int size);
     }
     static TestLib lib;
+    static Runtime runtime;
     @BeforeClass
     public static void setUpClass() throws Exception {
         lib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(lib);
     }
 
     @AfterClass
@@ -96,7 +99,7 @@ public class BufferTest {
     private static final int LARGE = 2048;
    
     public void testByteBufferArgument(int size) {
-        ByteBuffer buf  = ByteBuffer.allocate(size).order(ByteOrder.nativeOrder());
+        ByteBuffer buf  = ByteBuffer.allocate(size).order(runtime.byteOrder());
         final byte MAGIC = (byte)0xED;
         lib.fillByteBuffer(buf, MAGIC, buf.remaining());
         for (int i=0;i < buf.capacity();i++) {
@@ -113,7 +116,7 @@ public class BufferTest {
     }
     @Test
     public void fillByteBufferWithOffsetArgument() {
-        ByteBuffer buf  = ByteBuffer.allocate(SMALL).order(ByteOrder.nativeOrder());
+        ByteBuffer buf  = ByteBuffer.allocate(SMALL).order(runtime.byteOrder());
         final byte MAGIC = (byte)0xED;
         buf.put((byte)0xDE);
         lib.fillByteBuffer(buf.slice(), MAGIC, SMALL - 1);
@@ -125,7 +128,7 @@ public class BufferTest {
     @Test
     public void fillByteBufferSlice() {
         final int SIZE = SMALL;
-        ByteBuffer buf  = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
+        ByteBuffer buf  = ByteBuffer.allocate(SIZE).order(runtime.byteOrder());
         final byte MAGIC = (byte)0xED;
         buf.put(0, (byte)0xDE);
         buf.put(buf.limit() - 1, (byte) 0xDE);
@@ -270,7 +273,7 @@ public class BufferTest {
     }
     @Test
     public void fillDirectByteBufferArgument() {
-        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL).order(ByteOrder.nativeOrder());
+        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL).order(runtime.byteOrder());
         final byte MAGIC = (byte)0xED;
         lib.fillByteBuffer(buf, MAGIC, SMALL);
         for (int i=0;i < buf.capacity();i++) {
@@ -279,7 +282,7 @@ public class BufferTest {
     }
     @Test
     public void fillDirectShortBufferArgument() {
-        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*2).order(ByteOrder.nativeOrder());
+        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*2).order(runtime.byteOrder());
         ShortBuffer shortBuf = buf.asShortBuffer();
         final short MAGIC = (short)0xABED;
         lib.fillShortBuffer(shortBuf, MAGIC, SMALL);
@@ -289,7 +292,7 @@ public class BufferTest {
     }
     @Test
     public void fillDirectIntBufferArgument() {
-        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*4).order(ByteOrder.nativeOrder());
+        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*4).order(runtime.byteOrder());
         IntBuffer intBuf = buf.asIntBuffer();
         final int MAGIC = 0xABEDCF23;
         lib.fillIntBuffer(intBuf, MAGIC, SMALL);
@@ -299,7 +302,7 @@ public class BufferTest {
     }
     @Test
     public void fillDirectLongBufferArgument() {
-        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*8).order(ByteOrder.nativeOrder());
+        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*8).order(runtime.byteOrder());
         LongBuffer longBuf = buf.asLongBuffer();
         final long MAGIC = 0x1234567887654321L;
         lib.fillLongBuffer(longBuf, MAGIC, SMALL);

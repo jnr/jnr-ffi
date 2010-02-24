@@ -18,10 +18,12 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.Library;
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.Out;
 import com.kenai.jaffl.annotations.Pinned;
 import com.kenai.jaffl.annotations.Transient;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.TstUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -39,6 +41,11 @@ public class AsciiStringFieldTest {
     }
     public class StringFieldStruct extends Struct {
         public final String string = new AsciiString(32);
+
+        public StringFieldStruct() {
+            super(runtime);
+        }
+
     }
     public static interface TestLib {
         // This makes use of the string being the first field in the struct
@@ -48,9 +55,11 @@ public class AsciiStringFieldTest {
         int copyByteBuffer(@Pinned @Out StringBuilder dst, @Pinned @In @Transient StringFieldStruct src, int len);
     }
     static TestLib testlib;
+    static Runtime runtime;
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
     }
 
     @AfterClass

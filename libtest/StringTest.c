@@ -29,8 +29,12 @@ string_set(char* s1, const char* s2)
 {
     strcpy(s1, s2);
 }
+
 void
 string_concat(char* dst, const char* src)
 {
-    strcat(dst, src);
+    char* ep = dst;
+    while (*ep)
+        ep++;
+    strcpy(ep, src);
 }

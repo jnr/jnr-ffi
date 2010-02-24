@@ -18,6 +18,9 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.Library;
+import com.kenai.jaffl.Runtime;
+import com.kenai.jaffl.TstUtil;
 import java.nio.ByteOrder;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -30,14 +33,22 @@ import static org.junit.Assert.*;
  *
  */
 public class UnionTest {
+    public static interface TestLib {
 
+    }
+    
     public UnionTest() {
     }
 
+    static TestLib testlib;
+    static Runtime runtime;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
+        testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
     }
-
+    
     @AfterClass
     public static void tearDownClass() throws Exception {
     }
@@ -59,6 +70,12 @@ public class UnionTest {
         public final Unsigned32 u32 = new Unsigned32();
         public final Signed64 s64 = new Signed64();
         public final Unsigned64 u64 = new Unsigned64();
+
+        public union() {
+            super(runtime);
+        }
+
+
     }
     @Test public void offsetTest() {
         union u = new union();
@@ -73,7 +90,7 @@ public class UnionTest {
     }
     @Test public void s8s16() {
         union u = new union();
-        final int MAGIC = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)
+        final int MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xef00 : 0x00ef;
         u.s16.set((short) MAGIC);
         assertEquals("Wrong value", (byte) 0xef, u.s8.get());
@@ -81,7 +98,7 @@ public class UnionTest {
     
     @Test public void s8s32() {
         union u = new union();
-        final int MAGIC = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)
+        final int MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xef000000 : 0x000000ef;
         u.s32.set(MAGIC);
         assertEquals("Wrong value", (byte) 0xef, u.s8.get());
@@ -89,14 +106,14 @@ public class UnionTest {
     
     @Test public void s16s32() {
         union u = new union();
-        final int MAGIC = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)
+        final int MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xdead0000 : 0x0000dead;
         u.s32.set(MAGIC);
         assertEquals("Wrong value", (short) 0xdead, u.s16.get());
     }
     @Test public void s8s64() {
         union u = new union();
-        final long MAGIC = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)
+        final long MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xef00000000000000L : 0xefL;
         u.s64.set(MAGIC);
         assertEquals("Wrong value", (byte) 0xef, u.s8.get());
@@ -104,7 +121,7 @@ public class UnionTest {
     
     @Test public void s16s64() {
         union u = new union();
-        final long MAGIC = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)
+        final long MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xbeef000000000000L : 0xbeefL;
         u.s64.set(MAGIC);
         assertEquals("Wrong value", (short) 0xbeef, u.s16.get());
@@ -112,7 +129,7 @@ public class UnionTest {
     
     @Test public void s32s64() {
         union u = new union();
-        final long MAGIC = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)
+        final long MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xdeadbeef00000000L : 0xdeadbeefL;
         u.s64.set(MAGIC);
         assertEquals("Wrong value", 0xdeadbeef, u.s32.get());

@@ -18,6 +18,7 @@
 
 package com.kenai.jaffl;
 
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.annotations.SaveError;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,8 +57,10 @@ public class LastErrorTest {
     
     @Test public void testLastError() {
         TestLib lib = TstUtil.loadTestLib(TestLib.class);
+        Runtime runtime = Library.getRuntime(lib);
+
         final int MAGIC = 0xdeadbeef;
         lib.setLastError(MAGIC);
-        assertEquals("Wrong errno value", MAGIC, LastError.getLastError());
+        assertEquals("Wrong errno value", MAGIC, runtime.getLastError());
     }
 }

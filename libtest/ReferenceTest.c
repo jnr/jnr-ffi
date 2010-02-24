@@ -16,7 +16,16 @@
  * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
+#ifndef __mips__
+# include <stdint.h>
+#endif
+
+#ifndef _STDINT_H
+typedef signed char int8_t;
+typedef signed short int16_t;
+typedef signed int int32_t;
+typedef signed long long int64_t;
+#endif
 
 #define REF(T) void ref_##T(T arg, T* result) { *result = arg; }
 #define ADD(T) void ref_add_##T(T arg1, T arg2, T* result) { *result = arg1 + arg2; }

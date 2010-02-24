@@ -18,6 +18,8 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.Library;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.TstUtil;
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.Out;
@@ -39,6 +41,11 @@ public class UTF8StringFieldTest {
     }
     public class StringFieldStruct extends Struct {
         public final UTF8String string = new UTF8String(32);
+
+        public StringFieldStruct() {
+            super(runtime);
+        }
+
     }
     public static interface TestLib {
         // This makes use of the string being the first field in the struct
@@ -48,9 +55,11 @@ public class UTF8StringFieldTest {
         int copyByteBuffer(@Pinned @Out StringBuilder dst, @Pinned @In @Transient StringFieldStruct src, int len);
     }
     static TestLib testlib;
+    static Runtime runtime;
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
     }
 
     @AfterClass
@@ -76,7 +85,12 @@ public class UTF8StringFieldTest {
         private final Signed8 sun_len = new Signed8();
         private final Signed8 sun_family = new Signed8();
         private final UTF8String sun_path = new UTF8String(100);
+
+        public SockaddrUnix() {
+            super(runtime);
+        }
     }
+
     @Test public void SockaddrUnix() {
         final int SUN_LEN = 1;
         final int SUN_FAM = 2;

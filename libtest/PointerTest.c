@@ -18,7 +18,9 @@
 
 #include <sys/types.h>
 #include <sys/param.h>
-#include <stdint.h>
+#ifndef __mips__
+# include <stdint.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +29,12 @@ typedef void* pointer;
 #ifdef _WIN32
 typedef char* caddr_t;
 #endif
-
+#ifndef _STDINT_H
+typedef signed char int8_t;
+typedef signed short int16_t;
+typedef signed int int32_t;
+typedef signed long long int64_t;
+#endif
 #define RET(T) T ptr_ret_##T(void* arg1, int offset) { \
     T tmp; memcpy(&tmp, (caddr_t) arg1 + offset, sizeof(tmp)); return tmp; \
 }
@@ -64,7 +71,9 @@ ptr_from_buffer(void* ptr)
 void*
 ptr_malloc(int size) 
 {
-    return calloc(1, size);
+    void* ptr = malloc(size);
+    memset(ptr, 0, size);
+    return ptr;
 }
 void
 ptr_free(void* ptr)

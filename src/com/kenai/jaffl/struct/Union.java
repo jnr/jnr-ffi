@@ -10,11 +10,17 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.Runtime;
+
 /**
  * Represents a C union
  */
 public abstract class Union extends Struct {
     protected Union() {
         super(true);
+    }
+
+    protected Union(Runtime runtime) {
+        super(runtime, true);
     }
 }

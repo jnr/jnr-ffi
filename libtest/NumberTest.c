@@ -17,7 +17,23 @@
  */
 
 #include <stdio.h>
-#include <stdint.h>
+#ifndef __mips__
+# include <stdint.h>
+#endif
+
+#ifndef _STDINT_H
+typedef signed char int8_t;
+typedef signed short int16_t;
+typedef signed int int32_t;
+typedef signed long long int64_t;
+#endif
+typedef char Signed8;
+typedef short Signed16;
+typedef int Signed32;
+typedef long long Signed64;
+typedef float Float32;
+typedef double Float64;
+typedef long SignedLong;
 
 #define ADD(T) T add_##T(T arg1, T arg2) { return arg1 + arg2; }
 #define SUB(T) T sub_##T(T arg1, T arg2) { return arg1 - arg2; }
@@ -33,3 +49,10 @@ TEST(int64_t);
 TEST(float);
 TEST(double);
 TEST(long);
+TEST(Signed8);
+TEST(Signed16);
+TEST(Signed32);
+TEST(Signed64);
+TEST(SignedLong);
+TEST(Float32);
+TEST(Float64);

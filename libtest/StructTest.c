@@ -18,7 +18,6 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 
 typedef char Signed8;
@@ -52,9 +51,9 @@ T(j, Signed64);
 T(f, Float32);
 T(d, Float64);
 
-Signed64 struct_field_SignedLong(struct test1* t) { return t->l; } 
+long struct_field_SignedLong(struct test1* t) { return t->l; }
 struct SignedLongAlign { char first; SignedLong value; };
-Signed64 struct_align_SignedLong(struct SignedLongAlign* a) { return a->value; }
+long struct_align_SignedLong(struct SignedLongAlign* a) { return a->value; }
 
 void 
 struct_set_string(struct test1* t, char* s) 

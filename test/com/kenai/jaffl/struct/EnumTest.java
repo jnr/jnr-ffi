@@ -18,7 +18,10 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.Library;
+import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.util.EnumMapper;
+import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.TstUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -46,6 +49,11 @@ public class EnumTest {
         public final Enum32<TestEnum> i = new Enum32<TestEnum>(TestEnum.class);
         public final Enum64<TestEnum> i64 = new Enum64<TestEnum>(TestEnum.class);
         public final EnumLong<TestEnum> l = new EnumLong<TestEnum>(TestEnum.class);
+
+        public struct1() {
+            super(runtime);
+        }
+
     }
     public static interface TestLib {
         byte struct_field_Signed8(struct1 s);
@@ -57,15 +65,18 @@ public class EnumTest {
         short struct_align_Signed16(Int16Align s);
         int struct_align_Signed32(Int32Align s);
         long struct_align_Signed64(Int64Align s);
-        long struct_align_SignedLong(LongAlign s);
+        NativeLong struct_align_SignedLong(LongAlign s);
 //        float struct_align_Float32(Float32Align s);
 //        double struct_align_Float64(Float64Align s);
 //        void struct_set_string(struct1 s, String string);
     }
     static TestLib testlib;
+    static Runtime runtime;
+    
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
     }
     
 
@@ -89,18 +100,37 @@ public class EnumTest {
     public static class Int16Align extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final Enum16<TestEnum> s = new Enum16<TestEnum>(TestEnum.class);
+
+        public Int16Align() {
+            super(runtime);
+        }
+
     }
     public static class Int32Align extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final Enum32<TestEnum> i = new Enum32<TestEnum>(TestEnum.class);
+
+        public Int32Align() {
+            super(runtime);
+        }
     }
     public static class Int64Align extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final Enum64<TestEnum> l = new Enum64<TestEnum>(TestEnum.class);
+
+        public Int64Align() {
+            super(runtime);
+        }
     }
+
     public static class LongAlign extends Struct {
         public final Enum8<TestEnum> first = new Enum8<TestEnum>(TestEnum.class);
         public final EnumLong<TestEnum> l = new EnumLong<TestEnum>(TestEnum.class);
+
+        public LongAlign() {
+            super(runtime);
+        }
+
     }
     @Test public void testInt8InitialValue() {
         struct1 s = new struct1();
@@ -143,7 +173,7 @@ public class EnumTest {
         assertEquals("int field not cleared", 0, testlib.struct_field_Signed32(s));
     }
     @Test 
-    public void longField() {
+    public void int64Field() {
         final long MAGIC = EnumMapper.getInstance().intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.i64.set(TestEnum.MAGIC);
@@ -178,7 +208,7 @@ public class EnumTest {
     }
     @Test 
     public void alignSignedLongField() {
-        final long MAGIC = EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final NativeLong MAGIC = new NativeLong(EnumMapper.getInstance().intValue(TestEnum.MAGIC));
         LongAlign s = new LongAlign();
         s.l.set(TestEnum.MAGIC);
         

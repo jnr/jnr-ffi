@@ -7,16 +7,30 @@ import java.util.Map;
 
 public final class TstUtil {
     private TstUtil() {}
-    public static final String getTestLibraryName() {
-        return "test";
+    private static FFIProvider provider;
+    private static String libname = "test";
+
+    public static final void setProvider(FFIProvider provider) {
+        TstUtil.provider = provider;
     }
+
+    public static final void setPath(String path) {
+        TstUtil.libname = path;
+    }
+    
     public static interface HelperLib {
         Pointer ptr_from_buffer(ByteBuffer buf);
     }
+
     public static <T> T loadTestLib(Class<T> interfaceClass) {
         final Map<LibraryOption, ?> options = Collections.emptyMap();
-        return Library.loadLibrary(getTestLibraryName(), interfaceClass, options);
+        if (provider != null) {
+            return provider.loadLibrary(libname, interfaceClass, options);
+        } else {
+            return Library.loadLibrary(libname, interfaceClass, options);
+        }
     }
+
     public static Pointer getDirectBufferPointer(ByteBuffer buf) {
         return TstUtil.loadTestLib(HelperLib.class).ptr_from_buffer(buf);
     }
