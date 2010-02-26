@@ -125,14 +125,21 @@ public class ArrayTest {
         testlib.ptr_set_int32_t(ref, 0, MAGIC2);
         assertEquals("int reference not written correctly", MAGIC2, ref[0]);
     }
+
     @Test
-    public void longByReference() {
+    public void getLongByReference() {
         final long MAGIC = 0x1234fee1dead6789L;
         long[] ref = { MAGIC };
         assertEquals("long reference not read correctly", MAGIC, testlib.ptr_ret_int64_t(ref, 0));
-        final long MAGIC2 = 0xcafebabe12345678L;
-        testlib.ptr_set_int64_t(ref, 0, MAGIC2);
-        assertEquals("long reference not written correctly", MAGIC2, ref[0]);
+    }
+
+    @Test
+    public void setLongByReference() {
+
+        final long MAGIC = 0xcafebabe12345678L;
+        long[] ref = { 0L };
+        testlib.ptr_set_int64_t(ref, 0, MAGIC);
+        assertEquals("long reference not written correctly", MAGIC, ref[0]);
     }
 //    @Test
 //    public void pointerByReference() {
