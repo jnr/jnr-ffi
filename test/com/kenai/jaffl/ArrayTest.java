@@ -154,16 +154,16 @@ public class ArrayTest {
     public void floatByReference() {
         final float MAGIC = (float) 0xfee1dead;
         float[] ref = { MAGIC };
-        assertEquals("float reference not read correctly", MAGIC, testlib.ptr_ret_float(ref, 0), 0.0f);
+        assertEquals("float reference not read correctly", MAGIC, testlib.ptr_ret_float(ref, 0), 0.00001);
         final float MAGIC2 = (float) 0xcafebabe;
         testlib.ptr_set_float(ref, 0, MAGIC2);
-        assertEquals("float reference not written correctly", MAGIC2, ref[0], 0f);
+        assertEquals("float reference not written correctly", MAGIC2, ref[0], 0.00001);
     }
     @Test
     public void doubleByReference() {
         final double MAGIC = 0x1234fee1dead6789L;
         double[] ref = { MAGIC };
-        assertEquals("double reference not read correctly", MAGIC, testlib.ptr_ret_double(ref, 0), 0d);
+        assertEquals("double reference not read correctly", MAGIC, testlib.ptr_ret_double(ref, 0), 0.00001);
         final double MAGIC2 = (double) 0xcafebabe12345678L;
         testlib.ptr_set_double(ref, 0, MAGIC2);
         assertEquals("double reference not written correctly", MAGIC2, ref[0], 0d);

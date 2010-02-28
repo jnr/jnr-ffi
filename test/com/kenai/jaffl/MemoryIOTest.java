@@ -34,6 +34,19 @@ import static org.junit.Assert.*;
  */
 public class MemoryIOTest {
     public static interface TestLib {
+        byte ptr_ret_int8_t(Pointer p, int offset);
+        short ptr_ret_int16_t(Pointer p, int offset);
+        int ptr_ret_int32_t(Pointer p, int offset);
+        long ptr_ret_int64_t(Pointer p, int offset);
+        float ptr_ret_float(Pointer p, int offset);
+        double ptr_ret_double(Pointer p, int offset);
+
+        void ptr_set_int8_t(Pointer p, int offset, byte value);
+        void ptr_set_int16_t(Pointer p, int offset, short value);
+        void ptr_set_int32_t(Pointer p, int offset, int value);
+        void ptr_set_int64_t(Pointer p, int offset, long value);
+        void ptr_set_float(Pointer p, int offset, float value);
+        void ptr_set_double(Pointer p, int offset, double value);
     }
 
     static TestLib testlib;
@@ -59,154 +72,161 @@ public class MemoryIOTest {
     @After
     public void tearDown() {
     }
-    private static final Pointer getBufferPointer(ByteBuffer buffer) {
-        return TstUtil.getDirectBufferPointer(buffer);
+    private final MemoryIO direct(int size) {
+        return MemoryIO.allocateDirect(runtime, size);
     }
-    private static final MemoryIO wrapPointer(Pointer ptr, int size) {
-        return MemoryIO.wrap(ptr, size);
+
+    private final MemoryIO heap(int size) {
+        return MemoryIO.allocate(runtime, size);
     }
-    private static final MemoryIO wrapPointer(Pointer ptr) {
-        return MemoryIO.wrap(ptr);
+
+    private final MemoryIO buffer(int size) {
+        return wrap(ByteBuffer.allocate(size).order(runtime.byteOrder()));
     }
+
     private static final MemoryIO wrap(ByteBuffer buffer) {
         return MemoryIO.wrap(runtime, buffer);
     }
     private static final MemoryIO allocateDirect(int size) {
         return MemoryIO.allocateDirect(runtime, size);
     }
-    private final void testPutByte(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testPutByte(MemoryIO io, int size) {
         for (int i = 0; i < size; ++i) {
             io.putByte(i, (byte) (i + 5));
-            assertEquals("Incorrect value at offset " + i, (byte) (i + 5), buffer.get(i));
+            assertEquals("Incorrect value at offset " + i, (byte) (i + 5), testlib.ptr_ret_int8_t(io, i));
         }
     }
-    private final void testGetByte(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testGetByte(MemoryIO io, int size) {
         for (int i = 0; i < size; ++i) {
-            buffer.put(i, (byte) (i + 5));
+            testlib.ptr_set_int8_t(io, i, (byte) (i + 5));
             assertEquals("Incorrect value at offset " + i, (byte) (i + 5), io.getByte(i));
         }
     }
-    private final void testPutShort(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testPutShort(MemoryIO io, int size) {
         for (int i = 0; i <= size - 2; ++i) {
             io.putShort(i, (short) i);
-            assertEquals("Incorrect value at offset " + i, (short) i, buffer.getShort(i));
+            assertEquals("Incorrect value at offset " + i, (short) i, testlib.ptr_ret_int16_t(io, i));
         }
     }
-    private final void testGetShort(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testGetShort(MemoryIO io, int size) {
         for (int i = 0; i <= size - 2; ++i) {
-            buffer.putShort(i, (short) i);
+            testlib.ptr_set_int16_t(io, i, (short) i);
             assertEquals("Incorrect value at offset " + i, (short) i, io.getShort(i));
         }
     }
-    private final void testPutInt(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testPutInt(MemoryIO io, int size) {
         for (int i = 0; i <= size - 4; ++i) {
             io.putInt(i, i);
-            assertEquals("Incorrect value at offset " + i, i, buffer.getInt(i));
+            assertEquals("Incorrect value at offset " + i, i, testlib.ptr_ret_int32_t(io, i));
         }
     }
-    private final void testGetInt(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testGetInt(MemoryIO io, int size) {
         for (int i = 0; i <= size - 4; ++i) {
-            buffer.putInt(i, i);
+            testlib.ptr_set_int32_t(io, i, i);
             assertEquals("Incorrect value at offset " + i, i, io.getInt(i));
         }
     }
-    private final void testPutLong(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testPutLong(MemoryIO io, int size) {
         for (int i = 0; i <= size - 8; ++i) {
             io.putLong(i, i);
-            assertEquals("Incorrect value at offset " + i, (long) i, buffer.getLong(i));
+            assertEquals("Incorrect value at offset " + i, (long) i, testlib.ptr_ret_int64_t(io, i));
         }
     }
-    private final void testGetLong(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testGetLong(MemoryIO io, int size) {
         for (int i = 0; i <= size - 8; ++i) {
-            buffer.putLong(i, i);
+            testlib.ptr_set_int64_t(io, i, i);
             assertEquals("Incorrect value at offset " + i, (long) i, io.getLong(i));
         }
     }
-    private final void testPutFloat(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testPutFloat(MemoryIO io, int size) {
         for (int i = 0; i <= size - (Float.SIZE / 8); ++i) {
             io.putFloat(i, i);
-            assertEquals("Incorrect value at offset " + i, (float) i, buffer.getFloat(i), 0f);
+            assertEquals("Incorrect value at offset " + i, (float) i, testlib.ptr_ret_float(io, i), 0.00001);
         }
     }
-    private final void testGetFloat(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testGetFloat(MemoryIO io, int size) {
         for (int i = 0; i <= size - (Float.SIZE / 8); ++i) {
-            buffer.putFloat(i, i);
-            assertEquals("Incorrect value at offset " + i, (float) i, io.getFloat(i), 0f);
+            testlib.ptr_set_float(io, i, (float) i);
+            assertEquals("Incorrect value at offset " + i, (float) i, io.getFloat(i), 0.00001);
         }
     }
-    private final void testPutDouble(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testPutDouble(MemoryIO io, int size) {
         for (int i = 0; i <= size - (Double.SIZE / 8); ++i) {
             io.putDouble(i, (double) i);
-            assertEquals("Incorrect value at offset " + i, (double) i, buffer.getDouble(i), 0d);
+            assertEquals("Incorrect value at offset " + i, (double) i, testlib.ptr_ret_double(io, i), 0d);
         }
     }
-    private final void testGetDouble(MemoryIO io, ByteBuffer buffer, int size) {
+    private final void testGetDouble(MemoryIO io, int size) {
         for (int i = 0; i <= size - (Double.SIZE / 8); ++i) {
-            buffer.putDouble(i, (double) i);
+            testlib.ptr_set_double(io, i, (double) i);
             assertEquals("Incorrect value at offset " + i, (double) i, io.getDouble(i), 0d);
         }
     }
-    @Test public void testBoundedIOPutByte() {
+
+    
+
+    @Test public void testHeapMemoryIOPutByte() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
-        testPutByte(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testPutByte(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOGetByte() {
+
+    @Test public void testHeapMemoryIOGetByte() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
-        testGetByte(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testGetByte(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOPutShort() {
+
+    @Test public void testHeapMemoryIOPutShort() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutShort(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testPutShort(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOGetShort() {
+
+    @Test public void testHeapMemoryIOGetShort() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetShort(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testGetShort(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOPutInt() {
+
+    @Test public void testHeapMemoryIOPutInt() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutInt(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testPutInt(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOGetInt() {
+
+    @Test public void testHeapMemoryIOGetInt() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetInt(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testGetInt(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOPutLong() {
+
+    @Test public void testHeapMemoryIOPutLong() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutLong(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        MemoryIO memory = heap(SIZE);
+        testPutLong(memory, SIZE);
     }
-    @Test public void testBoundedIOGetLong() {
+
+    @Test public void testHeapMemoryIOGetLong() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetLong(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testGetLong(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOPutFloat() {
+
+    @Test public void testHeapMemoryIOPutFloat() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutFloat(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        MemoryIO memory = heap(SIZE);
+        testPutFloat(memory, SIZE);
 
     }
-    @Test public void testBoundedIOGetFloat() {
-        final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetFloat(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
 
-    }
-    @Test public void testBoundedIOPutDouble() {
+    @Test public void testHeapMemoryIOGetFloat() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutDouble(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        testGetFloat(heap(SIZE), SIZE);
     }
-    @Test public void testBoundedIOGetDouble() {
+
+    @Test public void testHeapMemoryIOPutDouble() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetDouble(wrapPointer(getBufferPointer(buffer), SIZE), buffer, SIZE);
+        MemoryIO memory = heap(SIZE);
+        testPutDouble(memory, SIZE);
+    }
+
+    @Test public void testHeapMemoryIOGetDouble() {
+        final int SIZE = 16;
+        testGetDouble(heap(SIZE), SIZE);
     }
     @Test
     public void testNegativeBoundedIO() {
@@ -230,126 +250,107 @@ public class MemoryIOTest {
             
         }
     }
-    @Test public void testNativeIOPutByte() {
+    
+
+    @Test public void testDirectMemoryIOPutByte() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
-        testPutByte(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testPutByte(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOGetByte() {
+    @Test public void testDirectMemoryIOGetByte() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
-        testGetByte(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testGetByte(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOPutShort() {
+    @Test public void testDirectMemoryIOPutShort() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutShort(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testPutShort(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOGetShort() {
+    @Test public void testDirectMemoryIOGetShort() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetShort(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testGetShort(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOPutInt() {
+    @Test public void testDirectMemoryIOPutInt() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutInt(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testPutInt(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOGetInt() {
+    @Test public void testDirectMemoryIOGetInt() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetInt(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testGetInt(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOPutLong() {
+    @Test public void testDirectMemoryIOPutLong() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutLong(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testPutLong(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOGetLong() {
+    @Test public void testDirectMemoryIOGetLong() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetLong(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testGetLong(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOPutFloat() {
+    @Test public void testDirectMemoryIOPutFloat() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutFloat(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testPutFloat(direct(SIZE), SIZE);
 
     }
-    @Test public void testNativeIOGetFloat() {
+    @Test public void testDirectMemoryIOGetFloat() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetFloat(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testGetFloat(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOPutDouble() {
+    @Test public void testDirectMemoryIOPutDouble() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testPutDouble(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testPutDouble(direct(SIZE), SIZE);
     }
-    @Test public void testNativeIOGetDouble() {
+    @Test public void testDirectMemoryIOGetDouble() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).order(ByteOrder.nativeOrder());
-        testGetDouble(wrapPointer(getBufferPointer(buffer)), buffer, SIZE);
+        testGetDouble(direct(SIZE), SIZE);
     }
+
+    
     @Test public void testBufferIOPutByte() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE);
-        testPutByte(wrap(buffer), buffer, SIZE);
+        testPutByte(buffer(SIZE), SIZE);
     }
+
     @Test public void testBufferIOGetByte() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE);
-        testGetByte(wrap(buffer), buffer, SIZE);
+        testGetByte(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOPutShort() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testPutShort(wrap(buffer), buffer, SIZE);
+        testPutShort(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOGetShort() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testGetShort(wrap(buffer), buffer, SIZE);
+        testGetShort(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOPutInt() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testPutInt(wrap(buffer), buffer, SIZE);
+        testPutInt(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOGetInt() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testGetInt(wrap(buffer), buffer, SIZE);
+        testGetInt(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOPutLong() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testPutLong(wrap(buffer), buffer, SIZE);
+        testPutLong(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOGetLong() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testGetLong(wrap(buffer), buffer, SIZE);
+        testGetLong(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOPutFloat() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testPutFloat(wrap(buffer), buffer, SIZE);
+        testPutFloat(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOGetFloat() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testGetFloat(wrap(buffer), buffer, SIZE);
+        testGetFloat(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOPutDouble() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testPutDouble(wrap(buffer), buffer, SIZE);
+        testPutDouble(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOGetDouble() {
         final int SIZE = 16;
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE).order(ByteOrder.nativeOrder());
-        testGetDouble(wrap(buffer), buffer, SIZE);
+        testGetDouble(buffer(SIZE), SIZE);
     }
     @Test
     public void testNegativeBufferIO() {

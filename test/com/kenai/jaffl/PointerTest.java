@@ -18,6 +18,7 @@
 
 package com.kenai.jaffl;
 
+import java.nio.ByteOrder;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,6 +54,7 @@ public class PointerTest {
         void ptr_free(Pointer ptr);
     }
     static TestLib testlib;
+    static Runtime runtime;
     public static interface Libc {
         Pointer calloc(int nmemb, int size);
         Pointer malloc(int size);
@@ -63,6 +65,7 @@ public class PointerTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = Library.getRuntime(testlib);
 //        libc = Library.loadLibrary("c", Libc.class);
     }
 
@@ -144,8 +147,24 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         long MAGIC = 0xFEE1DEADABCDEF12L;
+        final long l = MAGIC;
+        byte[] bytes = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
+                ? new byte[]{
+                    (byte) (l >>> 56), (byte) (l >>> 48), (byte) (l >>> 40),
+                    (byte) (l >>> 32), (byte) (l >>> 24), (byte) (l >>> 16),
+                    (byte) (l >>> 8), (byte) (l >>> 0)
+                }
+                : new byte[]{
+                    (byte) (l >>> 0), (byte) (l >>> 8), (byte) (l >>> 16),
+                    (byte) (l >>> 24), (byte) (l >>> 32), (byte) (l >>> 40),
+                    (byte) (l >>> 48), (byte) (l >>> 56)
+                };
+        
         for (int i = 0; i < (SIZE - 7); ++i) {
             p.putLong(i, MAGIC);
+            for (int idx = 0; idx < 8; ++idx) {
+                assertEquals("incorrect byte value at offset= " + i + " idx=" + idx, bytes[idx], p.getByte(i + idx));
+            }
             assertEquals("Long not set at offset " + i, MAGIC, testlib.ptr_ret_int64_t(p, i));
         } 
     }
@@ -156,7 +175,7 @@ public class PointerTest {
         float MAGIC = (float) 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < (SIZE - 7); ++i) {
             p.putFloat(i, MAGIC);
-            assertEquals("Float not set at offset " + i, MAGIC, testlib.ptr_ret_float(p, i), 0f);
+            assertEquals("Float not set at offset " + i, MAGIC, testlib.ptr_ret_float(p, i), 0.00001);
         } 
     }
     @Test
@@ -164,9 +183,27 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         double MAGIC = (double) 0xFEE1DEADABCDEF12L;
+        
+        long l = Double.doubleToRawLongBits(MAGIC);
+        byte[] bytes = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN) 
+                ? new byte[]{
+                    (byte) (l >>> 56), (byte) (l >>> 48), (byte) (l >>> 40),
+                    (byte) (l >>> 32), (byte) (l >>> 24), (byte) (l >>> 16),
+                    (byte) (l >>> 8), (byte) (l >>> 0)
+                }
+                : new byte[]{
+                    (byte) (l >>> 0), (byte) (l >>> 8), (byte) (l >>> 16),
+                    (byte) (l >>> 24), (byte) (l >>> 32), (byte) (l >>> 40),
+                    (byte) (l >>> 48), (byte) (l >>> 56)
+                };
+
+        p.putDouble(0, MAGIC);
+        for (int i = 0; i < 8; ++i) {
+            assertEquals("incorrect byte value at idx=" + i, bytes[i], p.getByte(i));
+        }
         for (int i = 0; i < (SIZE - 7); ++i) {
             p.putDouble(i, MAGIC);
-            assertEquals("Double not set at offset " + i, MAGIC, testlib.ptr_ret_double(p, i), 0d);
+            assertEquals("Double not set at offset " + i, MAGIC, testlib.ptr_ret_double(p, i), 0.0001E16);
         } 
     }
     @Test
@@ -216,7 +253,7 @@ public class PointerTest {
         float MAGIC = (float) 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < (SIZE - 7); ++i) {
             testlib.ptr_set_float(p, i, MAGIC);
-            assertEquals("Float not set at offset " + i, MAGIC, p.getFloat(i), 0f);
+            assertEquals("Float not set at offset " + i, MAGIC, p.getFloat(i), 0.0001);
         } 
     }
     @Test
@@ -226,7 +263,7 @@ public class PointerTest {
         double MAGIC = (double) 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < (SIZE - 7); ++i) {
             testlib.ptr_set_double(p, i, MAGIC);
-            assertEquals("Double not set at offset " + i, MAGIC, p.getDouble(i), 0d);
+            assertEquals("Double not set at offset " + i, MAGIC, p.getDouble(i), 0.00001);
         } 
     }
     @Test

@@ -7,6 +7,7 @@ import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
+import com.kenai.jaffl.provider.AbstractBufferMemoryIO;
 import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.InvocationSession;
 import com.kenai.jaffl.provider.StringIO;
@@ -22,6 +23,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import sun.awt.image.BufImgSurfaceData;
 
 /**
  * Utility methods that are used at runtime by generated code.
@@ -82,13 +84,20 @@ public final class AsmRuntime {
     public static final void marshal(InvocationBuffer buffer, Pointer ptr, int nativeArrayFlags) {
         if (ptr == null) {
             buffer.putAddress(0L);
+        
         } else if (ptr.isDirect()) {
             buffer.putAddress(ptr.address());
+
         } else if (ptr instanceof AbstractArrayMemoryIO) {
             AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) ptr;
             buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
+        
+        } else if (ptr instanceof AbstractBufferMemoryIO) {
+            AbstractBufferMemoryIO bio = (AbstractBufferMemoryIO) ptr;
+            marshal(buffer, bio.getByteBuffer(), nativeArrayFlags);
+            
         } else {
-            throw new IllegalArgumentException("unsupported argument type" + ptr.getClass());
+            throw new IllegalArgumentException("unsupported argument type " + ptr.getClass());
         }
     }
 
@@ -103,60 +112,90 @@ public final class AsmRuntime {
     public static final void marshal(InvocationBuffer buffer, ByteBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
+
         } else if (buf.hasArray()) {
             buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-        } else {
+        
+        } else if (buf.isDirect()) {
             buffer.putDirectBuffer(buf, buf.position(), buf.remaining());
+        
+        } else {
+            throw new IllegalArgumentException("cannot marshal non-direct, non-array ByteBuffer");
         }
     }
 
     public static final void marshal(InvocationBuffer buffer, ShortBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
+
         } else if (buf.hasArray()) {
             buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-        } else {
+
+        } else if (buf.isDirect()) {
             buffer.putDirectBuffer(buf, buf.position() << 1, buf.remaining() << 1);
+        
+        } else {
+            throw new IllegalArgumentException("cannot marshal non-direct, non-array ShortBuffer");
         }
     }
 
     public static final void marshal(InvocationBuffer buffer, IntBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
+
         } else if (buf.hasArray()) {
             buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-        } else {
+
+        } else if (buf.isDirect()) {
             buffer.putDirectBuffer(buf, buf.position() << 2, buf.remaining() << 2);
+
+        } else {
+            throw new IllegalArgumentException("cannot marshal non-direct, non-array IntBuffer");
         }
     }
 
     public static final void marshal(InvocationBuffer buffer, LongBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
+
         } else if (buf.hasArray()) {
             buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-        } else {
+        
+        } else if (buf.isDirect()) {
             buffer.putDirectBuffer(buf, buf.position() << 3, buf.remaining() << 3);
+        
+        } else {
+            throw new IllegalArgumentException("cannot marshal non-direct, non-array LongBuffer");
         }
     }
 
     public static final void marshal(InvocationBuffer buffer, FloatBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
+
         } else if (buf.hasArray()) {
             buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-        } else {
+        
+        } else if (buf.isDirect()) {
             buffer.putDirectBuffer(buf, buf.position() << 2, buf.remaining() << 2);
+        
+        } else {
+            throw new IllegalArgumentException("cannot marshal non-direct, non-array FloatBuffer");
         }
     }
 
     public static final void marshal(InvocationBuffer buffer, DoubleBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
+
         } else if (buf.hasArray()) {
             buffer.putArray(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining(), flags);
-        } else {
+        
+        } else if (buf.isDirect()) {
             buffer.putDirectBuffer(buf, buf.position() << 3, buf.remaining() << 3);
+        
+        } else {
+            throw new IllegalArgumentException("cannot marshal non-direct, non-array DoubleBuffer");
         }
     }
 

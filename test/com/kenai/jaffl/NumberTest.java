@@ -98,10 +98,10 @@ public class NumberTest {
     private void testFloat(FloatOp op) throws Exception {
         float f1 = 1.0f;
         float f2 = (float) 0xdeadbeef;
-        assertEquals("float " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0f);
+        assertEquals("float " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
         for (int i = 0; i < 0xffff; ++i) {
             f1 = (float) i;
-            assertEquals("float + " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0f);
+            assertEquals("float + " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
         }
         Random random = new Random();
         for (int i = 0; i < 0xffff; ++i) {
@@ -160,6 +160,7 @@ public class NumberTest {
         }); 
         
     }
+
     @Test
     public void testFloatDivision() throws Exception {
         testFloat(new FloatOp() {
@@ -183,10 +184,10 @@ public class NumberTest {
     private void testDouble(DoubleOp op) throws Exception {
         double f1 = 1.0f;
         double f2 = (double) 0xdeadbeef;
-        assertEquals("double " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0d);
+        assertEquals("double " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
         for (int i = 0; i < 0xffff; ++i) {
             f1 = (float) i;
-            assertEquals("double + " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0d);
+            assertEquals("double + " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
         }
         Random random = new Random();
         for (int i = 0; i < 0xffff; ++i) {
