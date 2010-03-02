@@ -542,7 +542,7 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
             pw.write("*** Dumping ***\n");
 
             print.invoke(getMethodVisitor(), pw);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
         } finally {
             pw.flush();
         }

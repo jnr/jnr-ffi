@@ -104,7 +104,7 @@ final class InvokerUtil {
     }
 
     public static final com.kenai.jffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
-        Object convention = (com.kenai.jaffl.CallingConvention) libraryOptions.get(LibraryOption.CallingConvention);
+        Object convention = libraryOptions.get(LibraryOption.CallingConvention);
 
         // If someone passed in the jffi calling convention, just use it.
         if (convention instanceof com.kenai.jffi.CallingConvention) {

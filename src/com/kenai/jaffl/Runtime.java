@@ -26,7 +26,7 @@ public abstract class Runtime {
 
     public Runtime(ByteOrder byteOrder, Type[] types) {
         this.byteOrder = byteOrder;
-        this.types = types;
+        this.types = (Type[]) types.clone();
         this.addressSize = types[NativeType.ADDRESS.ordinal()].size();
         this.longSize = types[NativeType.SLONG.ordinal()].size();
         this.addressMask = addressSize == 4 ? 0xffffffffL : 0xffffffffffffffffL;

@@ -1244,7 +1244,7 @@ public abstract class Struct /*implements Marshallable */{
          */
         public final long get() {
             long value = getMemoryIO().getNativeLong(offset());
-            final long mask = getRuntime().findType(NativeType.SLONG).size() == 32 ? 0xffffffff : 0xffffffffffffffffL;
+            final long mask = getRuntime().findType(NativeType.SLONG).size() == 32 ? 0xffffffffL : 0xffffffffffffffffL;
             return value < 0 
                     ? (long) ((value & mask) + mask + 1)
                     : value;
