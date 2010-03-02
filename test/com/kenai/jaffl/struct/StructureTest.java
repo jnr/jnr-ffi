@@ -226,8 +226,8 @@ public class StructureTest {
         assertEquals("Incorrect short value in struct", S, s.s.get());
         assertEquals("Incorrect int value in struct", I, s.i.get());
         assertEquals("Incorrect int64 value in struct", L, s.i64.get());
-        assertEquals("Incorrect float value in struct", F, s.f.get(), 0f);
-        assertEquals("Incorrect double value in struct", D, s.d.get(), 0d);
+        assertEquals("Incorrect float value in struct", F, s.f.get(), 0.0001);
+        assertEquals("Incorrect double value in struct", D, s.d.get(), 0.0001);
         
     }
     private static final class ArrayTest extends Struct {
