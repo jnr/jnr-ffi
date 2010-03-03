@@ -70,6 +70,8 @@ abstract public class AbstractMemoryIO extends MemoryIO {
     public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
         MemoryIO dst = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
 
+        dst.checkBounds(otherOffset, count);
+
         if (dst instanceof AbstractArrayMemoryIO) {
             AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) dst;
             get(offset, aio.array(), aio.offset() + (int) otherOffset, (int) count);
