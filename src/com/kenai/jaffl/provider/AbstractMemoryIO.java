@@ -3,6 +3,7 @@ package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.*;
 import com.kenai.jaffl.Runtime;
+import java.nio.ByteBuffer;
 
 /**
  * Base implementations of some MemoryIO operations.
@@ -63,14 +64,39 @@ abstract public class AbstractMemoryIO extends MemoryIO {
     }
 
     public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
-        for (long i = 0; i < count; ++i) {
-            other.putByte(otherOffset + i, getByte(offset + i));
+        MemoryIO dst = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
+
+        if (dst instanceof AbstractArrayMemoryIO) {
+            AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) dst;
+            get(offset, aio.array(), aio.offset() + (int) otherOffset, (int) count);
+
+        } else if (dst instanceof AbstractBufferMemoryIO && ((AbstractBufferMemoryIO) dst).getByteBuffer().hasArray()) {
+            ByteBuffer buf = ((AbstractBufferMemoryIO) dst).getByteBuffer();
+            get(offset, buf.array(), buf.arrayOffset() + buf.position() + (int) otherOffset, (int) count);
+
+        } else {
+            for (long i = 0; i < count; ++i) {
+                other.putByte(otherOffset + i, getByte(offset + i));
+            }
         }
     }
 
     public void transferFrom(long offset, MemoryIO other, long otherOffset, long count) {
-        for (long i = 0; i < count; ++i) {
-            putByte(offset + i, other.getByte(otherOffset + i));
+        MemoryIO src = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
+
+        if (src instanceof AbstractArrayMemoryIO) {
+            AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) src;
+            put(offset, aio.array(), aio.offset() + (int) otherOffset, (int) count);
+
+        } else if (src instanceof AbstractBufferMemoryIO && ((AbstractBufferMemoryIO) src).getByteBuffer().hasArray()) {
+            ByteBuffer buf = ((AbstractBufferMemoryIO) src).getByteBuffer();
+            put(offset, buf.array(), buf.arrayOffset() + buf.position() + (int) otherOffset, (int) count);
+        
+        } else {
+            // Do a byte-at-a-time copy
+            for (long i = 0; i < count; ++i) {
+                putByte(offset + i, other.getByte(otherOffset + i));
+            }
         }
     }
 }
