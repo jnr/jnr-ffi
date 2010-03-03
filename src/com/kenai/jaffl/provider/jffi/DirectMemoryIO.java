@@ -5,6 +5,7 @@ import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.provider.AbstractMemoryIO;
+import com.kenai.jaffl.provider.BoundedMemoryIO;
 import com.kenai.jaffl.provider.NullMemoryIO;
 import com.kenai.jaffl.provider.StringIO;
 import java.nio.ByteBuffer;
@@ -129,7 +130,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     public MemoryIO getMemoryIO(long offset, long size) {
         final long ptr = IO.getAddress(this.address + offset);
-        return ptr != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(getRuntime(), ptr), 0, size) : new NullMemoryIO(getRuntime());
+        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(getRuntime(), ptr), 0, size) : new NullMemoryIO(getRuntime());
     }
 
     @Override

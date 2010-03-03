@@ -3,7 +3,7 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
-import java.nio.Buffer;
+import com.kenai.jaffl.provider.BoundedMemoryIO;
 import java.nio.ByteBuffer;
 
 public class NativeMemoryManager implements com.kenai.jaffl.provider.MemoryManager {
@@ -13,11 +13,11 @@ public class NativeMemoryManager implements com.kenai.jaffl.provider.MemoryManag
     }
 
     public MemoryIO allocateDirect(int size) {
-        return new BoundedDirectMemoryIO(new AllocatedDirectMemoryIO(size, false), 0, size);
+        return new BoundedMemoryIO(new AllocatedDirectMemoryIO(size, false), 0, size);
     }
 
     public MemoryIO allocateDirect(int size, boolean clear) {
-        return new BoundedDirectMemoryIO(new AllocatedDirectMemoryIO(size, clear), 0, size);
+        return new BoundedMemoryIO(new AllocatedDirectMemoryIO(size, clear), 0, size);
     }
 
     public MemoryIO wrap(Pointer ptr) {

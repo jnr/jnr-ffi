@@ -242,4 +242,16 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
         checkBounds(this.size, base + offset, size);
         io.setMemory(base + offset, size, value);
     }
+
+    @Override
+    public void transferFrom(long offset, MemoryIO other, long otherOffset, long count) {
+        checkBounds(this.size, base + offset, count);
+        getDelegatedMemoryIO().transferFrom(offset, other, otherOffset, count);
+    }
+
+    @Override
+    public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
+        checkBounds(this.size, base + offset, count);
+        getDelegatedMemoryIO().transferTo(offset, other, otherOffset, count);
+    }
 }

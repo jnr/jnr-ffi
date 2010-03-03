@@ -342,6 +342,7 @@ public abstract class MemoryIO implements Pointer {
     abstract public MemoryIO slice(long offset, long size);
 
     abstract public void transferTo(long offset, MemoryIO other, long otherOffset, long count);
+    abstract public void transferFrom(long offset, MemoryIO other, long otherOffset, long count);
     abstract public void setMemory(long offset, long size, byte value);
 
     /**

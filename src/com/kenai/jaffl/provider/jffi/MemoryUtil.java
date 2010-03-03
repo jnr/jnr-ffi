@@ -2,6 +2,7 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.provider.BoundedMemoryIO;
 import com.kenai.jaffl.provider.NullMemoryIO;
 
 public final class MemoryUtil {
@@ -18,7 +19,7 @@ public final class MemoryUtil {
     }
 
     static final com.kenai.jaffl.MemoryIO newMemoryIO(long ptr, long size) {
-        return ptr != 0 ? new BoundedDirectMemoryIO(new DirectMemoryIO(ptr), 0, size) : NULL;
+        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(ptr), 0, size) : NULL;
     }
 
     static final long getAddress(MemoryIO ptr) {

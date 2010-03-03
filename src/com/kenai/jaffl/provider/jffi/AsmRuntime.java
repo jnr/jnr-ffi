@@ -17,13 +17,11 @@ import com.kenai.jaffl.util.EnumMapper;
 import com.kenai.jffi.InvocationBuffer;
 import com.kenai.jffi.Platform;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-import sun.awt.image.BufImgSurfaceData;
 
 /**
  * Utility methods that are used at runtime by generated code.
