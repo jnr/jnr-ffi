@@ -24,7 +24,13 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
     }
     
     public long address() {
-        return getDelegatedMemoryIO().address();
+        return getDelegatedMemoryIO().address() + base;
+    }
+
+    @Override
+    public void checkBounds(long offset, long length) {
+        checkBounds(this.size, offset, length);
+        getDelegatedMemoryIO().checkBounds(base + offset, length);
     }
 
     public MemoryIO getDelegatedMemoryIO() {

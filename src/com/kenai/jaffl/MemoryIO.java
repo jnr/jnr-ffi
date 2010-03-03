@@ -362,4 +362,13 @@ public abstract class MemoryIO implements Pointer {
      * @throws UnsupportedOperationException If this memory object is not backed by native memory.
      */
     abstract public long address();
+
+    /**
+     * Checks that the memory region is within the bounds of this memory object
+     *
+     * @param offset the starting point within this memory region.
+     * @param length the length of the memory region in bytes
+     * @throws java.lang.IndexOutOfBoundsException
+     */
+    abstract public void checkBounds(long offset, long length);
 }

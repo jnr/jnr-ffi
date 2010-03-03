@@ -35,6 +35,10 @@ abstract public class AbstractMemoryIO extends MemoryIO {
         }
     }
 
+    public void checkBounds(long offset, long size) {
+        // No bounds checking by default
+    }
+
     public void putAddress(long offset, Address value) {
         if (getRuntime().addressSize() == 4) {
             putInt(offset, value.intValue());
@@ -83,6 +87,8 @@ abstract public class AbstractMemoryIO extends MemoryIO {
 
     public void transferFrom(long offset, MemoryIO other, long otherOffset, long count) {
         MemoryIO src = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
+
+        src.checkBounds(otherOffset, count);
 
         if (src instanceof AbstractArrayMemoryIO) {
             AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) src;
