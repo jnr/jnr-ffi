@@ -17,14 +17,14 @@ public interface ByReference<T> {
      * 
      * @param buffer the native memory buffer.
      */
-    void marshal(MemoryIO memory);
+    void marshal(MemoryIO memory, long offset);
     
     /**
      * Copies the java value from native memory
      * 
      * @param buffer the native memory buffer.
      */
-    void unmarshal(MemoryIO memory);
+    void unmarshal(MemoryIO memory, long offset);
     
     T getValue();
 }

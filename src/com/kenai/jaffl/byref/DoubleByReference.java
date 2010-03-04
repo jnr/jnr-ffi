@@ -23,8 +23,8 @@ public class DoubleByReference extends AbstractPrimitiveReference<Double> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer) {
-        buffer.putDouble(0, value);
+    public void marshal(MemoryIO buffer, long offset) {
+        buffer.putDouble(offset, value);
     }
 
     /**
@@ -32,8 +32,8 @@ public class DoubleByReference extends AbstractPrimitiveReference<Double> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer) {
-        value = buffer.getDouble(0);
+    public void unmarshal(MemoryIO buffer, long offset) {
+        value = buffer.getDouble(offset);
     }
     
     /**

@@ -24,8 +24,8 @@ public class ByteByReference extends AbstractPrimitiveReference<Byte> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer) {
-        buffer.putByte(0, value);
+    public void marshal(MemoryIO buffer, long offset) {
+        buffer.putByte(offset, value);
     }
 
     /**
@@ -33,8 +33,8 @@ public class ByteByReference extends AbstractPrimitiveReference<Byte> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer) {
-        value = buffer.getByte(0);
+    public void unmarshal(MemoryIO buffer, long offset) {
+        value = buffer.getByte(offset);
     }
     
     /**

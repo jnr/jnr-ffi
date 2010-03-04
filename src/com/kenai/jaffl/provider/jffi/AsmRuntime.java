@@ -249,13 +249,14 @@ public final class AsmRuntime {
             final ArrayMemoryIO memory = new ArrayMemoryIO(size);
             
             if (com.kenai.jffi.ArrayFlags.isIn(flags)) {
-                ref.marshal(memory);
+                ref.marshal(memory, 0);
             }
+
             buffer.putArray(memory.array(), memory.offset(), size, flags);
             if (com.kenai.jffi.ArrayFlags.isOut(flags)) {
                 session.addPostInvoke(new InvocationSession.PostInvoke() {
                     public void postInvoke() {
-                        ref.unmarshal(memory);
+                        ref.unmarshal(memory, 0);
                     }
                 });
             }

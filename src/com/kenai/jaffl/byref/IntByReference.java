@@ -23,8 +23,8 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer) {
-        buffer.putInt(0, value);
+    public void marshal(MemoryIO buffer, long offset) {
+        buffer.putInt(offset, value);
     }
 
     /**
@@ -32,8 +32,8 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer) {
-        value = buffer.getInt(0);
+    public void unmarshal(MemoryIO buffer, long offset) {
+        value = buffer.getInt(offset);
     }
     
     /**

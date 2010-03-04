@@ -24,8 +24,8 @@ public class LongLongByReference extends AbstractPrimitiveReference<Long> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer) {
-        buffer.putLong(0, value);
+    public void marshal(MemoryIO buffer, long offset) {
+        buffer.putLong(offset, value);
     }
 
     /**
@@ -33,8 +33,8 @@ public class LongLongByReference extends AbstractPrimitiveReference<Long> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer) {
-        value = buffer.getLong(0);
+    public void unmarshal(MemoryIO buffer, long offset) {
+        value = buffer.getLong(offset);
     }
     
     /**

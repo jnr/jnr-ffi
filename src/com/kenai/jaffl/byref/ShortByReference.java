@@ -23,8 +23,8 @@ public class ShortByReference extends AbstractPrimitiveReference<Short> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer) {
-        buffer.putShort(0, value);
+    public void marshal(MemoryIO buffer, long offset) {
+        buffer.putShort(offset, value);
     }
 
     /**
@@ -32,8 +32,8 @@ public class ShortByReference extends AbstractPrimitiveReference<Short> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer) {
-        value = buffer.getShort(0);
+    public void unmarshal(MemoryIO buffer, long offset) {
+        value = buffer.getShort(offset);
     }
     
     /**

@@ -24,8 +24,8 @@ public class FloatByReference extends AbstractPrimitiveReference<Float> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer) {
-        buffer.putFloat(0, value);
+    public void marshal(MemoryIO buffer, long offset) {
+        buffer.putFloat(offset, value);
     }
 
     /**
@@ -33,8 +33,8 @@ public class FloatByReference extends AbstractPrimitiveReference<Float> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer) {
-        value = buffer.getFloat(0);
+    public void unmarshal(MemoryIO buffer, long offset) {
+        value = buffer.getFloat(offset);
     }
     
     /**
