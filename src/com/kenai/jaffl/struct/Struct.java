@@ -1404,8 +1404,7 @@ public abstract class Struct /*implements Marshallable */{
          * @return a {@link com.googlecode.jffi.Address}.
          */
         public final com.kenai.jaffl.Address get() {
-            long value = getMemoryIO().getAddress(offset());
-            return value != 0 ? new com.kenai.jaffl.Address(value) : null;
+            return com.kenai.jaffl.Address.valueOf(getMemoryIO().getAddress(offset()));
         }
         
         /**

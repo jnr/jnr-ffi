@@ -73,7 +73,7 @@ public class AddressByReferenceTest {
     @Test public void dummy() {}
     @Test public void inOnlyReferenceSet() {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
-        final Address MAGIC = new Address(0xdeadbeef);
+        final Address MAGIC = Address.valueOf(0xdeadbeef);
         AddressByReference ref = new AddressByReference(MAGIC);
         assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_pointer(ref, 0));
     }

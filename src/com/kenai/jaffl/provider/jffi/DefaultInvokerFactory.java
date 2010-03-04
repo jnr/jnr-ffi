@@ -462,7 +462,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class AddressInvoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new AddressInvoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
-            return new Address(invoker.invokeAddress(function, buffer));
+            return Address.valueOf(invoker.invokeAddress(function, buffer));
         }
     }
 

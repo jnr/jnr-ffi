@@ -33,7 +33,7 @@ public final class AddressByReference extends AbstractPrimitiveReference<Address
      * @param buffer the native memory buffer.
      */
     public void unmarshal(MemoryIO memory) {
-        value = new Address(memory.getAddress(0));
+        value = Address.valueOf(memory.getAddress(0));
     }
     
     /**

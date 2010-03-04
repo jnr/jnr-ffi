@@ -4,20 +4,18 @@ package com.kenai.jaffl;
 /**
  * Represents a native memory address.
  */
-public class Address extends Number implements Comparable<Address> {
-    
-    protected final long address;
+public final class Address extends Number implements Comparable<Address> {
+    private static final Address NULL = new Address(0L);
 
-    public static final Address valueOf(long address) {
-        return new Address(address);
-    }
+    private final long address;
+
 
     /**
      * Creates a new address representation.
      * 
      * @param address the native address.
      */
-    public Address(long address) {
+    private Address(long address) {
         this.address = address;
     }
     
@@ -29,7 +27,16 @@ public class Address extends Number implements Comparable<Address> {
     public Address(final Address address) {
         this.address = address.address;
     }
-    
+
+    /**
+     * Gets the native memory address as a long integer
+     *
+     * @return the native memory address
+     */
+    public final long address() {
+        return address;
+    }
+
     /**
      * Returns an integer representation of this address.
      * 
@@ -122,6 +129,7 @@ public class Address extends Number implements Comparable<Address> {
     public final int compareTo(Address other) {
         return address < other.address ? -1 : address > other.address ? 1 : 0;
     }
+
     /**
      * Tests if this <tt>Address</tt> is equivalent to C NULL
      * 
@@ -130,4 +138,25 @@ public class Address extends Number implements Comparable<Address> {
     public final boolean isNull() {
         return address == 0;
     }
+
+    /**
+     * Returns a Address instance representing the specified long value
+     *
+     * @param address a long value
+     * @return a <tt>Address</tt> instance representing <tt>address</tt>
+     */
+    public static Address valueOf(long address) {
+        return address == 0 ? NULL : new Address(address);
+    }
+
+    /**
+     * Returns a Address instance representing the specified long value
+     *
+     * @param address a long value
+     * @return a <tt>Address</tt> instance representing <tt>address</tt>
+     */
+    public static Address valueOf(int address) {
+        return address == 0 ? NULL : new Address(address);
+    }
+
 }
