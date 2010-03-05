@@ -7,7 +7,7 @@ import com.kenai.jaffl.Pointer;
 import java.nio.charset.Charset;
 
 
-public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemoryIO {
+public final class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemoryIO {
 
     private final long base,  size;
     private final MemoryIO io;
@@ -35,6 +35,18 @@ public class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemor
 
     public MemoryIO getDelegatedMemoryIO() {
         return io;
+    }
+
+    @Override
+    public int hashCode() {
+        return getDelegatedMemoryIO().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof BoundedMemoryIO && io.equals(((BoundedMemoryIO) obj).io) &&
+                ((BoundedMemoryIO) obj).base == base && ((BoundedMemoryIO) obj).size == size)
+                || io.equals(obj);
     }
 
     @Override

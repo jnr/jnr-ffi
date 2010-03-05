@@ -135,7 +135,10 @@
         </condition>
     </target>
     
-    <target name="-post-compile-test">
+    <target name="-post-compile-test" depends="build-libtest"/>
+    <target name="-post-compile-test-single" depends="build-libtest"/>
+
+    <target name="build-libtest">
       <exec dir="${basedir}" executable="make" failonerror="true">
         <arg line="-f libtest/GNUmakefile"/>
         <arg line="BUILD_DIR=${build.dir}"/>

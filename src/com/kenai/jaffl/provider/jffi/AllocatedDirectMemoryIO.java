@@ -1,6 +1,7 @@
 
 package com.kenai.jaffl.provider.jffi;
 
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 class AllocatedDirectMemoryIO extends DirectMemoryIO {
@@ -15,7 +16,9 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
     public AllocatedDirectMemoryIO(int size, boolean clear) {
         this(NativeRuntime.getInstance(), size, clear);
     }
+
     
+
     @Override
     protected void finalize() throws Throwable {
         try {

@@ -560,7 +560,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 marshal(mv, Pointer.class, int.class);
 
             } else if (Address.class.isAssignableFrom(parameterTypes[i])) {
-                marshal(mv, Pointer.class);
+                marshal(mv, Address.class);
 
             } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
                 marshal(mv, Enum.class);
@@ -950,8 +950,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, nativeReturnType);
 
         } else if (Address.class == returnType) {
-            widen(mv, nativeReturnType, long.class);
-            mv.invokestatic(returnType, "valueOf", returnType, long.class);
+            mv.invokestatic(returnType, "valueOf", returnType, nativeReturnType);
 
         } else if (Struct.class.isAssignableFrom(returnType)) {
             widen(mv, nativeReturnType, long.class);
