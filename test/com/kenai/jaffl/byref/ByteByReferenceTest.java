@@ -71,6 +71,7 @@ public class ByteByReferenceTest {
         ByteByReference ref = new ByteByReference(MAGIC);
         assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_int8_t(ref, 0));
     }
+
     @Test public void inOnlyByteReferenceNotWritten() {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final byte MAGIC = (byte) 0xef;
@@ -78,12 +79,14 @@ public class ByteByReferenceTest {
         lib.ptr_set_int8_t(ref, 0, (byte) 0);
         assertEquals("Int reference written when it should not be", Byte.valueOf(MAGIC), ref.getValue());
     }
+
     @Test public void outOnlyByteReferenceNotRead() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final byte MAGIC = (byte) 0xef;
         ByteByReference ref = new ByteByReference(MAGIC);
         assertTrue("Reference value passed to native code when it should not be", MAGIC != lib.ptr_ret_int8_t(ref, 0));
     }
+
     @Test public void outOnlyByteReferenceGet() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final byte MAGIC = (byte) 0xef;
