@@ -34,7 +34,7 @@ final class JFFIPointer extends DirectMemoryIO  {
     }
 
     public static final JFFIPointer valueOf(Runtime runtime, int address) {
-        return new JFFIPointer(runtime, address & 0xffffffffL);
+        return new JFFIPointer(runtime, address);
     }
 
     public static final JFFIPointer valueOf(long address) {
@@ -42,6 +42,6 @@ final class JFFIPointer extends DirectMemoryIO  {
     }
 
     public static final JFFIPointer valueOf(int address) {
-        return new JFFIPointer(NativeRuntime.getInstance(), address & 0xffffffffL);
+        return new JFFIPointer(NativeRuntime.getInstance(), address);
     }
 }

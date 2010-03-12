@@ -369,12 +369,13 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         public static final ArrayIO INSTANCE = new LE32ArrayIO();
 
         public final long getAddress(byte[] buffer, int offset) {
-            return ((long) getInt32(buffer, offset)) & 0xffffffffL;
+            return (long) getInt32(buffer, offset);
         }
         public final void putAddress(byte[] buffer, int offset, long value) {
             putInt32(buffer, offset, (int) value);
         }
     }
+
     private static final class LE64ArrayIO extends LittleEndianArrayIO {
         public static final ArrayIO INSTANCE = new LE64ArrayIO();
 
@@ -390,7 +391,7 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         public static final ArrayIO INSTANCE = new BE32ArrayIO();
 
         public final long getAddress(byte[] buffer, int offset) {
-            return ((long) getInt32(buffer, offset)) & 0xffffffffL;
+            return (long) getInt32(buffer, offset);
         }
         public final void putAddress(byte[] buffer, int offset, long value) {
             putInt32(buffer, offset, (int) value);

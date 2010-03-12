@@ -614,22 +614,28 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Byte.class == returnType || Short.class == returnType || Integer.class == returnType) {
             invokeMethod = "invokeInt";
             nativeReturnType = int.class;
+
         } else if (Long.class == returnType || long.class == returnType) {
             invokeMethod = "invokeLong";
             nativeReturnType = long.class;
+
         } else if (NativeLong.class == returnType) {
             invokeMethod = Platform.getPlatform().longSize() == 32 ? "invokeInt" : "invokeLong";
             nativeReturnType = Platform.getPlatform().longSize() == 32 ? int.class : long.class;
+
         } else if (Pointer.class == returnType || Address.class == returnType
             || Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
-            invokeMethod = "invokeAddress";
-            nativeReturnType = long.class;
+            invokeMethod = Platform.getPlatform().addressSize() == 32 ? "invokeInt" : "invokeLong";
+            nativeReturnType = Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
+
         } else if (Float.class == returnType || float.class == returnType) {
             invokeMethod = "invokeFloat";
             nativeReturnType = float.class;
+
         } else if (Double.class == returnType || double.class == returnType) {
             invokeMethod = "invokeDouble";
             nativeReturnType = double.class;
+
         } else {
             throw new IllegalArgumentException("unsupported return type " + returnType);
         }
