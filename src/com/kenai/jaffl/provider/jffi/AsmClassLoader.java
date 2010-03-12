@@ -2,8 +2,6 @@ package com.kenai.jaffl.provider.jffi;
 
 final class AsmClassLoader extends ClassLoader {
 
-    static final AsmClassLoader INSTANCE = new AsmClassLoader();
-
     public AsmClassLoader() {
     }
 

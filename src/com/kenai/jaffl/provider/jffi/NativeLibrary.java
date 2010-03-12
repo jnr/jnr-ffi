@@ -10,17 +10,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class Library extends com.kenai.jaffl.provider.Library {
+public class NativeLibrary extends com.kenai.jaffl.provider.Library {
 
     private final String[] libraryNames;
     
     private volatile List<com.kenai.jffi.Library> nativeLibraries = Collections.EMPTY_LIST;
     
-    Library(String name) {
+    NativeLibrary(String name) {
         this.libraryNames = new String[] { name };
     }
 
-    Library(String... names) {
+    NativeLibrary(String... names) {
         this.libraryNames = (String[]) names.clone();
     }
 

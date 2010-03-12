@@ -123,11 +123,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     }
 
     @Override
-    <T> T loadLibrary(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         return generateInterfaceImpl(library, interfaceClass, libraryOptions);
     }
 
-    private final <T> T generateInterfaceImpl(final Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(AsmUtil.newTraceClassVisitor(cw, System.err)) : cw;
 
@@ -138,7 +138,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         // Create the constructor to set the 'library' & functions fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
-                sig(void.class, Library.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class),
+                sig(void.class, NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class),
                 null, null));
         init.start();
         // Invokes the super class constructor as super(Library)
@@ -146,7 +146,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         init.aload(0);
         init.aload(1);
 
-        init.invokespecial(p(AbstractNativeInterface.class), "<init>", sig(void.class, Library.class));
+        init.invokespecial(p(AbstractNativeInterface.class), "<init>", sig(void.class, NativeLibrary.class));
         
         final Method[] methods = interfaceClass.getMethods();
         Function[] functions = new Function[methods.length];
@@ -270,7 +270,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         try {
             Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), cw.toByteArray());
-            Constructor<T> cons = implClass.getDeclaredConstructor(Library.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class);
+            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class);
             T result = cons.newInstance(library, functions, resultConverters, parameterConverters);
 
             // Attach any native method stubs - we have to delay this until the
@@ -1193,9 +1193,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         public static final com.kenai.jffi.Invoker ffi = com.kenai.jffi.Invoker.getInstance();
         
         // Strong ref to keep the library alive
-        protected final Library library;
+        protected final NativeLibrary library;
 
-        public AbstractNativeInterface(Library library) {
+        public AbstractNativeInterface(NativeLibrary library) {
             this.library = library;
         }
 
@@ -1242,67 +1242,5 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         public Class nativeType() {
             return converter.nativeType();
         }
-    }
-    
-    public static final class IntToLong implements FromNativeConverter, ToNativeConverter {
-
-        public Object fromNative(Object nativeValue, FromNativeContext context) {
-            return ((Number) nativeValue).longValue();
-        }
-
-        public Object toNative(Object value, ToNativeContext context) {
-            return Integer.valueOf(((Number) value).intValue());
-        }
-
-        public Class nativeType() {
-            return Integer.class;
-        }
-    };
-
-    public static interface TestLib {
-        static final class s8 extends Struct {
-            public final Signed8 s8 = new Signed8();
-        }
-        public Integer add_int32_t(Integer i1, int i2);
-        public Float add_float(float f1, float f2);
-        public Double add_double(Double f1, double f2);
-//        public byte add_int8_t(byte i1, byte i2);
-        byte ptr_ret_int8_t(s8[] s, int index);
-        Byte ptr_ret_int8_t(Pointer p, int index);
-        byte ptr_ret_int8_t(s8 s, int index);
-        void not_found_function();
-    }
-
-
-    public static void main(String[] args) {
-        System.setProperty("jaffl.compile.dump", "true");
-        System.out.println("cpu=" + Platform.getPlatform().getCPU());
-        final Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
-//        options.put(LibraryOption.TypeMapper, new TypeMapper() {
-//
-//            public FromNativeConverter getFromNativeConverter(Class type) {
-//                if (Long.class.isAssignableFrom(type)) {
-//                    return new IntToLong();
-//                }
-//                return null;
-//            }
-//
-//            public ToNativeConverter getToNativeConverter(Class type) {
-//                if (Long.class.isAssignableFrom(type) || long.class == type) {
-//                    return new IntToLong();
-//                }
-//                return null;
-//            }
-//        });
-
-        TestLib lib = AsmLibraryLoader.getInstance().loadLibrary(new Library("test"), TestLib.class, options);
-        Number result = lib.add_int32_t(1, 2);
-        System.err.println("result=" + result);
-//        System.err.println("adding bytes =" + lib.add_int8_t((byte) 1, (byte) 3));
-        System.err.println("adding floats=" + lib.add_float(1.0f, 2.0f));
-        System.err.println("adding doubles=" + lib.add_double(1.0, 2.0));
-        Pointer p = MemoryIO.allocateDirect(NativeRuntime.getInstance(), 1024);
-        lib.ptr_ret_int8_t(p, 0);
-        lib.ptr_ret_int8_t(MemoryIO.allocate(NativeRuntime.getInstance(), 1024), 0);
     }
 }

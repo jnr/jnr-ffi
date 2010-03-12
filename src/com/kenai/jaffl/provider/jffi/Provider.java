@@ -19,15 +19,15 @@ public final class Provider extends com.kenai.jaffl.FFIProvider {
 
     @Override
     public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        return loadLibrary(new Library(libraryName), interfaceClass, libraryOptions);
+        return loadLibrary(new NativeLibrary(libraryName), interfaceClass, libraryOptions);
     }
 
     @Override
     public <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, String... libraryNames) {
-        return loadLibrary(new Library(libraryNames), interfaceClass, libraryOptions);
+        return loadLibrary(new NativeLibrary(libraryNames), interfaceClass, libraryOptions);
     }
 
-    private <T> T loadLibrary(Library library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    private <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         try {
             if (AsmLibraryLoader.getInstance().isInterfaceSupported(interfaceClass, libraryOptions)) {
                 return AsmLibraryLoader.getInstance().loadLibrary(library, interfaceClass, libraryOptions);

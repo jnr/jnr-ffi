@@ -43,7 +43,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
     final List<Stub> stubs = new LinkedList<Stub>();
 
 
-    final class Stub {
+    static final class Stub {
         final String name;
         final String signature;
         final Assembler assembler;
@@ -55,7 +55,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         }
     }
 
-    final class PageHolder {
+    static final class PageHolder {
         final long memory;
         final long pageCount;
 

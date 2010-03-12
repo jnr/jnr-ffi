@@ -6,7 +6,6 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.provider.AbstractMemoryIO;
 import com.kenai.jaffl.provider.BoundedMemoryIO;
-import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.NullMemoryIO;
 import com.kenai.jaffl.provider.StringIO;
 import java.nio.ByteBuffer;
@@ -38,8 +37,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof DirectMemoryIO && ((DirectMemoryIO) obj).address() == address)
-                || (obj instanceof DelegatingMemoryIO && this.equals(((DelegatingMemoryIO) obj).getDelegatedMemoryIO()));
+        return obj instanceof MemoryIO && ((MemoryIO) obj).address() == address && ((MemoryIO) obj).getRuntime().equals(getRuntime());
     }
 
 
