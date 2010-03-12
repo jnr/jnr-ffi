@@ -537,7 +537,7 @@ public abstract class Struct /*implements Marshallable */{
     /**
      * Base class for all Number structure fields.
      */
-    protected abstract class NumberField extends java.lang.Number implements Member {
+    protected abstract class NumberField implements Member {
         /**
          * Offset from the start of the <tt>Struct</tt> memory this field is located at.
          */
@@ -590,7 +590,6 @@ public abstract class Struct /*implements Marshallable */{
          * 
          * @return an {@code float} value for this <tt>Number</tt>.
          */
-        @Override
         public double doubleValue() {
             return (double) longValue();
         }
@@ -600,17 +599,40 @@ public abstract class Struct /*implements Marshallable */{
          * 
          * @return an {@code float} value for this <tt>Number</tt>.
          */
-        @Override
         public float floatValue() {
             return (float) intValue();
         }
-        
+
         /**
-         * Returns an {@code long} representation of this <tt>Number</tt>.
-         * 
-         * @return an {@code long} value for this <tt>Number</tt>.
+         * Returns a {@code byte} representation of this <tt>Number</tt>.
+         *
+         * @return a {@code byte} value for this <tt>Number</tt>.
          */
-        @Override
+        public byte byteValue() {
+            return (byte) intValue();
+        }
+
+        /**
+         * Returns a {@code short} representation of this <tt>Number</tt>.
+         *
+         * @return a {@code short} value for this <tt>Number</tt>.
+         */
+        public short shortValue() {
+            return (short) intValue();
+        }
+
+        /**
+         * Returns a {@code int} representation of this <tt>Number</tt>.
+         *
+         * @return a {@code int} value for this <tt>Number</tt>.
+         */
+        public abstract int intValue();
+
+        /**
+         * Returns a {@code long} representation of this <tt>Number</tt>.
+         * 
+         * @return a {@code long} value for this <tt>Number</tt>.
+         */
         public long longValue() {
             return intValue();
         }
@@ -1399,9 +1421,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         
         /**
-         * Gets the {@link com.googlecode.jffi.Address} value from the native memory.
+         * Gets the {@link com.kenai.jffi.Address} value from the native memory.
          * 
-         * @return a {@link com.googlecode.jffi.Address}.
+         * @return a {@link com.kenai.jffi.Address}.
          */
         public final com.kenai.jaffl.Address get() {
             return com.kenai.jaffl.Address.valueOf(getMemoryIO().getAddress(offset()));
@@ -1463,9 +1485,9 @@ public abstract class Struct /*implements Marshallable */{
         }
 
         /**
-         * Gets the {@link com.googlecode.jffi.Address} value from the native memory.
+         * Gets the {@link com.kenai.jffi.Address} value from the native memory.
          * 
-         * @return a {@link com.googlecode.jffi.Address}.
+         * @return a {@link com.kenai.jffi.Address}.
          */
         public final com.kenai.jaffl.Pointer get() {
             return getMemoryIO().getPointer(offset());
@@ -1481,7 +1503,7 @@ public abstract class Struct /*implements Marshallable */{
         }
         
         /**
-         * Puts a {@link com.googlecode.jffi.Address} value into the native memory.
+         * Puts a {@link com.kenai.jffi.Address} value into the native memory.
          */
         public final void set(com.kenai.jaffl.Pointer value) {
             getMemoryIO().putPointer(offset(), value);

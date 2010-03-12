@@ -28,7 +28,6 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author wayne
  */
 public class PointerTest {
 
@@ -61,7 +60,7 @@ public class PointerTest {
         void free(Pointer ptr);
         void cfree(Pointer ptr);
     }
-    static Libc libc;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
