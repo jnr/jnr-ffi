@@ -39,7 +39,7 @@ public final class StructUtil {
                 final int align = getMinimumAlignment(array[0]);
                 int structSize = align + ((getSize(array[0]) - 1) & ~(align - 1));
 
-                Pointer memory = MemoryIO.allocateDirect(runtime, structSize * length);
+                Pointer memory = runtime.getMemoryManager().allocateDirect(structSize * length);
                 for (int i = 0; i < array.length; ++i) {
                     array[i].useMemory(memory.slice(structSize * i, structSize));
                 }
