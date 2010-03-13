@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
  * Base implementations of some MemoryIO operations.
  */
 abstract public class AbstractMemoryIO extends MemoryIO {
+    private final Runtime runtime;
+    
     protected static final void checkBounds(long size, long off, long len) {
         if ((off | len | (off + len) | (size - (off + len))) < 0) {
             throw new IndexOutOfBoundsException();
@@ -16,9 +18,13 @@ abstract public class AbstractMemoryIO extends MemoryIO {
     }
 
     protected AbstractMemoryIO(Runtime runtime) {
-        super(runtime);
+        this.runtime = runtime;
     }
 
+    public final Runtime getRuntime() {
+        return runtime;
+    }
+    
     public int indexOf(long offset, byte value) {
         return indexOf(offset, value, Integer.MAX_VALUE);
     }
