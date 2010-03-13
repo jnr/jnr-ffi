@@ -39,7 +39,8 @@ import static org.junit.Assert.*;
 public class UTF8StringFieldTest {
     public UTF8StringFieldTest() {
     }
-    public class StringFieldStruct extends Struct {
+    
+    public static class StringFieldStruct extends Struct {
         public final UTF8String string = new UTF8String(32);
 
         public StringFieldStruct() {
@@ -54,8 +55,10 @@ public class UTF8StringFieldTest {
         int copyByteBuffer(@Pinned @Out byte[] dst, @Pinned @In @Transient StringFieldStruct src, int len);
         int copyByteBuffer(@Pinned @Out StringBuilder dst, @Pinned @In @Transient StringFieldStruct src, int len);
     }
+
     static TestLib testlib;
     static Runtime runtime;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
@@ -81,7 +84,8 @@ public class UTF8StringFieldTest {
         testlib.copyByteBuffer(tmp, s, s.string.length());
         assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
     }
-    private final class SockaddrUnix extends Struct {
+
+    public static final class SockaddrUnix extends Struct {
         private final Signed8 sun_len = new Signed8();
         private final Signed8 sun_family = new Signed8();
         private final UTF8String sun_path = new UTF8String(100);
@@ -91,7 +95,7 @@ public class UTF8StringFieldTest {
         }
     }
 
-    @Test public void SockaddrUnix() {
+    @Test public void testSockaddrUnix() {
         final int SUN_LEN = 1;
         final int SUN_FAM = 2;
         final String SUN_PATH = "test";
