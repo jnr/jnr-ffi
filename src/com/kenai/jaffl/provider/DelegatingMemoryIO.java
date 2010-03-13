@@ -1,8 +1,8 @@
 
 package com.kenai.jaffl.provider;
 
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 
 public interface DelegatingMemoryIO {
-    public MemoryIO getDelegatedMemoryIO();
+    public Pointer getDelegatedMemoryIO();
 }

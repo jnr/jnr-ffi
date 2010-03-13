@@ -1,12 +1,9 @@
 
 package com.kenai.jaffl.provider.jffi;
 
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.provider.AbstractMemoryIO;
-import com.kenai.jaffl.provider.BoundedMemoryIO;
-import com.kenai.jaffl.provider.NullMemoryIO;
 import com.kenai.jaffl.provider.StringIO;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -42,7 +39,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof MemoryIO && ((MemoryIO) obj).address() == address && ((MemoryIO) obj).getRuntime().equals(getRuntime());
+        return obj instanceof Pointer && ((Pointer) obj).address() == address && ((Pointer) obj).getRuntime().equals(getRuntime());
     }
 
 

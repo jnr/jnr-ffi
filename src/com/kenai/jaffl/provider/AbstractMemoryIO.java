@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 /**
  * Base implementations of some MemoryIO operations.
  */
-abstract public class AbstractMemoryIO extends MemoryIO {
+abstract public class AbstractMemoryIO implements Pointer {
     private final Runtime runtime;
     
     protected static final void checkBounds(long size, long off, long len) {

@@ -2,7 +2,6 @@
 package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.Address;
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import java.nio.charset.Charset;
 
@@ -10,9 +9,9 @@ import java.nio.charset.Charset;
 public final class BoundedMemoryIO extends AbstractMemoryIO implements DelegatingMemoryIO {
 
     private final long base,  size;
-    private final MemoryIO io;
+    private final Pointer io;
 
-    public BoundedMemoryIO(MemoryIO parent, long offset, long size) {
+    public BoundedMemoryIO(Pointer parent, long offset, long size) {
         super(parent.getRuntime());
         this.io = parent;
         this.base = offset;
@@ -38,7 +37,7 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         getDelegatedMemoryIO().checkBounds(base + offset, length);
     }
 
-    public MemoryIO getDelegatedMemoryIO() {
+    public Pointer getDelegatedMemoryIO() {
         return io;
     }
 

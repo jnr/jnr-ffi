@@ -1,7 +1,6 @@
 
 package com.kenai.jaffl.provider;
 
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import java.nio.charset.Charset;

@@ -1,7 +1,6 @@
 
 package com.kenai.jaffl.provider.jffi;
 
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.provider.BoundedMemoryIO;
 import java.nio.ByteBuffer;
@@ -20,7 +19,7 @@ public class NativeMemoryManager implements com.kenai.jaffl.provider.MemoryManag
         return new BoundedMemoryIO(new AllocatedDirectMemoryIO(size, clear), 0, size);
     }
 
-    public MemoryIO wrap(ByteBuffer buffer) {
+    public Pointer wrap(ByteBuffer buffer) {
         return new ByteBufferMemoryIO(buffer);
     }
 }
