@@ -75,11 +75,11 @@ public class ArrayTest {
         s8[] array = StructUtil.newArray(runtime, s8.class, 10);
         assertEquals("Array length incorrect", 10, array.length);
         for (int i = 0; i < array.length; ++i) {
-            assertNotNull("Memory not allocated for array member", StructUtil.getMemoryIO(array[i]));
+            assertNotNull("Memory not allocated for array member", StructUtil.getMemory(array[i]));
         }
-        MemoryIO io = ((DelegatingMemoryIO) StructUtil.getMemoryIO(array[0])).getDelegatedMemoryIO();
+        MemoryIO io = ((DelegatingMemoryIO) StructUtil.getMemory(array[0])).getDelegatedMemoryIO();
         for (int i = 0; i < array.length; ++i) {
-            assertSame("Different backing memory", io, ((DelegatingMemoryIO) StructUtil.getMemoryIO(array[i])).getDelegatedMemoryIO());
+            assertSame("Different backing memory", io, ((DelegatingMemoryIO) StructUtil.getMemory(array[i])).getDelegatedMemoryIO());
         }
         if (io instanceof AbstractArrayMemoryIO) {
             assertEquals("Incorrect size", array.length, ((AbstractArrayMemoryIO)io).length());

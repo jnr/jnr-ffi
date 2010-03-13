@@ -6,7 +6,7 @@ import com.kenai.jaffl.provider.BoundedMemoryIO;
 import com.kenai.jaffl.provider.NullMemoryIO;
 
 public final class MemoryUtil {
-    private static final MemoryIO NULL = new NullMemoryIO(NativeRuntime.getInstance());
+    static final MemoryIO NULL = new NullMemoryIO(NativeRuntime.getInstance());
 
     private MemoryUtil() {}
 
@@ -16,6 +16,10 @@ public final class MemoryUtil {
 
     static final com.kenai.jaffl.MemoryIO newMemoryIO(long ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : NULL;
+    }
+
+    static final com.kenai.jaffl.Pointer newPointer(long ptr, long size) {
+        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(ptr), 0, size) : null;
     }
 
     static final com.kenai.jaffl.MemoryIO newMemoryIO(long ptr, long size) {

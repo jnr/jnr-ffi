@@ -1,6 +1,8 @@
 
 package com.kenai.jaffl;
 
+import java.nio.charset.Charset;
+
 public interface Pointer {
     /**
      * Indicates whether or not this memory object represents a native memory address.
@@ -96,6 +98,21 @@ public interface Pointer {
     abstract public double getDouble(long offset);
 
     /**
+     * Reads a native {@code long} value at the given offset.
+     * <p>A native {@code long} can be either 32 or 64 bits in size, depending
+     * on the cpu architecture, and the C ABI in use.
+     *
+     * <p>For windows, a long is always 32 bits (4 bytes) in size, but on unix
+     * systems, a long on a 32bit system is 32 bits, and on a 64bit system, is 64 bits.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be read.
+     * @return the native {@code long} value at the offset.
+     *
+     * @see NativeLong
+     */
+    abstract public long getNativeLong(long offset);
+
+    /**
      * Writes a {@code byte} (8 bit) value at the given offset.
      *
      * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
@@ -142,6 +159,24 @@ public interface Pointer {
      * @param value the {@code double} value to be written.
      */
     abstract public void putDouble(long offset, double value);
+
+    /**
+     * Writes a native {@code long} value at the given offset.
+     *
+     * <p>A native {@code long} can be either 32 or 64 bits in size, depending
+     * on the cpu architecture, and the C ABI in use.
+     *
+     * <p>For windows, a long is always 32 bits (4 bytes) in size, but on unix
+     * systems, a long on a 32bit system is 32 bits, and on a 64bit system, is 64 bits.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
+     * @param value the native {@code long} value to be written.
+     */
+    abstract public void putNativeLong(long offset, long value);
+    
+    abstract public long getAddress(long offset);
+    abstract public void putAddress(long offset, long value);
+    abstract public void putAddress(long offset, Address value);
 
     /**
      * Bulk get method for multiple {@code byte} values.
@@ -308,6 +343,15 @@ public interface Pointer {
     abstract public Pointer getPointer(long offset);
 
     /**
+     * Reads an {@code Pointer} value at the given offset.
+     *
+     * @param offset the offset from the start of the memory this {@code Pointer} represents at which the value will be read.
+     * @param size the maximum size of the memory location the returned {@code Pointer} represents.
+     * @return the {@code Pointer} value read from memory.
+     */
+    abstract public Pointer getPointer(long offset, long size);
+
+    /**
      * Writes a {@code Pointer} value at the given offset.
      *
      * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
@@ -322,6 +366,25 @@ public interface Pointer {
      * @return the {@code String} value read from memory.
      */
     abstract public String getString(long offset);
+
+    /**
+     * Reads a {@code String} value at the given offset, using a specific {@code Charset}
+     *
+     * @param offset the offset from the start of the memory this {@code Pointer} represents at which the value will be read.
+     * @param maxLength the maximum size of memory to search for a NUL byte.
+     * @param cs the {@code Charset} to use to decode the string.
+     * @return the {@code String} value read from memory.
+     */
+    abstract public String getString(long offset, int maxLength, Charset cs);
+
+    /**
+     * Writes a {@code String} value at the given offset, using a specific {@code Charset}
+     *
+     * @param offset the offset from the start of the memory this {@code Pointer} represents at which the value will be written.
+     * @param maxLength the maximum size of memory to use to store the string.
+     * @param cs the {@code Charset} to use to decode the string.
+     */
+    abstract public void putString(long offset, String string, int maxLength, Charset cs);
 
     /**
      * Creates a new {@code Pointer} representing a sub-region of the memory
@@ -344,4 +407,62 @@ public interface Pointer {
      * @return a {@code Pointer} instance representing the new sub-region.
      */
     abstract public Pointer slice(long offset, long size);
+
+    /**
+     * Bulk data transfer from one memory location to another.
+     *
+     * @param offset the offset from the start of the memory location this {@code Pointer} represents to begin copying from.
+     * @param dst the destination memory location to transfer data to.
+     * @param dstOffset the offset from the start of the memory location the destination {@code Pointer} represents to begin copying to.
+     * @param count the number of bytes to transfer.
+     */
+    abstract public void transferTo(long offset, Pointer dst, long dstOffset, long count);
+
+    /**
+     * Bulk data transfer from one memory location to another.
+     *
+     * @param offset the offset from the start of the memory location this {@code Pointer} represents to begin copying to.
+     * @param dst the destination memory location to transfer data from.
+     * @param dstOffset the offset from the start of the memory location the destination {@code Pointer} represents to begin copying from.
+     * @param count the number of bytes to transfer.
+     */
+    abstract public void transferFrom(long offset, Pointer src, long srcOffset, long count);
+
+    /**
+     * Checks that the memory region is within the bounds of this memory object
+     *
+     * @param offset the starting point within this memory region.
+     * @param length the length of the memory region in bytes
+     * @throws java.lang.IndexOutOfBoundsException
+     */
+    abstract public void checkBounds(long offset, long length);
+
+    /**
+     * Sets the value of each byte in the memory area represented by this {@code Pointer}.
+     * to a specified value.
+     *
+     * @param offset the offset from the start of the memory location this {@code Pointer} represents to begin writing to.
+     * @param size the number of bytes to set to the value.
+     * @param value the value to set each byte to.
+     */
+    abstract public void setMemory(long offset, long size, byte value);
+
+    /**
+     * Returns the location of a byte value within the memory area represented by this {@code Pointer}.
+     *
+     * @param offset the offset from the start of the memory location this {@code Pointer} represents to begin searching.
+     * @param value the {@code byte} value to locate.
+     * @return the offset from the start of the search area (i.e. relative to the offset parameter), or -1 if not found.
+     */
+    abstract public int indexOf(long offset, byte value);
+
+    /**
+     * Returns the location of a byte value within the memory area represented by this {@code Pointer}.
+     *
+     * @param offset the offset from the start of the memory location this {@code Pointer} represents to begin searching.
+     * @param value the {@code byte} value to locate.
+     * @param maxlen the maximum number of bytes to search for the desired value.
+     * @return the offset from the start of the search area (i.e. relative to the offset parameter), or -1 if not found.
+     */
+    abstract public int indexOf(long offset, byte value, int maxlen);
 }

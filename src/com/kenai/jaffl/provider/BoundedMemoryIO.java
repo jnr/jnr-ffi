@@ -89,20 +89,17 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         checkBounds(size, offset, 8);
         return io.getDouble(base + offset);
     }
+
     public Pointer getPointer(long offset) {
         checkBounds(size, offset, getRuntime().addressSize());
         return io.getPointer(base + offset);
     }
-
-    public MemoryIO getMemoryIO(long offset) {
+    
+    public Pointer getPointer(long offset, long size) {
         checkBounds(this.size, base + offset, getRuntime().addressSize());
-        return io.getMemoryIO(base + offset);
+        return io.getPointer(base + offset, size);
     }
 
-    public MemoryIO getMemoryIO(long offset, long size) {
-        checkBounds(this.size, base + offset, getRuntime().addressSize());
-        return io.getMemoryIO(base + offset, size);
-    }
     @Override
     public void putByte(long offset, byte value) {
         checkBounds(size, offset, 1);
@@ -267,13 +264,13 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
     }
 
     @Override
-    public void transferFrom(long offset, MemoryIO other, long otherOffset, long count) {
+    public void transferFrom(long offset, Pointer other, long otherOffset, long count) {
         checkBounds(this.size, base + offset, count);
         getDelegatedMemoryIO().transferFrom(offset, other, otherOffset, count);
     }
 
     @Override
-    public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
+    public void transferTo(long offset, Pointer other, long otherOffset, long count) {
         checkBounds(this.size, base + offset, count);
         getDelegatedMemoryIO().transferTo(offset, other, otherOffset, count);
     }

@@ -21,6 +21,7 @@ package com.kenai.jaffl.struct;
 import com.kenai.jaffl.Library;
 import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.TstUtil;
 import org.junit.After;
@@ -345,7 +346,7 @@ public class StructureTest {
     }
     @Test public void innerStruct() {
         InnerTest t = new InnerTest();
-        MemoryIO io = StructUtil.getMemoryIO(t);
+        Pointer io = StructUtil.getMemory(t);
         io.putInt(0, 0xdeadbeef);
         io.putByte(4, (byte) 0x12);
         assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get());

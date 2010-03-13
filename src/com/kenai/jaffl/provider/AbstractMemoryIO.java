@@ -67,8 +67,8 @@ abstract public class AbstractMemoryIO extends MemoryIO {
         }
     }
 
-    public void transferTo(long offset, MemoryIO other, long otherOffset, long count) {
-        MemoryIO dst = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
+    public void transferTo(long offset, Pointer other, long otherOffset, long count) {
+        Pointer dst = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
 
         dst.checkBounds(otherOffset, count);
 
@@ -87,8 +87,8 @@ abstract public class AbstractMemoryIO extends MemoryIO {
         }
     }
 
-    public void transferFrom(long offset, MemoryIO other, long otherOffset, long count) {
-        MemoryIO src = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
+    public void transferFrom(long offset, Pointer other, long otherOffset, long count) {
+        Pointer src = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
 
         src.checkBounds(otherOffset, count);
 

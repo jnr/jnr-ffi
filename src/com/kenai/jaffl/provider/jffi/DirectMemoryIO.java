@@ -142,18 +142,13 @@ class DirectMemoryIO extends AbstractMemoryIO {
         IO.putDoubleArray(address + offset, src, off, len);
     }
 
-    public MemoryIO getMemoryIO(long offset) {
-        return MemoryUtil.newMemoryIO(IO.getAddress(address + offset));
-    }
-
-    public MemoryIO getMemoryIO(long offset, long size) {
-        final long ptr = IO.getAddress(this.address + offset);
-        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(getRuntime(), ptr), 0, size) : new NullMemoryIO(getRuntime());
-    }
-
     @Override
     public Pointer getPointer(long offset) {
         return MemoryUtil.newPointer(IO.getAddress(address + offset));
+    }
+    
+    public Pointer getPointer(long offset, long size) {
+        return MemoryUtil.newPointer(IO.getAddress(this.address + offset), size);
     }
 
     @Override

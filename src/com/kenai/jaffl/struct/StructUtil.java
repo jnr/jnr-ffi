@@ -2,6 +2,7 @@
 package com.kenai.jaffl.struct;
 
 import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import java.lang.reflect.Array;
 
@@ -10,11 +11,11 @@ import java.lang.reflect.Array;
  */
 public final class StructUtil {
     private StructUtil() {}
-    public final static MemoryIO getMemoryIO(Struct struct) {
-        return struct.__info.getMemoryIO(0);
+    public final static Pointer getMemory(Struct struct) {
+        return struct.__info.getMemory(0);
     }
-    public final static MemoryIO getMemoryIO(Struct struct, int flags) {
-        return struct.__info.getMemoryIO(flags);
+    public final static Pointer getMemory(Struct struct, int flags) {
+        return struct.__info.getMemory(flags);
     }
     public final static int getSize(Struct struct) {
         return struct.__info.size();

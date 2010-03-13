@@ -211,12 +211,14 @@ public final class AsmRuntime {
             buffer.putAddress(0L);
         } else {
             Struct s = parameter;
-            MemoryIO io = StructUtil.getMemoryIO(s, parameterFlags);
-            if (io instanceof AbstractArrayMemoryIO) {
-                AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
+            Pointer memory = StructUtil.getMemory(s, parameterFlags);
+            
+            if (memory instanceof AbstractArrayMemoryIO) {
+                AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) memory;
                 buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
-            } else if (io.isDirect()) {
-                buffer.putAddress(io.address());
+            
+            } else if (memory.isDirect()) {
+                buffer.putAddress(memory.address());
             }
         }
     }
@@ -226,16 +228,17 @@ public final class AsmRuntime {
             buffer.putAddress(0L);
         } else {
             Struct[] array = parameter;
-            MemoryIO io = StructUtil.getMemoryIO(array[0], parameterFlags);
-            if (!(io instanceof DelegatingMemoryIO)) {
+            Pointer memory = StructUtil.getMemory(array[0], parameterFlags);
+            if (!(memory instanceof DelegatingMemoryIO)) {
                 throw new RuntimeException("Struct array must be backed by contiguous array");
             }
-            io = ((DelegatingMemoryIO) io).getDelegatedMemoryIO();
-            if (io instanceof AbstractArrayMemoryIO) {
-                AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) io;
+            memory = ((DelegatingMemoryIO) memory).getDelegatedMemoryIO();
+            if (memory instanceof AbstractArrayMemoryIO) {
+                AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) memory;
                 buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
-            } else if (io.isDirect()) {
-                buffer.putAddress(io.address());
+            
+            } else if (memory.isDirect()) {
+                buffer.putAddress(memory.address());
             }
         }
     }
@@ -409,14 +412,14 @@ public final class AsmRuntime {
     }
 
     public static final boolean isDirect(Struct s, int flags) {
-        return s == null || StructUtil.getMemoryIO(s, flags).isDirect();
+        return s == null || StructUtil.getMemory(s, flags).isDirect();
     }
 
     public static final int intValue(Struct s) {
-        return s != null ? (int) StructUtil.getMemoryIO(s).address() : 0;
+        return s != null ? (int) StructUtil.getMemory(s).address() : 0;
     }
 
     public static final long longValue(Struct s) {
-        return s != null ? StructUtil.getMemoryIO(s).address() : 0L;
+        return s != null ? StructUtil.getMemory(s).address() : 0L;
     }
 }

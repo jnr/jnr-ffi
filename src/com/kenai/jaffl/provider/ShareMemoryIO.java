@@ -67,16 +67,12 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
         return io.getDouble(base + offset);
     }
 
-    public MemoryIO getMemoryIO(long offset) {
-        return io.getMemoryIO(base + offset);
-    }
-
-    public MemoryIO getMemoryIO(long offset, long size) {
-        return io.getMemoryIO(base + offset, size);
-    }
-
     public Pointer getPointer(long offset) {
         return io.getPointer(base + offset);
+    }
+
+    public Pointer getPointer(long offset, long size) {
+        return io.getPointer(base + offset, size);
     }
 
     @Override
