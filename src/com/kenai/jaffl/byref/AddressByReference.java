@@ -2,7 +2,7 @@
 package com.kenai.jaffl.byref;
 
 import com.kenai.jaffl.Address;
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
@@ -23,7 +23,7 @@ public final class AddressByReference extends AbstractPrimitiveReference<Address
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO memory, long offset) {
+    public void marshal(Pointer memory, long offset) {
         memory.putAddress(offset, value.nativeAddress());
     }
 
@@ -32,7 +32,7 @@ public final class AddressByReference extends AbstractPrimitiveReference<Address
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO memory, long offset) {
+    public void unmarshal(Pointer memory, long offset) {
         value = Address.valueOf(memory.getAddress(offset));
     }
     

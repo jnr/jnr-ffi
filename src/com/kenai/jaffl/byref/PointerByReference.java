@@ -1,7 +1,7 @@
 
 package com.kenai.jaffl.byref;
 
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
@@ -18,11 +18,11 @@ public final class PointerByReference extends AbstractPrimitiveReference<Pointer
         super(value);
     }
 
-    public final void marshal(MemoryIO memory, long offset) {
+    public final void marshal(Pointer memory, long offset) {
         memory.putPointer(offset, this.value);
     }
 
-    public final void unmarshal(MemoryIO memory, long offset) {
+    public final void unmarshal(Pointer memory, long offset) {
         this.value = memory.getPointer(offset);
     }
 

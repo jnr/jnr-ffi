@@ -1,13 +1,13 @@
 
 package com.kenai.jaffl.byref;
 
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
  *
  */
-public class DoubleByReference extends AbstractPrimitiveReference<Double> {
+public final class DoubleByReference extends AbstractPrimitiveReference<Double> {
     
     /**
      * Creates a new reference to a double value
@@ -23,7 +23,7 @@ public class DoubleByReference extends AbstractPrimitiveReference<Double> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer, long offset) {
+    public void marshal(Pointer buffer, long offset) {
         buffer.putDouble(offset, value);
     }
 
@@ -32,7 +32,7 @@ public class DoubleByReference extends AbstractPrimitiveReference<Double> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer, long offset) {
+    public void unmarshal(Pointer buffer, long offset) {
         value = buffer.getDouble(offset);
     }
     

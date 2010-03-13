@@ -2,13 +2,13 @@
 package com.kenai.jaffl.byref;
 
 
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
  *
  */
-public class LongLongByReference extends AbstractPrimitiveReference<Long> {
+public final class LongLongByReference extends AbstractPrimitiveReference<Long> {
     
     /**
      * Creates a new reference to a native longlong value
@@ -22,19 +22,19 @@ public class LongLongByReference extends AbstractPrimitiveReference<Long> {
     /**
      * Copies the Byte value to native memory
      * 
-     * @param buffer the native memory buffer
+     * @param memory the native memory buffer
      */
-    public void marshal(MemoryIO buffer, long offset) {
-        buffer.putLong(offset, value);
+    public void marshal(Pointer memory, long offset) {
+        memory.putLong(offset, value);
     }
 
     /**
      * Copies the Byte value from native memory
      * 
-     * @param buffer the native memory buffer.
+     * @param memory the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer, long offset) {
-        value = buffer.getLong(offset);
+    public void unmarshal(Pointer memory, long offset) {
+        value = memory.getLong(offset);
     }
     
     /**

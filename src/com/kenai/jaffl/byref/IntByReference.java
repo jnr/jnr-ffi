@@ -2,7 +2,7 @@
 package com.kenai.jaffl.byref;
 
 
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
@@ -23,7 +23,7 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer, long offset) {
+    public void marshal(Pointer buffer, long offset) {
         buffer.putInt(offset, value);
     }
 
@@ -32,7 +32,7 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer, long offset) {
+    public void unmarshal(Pointer buffer, long offset) {
         value = buffer.getInt(offset);
     }
     

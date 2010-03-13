@@ -57,11 +57,11 @@ abstract public class AbstractMemoryIO extends MemoryIO {
         return getRuntime().longSize() == 4 ? getInt(offset) : getLong(offset);
     }
 
-    public MemoryIO slice(long offset) {
+    public AbstractMemoryIO slice(long offset) {
         return new ShareMemoryIO(this, offset);
     }
 
-    public MemoryIO slice(long offset, long size) {
+    public AbstractMemoryIO slice(long offset, long size) {
         return new BoundedMemoryIO(this, offset, size);
     }
 

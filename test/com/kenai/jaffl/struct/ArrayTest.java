@@ -2,7 +2,7 @@
 package com.kenai.jaffl.struct;
 
 import com.kenai.jaffl.Library;
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.TstUtil;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
@@ -77,12 +77,12 @@ public class ArrayTest {
         for (int i = 0; i < array.length; ++i) {
             assertNotNull("Memory not allocated for array member", StructUtil.getMemory(array[i]));
         }
-        MemoryIO io = ((DelegatingMemoryIO) StructUtil.getMemory(array[0])).getDelegatedMemoryIO();
+        Pointer ptr = ((DelegatingMemoryIO) StructUtil.getMemory(array[0])).getDelegatedMemoryIO();
         for (int i = 0; i < array.length; ++i) {
-            assertSame("Different backing memory", io, ((DelegatingMemoryIO) StructUtil.getMemory(array[i])).getDelegatedMemoryIO());
+            assertSame("Different backing memory", ptr, ((DelegatingMemoryIO) StructUtil.getMemory(array[i])).getDelegatedMemoryIO());
         }
-        if (io instanceof AbstractArrayMemoryIO) {
-            assertEquals("Incorrect size", array.length, ((AbstractArrayMemoryIO)io).length());
+        if (ptr instanceof AbstractArrayMemoryIO) {
+            assertEquals("Incorrect size", array.length, ((AbstractArrayMemoryIO)ptr).length());
         }
         for (int i = 0; i < array.length; ++i) {
             array[i].s8.set((byte) i);

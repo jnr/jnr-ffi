@@ -113,11 +113,7 @@ public final class NullMemoryIO extends AbstractMemoryIO {
         throw npe();
     }
 
-    public final MemoryIO getMemoryIO(long offset) {
-        throw npe();
-    }
-
-    public final MemoryIO getPointer(long offset, long size) {
+    public final Pointer getPointer(long offset, long size) {
         throw npe();
     }
 

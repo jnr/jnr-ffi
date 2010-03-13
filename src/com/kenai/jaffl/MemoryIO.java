@@ -17,7 +17,7 @@ public abstract class MemoryIO implements Pointer {
      *
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
-    public static final MemoryIO allocate(Runtime runtime, int size) {
+    public static final Pointer allocate(Runtime runtime, int size) {
         return runtime.getMemoryManager().allocate(size);
     }
     /**
@@ -28,7 +28,7 @@ public abstract class MemoryIO implements Pointer {
      *
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
-    public static final MemoryIO allocateDirect(Runtime runtime, int size) {
+    public static final Pointer allocateDirect(Runtime runtime, int size) {
         return runtime.getMemoryManager().allocateDirect(size);
     }
 
@@ -42,11 +42,11 @@ public abstract class MemoryIO implements Pointer {
      *
      * @return A new <tt>MemoryIO</tt> instance that can access the memory.
      */
-    public static final MemoryIO allocateDirect(Runtime runtime, int size, boolean clear) {
+    public static final Pointer allocateDirect(Runtime runtime, int size, boolean clear) {
         return runtime.getMemoryManager().allocateDirect(size, clear);
     }
     
-    public static final MemoryIO wrap(Runtime runtime, ByteBuffer buffer) {
+    public static final Pointer wrap(Runtime runtime, ByteBuffer buffer) {
         return runtime.getMemoryManager().wrap(buffer);
     }
 }

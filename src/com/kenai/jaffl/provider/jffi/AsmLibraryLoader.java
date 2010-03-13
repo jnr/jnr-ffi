@@ -21,7 +21,6 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;

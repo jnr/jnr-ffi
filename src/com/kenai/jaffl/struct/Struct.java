@@ -10,7 +10,6 @@
 
 package com.kenai.jaffl.struct;
 
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.Type;

@@ -2,13 +2,13 @@
 package com.kenai.jaffl.byref;
 
 
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
  *
  */
-public class FloatByReference extends AbstractPrimitiveReference<Float> {
+public final class FloatByReference extends AbstractPrimitiveReference<Float> {
     
     /**
      * Creates a new reference to a float value
@@ -24,7 +24,7 @@ public class FloatByReference extends AbstractPrimitiveReference<Float> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(MemoryIO buffer, long offset) {
+    public void marshal(Pointer buffer, long offset) {
         buffer.putFloat(offset, value);
     }
 
@@ -33,7 +33,7 @@ public class FloatByReference extends AbstractPrimitiveReference<Float> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(MemoryIO buffer, long offset) {
+    public void unmarshal(Pointer buffer, long offset) {
         value = buffer.getFloat(offset);
     }
     

@@ -72,91 +72,91 @@ public class MemoryIOTest {
     @After
     public void tearDown() {
     }
-    private final MemoryIO direct(int size) {
+    private final Pointer direct(int size) {
         return MemoryIO.allocateDirect(runtime, size);
     }
 
-    private final MemoryIO heap(int size) {
+    private final Pointer heap(int size) {
         return MemoryIO.allocate(runtime, size);
     }
 
-    private final MemoryIO buffer(int size) {
+    private final Pointer buffer(int size) {
         return wrap(ByteBuffer.allocate(size).order(runtime.byteOrder()));
     }
 
-    private static final MemoryIO wrap(ByteBuffer buffer) {
+    private static final Pointer wrap(ByteBuffer buffer) {
         return MemoryIO.wrap(runtime, buffer);
     }
-    private static final MemoryIO allocateDirect(int size) {
+    private static final Pointer allocateDirect(int size) {
         return MemoryIO.allocateDirect(runtime, size);
     }
-    private final void testPutByte(MemoryIO io, int size) {
+    private final void testPutByte(Pointer io, int size) {
         for (int i = 0; i < size; ++i) {
             io.putByte(i, (byte) (i + 5));
             assertEquals("Incorrect value at offset " + i, (byte) (i + 5), testlib.ptr_ret_int8_t(io, i));
         }
     }
-    private final void testGetByte(MemoryIO io, int size) {
+    private final void testGetByte(Pointer io, int size) {
         for (int i = 0; i < size; ++i) {
             testlib.ptr_set_int8_t(io, i, (byte) (i + 5));
             assertEquals("Incorrect value at offset " + i, (byte) (i + 5), io.getByte(i));
         }
     }
-    private final void testPutShort(MemoryIO io, int size) {
+    private final void testPutShort(Pointer io, int size) {
         for (int i = 0; i <= size - 2; ++i) {
             io.putShort(i, (short) i);
             assertEquals("Incorrect value at offset " + i, (short) i, testlib.ptr_ret_int16_t(io, i));
         }
     }
-    private final void testGetShort(MemoryIO io, int size) {
+    private final void testGetShort(Pointer io, int size) {
         for (int i = 0; i <= size - 2; ++i) {
             testlib.ptr_set_int16_t(io, i, (short) i);
             assertEquals("Incorrect value at offset " + i, (short) i, io.getShort(i));
         }
     }
-    private final void testPutInt(MemoryIO io, int size) {
+    private final void testPutInt(Pointer io, int size) {
         for (int i = 0; i <= size - 4; ++i) {
             io.putInt(i, i);
             assertEquals("Incorrect value at offset " + i, i, testlib.ptr_ret_int32_t(io, i));
         }
     }
-    private final void testGetInt(MemoryIO io, int size) {
+    private final void testGetInt(Pointer io, int size) {
         for (int i = 0; i <= size - 4; ++i) {
             testlib.ptr_set_int32_t(io, i, i);
             assertEquals("Incorrect value at offset " + i, i, io.getInt(i));
         }
     }
-    private final void testPutLong(MemoryIO io, int size) {
+    private final void testPutLong(Pointer io, int size) {
         for (int i = 0; i <= size - 8; ++i) {
             io.putLong(i, i);
             assertEquals("Incorrect value at offset " + i, (long) i, testlib.ptr_ret_int64_t(io, i));
         }
     }
-    private final void testGetLong(MemoryIO io, int size) {
+    private final void testGetLong(Pointer io, int size) {
         for (int i = 0; i <= size - 8; ++i) {
             testlib.ptr_set_int64_t(io, i, i);
             assertEquals("Incorrect value at offset " + i, (long) i, io.getLong(i));
         }
     }
-    private final void testPutFloat(MemoryIO io, int size) {
+    private final void testPutFloat(Pointer io, int size) {
         for (int i = 0; i <= size - (Float.SIZE / 8); ++i) {
             io.putFloat(i, i);
             assertEquals("Incorrect value at offset " + i, (float) i, testlib.ptr_ret_float(io, i), 0.00001);
         }
     }
-    private final void testGetFloat(MemoryIO io, int size) {
+    private final void testGetFloat(Pointer io, int size) {
         for (int i = 0; i <= size - (Float.SIZE / 8); ++i) {
             testlib.ptr_set_float(io, i, (float) i);
             assertEquals("Incorrect value at offset " + i, (float) i, io.getFloat(i), 0.00001);
         }
     }
-    private final void testPutDouble(MemoryIO io, int size) {
+    private final void testPutDouble(Pointer io, int size) {
         for (int i = 0; i <= size - (Double.SIZE / 8); ++i) {
             io.putDouble(i, (double) i);
             assertEquals("Incorrect value at offset " + i, (double) i, testlib.ptr_ret_double(io, i), 0d);
         }
     }
-    private final void testGetDouble(MemoryIO io, int size) {
+    private final void testGetDouble(Pointer io, int size) {
         for (int i = 0; i <= size - (Double.SIZE / 8); ++i) {
             testlib.ptr_set_double(io, i, (double) i);
             assertEquals("Incorrect value at offset " + i, (double) i, io.getDouble(i), 0d);
@@ -197,7 +197,7 @@ public class MemoryIOTest {
 
     @Test public void testHeapMemoryIOPutLong() {
         final int SIZE = 16;
-        MemoryIO memory = heap(SIZE);
+        Pointer memory = heap(SIZE);
         testPutLong(memory, SIZE);
     }
 
@@ -208,7 +208,7 @@ public class MemoryIOTest {
 
     @Test public void testHeapMemoryIOPutFloat() {
         final int SIZE = 16;
-        MemoryIO memory = heap(SIZE);
+        Pointer memory = heap(SIZE);
         testPutFloat(memory, SIZE);
 
     }
@@ -220,7 +220,7 @@ public class MemoryIOTest {
 
     @Test public void testHeapMemoryIOPutDouble() {
         final int SIZE = 16;
-        MemoryIO memory = heap(SIZE);
+        Pointer memory = heap(SIZE);
         testPutDouble(memory, SIZE);
     }
 
@@ -231,7 +231,7 @@ public class MemoryIOTest {
     @Test
     public void testNegativeBoundedIO() {
         final int SIZE = 16;
-        MemoryIO memio = allocateDirect(SIZE);
+        Pointer memio = allocateDirect(SIZE);
         try {
             memio.putByte(-1, (byte) 0);
             fail("Should have thrown IndexOutOfBoundsException");
@@ -242,7 +242,7 @@ public class MemoryIOTest {
     @Test
     public void testOverflowBoundedIO() {
         final int SIZE = 16;
-        MemoryIO memio = allocateDirect(SIZE);
+        Pointer memio = allocateDirect(SIZE);
         try {
             memio.putByte(16, (byte) 0);
             fail("Should have thrown IndexOutOfBoundsException");
@@ -355,7 +355,7 @@ public class MemoryIOTest {
     @Test
     public void testNegativeBufferIO() {
         final int SIZE = 16;
-        MemoryIO memio = wrap(ByteBuffer.allocate(SIZE));
+        Pointer memio = wrap(ByteBuffer.allocate(SIZE));
         try {
             memio.putByte(-1, (byte) 0);
             fail("Should have thrown IndexOutOfBoundsException");
@@ -366,7 +366,7 @@ public class MemoryIOTest {
     @Test
     public void testOverflowBufferIO() {
         final int SIZE = 16;
-        MemoryIO memio = wrap(ByteBuffer.allocate(SIZE));
+        Pointer memio = wrap(ByteBuffer.allocate(SIZE));
         try {
             memio.putByte(16, (byte) 0);
             fail("Should have thrown IndexOutOfBoundsException");
@@ -376,8 +376,8 @@ public class MemoryIOTest {
     }
     @Test public void transferDirectToHeap() throws Exception {
         ByteBuffer buf = ByteBuffer.allocate(1024);
-        MemoryIO dst = MemoryIO.wrap(runtime, buf);
-        MemoryIO src = MemoryIO.allocateDirect(runtime, 1024);
+        Pointer dst = MemoryIO.wrap(runtime, buf);
+        Pointer src = MemoryIO.allocateDirect(runtime, 1024);
         byte[] MAGIC = "MAGIC".getBytes();
         src.put(0, MAGIC, 0, MAGIC.length);
         src.transferTo(0, dst, 0, MAGIC.length);
@@ -389,8 +389,8 @@ public class MemoryIOTest {
         }
     }
     @Test public void transferDirectToDirect() throws Exception {
-        MemoryIO dst = MemoryIO.allocateDirect(runtime, 1024);
-        MemoryIO src = MemoryIO.allocateDirect(runtime, 1024);
+        Pointer dst = MemoryIO.allocateDirect(runtime, 1024);
+        Pointer src = MemoryIO.allocateDirect(runtime, 1024);
         final byte[] MAGIC = "MAGIC".getBytes();
         final int SRCOFF = 100;
         final int DSTOFF = 123;

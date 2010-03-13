@@ -19,7 +19,6 @@
 package com.kenai.jaffl.struct;
 
 import com.kenai.jaffl.Library;
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;

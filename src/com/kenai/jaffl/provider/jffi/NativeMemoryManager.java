@@ -8,35 +8,16 @@ import java.nio.ByteBuffer;
 
 public class NativeMemoryManager implements com.kenai.jaffl.provider.MemoryManager {
 
-    public MemoryIO allocate(int size) {
+    public Pointer allocate(int size) {
         return new ArrayMemoryIO(size);
     }
 
-    public MemoryIO allocateDirect(int size) {
+    public Pointer allocateDirect(int size) {
         return new BoundedMemoryIO(new AllocatedDirectMemoryIO(size, false), 0, size);
     }
 
-    public MemoryIO allocateDirect(int size, boolean clear) {
+    public Pointer allocateDirect(int size, boolean clear) {
         return new BoundedMemoryIO(new AllocatedDirectMemoryIO(size, clear), 0, size);
-    }
-
-    public MemoryIO wrap(Pointer ptr) {
-        if (ptr instanceof MemoryIO) {
-            return (MemoryIO) ptr;
-
-        } else if (ptr.isDirect()) {
-            return MemoryUtil.newMemoryIO(ptr.address());
-        }
-
-        throw new UnsupportedOperationException("Unsupported Pointer type: " + ptr.getClass());
-    }
-
-    public MemoryIO wrap(Pointer ptr, int size) {
-        if (ptr.isDirect()) {
-            return MemoryUtil.newMemoryIO(ptr.address(), size);
-        }
-
-        throw new UnsupportedOperationException("Unsupported Pointer type: " + ptr.getClass());
     }
 
     public MemoryIO wrap(ByteBuffer buffer) {

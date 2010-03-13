@@ -37,21 +37,22 @@ public final class StructUtil {
             }
             if (array.length > 0) {
                 final int align = getMinimumAlignment(array[0]);
-                final int mask = align - 1;
-                int structSize = getSize(array[0]);
-                if ((structSize & mask) != 0) {
-                    structSize = (structSize & ~mask) + align;
-                }
-                MemoryIO memory = MemoryIO.allocateDirect(runtime, structSize * length);
+                int structSize = align + ((getSize(array[0]) - 1) & ~(align - 1));
+
+                Pointer memory = MemoryIO.allocateDirect(runtime, structSize * length);
                 for (int i = 0; i < array.length; ++i) {
                     array[i].useMemory(memory.slice(structSize * i, structSize));
                 }
             }
+
             return array;
+
         } catch (SecurityException ex) {
             throw new RuntimeException(ex);
+
         } catch (InstantiationException ex) {
             throw new RuntimeException(ex);
+
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }

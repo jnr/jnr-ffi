@@ -2,7 +2,6 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
-import com.kenai.jaffl.MemoryIO;
 import com.kenai.jaffl.ParameterFlags;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.byref.ByReference;
@@ -384,10 +383,6 @@ public final class AsmRuntime {
 
     public static final Pointer pointerValue(int ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
-    }
-
-    public static final MemoryIO newMemoryIO(long ptr) {
-        return ptr == 0 ? null : new DirectMemoryIO(ptr);
     }
 
     public static final void useMemory(long ptr, Struct s) {
