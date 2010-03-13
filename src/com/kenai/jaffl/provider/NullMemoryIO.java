@@ -158,6 +158,11 @@ public final class NullMemoryIO extends AbstractMemoryIO {
         return 0;
     }
 
+    public long size() {
+        return Long.MAX_VALUE;
+    }
+
+
     @Override
     public final void setMemory(long offset, long size, byte value) {
         throw npe();

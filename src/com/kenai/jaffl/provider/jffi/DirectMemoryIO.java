@@ -28,6 +28,12 @@ class DirectMemoryIO extends AbstractMemoryIO {
         return address;
     }
 
+    public long size() {
+        return Long.MAX_VALUE;
+    }
+
+
+
     @Override
     public int hashCode() {
         return (int) ((address << 32L) ^ address);

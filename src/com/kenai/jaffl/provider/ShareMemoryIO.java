@@ -27,6 +27,11 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
         return io.address() + base;
     }
 
+    public long size() {
+        return io.size() - base;
+    }
+
+
 
     public final MemoryIO getDelegatedMemoryIO() {
         return io;

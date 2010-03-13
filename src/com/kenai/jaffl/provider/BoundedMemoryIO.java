@@ -27,6 +27,11 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         return getDelegatedMemoryIO().address() + base;
     }
 
+    public long size() {
+        return this.size;
+    }
+
+
     @Override
     public void checkBounds(long offset, long length) {
         checkBounds(this.size, offset, length);

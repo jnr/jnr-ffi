@@ -2,11 +2,23 @@
 package com.kenai.jaffl;
 
 /**
- * Represents a native memory address.
+ * The {@code Address} class wraps a native address in an object.  Both 32 bit and 64
+ * bit native address values are wrapped in a singular {@code Address} type.
+ *
+ * <p>This class extends {@link java.lang.Number} and implements all {@code Number} methods for
+ * converting to primitive integer types.
+ *
+ * <p>An {@code Address} instance is lighter weight than most {@link Pointer}
+ * instances, and may be used when a native address needs to be stored in java,
+ * but no other operations (such as reading/writing values) need be performed on
+ * the native memory.  For most cases, a {@link Pointer} offers more flexibility
+ * and should be preferred instead.
  */
 public final class Address extends Number implements Comparable<Address> {
+    /** A global instance of this class representing the C NULL value */
     private static final Address NULL = new Address(0L);
 
+    /** The native numeric value of this {@code Address} */
     private final long address;
 
 
@@ -29,7 +41,7 @@ public final class Address extends Number implements Comparable<Address> {
     }
 
     /**
-     * Gets the native memory address as a long integer
+     * Gets the native memory address represented by this {@code Address} as a {@code long} integer.
      *
      * @return the native memory address
      */
@@ -38,9 +50,10 @@ public final class Address extends Number implements Comparable<Address> {
     }
 
     /**
-     * Returns an integer representation of this address.
+     * Returns the value of this {@code Address} as an {@code int}.
+     * On 64bit systems, this will result in the upper 32bits of the address being truncated.
      * 
-     * @return an integer value for this address.
+     * @return the numeric value of this {@code Address} after conversion to an {@code int}.
      */
     @Override
     public final int intValue() {
@@ -48,9 +61,9 @@ public final class Address extends Number implements Comparable<Address> {
     }
     
     /**
-     * Returns an {@code long} representation of this address.
+     * Returns the value of this {@code Address} as a {@code long}.
      * 
-     * @return an {@code long} value for this address.
+     * @return the numeric value of this {@code Address} after conversion to a {@code long}.
      */
     @Override
     public final long longValue() {
@@ -58,9 +71,11 @@ public final class Address extends Number implements Comparable<Address> {
     }
     
     /**
-     * Returns an {@code float} representation of this address.
+     * Returns the value of this {@code Address} as a {@code float}.
+     *
+     * This method is not particularly useful, and is here to fulfill the {@link java.lang.Number} interface contract.
      * 
-     * @return an {@code float} value for this address.
+     * @return the numeric value of this {@code Address} after conversion to a {@code float}.
      */
     @Override
     public final float floatValue() {
@@ -68,9 +83,11 @@ public final class Address extends Number implements Comparable<Address> {
     }
     
     /**
-     * Returns an {@code double} representation of this address.
-     * 
-     * @return an {@code double} value for this address.
+     * Returns the value of this {@code Address} as a {@code double}.
+     *
+     * This method is not particularly useful, and is here to fulfill the {@link java.lang.Number} interface contract.
+     *
+     * @return the numeric value of this {@code Address} after conversion to a {@code double}.
      */
     @Override
     public final double doubleValue() {
@@ -87,7 +104,7 @@ public final class Address extends Number implements Comparable<Address> {
     }
 
     /**
-     * Gets a hash code for this {@code Address}.
+     * Returns a hash code for this {@code Address}.
      * 
      * @return a hash code for this {@code Address}.
      */
@@ -109,13 +126,22 @@ public final class Address extends Number implements Comparable<Address> {
     }
     
     /**
-     * Returns a string representation of this <code>Address</code>.
+     * Returns a {@code String} object representing this {@code Address} as a decimal value.
      *
-     * @return a string representation of this <code>Address</code>.
+     * @return a string representation of this {@code Address}.
      */
     @Override
-    public String toString() {
-        return getClass().getName() + String.format("[address=%x]", address);
+    public final String toString() {
+        return Long.toString(address, 10);
+    }
+
+    /**
+     * Returns a {@code String} object representing this {@code Address} as a hex value.
+     *
+     * @return a string representation of this {@code Address}.
+     */
+    public final String toHexString() {
+        return Long.toString(address, 16);
     }
     
     /**
@@ -140,23 +166,22 @@ public final class Address extends Number implements Comparable<Address> {
     }
 
     /**
-     * Returns a Address instance representing the specified long value
+     * Returns a Address instance representing the specified {@code long} value.
      *
-     * @param address a long value
-     * @return a <tt>Address</tt> instance representing <tt>address</tt>
+     * @param address a {@code long} value
+     * @return an {@code Address} instance representing {@code address}
      */
     public static Address valueOf(long address) {
         return address == 0 ? NULL : new Address(address);
     }
 
     /**
-     * Returns a Address instance representing the specified long value
+     * Returns a Address instance representing the specified {@code int} value.
      *
-     * @param address a long value
-     * @return a <tt>Address</tt> instance representing <tt>address</tt>
+     * @param address an {@code int} value
+     * @return an {@code Address} instance representing {@code address}
      */
     public static Address valueOf(int address) {
         return address == 0 ? NULL : new Address(address);
     }
-
 }

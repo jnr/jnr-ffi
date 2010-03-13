@@ -20,6 +20,11 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
     }
 
     @Override
+    public long size() {
+        return this.size;
+    }
+
+    @Override
     public int hashCode() {
         return super.hashCode();
     }

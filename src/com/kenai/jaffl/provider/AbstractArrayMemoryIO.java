@@ -48,8 +48,12 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     }
 
     @Override
-    public long address() {
-        throw new UnsupportedOperationException("Not a direct memory object");
+    public final long address() {
+        return 0;
+    }
+
+    public final long size() {
+        return this.length;
     }
     
     protected final int index(long off) {

@@ -24,7 +24,11 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
 
     @Override
     public long address() {
-        throw new UnsupportedOperationException("Not a direct memory object.");
+        return 0;
+    }
+
+    public long size() {
+        return buffer.remaining();
     }
 
     public final ByteBuffer getByteBuffer() {
