@@ -73,11 +73,11 @@ public class MemoryIOTest {
     public void tearDown() {
     }
     private final Pointer direct(int size) {
-        return MemoryIO.allocateDirect(runtime, size);
+        return Memory.allocateDirect(runtime, size);
     }
 
     private final Pointer heap(int size) {
-        return MemoryIO.allocate(runtime, size);
+        return Memory.allocate(runtime, size);
     }
 
     private final Pointer buffer(int size) {
@@ -85,10 +85,10 @@ public class MemoryIOTest {
     }
 
     private static final Pointer wrap(ByteBuffer buffer) {
-        return MemoryIO.wrap(runtime, buffer);
+        return Memory.wrap(runtime, buffer);
     }
     private static final Pointer allocateDirect(int size) {
-        return MemoryIO.allocateDirect(runtime, size);
+        return Memory.allocateDirect(runtime, size);
     }
     private final void testPutByte(Pointer io, int size) {
         for (int i = 0; i < size; ++i) {
@@ -376,8 +376,8 @@ public class MemoryIOTest {
     }
     @Test public void transferDirectToHeap() throws Exception {
         ByteBuffer buf = ByteBuffer.allocate(1024);
-        Pointer dst = MemoryIO.wrap(runtime, buf);
-        Pointer src = MemoryIO.allocateDirect(runtime, 1024);
+        Pointer dst = Memory.wrap(runtime, buf);
+        Pointer src = Memory.allocateDirect(runtime, 1024);
         byte[] MAGIC = "MAGIC".getBytes();
         src.put(0, MAGIC, 0, MAGIC.length);
         src.transferTo(0, dst, 0, MAGIC.length);
@@ -389,8 +389,8 @@ public class MemoryIOTest {
         }
     }
     @Test public void transferDirectToDirect() throws Exception {
-        Pointer dst = MemoryIO.allocateDirect(runtime, 1024);
-        Pointer src = MemoryIO.allocateDirect(runtime, 1024);
+        Pointer dst = Memory.allocateDirect(runtime, 1024);
+        Pointer src = Memory.allocateDirect(runtime, 1024);
         final byte[] MAGIC = "MAGIC".getBytes();
         final int SRCOFF = 100;
         final int DSTOFF = 123;

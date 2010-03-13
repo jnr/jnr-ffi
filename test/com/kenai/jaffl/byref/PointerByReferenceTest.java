@@ -20,7 +20,7 @@ package com.kenai.jaffl.byref;
 
 
 import com.kenai.jaffl.Library;
-import com.kenai.jaffl.MemoryIO;
+import com.kenai.jaffl.Memory;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 import com.kenai.jaffl.TstUtil;
@@ -76,7 +76,7 @@ public class PointerByReferenceTest {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         Runtime runtime = Library.getRuntime(lib);
 
-        final Pointer MAGIC = MemoryIO.allocateDirect(runtime, 123);
+        final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
         
         PointerByReference ref = new PointerByReference(MAGIC);
         assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_pointer(ref, 0));
@@ -86,7 +86,7 @@ public class PointerByReferenceTest {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         Runtime runtime = Library.getRuntime(lib);
 
-        final Pointer MAGIC = MemoryIO.allocateDirect(runtime, 123);
+        final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
 
         PointerByReference ref = new PointerByReference(MAGIC);
 
@@ -98,7 +98,7 @@ public class PointerByReferenceTest {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         Runtime runtime = Library.getRuntime(lib);
 
-        final Pointer MAGIC = MemoryIO.allocateDirect(runtime, 123);
+        final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
 
         PointerByReference ref = new PointerByReference(MAGIC);
         assertNotSame("Reference value passed to native code when it should not be", MAGIC, lib.ptr_ret_pointer(ref, 0));
@@ -108,10 +108,10 @@ public class PointerByReferenceTest {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         Runtime runtime = Library.getRuntime(lib);
 
-        final Pointer MAGIC = MemoryIO.allocateDirect(runtime, 123);
+        final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
 
 
-        PointerByReference ref = new PointerByReference(MemoryIO.allocateDirect(runtime, 1));
+        PointerByReference ref = new PointerByReference(Memory.allocateDirect(runtime, 1));
         lib.ptr_set_pointer(ref, 0, MAGIC);
         assertEquals("Reference value not set", MAGIC, ref.getValue());
     }
