@@ -9,6 +9,7 @@ import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
 import com.kenai.jaffl.provider.AbstractBufferMemoryIO;
 import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.InvocationSession;
+import com.kenai.jaffl.provider.NullMemoryIO;
 import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
@@ -386,7 +387,7 @@ public final class AsmRuntime {
     }
 
     public static final void useMemory(long ptr, Struct s) {
-        s.useMemory(new DirectMemoryIO(ptr));
+        s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
     }
 
     public static final boolean isDirect(Pointer ptr) {
