@@ -36,10 +36,10 @@ import com.kenai.jaffl.Runtime;
  * <p><blockquote><pre>
  * NativeLongByReference ap = new NativeLongByReference();
  * lib.get_a(ap);
- * System.out.printf("a from lib=%d\n", a.getValue());
+ * System.out.printf("a from lib=%d\n", a.longValue());
  * </pre></blockquote>
  */
-public final class NativeLongByReference extends AbstractPrimitiveReference<NativeLong> {
+public final class NativeLongByReference extends AbstractNumberReference<NativeLong> {
     
     /**
      * Creates a new reference to a native long value initialized to zero.
@@ -54,7 +54,7 @@ public final class NativeLongByReference extends AbstractPrimitiveReference<Nati
      * @param value the initial native value
      */
     public NativeLongByReference(NativeLong value) {
-        super(value);
+        super(checkNull(value));
     }
 
     /**

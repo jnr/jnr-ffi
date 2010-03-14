@@ -7,7 +7,7 @@ import com.kenai.jaffl.Runtime;
 /**
  *
  */
-public final class DoubleByReference extends AbstractPrimitiveReference<Double> {
+public final class DoubleByReference extends AbstractNumberReference<Double> {
     private static final Double DEFAULT = Double.valueOf(0d);
 
     /**
@@ -23,6 +23,15 @@ public final class DoubleByReference extends AbstractPrimitiveReference<Double> 
      * @param value the initial native value
      */
     public DoubleByReference(Double value) {
+        super(checkNull(value));
+    }
+
+    /**
+     * Creates a new reference to a double value
+     *
+     * @param value the initial native value
+     */
+    public DoubleByReference(double value) {
         super(value);
     }
     

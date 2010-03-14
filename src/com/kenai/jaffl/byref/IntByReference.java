@@ -35,10 +35,10 @@ import com.kenai.jaffl.Runtime;
  * <p><blockquote><pre>
  * IntByReference ap = new IntByReference();
  * lib.get_a(ap);
- * System.out.printf("a from lib=%d\n", a.getValue());
+ * System.out.printf("a from lib=%d\n", a.intValue());
  * </pre></blockquote>
  */
-public final class IntByReference extends AbstractPrimitiveReference<Integer> {
+public final class IntByReference extends AbstractNumberReference<Integer> {
 
     /**
      * Creates a new reference to an integer value initialized to zero.
@@ -53,6 +53,15 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * @param value the initial native value
      */
     public IntByReference(Integer value) {
+        super(checkNull(value));
+    }
+
+    /**
+     * Creates a new reference to an integer value
+     *
+     * @param value the initial native value
+     */
+    public IntByReference(int value) {
         super(value);
     }
     

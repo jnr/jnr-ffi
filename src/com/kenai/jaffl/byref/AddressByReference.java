@@ -40,7 +40,7 @@ import com.kenai.jaffl.Runtime;
  * System.out.println("a from lib=" + a.getValue());
  * </pre></blockquote>
  */
-public final class AddressByReference extends AbstractPrimitiveReference<Address> {
+public final class AddressByReference extends AbstractReference<Address> {
 
     /**
      * Creates a new reference to an integer value
@@ -55,7 +55,7 @@ public final class AddressByReference extends AbstractPrimitiveReference<Address
      * @param value the initial native value
      */
     public AddressByReference(Address value) {
-        super(value, true);
+        super(checkNull(value));
     }
     
     /**

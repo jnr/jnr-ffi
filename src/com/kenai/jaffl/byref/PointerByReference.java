@@ -40,12 +40,12 @@ import com.kenai.jaffl.Runtime;
  * System.out.println("ptr contents=" + ptr.getInt(0));
  * </pre></blockquote>
  */
-public final class PointerByReference extends AbstractPrimitiveReference<Pointer>{
+public final class PointerByReference extends AbstractReference<Pointer>{
     /**
      * Creates a new reference to a pointer value with a null default value.
      */
     public PointerByReference() {
-        super(null, false);
+        super(null);
     }
 
     /**
@@ -54,7 +54,7 @@ public final class PointerByReference extends AbstractPrimitiveReference<Pointer
      * @param value the initial pointer value
      */
     public PointerByReference(Pointer value) {
-        super(value, false);
+        super(value);
     }
 
     public final void marshal(Pointer memory, long offset) {

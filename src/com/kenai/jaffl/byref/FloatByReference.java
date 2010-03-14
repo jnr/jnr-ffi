@@ -8,7 +8,7 @@ import com.kenai.jaffl.Runtime;
 /**
  *
  */
-public final class FloatByReference extends AbstractPrimitiveReference<Float> {
+public final class FloatByReference extends AbstractNumberReference<Float> {
     private static final Float DEFAULT = Float.valueOf(0f);
 
     /**
@@ -24,6 +24,15 @@ public final class FloatByReference extends AbstractPrimitiveReference<Float> {
      * @param value the initial native value
      */
     public FloatByReference(Float value) {
+        super(checkNull(value));
+    }
+
+    /**
+     * Creates a new reference to a float value
+     *
+     * @param value the initial native value
+     */
+    public FloatByReference(float value) {
         super(value);
     }
     

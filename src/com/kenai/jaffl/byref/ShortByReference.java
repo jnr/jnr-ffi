@@ -37,7 +37,7 @@ import com.kenai.jaffl.Runtime;
  * System.out.printf("a from lib=%d\n", a.getValue());
  * </pre></blockquote>
  */
-public final class ShortByReference extends AbstractPrimitiveReference<Short> {
+public final class ShortByReference extends AbstractNumberReference<Short> {
     
     /**
      * Creates a new reference to a short value initialized to zero.
@@ -52,6 +52,15 @@ public final class ShortByReference extends AbstractPrimitiveReference<Short> {
      * @param value the initial native value
      */
     public ShortByReference(Short value) {
+        super(checkNull(value));
+    }
+
+    /**
+     * Creates a new reference to a short value.
+     *
+     * @param value the initial native value
+     */
+    public ShortByReference(short value) {
         super(value);
     }
     

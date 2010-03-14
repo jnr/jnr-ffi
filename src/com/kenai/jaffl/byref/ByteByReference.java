@@ -35,10 +35,10 @@ import com.kenai.jaffl.Runtime;
  * <p><blockquote><pre>
  * ByteByReference ap = new ByteByReference();
  * lib.get_a(ap);
- * System.out.printf("a from lib=%d\n", a.getValue());
+ * System.out.printf("a from lib=%d\n", a.byteValue());
  * </pre></blockquote>
  */
-public final class ByteByReference extends AbstractPrimitiveReference<Byte> {
+public final class ByteByReference extends AbstractNumberReference<Byte> {
 
     /**
      * Creates a new reference to a byte value initialized to zero.
@@ -53,7 +53,16 @@ public final class ByteByReference extends AbstractPrimitiveReference<Byte> {
      * @param value the initial native value
      */
     public ByteByReference(Byte value) {
-        super(value, true);
+        super(checkNull(value));
+    }
+
+    /**
+     * Creates a new reference to a byte value
+     *
+     * @param value the initial native value
+     */
+    public ByteByReference(byte value) {
+        super(value);
     }
     
     /**
