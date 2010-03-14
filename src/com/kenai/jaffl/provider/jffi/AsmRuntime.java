@@ -2,7 +2,7 @@
 package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.Address;
-import com.kenai.jaffl.ParameterFlags;
+import com.kenai.jaffl.provider.ParameterFlags;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.provider.AbstractArrayMemoryIO;

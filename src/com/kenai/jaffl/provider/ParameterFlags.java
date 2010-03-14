@@ -1,5 +1,5 @@
 
-package com.kenai.jaffl;
+package com.kenai.jaffl.provider;
 
 import com.kenai.jaffl.annotations.Direct;
 import com.kenai.jaffl.annotations.In;
