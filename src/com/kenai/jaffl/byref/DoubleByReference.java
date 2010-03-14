@@ -50,6 +50,6 @@ public final class DoubleByReference extends AbstractPrimitiveReference<Double> 
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {
-        return Double.SIZE / 8;
+        return 8;
     }
 }

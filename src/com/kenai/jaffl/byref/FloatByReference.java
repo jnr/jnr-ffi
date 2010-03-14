@@ -51,6 +51,6 @@ public final class FloatByReference extends AbstractPrimitiveReference<Float> {
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {
-        return Float.SIZE / 8;
+        return 4;
     }
 }

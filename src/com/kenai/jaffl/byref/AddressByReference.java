@@ -41,13 +41,12 @@ import com.kenai.jaffl.Runtime;
  * </pre></blockquote>
  */
 public final class AddressByReference extends AbstractPrimitiveReference<Address> {
-    private static final Address DEFAULT = Address.valueOf(0);
 
     /**
      * Creates a new reference to an integer value
      */
     public AddressByReference() {
-        super(DEFAULT);
+        super(Address.valueOf(0));
     }
 
     /**

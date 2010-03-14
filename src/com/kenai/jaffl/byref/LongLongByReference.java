@@ -39,13 +39,12 @@ import com.kenai.jaffl.Runtime;
  * </pre></blockquote>
  */
 public final class LongLongByReference extends AbstractPrimitiveReference<Long> {
-    private static final Long DEFAULT = Long.valueOf(0);
-
+    
     /**
      * Creates a new reference to a long long value initialized to zero.
      */
     public LongLongByReference() {
-        super(DEFAULT);
+        super(Long.valueOf(0));
     }
     
     /**

@@ -38,13 +38,12 @@ import com.kenai.jaffl.Runtime;
  * </pre></blockquote>
  */
 public final class ShortByReference extends AbstractPrimitiveReference<Short> {
-    private static final Short DEFAULT = Short.valueOf((short) 0);
-
+    
     /**
      * Creates a new reference to a short value initialized to zero.
      */
     public ShortByReference() {
-        super(DEFAULT);
+        super(Short.valueOf((short) 0));
     }
 
     /**
@@ -80,6 +79,6 @@ public final class ShortByReference extends AbstractPrimitiveReference<Short> {
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {
-        return Short.SIZE / 8;
+        return 2;
     }
 }

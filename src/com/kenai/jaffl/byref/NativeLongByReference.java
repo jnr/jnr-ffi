@@ -40,13 +40,12 @@ import com.kenai.jaffl.Runtime;
  * </pre></blockquote>
  */
 public final class NativeLongByReference extends AbstractPrimitiveReference<NativeLong> {
-    private static final NativeLong DEFAULT = NativeLong.valueOf(0);
-
+    
     /**
      * Creates a new reference to a native long value initialized to zero.
      */
     public NativeLongByReference() {
-        super(DEFAULT);
+        super(NativeLong.valueOf(0));
     }
     
     /**

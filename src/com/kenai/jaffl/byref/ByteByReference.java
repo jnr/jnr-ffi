@@ -39,13 +39,12 @@ import com.kenai.jaffl.Runtime;
  * </pre></blockquote>
  */
 public final class ByteByReference extends AbstractPrimitiveReference<Byte> {
-    private static final Byte DEFAULT = Byte.valueOf((byte) 0);
 
     /**
      * Creates a new reference to a byte value initialized to zero.
      */
     public ByteByReference() {
-        super(DEFAULT);
+        super(Byte.valueOf((byte) 0));
     }
 
     /**
@@ -81,6 +80,6 @@ public final class ByteByReference extends AbstractPrimitiveReference<Byte> {
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {
-        return Byte.SIZE / 8;
+        return 1;
     }
 }

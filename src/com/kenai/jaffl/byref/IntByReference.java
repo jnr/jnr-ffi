@@ -39,13 +39,12 @@ import com.kenai.jaffl.Runtime;
  * </pre></blockquote>
  */
 public final class IntByReference extends AbstractPrimitiveReference<Integer> {
-    private static final Integer DEFAULT = Integer.valueOf(0);
 
     /**
      * Creates a new reference to an integer value initialized to zero.
      */
     public IntByReference() {
-        super(DEFAULT);
+        super(Integer.valueOf(0));
     }
 
     /**
@@ -81,16 +80,6 @@ public final class IntByReference extends AbstractPrimitiveReference<Integer> {
      * @return Integer.SIZE
      */
     public int nativeSize(Runtime runtime) {
-        return Integer.SIZE / 8;
-    }
-    
-    /**
-     * Gets the native type of the reference
-     * 
-     * @return Integer.class
-     */
-    @Override
-    public Class nativeType() {
-        return Integer.class;
+        return 4;
     }
 }
