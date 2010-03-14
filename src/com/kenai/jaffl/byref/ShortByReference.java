@@ -5,12 +5,50 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
+ * ShortByReference is used when the address of a primitive short value must be passed
+ * as a parameter to a function.
  *
+ * <p>For example, the following C code,
+ * <p><blockquote><pre>
+ * {@code
+ * extern void get_a(short * ap);
+ *
+ * short foo(void) {
+ *     short a;
+ *     // pass a reference to 'a' so get_a() can fill it out
+ *     get_a(&a);
+ *
+ *     return a;
+ * }
+ * }
+ * </pre></blockquote>
+ * <p>Would be declared in java as
+ * <p><blockquote><pre>
+ * {@code
+ * interface Lib {
+ *     void get_a(@Out ShortByReference ap);
+ * }
+ * }
+ * </pre></blockquote>
+ * <p>and used like this
+ * <p><blockquote><pre>
+ * ShortByReference ap = new ShortByReference();
+ * lib.get_a(ap);
+ * System.out.printf("a from lib=%d\n", a.getValue());
+ * </pre></blockquote>
  */
 public final class ShortByReference extends AbstractPrimitiveReference<Short> {
-    
+    private static final Short DEFAULT = Short.valueOf((short) 0);
+
     /**
-     * Creates a new reference to a short value
+     * Creates a new reference to a short value initialized to zero.
+     */
+    public ShortByReference() {
+        super(DEFAULT);
+    }
+
+    /**
+     * Creates a new reference to a short value.
      * 
      * @param value the initial native value
      */
@@ -33,7 +71,7 @@ public final class ShortByReference extends AbstractPrimitiveReference<Short> {
      * @param buffer the native memory buffer.
      */
     public void unmarshal(Pointer buffer, long offset) {
-        value = buffer.getShort(offset);
+        this.value = buffer.getShort(offset);
     }
     
     /**

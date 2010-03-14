@@ -8,7 +8,15 @@ import com.kenai.jaffl.Runtime;
  *
  */
 public final class DoubleByReference extends AbstractPrimitiveReference<Double> {
-    
+    private static final Double DEFAULT = Double.valueOf(0d);
+
+    /**
+     * Creates a new reference to a double value initialized to zero.
+     */
+    public DoubleByReference() {
+        super(DEFAULT);
+    }
+
     /**
      * Creates a new reference to a double value
      * 
@@ -33,7 +41,7 @@ public final class DoubleByReference extends AbstractPrimitiveReference<Double> 
      * @param buffer the native memory buffer.
      */
     public void unmarshal(Pointer buffer, long offset) {
-        value = buffer.getDouble(offset);
+        this.value = buffer.getDouble(offset);
     }
     
     /**

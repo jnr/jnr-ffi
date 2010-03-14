@@ -9,7 +9,15 @@ import com.kenai.jaffl.Runtime;
  *
  */
 public final class FloatByReference extends AbstractPrimitiveReference<Float> {
-    
+    private static final Float DEFAULT = Float.valueOf(0f);
+
+    /**
+     * Creates a new reference to a short value initialized to zero.
+     */
+    public FloatByReference() {
+        super(DEFAULT);
+    }
+
     /**
      * Creates a new reference to a float value
      * 
@@ -34,7 +42,7 @@ public final class FloatByReference extends AbstractPrimitiveReference<Float> {
      * @param buffer the native memory buffer.
      */
     public void unmarshal(Pointer buffer, long offset) {
-        value = buffer.getFloat(offset);
+        this.value = buffer.getFloat(offset);
     }
     
     /**

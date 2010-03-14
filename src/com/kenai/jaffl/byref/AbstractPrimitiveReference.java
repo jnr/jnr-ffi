@@ -5,12 +5,21 @@ package com.kenai.jaffl.byref;
  * An abstract class for common PrimitiveReference functionality
  */
 abstract public class AbstractPrimitiveReference<T> implements ByReference<T> {
-    protected T value;
+    private final boolean performNullCheck;
+    T value;
 
-    public AbstractPrimitiveReference(T value) {
-        if (value == null) {
-            throw new NullPointerException("Reference value cannot be null");
+    public AbstractPrimitiveReference(T value, boolean performNullCheck) {
+        this.performNullCheck = performNullCheck;
+
+        if (performNullCheck && value == null) {
+            throw new NullPointerException("Initial reference value cannot be null");
         }
+        this.value = value;
+    }
+
+    /* Internal constructor to avoid null checks */
+    AbstractPrimitiveReference(T value) {
+        this.performNullCheck = false;
         this.value = value;
     }
 
@@ -18,10 +27,11 @@ abstract public class AbstractPrimitiveReference<T> implements ByReference<T> {
         return value.getClass();
     }
 
-    public void setValue(T value) {
-        if (value == null) {
+    protected void setValue(T value) {
+        if (performNullCheck && value == null) {
             throw new NullPointerException("Reference value cannot be null");
         }
+
         this.value = value;
     }
 

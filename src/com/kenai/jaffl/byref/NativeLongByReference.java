@@ -2,20 +2,21 @@
 package com.kenai.jaffl.byref;
 
 
+import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
- * LongLongByReference is used when the address of a native long long value must be passed
+ * NativeLongByReference is used when the address of a primitive C long must be passed
  * as a parameter to a function.
  *
  * <p>For example, the following C code,
  * <p><blockquote><pre>
  * {@code
- * extern void get_a(long long * ap);
+ * extern void get_a(long * ap);
  *
- * long long foo(void) {
- *     long long a;
+ * long foo(void) {
+ *     long a;
  *     // pass a reference to 'a' so get_a() can fill it out
  *     get_a(&a);
  *
@@ -27,52 +28,61 @@ import com.kenai.jaffl.Runtime;
  * <p><blockquote><pre>
  * {@code
  * interface Lib {
- *     void get_a(@Out LongLongByReference ap);
+ *     void get_a(@Out NativeLongByReference ap);
  * }
  * }
  * </pre></blockquote>
  * <p>and used like this
  * <p><blockquote><pre>
- * LongLongByReference ap = new LongLongByReference();
+ * NativeLongByReference ap = new NativeLongByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.getValue());
  * </pre></blockquote>
  */
-public final class LongLongByReference extends AbstractPrimitiveReference<Long> {
-    private static final Long DEFAULT = Long.valueOf(0);
+public final class NativeLongByReference extends AbstractPrimitiveReference<NativeLong> {
+    private static final NativeLong DEFAULT = NativeLong.valueOf(0);
 
     /**
-     * Creates a new reference to a long long value initialized to zero.
+     * Creates a new reference to a native long value initialized to zero.
      */
-    public LongLongByReference() {
+    public NativeLongByReference() {
         super(DEFAULT);
     }
     
     /**
-     * Creates a new reference to a native longlong value
+     * Creates a new reference to a native long value
      * 
      * @param value the initial native value
      */
-    public LongLongByReference(Long value) {
+    public NativeLongByReference(NativeLong value) {
         super(value);
+    }
+
+    /**
+     * Creates a new reference to a native long value
+     *
+     * @param value the initial native value
+     */
+    public NativeLongByReference(long value) {
+        super(NativeLong.valueOf(value));
     }
     
     /**
-     * Copies the value to native memory
+     * Copies the long value to native memory
      * 
      * @param memory the native memory buffer
      */
     public void marshal(Pointer memory, long offset) {
-        memory.putLong(offset, value);
+        memory.putNativeLong(offset, value.longValue());
     }
 
     /**
-     * Copies the value from native memory
+     * Copies the long value from native memory
      * 
      * @param memory the native memory buffer.
      */
     public void unmarshal(Pointer memory, long offset) {
-        this.value = memory.getLong(offset);
+        this.value = NativeLong.valueOf(memory.getNativeLong(offset));
     }
     
     /**
@@ -81,6 +91,6 @@ public final class LongLongByReference extends AbstractPrimitiveReference<Long> 
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {
-        return 8;
+        return runtime.longSize();
     }
 }

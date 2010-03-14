@@ -6,16 +6,57 @@ import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
 
 /**
+ * AddressByReference is used when the address of a primitive pointer value must be passed
+ * as a parameter to a function.
  *
+ * <p>For example, the following C code,
+ * <p><blockquote><pre>
+ * {@code
+ * extern void get_a(void** ap);
+ *
+ * void* foo(void) {
+ *     void* a;
+ *     // pass a reference to 'a' so get_a() can fill it out
+ *     get_a(&a);
+ *
+ *     return a;
+ * }
+ * }
+ * </pre></blockquote>
+ *
+ * <p>Would be declared in java as
+ * <p><blockquote><pre>
+ * {@code
+ * interface Lib {
+ *     void get_a(@Out AddressByReference ap);
+ * }
+ * }
+ * </pre></blockquote>
+ * <p>and used like this
+ *
+ * <p><blockquote><pre>
+ * AddressByReference ap = new AddressByReference();
+ * lib.get_a(ap);
+ * System.out.println("a from lib=" + a.getValue());
+ * </pre></blockquote>
  */
 public final class AddressByReference extends AbstractPrimitiveReference<Address> {
+    private static final Address DEFAULT = Address.valueOf(0);
+
+    /**
+     * Creates a new reference to an integer value
+     */
+    public AddressByReference() {
+        super(DEFAULT);
+    }
+
     /**
      * Creates a new reference to an address value
      * 
      * @param value the initial native value
      */
     public AddressByReference(Address value) {
-        super(value);
+        super(value, true);
     }
     
     /**
