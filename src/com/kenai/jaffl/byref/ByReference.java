@@ -15,14 +15,14 @@ public interface ByReference<T> {
     /**
      * Copies the java value to native memory
      * 
-     * @param buffer the native memory buffer.
+     * @param memory the native memory buffer.
      */
     void marshal(Pointer memory, long offset);
     
     /**
      * Copies the java value from native memory
      * 
-     * @param buffer the native memory buffer.
+     * @param memory the native memory buffer.
      */
     void unmarshal(Pointer memory, long offset);
     

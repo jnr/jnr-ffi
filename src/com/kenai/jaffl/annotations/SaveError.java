@@ -7,6 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * Tags a library method as requiring any error codes as returned
  * by errno on unix, or GetLastError on windows be saved.
+ *
+ * @see IgnoreError
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SaveError {

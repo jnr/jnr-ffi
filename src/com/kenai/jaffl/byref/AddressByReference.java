@@ -21,7 +21,7 @@ public final class AddressByReference extends AbstractPrimitiveReference<Address
     /**
      * Copies the address value to native memory
      * 
-     * @param buffer the native memory buffer
+     * @param memory the native memory buffer
      */
     public void marshal(Pointer memory, long offset) {
         memory.putAddress(offset, value.nativeAddress());
@@ -30,7 +30,7 @@ public final class AddressByReference extends AbstractPrimitiveReference<Address
     /**
      * Copies the address value from native memory
      * 
-     * @param buffer the native memory buffer.
+     * @param memory the native memory buffer.
      */
     public void unmarshal(Pointer memory, long offset) {
         value = Address.valueOf(memory.getAddress(offset));

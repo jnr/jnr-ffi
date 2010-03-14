@@ -422,8 +422,8 @@ public interface Pointer {
      * Bulk data transfer from one memory location to another.
      *
      * @param offset the offset from the start of the memory location this {@code Pointer} represents to begin copying to.
-     * @param dst the destination memory location to transfer data from.
-     * @param dstOffset the offset from the start of the memory location the destination {@code Pointer} represents to begin copying from.
+     * @param src the destination memory location to transfer data from.
+     * @param srcOffset the offset from the start of the memory location the destination {@code Pointer} represents to begin copying from.
      * @param count the number of bytes to transfer.
      */
     abstract public void transferFrom(long offset, Pointer src, long srcOffset, long count);

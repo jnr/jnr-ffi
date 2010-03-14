@@ -2,7 +2,10 @@
 package com.kenai.jaffl;
 
 /**
- * Defines the function calling conventions.
+ * Native function calling conventions.
+ *
+ * <p>This is only needed on windows platforms - all platforms assume
+ * {@link #DEFAULT} as the calling convention.
  */
 public enum CallingConvention {
     /**

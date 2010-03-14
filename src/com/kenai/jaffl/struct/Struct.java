@@ -1405,9 +1405,9 @@ public abstract class Struct /*implements Marshallable */{
         }
         
         /**
-         * Gets the {@link com.kenai.jffi.Address} value from the native memory.
+         * Reads an {@code Address} value from the struct.
          * 
-         * @return a {@link com.kenai.jffi.Address}.
+         * @return a {@link com.kenai.jaffl.Address}.
          */
         public final com.kenai.jaffl.Address get() {
             return com.kenai.jaffl.Address.valueOf(getMemory().getAddress(offset()));

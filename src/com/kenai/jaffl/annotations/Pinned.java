@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * </p>
  * <p>
  * <b>IMPORTANT:</b> This should not be used for functions that may block on 
- * network or filesystem access such as read(2), write(2), stat(2), etc.
+ * network or filesystem access such as read(2), write(2), stat(2).
  * </p>
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -11,15 +11,25 @@ import java.lang.annotation.Annotation;
 
 /**
  *
- * @author wayne
  */
 public final class ParameterFlags {
     private ParameterFlags() {}
+    /** Contents of the parameter memory will be copied from native memory back to java */
     public static final int OUT = 0x01;
+    
+    /** Contents of the parameter memory will be copied from from java to native memory */
     public static final int IN = 0x02;
+
+    /** The java array memory should be pinned by the JVM during the function call */
     public static final int PINNED = 0x04;
+
+    /** The contents of the java array should have a zero byte appended */
     public static final int NULTERMINATE = 0x08;
+
+    /** When allocating memory for the parameter, a temporary memory block can be used */
     public static final int TRANSIENT = 0x10;
+
+    /** When allocating memory for the parameter, allocate a persistent memory block */
     public static final int DIRECT = 0x20;
 
     public static final int parse(Annotation[] annotations) {

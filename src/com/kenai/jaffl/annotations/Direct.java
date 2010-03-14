@@ -8,10 +8,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the parameter requires native memory.
+ * Indicates that a {@link com.kenai.jaffl.struct.Struct}} parameter should be
+ * backed by a persistent native memory block.
  * 
- * This means it can be backed by allocated native memory, that is freed only
- * after the Struct instance goes out of scope.
+ * <p>Without the {@code @Direct} annotation, the native code will allocate a
+ * temporary native memory block for the parameter, and free it immediately after
+ * the call.
+ *
+ * <p>By using {@code @Direct}, the native memory block is permanently associated
+ * with the {@link com.kenai.jaffl.struct.Struct} instance, and will remain allocated
+ * for as long as the {@code Struct} instance remains strongly referenced by java code.
+ *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)

@@ -2,7 +2,7 @@
 package com.kenai.jaffl;
 
 /**
- * Enables getting/setting of the unix errno and windows GetLastError() value
+ * LastError provides access to the unix errno and windows GetLastError() value.
  */
 public final class LastError {
     private LastError() {}

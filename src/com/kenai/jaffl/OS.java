@@ -1,12 +1,13 @@
 package com.kenai.jaffl;
 
 /**
- * The common names of operating systems.
- *
- * <b>Note</b> The names of the enum values are used in other parts of the
- * code to determine where to find the native stub library.  Do not rename.
+ * The common names of supported operating systems.
  */
 public enum OS {
+/*
+ * Note The names of the enum values are used in other parts of the
+ * code to determine where to find the native stub library.  Do not rename.
+ */
 
     /** MacOSX */
     DARWIN,
