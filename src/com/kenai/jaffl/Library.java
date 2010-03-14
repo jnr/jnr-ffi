@@ -114,17 +114,6 @@ public final class Library {
     public static final Library getInstance(String libraryName) {
         return new Library(libraryName);
     }
-
-    /**
-     * Checks if a specific function exists in the library.
-     * 
-     * @param function The function
-     * @return true if the function exists
-     * @deprecated this method is no longer supported.
-     */
-    public boolean hasFunction(String function) {
-        return false;
-    }
     
     /**
      * Gets the name of this library
