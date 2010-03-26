@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 public abstract class Platform {
     private final OS os;
     private final CPU cpu;
+    private final int addressSize;
+    private final int longSize;
     protected final Pattern libPattern;
 
     private static final class SingletonHolder {
@@ -181,15 +183,37 @@ public abstract class Platform {
         }
     }
 
-    public Platform(OS os, CPU cpu, String libPattern) {
+    public Platform(OS os, CPU cpu, int addressSize, int longSize, String libPattern) {
         this.os = os;
         this.cpu = cpu;
+        this.addressSize = addressSize;
+        this.longSize = longSize;
         this.libPattern = Pattern.compile(libPattern);
     }
     
     private Platform(OS os) {
         this.os = os;
         this.cpu = determineCPU();
+        
+        String libpattern = null;
+        switch (os) {
+            case WINDOWS:
+                libpattern = ".*\\.dll$";
+                break;
+            case DARWIN:
+                libpattern = "lib.*\\.(dylib|jnilib)$";
+                break;
+            default:
+                libpattern = "lib.*\\.so.*$";
+                break;
+        }
+        libPattern = Pattern.compile(libpattern);
+
+        this.addressSize = calculateAddressSize(cpu);
+        this.longSize = os == OS.WINDOWS ? 32 : addressSize;
+    }
+
+    private static final int calculateAddressSize(CPU cpu) {
         int dataModel = Integer.getInteger("sun.arch.data.model");
         if (dataModel != 32 && dataModel != 64) {
             switch (cpu) {
@@ -208,22 +232,10 @@ public abstract class Platform {
                     throw new ExceptionInInitializerError("Cannot determine cpu address size");
             }
         }
-        
-        String libpattern = null;
-        switch (os) {
-            case WINDOWS:
-                libpattern = ".*\\.dll$";
-                break;
-            case DARWIN:
-                libpattern = "lib.*\\.(dylib|jnilib)$";
-                break;
-            default:
-                libpattern = "lib.*\\.so.*$";
-                break;
-        }
-        libPattern = Pattern.compile(libpattern);
+
+        return dataModel;
     }
-    
+
     /**
      * Gets the native <tt>Platform</tt>
      *
@@ -261,6 +273,26 @@ public abstract class Platform {
     }
     public final boolean isUnix() {
         return os != OS.WINDOWS;
+    }
+
+    /**
+     * Gets the size of a C 'long' on the native platform.
+     *
+     * @return the size of a long in bits
+     * @deprecated Use {@link Runtime#longSize()} instead.
+     */
+    public final int longSize() {
+        return longSize;
+    }
+
+    /**
+     * Gets the size of a C address/pointer on the native platform.
+     *
+     * @return the size of a pointer in bits
+     * @deprecated Use {@link Runtime#addressSize()} instead.
+     */
+    public final int addressSize() {
+        return addressSize;
     }
 
     /**
