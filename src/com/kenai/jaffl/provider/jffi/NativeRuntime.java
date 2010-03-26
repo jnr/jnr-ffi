@@ -3,13 +3,16 @@ package com.kenai.jaffl.provider.jffi;
 
 import com.kenai.jaffl.NativeType;
 import com.kenai.jaffl.Type;
+import com.kenai.jaffl.provider.AbstractRuntime;
 import com.kenai.jaffl.provider.BadType;
 import java.nio.ByteOrder;
+import java.util.EnumMap;
+import java.util.EnumSet;
 
 /**
  *
  */
-public final class NativeRuntime extends com.kenai.jaffl.Runtime {
+public final class NativeRuntime extends AbstractRuntime {
     private final NativeMemoryManager mm = new NativeMemoryManager();
 
     public static final NativeRuntime getInstance() {
@@ -21,18 +24,18 @@ public final class NativeRuntime extends com.kenai.jaffl.Runtime {
     }
 
     private NativeRuntime() {
-        super(ByteOrder.nativeOrder(), buildTypeArray());
+        super(ByteOrder.nativeOrder(), buildTypeMap());
     }
 
-    private static Type[] buildTypeArray() {
-        NativeType[] nativeTypes = NativeType.values();
+    private static EnumMap<NativeType, Type> buildTypeMap() {
+        EnumMap<NativeType, Type> typeMap = new EnumMap<NativeType, Type>(NativeType.class);
+        EnumSet<NativeType> nativeTypes = EnumSet.allOf(NativeType.class);
 
-        Type[] t = new Type[nativeTypes.length];
-        for (int i = 0; i < nativeTypes.length; ++i) {
-            t[i] = jafflType(nativeTypes[i]);
+        for (NativeType t : nativeTypes) {
+            typeMap.put(t, jafflType(t));
         }
 
-        return t;
+        return typeMap;
     }
 
     public final NativeMemoryManager getMemoryManager() {

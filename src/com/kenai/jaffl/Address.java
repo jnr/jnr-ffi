@@ -182,6 +182,6 @@ public final class Address extends Number implements Comparable<Address> {
      * @return an {@code Address} instance representing {@code address}
      */
     public static Address valueOf(int address) {
-        return address == 0 ? NULL : new Address(address);
+        return address == 0 ? NULL : new Address((long) address & 0xffffffffL);
     }
 }

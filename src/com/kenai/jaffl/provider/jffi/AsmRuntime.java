@@ -383,7 +383,7 @@ public final class AsmRuntime {
     }
 
     public static final Pointer pointerValue(int ptr) {
-        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
+        return ptr != 0 ? new DirectMemoryIO((long) ptr & 0xffffffffL) : null;
     }
 
     public static final void useMemory(long ptr, Struct s) {

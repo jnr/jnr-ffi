@@ -47,9 +47,6 @@ final class DefaultInvokerFactory implements InvokerFactory {
         return true; // The default factory supports everything
     }
 
-    private static final InvokeAddress invokeAddress =
-            Platform.getPlatform().addressSize() == 32 ? InvokeAddress32.INSTANCE : InvokeAddress64.INSTANCE;
-
     public final Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
         FunctionMapper functionMapper = options.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.INSTANCE;
@@ -460,35 +457,14 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final class PointerInvoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new PointerInvoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
-            return MemoryUtil.newPointer(invokeAddress.invoke(function, buffer));
+            return MemoryUtil.newPointer(invoker.invokeAddress(function, buffer));
         }
     }
 
     static final class AddressInvoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new AddressInvoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
-            return Address.valueOf(invokeAddress.invoke(function, buffer));
-        }
-    }
-
-    private static abstract class InvokeAddress {
-        static final com.kenai.jffi.Invoker invoker = com.kenai.jffi.Invoker.getInstance();
-        public abstract long invoke(Function function, HeapInvocationBuffer buffer);
-    }
-
-    private static final class InvokeAddress32 extends InvokeAddress {
-        public static final InvokeAddress INSTANCE = new InvokeAddress32();
-
-        public final long invoke(Function function, HeapInvocationBuffer buffer) {
-            return invoker.invokeInt(function, buffer);
-        }
-    }
-
-    private static final class InvokeAddress64 extends InvokeAddress {
-        public static final InvokeAddress INSTANCE = new InvokeAddress64();
-
-        public final long invoke(Function function, HeapInvocationBuffer buffer) {
-            return invoker.invokeInt(function, buffer);
+            return Address.valueOf(invoker.invokeAddress(function, buffer));
         }
     }
 
@@ -501,7 +477,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
         
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
-            final long ptr = invokeAddress.invoke(function, buffer);
+            final long ptr = invoker.invokeAddress(function, buffer);
             if (ptr == 0L) {
                 return null;
             }
@@ -520,7 +496,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         private static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
 
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
-            final long ptr = invokeAddress.invoke(function, buffer);
+            final long ptr = invoker.invokeAddress(function, buffer);
             if (ptr == 0) {
                 return null;
             }

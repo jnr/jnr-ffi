@@ -624,8 +624,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         } else if (Pointer.class == returnType || Address.class == returnType
             || Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
-            invokeMethod = Platform.getPlatform().addressSize() == 32 ? "invokeInt" : "invokeLong";
-            nativeReturnType = Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
+            invokeMethod = "invokeAddress";
+            nativeReturnType = long.class;
 
         } else if (Float.class == returnType || float.class == returnType) {
             invokeMethod = "invokeFloat";

@@ -8,11 +8,6 @@ import java.nio.ByteOrder;
  * Accessor for various runtime specific parameters
  */
 public abstract class Runtime {
-    private final Type[] types;
-    private final long addressMask;
-    private final int addressSize;
-    private final int longSize;
-    private final ByteOrder byteOrder;
 
     /** Gets the global Runtime for the current FFI provider */
     public static final Runtime getDefault() {
@@ -24,19 +19,8 @@ public abstract class Runtime {
         public static final Runtime DEFAULT_RUNTIME = FFIProvider.getProvider().getRuntime();
     }
 
-    public Runtime(ByteOrder byteOrder, Type[] types) {
-        this.byteOrder = byteOrder;
-        this.types = (Type[]) types.clone();
-        this.addressSize = types[NativeType.ADDRESS.ordinal()].size();
-        this.longSize = types[NativeType.SLONG.ordinal()].size();
-        this.addressMask = addressSize == 4 ? 0xffffffffL : 0xffffffffffffffffL;
-    }
-
-
     /** Looks up the runtime-specific that corresponds to the pseudo-type */
-    public final Type findType(NativeType type) {
-        return types[type.ordinal()];
-    }
+    public abstract Type findType(NativeType type);
 
     /** 
      * Gets the native memory manager instance for this runtime
@@ -63,35 +47,27 @@ public abstract class Runtime {
     public abstract void setLastError(int error);
 
     /** Gets the address mask for this runtime */
-    public final long addressMask() {
-        return addressMask;
-    }
+    public abstract long addressMask();
 
     /**
      * Gets the size of an address (e.g. a pointer) for this runtime
      *
      * @return The size of an address in bytes.
      */
-    public final int addressSize() {
-        return addressSize;
-    }
+    public abstract int addressSize();
 
     /**
      * Gets the size of a C long integer for this runtime
      *
      * @return The size of a C long integer in bytes.
      */
-    public final int longSize() {
-        return longSize;
-    }
+    public abstract int longSize();
 
     /**
      * Retrieves this runtime's native byte order.
      *
      * @return this runtime's byte order
      */
-    public final ByteOrder byteOrder() {
-        return byteOrder;
-    }
+    public abstract ByteOrder byteOrder();
     
 }
