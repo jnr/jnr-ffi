@@ -15,7 +15,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
     protected final long address;
 
     DirectMemoryIO(long address) {
-        this.address = address;
+        this.address = address & Address.MASK;
     }
     public final long address() {
         return address;

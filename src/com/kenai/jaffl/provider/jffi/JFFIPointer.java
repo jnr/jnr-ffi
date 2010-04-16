@@ -28,6 +28,6 @@ final class JFFIPointer extends DirectMemoryIO  {
     }
 
     public static final JFFIPointer valueOf(int address) {
-        return new JFFIPointer(address);
+        return new JFFIPointer(address & 0xffffffffL);
     }
 }
