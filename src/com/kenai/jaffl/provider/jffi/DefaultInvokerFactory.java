@@ -261,8 +261,13 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return new StringBufferMarshaller(getParameterFlags(annotations));
         } else if (StringBuilder.class.isAssignableFrom(type)) {
             return new StringBuilderMarshaller(getParameterFlags(annotations));
+
         } else if (CharSequence.class.isAssignableFrom(type)) {
             return CharSequenceMarshaller.INSTANCE;
+
+        } else if (type.isArray() && CharSequence.class.isAssignableFrom(type.getComponentType())) {
+            return new StringArrayMarshaller(getParameterFlags(annotations));
+
         } else if (ByReference.class.isAssignableFrom(type)) {
             return new ByReferenceMarshaller(getParameterFlags(annotations));
         } else if (Struct.class.isAssignableFrom(type)) {
@@ -293,6 +298,10 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return new DoubleArrayMarshaller(getParameterFlags(annotations));
         } else if (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType())) {
             return new StructArrayMarshaller(getParameterFlags(annotations));
+
+        } else if (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType())) {
+            return new PointerArrayMarshaller(getParameterFlags(annotations));
+
         } else {
             throw new IllegalArgumentException("Unsupported parameter type: " + type);
         }
@@ -594,11 +603,25 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
     }
 
+    static final class StringArrayMarshaller extends SessionRequiredMarshaller {
+        private final int nflags, inout;
+        public StringArrayMarshaller(int inout) {
+            this.inout = inout;
+            this.nflags = getNativeArrayFlags(inout | (ParameterFlags.isIn(inout) ? ParameterFlags.NULTERMINATE : 0));
+        }
+
+
+        @Override
+        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+            AsmRuntime.marshal(session, buffer, (CharSequence[]) parameter, inout, nflags);
+        }
+    }
+
     static final class StringBufferMarshaller extends SessionRequiredMarshaller {
         private final int nflags, inout;
         public StringBufferMarshaller(int inout) {
             this.inout = inout;
-            this.nflags = getNativeArrayFlags(inout | (ParameterFlags.isIn(inout) ? ParameterFlags.NULTERMINATE : 0));
+            this.nflags = getNativeArrayFlags(inout);
         }
 
 
@@ -669,6 +692,19 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
             AsmRuntime.marshal(buffer, double[].class.cast(parameter), flags);
+        }
+    }
+
+    static final class PointerArrayMarshaller extends SessionRequiredMarshaller {
+        private final int nflags, inout;
+        public PointerArrayMarshaller(int inout) {
+            this.inout = inout;
+            this.nflags = getNativeArrayFlags(inout);
+        }
+
+        @Override
+        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+            AsmRuntime.marshal(session, buffer, (Pointer[]) parameter, inout, nflags);
         }
     }
 

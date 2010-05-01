@@ -17,6 +17,11 @@ class DirectMemoryIO extends AbstractMemoryIO {
         this.address = address;
     }
 
+    DirectMemoryIO(Runtime runtime, int address) {
+        super(runtime);
+        this.address = (long) address & 0xffffffffL;
+    }
+
     DirectMemoryIO(long address) {
         this(NativeRuntime.getInstance(), address);
     }
