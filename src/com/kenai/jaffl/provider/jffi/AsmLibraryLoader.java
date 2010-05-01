@@ -96,6 +96,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Short.class == type || Integer.class == type
                 || Long.class == type || Float.class == type
                 || Double.class == type || NativeLong.class == type
+                || Enum.class.isAssignableFrom(type)
                 || Pointer.class == type || Address.class == type
                 || String.class == type
                 || Struct.class.isAssignableFrom(type);
@@ -435,6 +436,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                     } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
                         unboxStruct(mv, nativeParameterTypes[i]);
                         
+                    } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
+                        unboxEnum(mv, nativeParameterTypes[i]);
                     }
                 }
             }
@@ -669,6 +672,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
                 unboxNumber(mv, parameterTypes[i], nativeIntType);
 
+            } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
+                unboxEnum(mv, nativeIntType);
+
             } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
                 unboxPointer(mv, nativeIntType);
 
@@ -707,6 +713,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
                 unboxStruct(mv, long.class);
+
+            } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
+                unboxEnum(mv, long.class);
 
             } else {
                 
@@ -1151,6 +1160,10 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
 
         if (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32) {
+            return true;
+        }
+
+        if (Enum.class.isAssignableFrom(type)) {
             return true;
         }
 

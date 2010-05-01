@@ -80,6 +80,10 @@ class AsmUtil {
             return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
         } else if (Pointer.class.isAssignableFrom(boxedType) || Struct.class.isAssignableFrom(boxedType)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
+
+        } else if (Enum.class.isAssignableFrom(boxedType)) {
+            return int.class;
+        
         } else {
             return boxedType;
         }
@@ -161,6 +165,11 @@ class AsmUtil {
         unboxPointerOrStruct(mv, Struct.class, nativeType);
     }
 
+    static final void unboxEnum(final SkinnyMethodAdapter mv, final Class nativeType) {
+        mv.invokestatic(p(AsmRuntime.class), long.class == nativeType ? "longValue" : "intValue",
+            sig(nativeType, Enum.class));
+    }
+
     static final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeType) {
         String intValueMethod = long.class == nativeType ? "longValue" : "intValue";
         String intValueSignature = long.class == nativeType ? "()J" : "()I";
@@ -183,6 +192,9 @@ class AsmUtil {
         } else if (Boolean.class.isAssignableFrom(boxedType)) {
             mv.invokevirtual(p(boxedType), "booleanValue", "()Z");
             widen(mv, boolean.class, nativeType);
+
+        } else if (Enum.class.isAssignableFrom(boxedType)) {
+            unboxEnum(mv, nativeType);
 
         } else {
             throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);

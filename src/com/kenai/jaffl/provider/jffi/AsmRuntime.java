@@ -366,7 +366,11 @@ public final class AsmRuntime {
 
 
     public static final void marshal(InvocationBuffer buffer, final Enum parameter) {
-        buffer.putInt(EnumMapper.getInstance().intValue(parameter));
+        if (parameter == null) {
+            throw new IllegalArgumentException("enum value cannot be null");
+        } else {
+            buffer.putInt(EnumMapper.getInstance().intValue(parameter));
+        }
     }
 
 
@@ -484,5 +488,17 @@ public final class AsmRuntime {
 
     public static final long longValue(Struct s) {
         return s != null ? StructUtil.getMemory(s).address() : 0L;
+    }
+
+    public static final <E extends Enum<E>> E enumValue(int value, Class<E> enumClass) {
+        return EnumMapper.getInstance().valueOf(value, enumClass);
+    }
+
+    public static final int intValue(Enum e) {
+        return EnumMapper.getInstance().intValue(e);
+    }
+
+    public static final long longValue(Enum e) {
+        return EnumMapper.getInstance().intValue(e);
     }
 }
