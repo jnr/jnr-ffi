@@ -1,11 +1,11 @@
 
 package com.kenai.jaffl.provider.jffi;
 
-import com.kenai.jaffl.Pointer;
 import com.kenai.jaffl.Runtime;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class AllocatedDirectMemoryIO extends DirectMemoryIO {
-    private volatile boolean allocated = true;
+    private final AtomicBoolean allocated = new AtomicBoolean(true);
     private final int size;
     
     public AllocatedDirectMemoryIO(Runtime runtime, int size, boolean clear) {
@@ -39,12 +39,17 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
         return super.equals(obj);
     }
 
+    public final void dispose() {
+        if (allocated.getAndSet(false)) {
+            IO.freeMemory(address);
+        }
+    }
+
     @Override
     protected void finalize() throws Throwable {
         try {
-            if (allocated) {
+            if (allocated.getAndSet(false)) {
                 IO.freeMemory(address);
-                allocated = false;
             }
         } finally {
             super.finalize();
