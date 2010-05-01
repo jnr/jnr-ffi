@@ -15,6 +15,10 @@ public final class TstUtil {
     }
     public static <T> T loadTestLib(Class<T> interfaceClass) {
         final Map<LibraryOption, ?> options = Collections.emptyMap();
+        return loadTestLib(interfaceClass, options);
+    }
+
+    public static <T> T loadTestLib(Class<T> interfaceClass, Map<LibraryOption, ?> options) {
         return Library.loadLibrary(getTestLibraryName(), interfaceClass, options);
     }
     public static Pointer getDirectBufferPointer(ByteBuffer buf) {
