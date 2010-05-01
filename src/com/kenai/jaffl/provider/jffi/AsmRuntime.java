@@ -423,7 +423,11 @@ public final class AsmRuntime {
     public static final UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {
         return new UnsatisfiedLinkError(msg);
     }
- 
+
+    public static final HeapInvocationBuffer newHeapInvocationBuffer(Function function) {
+        return new HeapInvocationBuffer(function);
+    }
+
     public static final String stringValue(long ptr) {
         if (ptr == 0) {
             return null;

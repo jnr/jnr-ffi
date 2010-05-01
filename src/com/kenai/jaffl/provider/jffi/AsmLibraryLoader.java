@@ -527,15 +527,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.astore(lvarSession);
         }
 
-        // new HeapInvocationBuffer(function)
-        mv.newobj(p(HeapInvocationBuffer.class));
+        // [ stack contains: Invoker, Function, Function ]
+        mv.dup();
+        mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, Function.class);
+        // [ stack contains: Invoker, Function, HeapInvocationBuffer ]
         
-        // [ ..., Function, Buffer ] => [ ..., Function, Buffer, Function, Buffer ]
-        mv.dup2();
-        // [ ..., Function, Buffer, Function, Buffer ] => [ ..., Function, Buffer, Buffer, Function ]
-        mv.swap();
-        mv.invokespecial(HeapInvocationBuffer.class, "<init>", void.class, Function.class);
-
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.dup(); // dup ref to HeapInvocationBuffer
