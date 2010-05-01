@@ -98,6 +98,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 || Struct.class.isAssignableFrom(type)
                 || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))
                 || (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType()))
+                || (type.isArray() && CharSequence.class.isAssignableFrom(type.getComponentType()))
                 || CharSequence.class.isAssignableFrom(type)
                 || ByReference.class.isAssignableFrom(type)
                 || StringBuilder.class.isAssignableFrom(type)
@@ -562,6 +563,11 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
                 // stack should be: [ Buffer, array, flags ]
                 marshal(mv, CharSequence.class);
 
+            } else if (parameterTypes[i].isArray() && CharSequence.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
+                mv.pushInt(parameterFlags);
+                mv.pushInt(nativeArrayFlags);
+                sessionmarshal(mv, CharSequence[].class, int.class, int.class);
+
             } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
@@ -1008,7 +1014,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         return StringBuilder.class.isAssignableFrom(parameterType)
                 || StringBuffer.class.isAssignableFrom(parameterType)
                 || ByReference.class.isAssignableFrom(parameterType)
-                || (parameterType.isArray() && Pointer.class.isAssignableFrom(parameterType.getComponentType()));
+                || (parameterType.isArray() && Pointer.class.isAssignableFrom(parameterType.getComponentType()))
+                || (parameterType.isArray() && CharSequence.class.isAssignableFrom(parameterType.getComponentType()))
+                ;
     }
 
     private static boolean isSessionRequired(Class[] parameterTypes) {

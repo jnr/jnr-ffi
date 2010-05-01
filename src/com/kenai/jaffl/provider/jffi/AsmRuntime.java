@@ -269,23 +269,77 @@ public final class AsmRuntime {
         }
     }
 
+    public static final void marshal(InvocationSession session, InvocationBuffer buffer,
+            final CharSequence[] strings, final int inout, int nativeArrayFlags) {
+        if (strings == null) {
+            buffer.putAddress(0L);
+
+        } else {
+            final AllocatedDirectMemoryIO[] pointers = new AllocatedDirectMemoryIO[strings.length];
+            final StringIO io = StringIO.getStringIO();
+
+            if (ParameterFlags.isIn(inout)) {
+                for (int i = 0; i < strings.length; ++i) {
+                    if (strings[i] != null) {
+                        ByteBuffer buf = io.toNative(strings[i], strings[i].length(), ParameterFlags.isIn(inout));
+                        AllocatedDirectMemoryIO ptr = new AllocatedDirectMemoryIO(buf.remaining(), false);
+                        ptr.put(0, buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+                        pointers[i] = ptr;
+
+                    } else {
+                        pointers[i] = null;
+                    }
+                }
+            }
+
+            // pass it as an array of pointers
+            final Pointer[] tmp = new Pointer[pointers.length];
+            System.arraycopy(pointers, 0, tmp, 0, tmp.length);
+            marshal(session, buffer, tmp, inout, nativeArrayFlags);
+
+            // Reload any elements of the native array that were changed, and convert back to java strings
+            // the PostInvoke also keeps the native memory alive until after the function call
+            session.addPostInvoke(new InvocationSession.PostInvoke() {
+
+                public void postInvoke() {
+                    if (ParameterFlags.isOut(inout)) {
+                        for (int i = 0; i < pointers.length; ++i) {
+                            if (tmp[i] != null) {
+                                strings[i] = tmp[i].getString(0);
+                            }
+                        }
+                    }
+
+                    // Dispose all the allocated memory as soon as the call is finished
+                    for (int i = 0; i < pointers.length; ++i) {
+                        if (pointers[i] != null) {
+                            pointers[i].dispose();
+                        }
+                    }
+                }
+            });
+
+        }
+    }
+
+
     public static final void marshal(InvocationBuffer buffer, final Enum parameter) {
         buffer.putInt(EnumMapper.getInstance().intValue(parameter));
     }
 
 
-    public static final void marshal(InvocationSession session, InvocationBuffer buffer, Pointer[] parameter, int inout, int nativeArrayFlags) {
-        if (parameter == null) {
+    public static final void marshal(InvocationSession session, InvocationBuffer buffer, 
+            final Pointer[] pointers, int inout, int nativeArrayFlags) {
+        if (pointers == null) {
             buffer.putAddress(0L);
         } else {
-            final Pointer[] array = parameter;
-            if (Pointer.SIZE == 32) {
-                final int[] raw = new int[array.length];
-                for (int i = 0; i < raw.length; ++i) {
-                    if (!array[i].isDirect()) {
+            if (Platform.getPlatform().addressSize() == 32) {
+                final int[] raw = new int[pointers.length + 1];
+                for (int i = 0; i < pointers.length; ++i) {
+                    if (pointers[i] != null && !pointers[i].isDirect()) {
                         throw new IllegalArgumentException("invalid pointer in array at index " + i);
                     }
-                    raw[i] = (int) array[i].address();
+                    raw[i] = pointers[i] != null ? (int) pointers[i].address() : 0;
                 }
                 buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
 
@@ -293,19 +347,19 @@ public final class AsmRuntime {
                     session.addPostInvoke(new InvocationSession.PostInvoke() {
 
                         public void postInvoke() {
-                            for (int i = 0; i < raw.length; ++i) {
-                                array[i] = MemoryUtil.newPointer(raw[i]);
+                            for (int i = 0; i < pointers.length; ++i) {
+                                pointers[i] = MemoryUtil.newPointer(raw[i]);
                             }
                         }
                     });
                 }
             } else {
-                final long[] raw = new long[array.length];
-                for (int i = 0; i < raw.length; ++i) {
-                    if (!array[i].isDirect()) {
+                final long[] raw = new long[pointers.length + 1];
+                for (int i = 0; i < pointers.length; ++i) {
+                    if (pointers[i] != null && !pointers[i].isDirect()) {
                         throw new IllegalArgumentException("invalid pointer in array at index " + i);
                     }
-                    raw[i] = array[i].address();
+                    raw[i] = pointers[i] != null ? pointers[i].address() : 0;
                 }
 
                 buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
@@ -314,8 +368,8 @@ public final class AsmRuntime {
                     session.addPostInvoke(new InvocationSession.PostInvoke() {
 
                         public void postInvoke() {
-                            for (int i = 0; i < raw.length; ++i) {
-                                array[i] = MemoryUtil.newPointer(raw[i]);
+                            for (int i = 0; i < pointers.length; ++i) {
+                                pointers[i] = MemoryUtil.newPointer(raw[i]);
                             }
                         }
                     });
