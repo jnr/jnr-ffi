@@ -48,7 +48,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import org.objectweb.asm.ClassVisitor;
@@ -630,8 +629,8 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
         } else if (Pointer.class == returnType || Address.class == returnType
             || Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
-            invokeMethod = "invokeAddress";
-            nativeReturnType = long.class;
+            invokeMethod = Platform.getPlatform().addressSize() == 32 ? "invokeInt" : "invokeLong";
+            nativeReturnType = Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
         } else if (Float.class == returnType || float.class == returnType) {
             invokeMethod = "invokeFloat";
@@ -887,26 +886,40 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
 
     
-    private final void boxStruct(SkinnyMethodAdapter mv, Class returnType) {
-        mv.dup2();
+    private final void boxStruct(SkinnyMethodAdapter mv, Class returnType, Class nativeType) {
         Label nonnull = new Label();
         Label end = new Label();
-        mv.lconst_0();
-        mv.lcmp();
-        mv.ifne(nonnull);
-        mv.pop2();
+
+        if (long.class == nativeType) {
+            mv.dup2();
+            mv.lconst_0();
+            mv.lcmp();
+            mv.ifne(nonnull);
+            mv.pop2();
+
+        } else {
+            mv.dup();
+            mv.ifne(nonnull);
+            mv.pop();
+        }
+        
         mv.aconst_null();
         mv.go_to(end);
 
         mv.label(nonnull);
+        
         // Create an instance of the struct subclass
         mv.newobj(p(returnType));
         mv.dup();
         mv.invokespecial(returnType, "<init>", void.class);
-        mv.dup_x2();
+        if (long.class == nativeType) {
+            mv.dup_x2();
+        } else {
+            mv.dup_x1();
+        }
 
         // associate the memory with the struct and return the struct
-        mv.invokestatic(AsmRuntime.class, "useMemory", void.class, long.class, Struct.class);
+        mv.invokestatic(AsmRuntime.class, "useMemory", void.class, nativeType, Struct.class);
         mv.label(end);
     }
 
@@ -964,15 +977,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             mv.invokestatic(returnType, "valueOf", returnType, nativeReturnType);
 
         } else if (Struct.class.isAssignableFrom(returnType)) {
-            widen(mv, nativeReturnType, long.class);
-            boxStruct(mv, returnType);
+            boxStruct(mv, returnType, nativeReturnType);
          
         } else if (Number.class.isAssignableFrom(returnType)) {
             boxNumber(mv, returnType, nativeReturnType);
          
         } else if (String.class == returnType) {
-            widen(mv, nativeReturnType, long.class);
-            mv.invokestatic(AsmRuntime.class, "returnString", String.class, long.class);
+            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, nativeReturnType);
          
         } else {
             throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);

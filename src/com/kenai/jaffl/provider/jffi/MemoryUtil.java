@@ -14,7 +14,7 @@ public final class MemoryUtil {
     }
 
     static final com.kenai.jaffl.Pointer newPointer(int ptr) {
-        return ptr != 0 ? new DirectMemoryIO((long) ptr & 0xffffffffL) : null;
+        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
     
     static final com.kenai.jaffl.Pointer newPointer(long ptr, long size) {

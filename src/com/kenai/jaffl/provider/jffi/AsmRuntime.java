@@ -9,11 +9,12 @@ import com.kenai.jaffl.provider.AbstractArrayMemoryIO;
 import com.kenai.jaffl.provider.AbstractBufferMemoryIO;
 import com.kenai.jaffl.provider.DelegatingMemoryIO;
 import com.kenai.jaffl.provider.InvocationSession;
-import com.kenai.jaffl.provider.NullMemoryIO;
 import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.InvocationBuffer;
 import com.kenai.jffi.Platform;
 import java.nio.ByteBuffer;
@@ -422,8 +423,8 @@ public final class AsmRuntime {
     public static final UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {
         return new UnsatisfiedLinkError(msg);
     }
-
-    public static final String returnString(long ptr) {
+ 
+    public static final String stringValue(long ptr) {
         if (ptr == 0) {
             return null;
         }
@@ -432,15 +433,23 @@ public final class AsmRuntime {
         return StringIO.getStringIO().fromNative(buf).toString();
     }
 
+    public static final String stringValue(int ptr) {
+        return stringValue((long) ptr);
+    }
+
     public static final Pointer pointerValue(long ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
 
     public static final Pointer pointerValue(int ptr) {
-        return ptr != 0 ? new DirectMemoryIO((long) ptr & 0xffffffffL) : null;
+        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
 
     public static final void useMemory(long ptr, Struct s) {
+        s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
+    }
+
+    public static final void useMemory(int ptr, Struct s) {
         s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
     }
 
