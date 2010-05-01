@@ -24,6 +24,9 @@ public final class TstUtil {
 
     public static <T> T loadTestLib(Class<T> interfaceClass) {
         final Map<LibraryOption, ?> options = Collections.emptyMap();
+        return loadTestLib(interfaceClass, options);
+    }
+    public static <T> T loadTestLib(Class<T> interfaceClass, Map<LibraryOption, ?> options) {
         if (provider != null) {
             return provider.loadLibrary(libname, interfaceClass, options);
         } else {
