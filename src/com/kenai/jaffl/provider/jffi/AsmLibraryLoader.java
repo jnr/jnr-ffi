@@ -1241,6 +1241,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
+    /**
+     * Proxy to hold the ToNativeContext info for parameter conversions
+     */
     public static final class ToNativeProxy implements ToNativeConverter {
         private final ToNativeConverter converter;
         private final ToNativeContext ctx;
@@ -1259,6 +1262,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         }
     }
 
+    /**
+     * Proxy to hold the FromNativeContext info for result conversions
+     */
     public static final class FromNativeProxy implements FromNativeConverter {
         private final FromNativeConverter converter;
         private final FromNativeContext ctx;
