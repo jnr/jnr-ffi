@@ -13,6 +13,8 @@ import com.kenai.jaffl.provider.StringIO;
 import com.kenai.jaffl.struct.Struct;
 import com.kenai.jaffl.struct.StructUtil;
 import com.kenai.jaffl.util.EnumMapper;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.InvocationBuffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -326,6 +328,10 @@ public final class AsmRuntime {
         return new UnsatisfiedLinkError(msg);
     }
 
+    public static final HeapInvocationBuffer newHeapInvocationBuffer(Function function) {
+        return new HeapInvocationBuffer(function);
+    }
+    
     public static final String returnString(long ptr) {
         if (ptr == 0) {
             return null;
