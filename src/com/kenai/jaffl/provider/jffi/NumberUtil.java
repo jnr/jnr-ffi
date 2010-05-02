@@ -111,16 +111,21 @@ public final class NumberUtil {
 
     public static final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
         if (!from.equals(to)) {
-            if (byte.class == to || short.class == to || char.class == to || int.class == to) {
+            if (byte.class == to || short.class == to || char.class == to || int.class == to || boolean.class == to) {
                 if (long.class == from) {
                     mv.l2i();
                 }
+
                 if (byte.class == to) {
                     mv.i2b();
                 } else if (short.class == to) {
                     mv.i2s();
                 } else if (char.class == to) {
                     mv.i2c();
+                } else if (boolean.class == to) {
+                    // Ensure only 0x0 and 0x1 values are used for boolean
+                    mv.iconst_1();
+                    mv.iand();
                 }
             }
         }

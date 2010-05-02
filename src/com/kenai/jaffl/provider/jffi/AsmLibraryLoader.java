@@ -954,7 +954,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             primitiveClass = long.class;
 
         } else if (Boolean.class.isAssignableFrom(type)) {
-            narrow(mv, nativeType, int.class);
+            narrow(mv, nativeType, boolean.class);
 
         } else if (Float.class == type || Double.class == type) {
             // nothing to do
@@ -970,7 +970,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return;
 
         } else if (Boolean.class.isAssignableFrom(returnType)) {
-            narrow(mv, nativeReturnType, int.class);
+            narrow(mv, nativeReturnType, boolean.class);
             mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
             
         } else if (Pointer.class.isAssignableFrom(returnType)) {
