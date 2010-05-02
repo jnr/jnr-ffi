@@ -950,8 +950,12 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             widen(mv, nativeType, long.class);
 
         } else if (NativeLong.class.isAssignableFrom(type)) {
-            widen(mv, nativeType, long.class);
-            primitiveClass = long.class;
+            if (Platform.getPlatform().longSize() == 64) {
+                widen(mv, nativeType, long.class);
+                primitiveClass = long.class;
+            } else {
+                primitiveClass = int.class;
+            }
 
         } else if (Boolean.class.isAssignableFrom(type)) {
             narrow(mv, nativeType, boolean.class);
