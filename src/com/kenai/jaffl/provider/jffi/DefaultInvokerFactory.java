@@ -254,7 +254,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
             return BooleanMarshaller.INSTANCE;
         } else if (Enum.class.isAssignableFrom(type)) {
-            return EnumMarshaller.INSTANCE;
+            return new EnumMarshaller(type);
         } else if (Pointer.class.isAssignableFrom(type)) {
             return PointerMarshaller.INSTANCE;
         } else if (StringBuffer.class.isAssignableFrom(type)) {
@@ -405,13 +405,15 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
     }
     static final class EnumInvoker extends BaseInvoker {
-        private final Class enumClass;
-        private EnumInvoker(Class enumClass) {
-            this.enumClass = enumClass;
-        }
+        private final EnumMapper mapper;
+
         @SuppressWarnings("unchecked")
+        private EnumInvoker(Class enumClass) {
+            this.mapper = EnumMapper.getInstance(enumClass.asSubclass(Enum.class));
+        }
+
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
-            return EnumMapper.getInstance().valueOf(invoker.invokeInt(function, buffer), enumClass);
+            return mapper.valueOf(invoker.invokeInt(function, buffer));
         }
     }
     static final class Int8Invoker extends BaseInvoker {
@@ -523,9 +525,15 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
     }
     static final class EnumMarshaller extends BaseMarshaller {
-        static final Marshaller INSTANCE = new EnumMarshaller();
+        private final EnumMapper mapper;
+
+        @SuppressWarnings("unchecked")
+        public EnumMarshaller(Class enumClass) {
+            this.mapper = EnumMapper.getInstance(enumClass.asSubclass(Enum.class));
+        }
+
         public void marshal(InvocationBuffer buffer, Object parameter) {
-            buffer.putInt(EnumMapper.getInstance().intValue((Enum) parameter));
+            buffer.putInt(mapper.intValue((Enum) parameter));
         }
     }
     static final class Int8Marshaller extends BaseMarshaller {

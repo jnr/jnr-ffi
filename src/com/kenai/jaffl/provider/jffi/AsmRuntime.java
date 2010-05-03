@@ -369,7 +369,7 @@ public final class AsmRuntime {
         if (parameter == null) {
             throw new IllegalArgumentException("enum value cannot be null");
         } else {
-            buffer.putInt(EnumMapper.getInstance().intValue(parameter));
+            buffer.putInt(EnumMapper.getInstance(parameter.getClass()).intValue(parameter));
         }
     }
 
@@ -490,15 +490,15 @@ public final class AsmRuntime {
         return s != null ? StructUtil.getMemory(s).address() : 0L;
     }
 
-    public static final <E extends Enum<E>> E enumValue(int value, Class<E> enumClass) {
-        return EnumMapper.getInstance().valueOf(value, enumClass);
+    public static final Enum enumValue(int value, Class<? extends Enum> enumClass) {
+        return EnumMapper.getInstance(enumClass).valueOf(value);
     }
 
     public static final int intValue(Enum e) {
-        return EnumMapper.getInstance().intValue(e);
+        return EnumMapper.getInstance(e.getClass()).intValue(e);
     }
 
     public static final long longValue(Enum e) {
-        return EnumMapper.getInstance().intValue(e);
+        return EnumMapper.getInstance(e.getClass()).intValue(e);
     }
 }

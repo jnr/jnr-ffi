@@ -36,6 +36,7 @@ import com.kenai.jaffl.mapper.TypeMapper;
 import com.kenai.jaffl.provider.InvocationSession;
 import com.kenai.jaffl.provider.LoadedLibrary;
 import com.kenai.jaffl.struct.Struct;
+import com.kenai.jaffl.util.EnumMapper;
 import com.kenai.jffi.ArrayFlags;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
@@ -178,10 +179,12 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             parameterConverters[i] = new ParameterConverter[parameterTypes.length];
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
-                ToNativeConverter converter = typeMapper.getToNativeConverter(parameterTypes[pidx]);
+                ToNativeConverter converter = Enum.class.isAssignableFrom(parameterTypes[pidx])
+                        ? EnumMapper.getInstance(parameterTypes[pidx].asSubclass(Enum.class))
+                        : typeMapper.getToNativeConverter(parameterTypes[pidx]);
                 if (converter != null) {
                     cv.visitField(ACC_PRIVATE | ACC_FINAL, getParameterConverterFieldName(i, pidx),
-                            ci(ToNativeConverter.class), null, null);
+                            ci(ParameterConverter.class), null, null);
                     nativeParameterTypes[pidx] = converter.nativeType();
                     
                     parameterConverters[i][pidx] = new ParameterConverter(converter,
@@ -288,7 +291,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return new ResultConverter(conv, new MethodResultContext(m));
 
         } else if (Enum.class.isAssignableFrom(returnType)) {
-            return new ResultConverter(new EnumResultConverter(returnType), null);
+            return new ResultConverter(EnumMapper.getInstance(returnType.asSubclass(Enum.class)), null);
 
         } else {
             return null;

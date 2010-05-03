@@ -144,7 +144,7 @@ public class EnumTest {
     }
     @Test 
     public void byteField() {
-        final byte MAGIC = (byte) EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final byte MAGIC = (byte) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.b.set(TestEnum.MAGIC);
         
@@ -154,7 +154,7 @@ public class EnumTest {
     }
     @Test 
     public void shortField() {
-        final short MAGIC = (short) EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final short MAGIC = (short) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.s.set(TestEnum.MAGIC);
         
@@ -164,7 +164,7 @@ public class EnumTest {
     }
     @Test 
     public void intField() {
-        final int MAGIC = EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final int MAGIC = EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.i.set(TestEnum.MAGIC);
         
@@ -174,7 +174,7 @@ public class EnumTest {
     }
     @Test 
     public void int64Field() {
-        final long MAGIC = EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final long MAGIC = EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.i64.set(TestEnum.MAGIC);
         
@@ -184,7 +184,7 @@ public class EnumTest {
     }
     @Test 
     public void alignInt16Field() {
-        final short MAGIC = (short) EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final short MAGIC = (short) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         Int16Align s = new Int16Align();
         s.s.set(TestEnum.MAGIC);
         
@@ -192,7 +192,7 @@ public class EnumTest {
     }
     @Test 
     public void alignSigned32Field() {
-        final int MAGIC = (int) EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final int MAGIC = (int) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         Int32Align s = new Int32Align();
         s.i.set(TestEnum.MAGIC);
         
@@ -200,7 +200,7 @@ public class EnumTest {
     }
     @Test 
     public void alignSigned64Field() {
-        final long MAGIC = EnumMapper.getInstance().intValue(TestEnum.MAGIC);
+        final long MAGIC = EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         Int64Align s = new Int64Align();
         s.l.set(TestEnum.MAGIC);
         
@@ -208,7 +208,7 @@ public class EnumTest {
     }
     @Test 
     public void alignSignedLongField() {
-        final NativeLong MAGIC = new NativeLong(EnumMapper.getInstance().intValue(TestEnum.MAGIC));
+        final NativeLong MAGIC = new NativeLong(EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC));
         LongAlign s = new LongAlign();
         s.l.set(TestEnum.MAGIC);
         

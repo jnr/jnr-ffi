@@ -1,26 +1,73 @@
 
 package com.kenai.jaffl.util;
 
+import com.kenai.jaffl.mapper.FromNativeContext;
+import com.kenai.jaffl.mapper.FromNativeConverter;
+import com.kenai.jaffl.mapper.ToNativeContext;
+import com.kenai.jaffl.mapper.ToNativeConverter;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Provides mapping from Enum values to native integers and vice-versa
  */
-public class EnumMapper {
-    
+public final class EnumMapper implements FromNativeConverter, ToNativeConverter {
+    private static final ConcurrentMap<Class<? extends Enum>, EnumMapper> mappers
+            = new ConcurrentHashMap<Class<? extends Enum>, EnumMapper>();
+
+    private final Class<? extends Enum> enumClass;
+    private final Integer[] values;
+    private final Map<Integer, Enum> reverseLookupMap = new HashMap<Integer, Enum>();
+
+    private EnumMapper(Class<? extends Enum> enumClass) {
+        this.enumClass = enumClass;
+
+        EnumSet<? extends Enum> enums = EnumSet.allOf(enumClass);
+
+        this.values = new Integer[enums.size()];
+        for (Enum e : enums) {
+            Integer value = getIntegerValue(e);
+            this.values[e.ordinal()] = value;
+            reverseLookupMap.put(value, e);
+        }
+        
+    }
+
+    public Object fromNative(Object nativeValue, FromNativeContext context) {
+        return valueOf((Number) nativeValue);
+    }
+
+    public Class nativeType() {
+        return Integer.class;
+    }
+
+    public Object toNative(Object value, ToNativeContext context) {
+        return intValue(enumClass.cast(value));
+    }
+
     public static interface IntegerEnum {
         public int intValue();
     }
-    private static final class Entry {
-        Map<Integer, Enum> enumMap = new HashMap<Integer, Enum>();
-        Map<Enum, Integer> valueMap = new HashMap<Enum, Integer>();
+
+    public static EnumMapper getInstance(Class<? extends Enum> enumClass) {
+        EnumMapper mapper = mappers.get(enumClass);
+        if (mapper != null) {
+            return mapper;
+        }
+
+        return addMapper(enumClass);
     }
-    private static final EnumMapper mapper = new EnumMapper();
-    public static EnumMapper getInstance() {
+
+    private static EnumMapper addMapper(Class<? extends Enum> enumClass) {
+        EnumMapper mapper = new EnumMapper(enumClass);
+        mappers.put(enumClass, mapper);
         return mapper;
     }
+
     private static final int getIntegerValue(Enum e) {
         if (e instanceof IntegerEnum) {
             return ((IntegerEnum) e).intValue();
@@ -28,59 +75,45 @@ public class EnumMapper {
             return e.ordinal();
         }
     }
-    private Entry createEntry(Class<? extends Enum> enumClass) {
-        Entry entry = new Entry();
-        for (Enum e : enumClass.getEnumConstants()) {
-            int intValue = getIntegerValue(e);
-            entry.enumMap.put(intValue, e);
-            entry.valueMap.put(e, intValue);
+
+    public final int intValue(Enum value) {
+        if (value.getClass() != enumClass) {
+            throw new IllegalArgumentException("enum class mismatch, " + value.getClass());
         }
-        return entry;
+
+        return values[value.ordinal()];
     }
-    private Entry getEntry(Class<? extends Enum> enumClass) {
-        Entry entry = enums.get(enumClass);
-        if (entry == null) {
-            // 
-            // When building the entry, lock on the class so other lookups can proceed
-            // without waiting for the build.
+
+    public Enum valueOf(int value) {
+        Collections.emptyList();
+        return valueOf(Integer.valueOf(value));
+    }
+
+    public Enum valueOf(Number value) {
+        return valueOf(Integer.valueOf(value.intValue()));
+    }
+
+    public Enum valueOf(Integer value) {
+        Enum e = reverseLookupMap.get(value);
+        return e != null ? e : badValue(value);
+    }
+
+    private final Enum badValue(Integer value) {
+        //
+        // No value found - try to find the default value for unknown values.
+        // This is useful for enums that aren't fixed in stone and/or where you
+        // don't want to throw an Exception for an unknown value.
+        //
+        try {
+            return Enum.valueOf(enumClass, "__UNKNOWN_NATIVE_VALUE");
+        } catch (IllegalArgumentException ex) {
             //
-            synchronized (enumClass) {
-                //
-                // Re-check in case two threads tried at the same time and fell through
-                // to here.
-                //
-                if (!enums.containsKey(enumClass)) {
-                    enums.put(enumClass, entry = createEntry(enumClass));
-                } else {
-                    entry = enums.get(enumClass);
-                }
-            }
+            // No default, so just give up and throw an exception
+            //
+            throw new IllegalArgumentException("No known Enum mapping for value "
+                    + value + " of type " + enumClass.getName());
         }
-        return entry;
     }
-    public int intValue(Enum value) {
-        //return getEntry(value.getClass()).valueMap.get(value);
-        return getIntegerValue(value);
-    }
+
     
-    public <E extends Enum<E>> E valueOf(int value, Class<E> enumClass) {
-        Enum e = getEntry(enumClass).enumMap.get(value);
-        if (e == null) {
-            //
-            // No value found - try to find the default value for unknown values.
-            // This is useful for enums that aren't fixed in stone and/or where you
-            // don't want to throw an Exception for an unknown value.
-            //
-            try {
-                return Enum.valueOf(enumClass, "__UNKNOWN_NATIVE_VALUE");
-            } catch (IllegalArgumentException ex) {      
-                //
-                // No default, so just give up and throw an exception
-                //
-                throw new IllegalArgumentException("No known Enum mapping for value " + value + " of type " + enumClass.getName());
-            }
-        }
-        return enumClass.cast(e);
-    }
-    private final Map<Class<? extends Enum>, Entry> enums = new ConcurrentHashMap<Class<? extends Enum>, Entry>();
 }

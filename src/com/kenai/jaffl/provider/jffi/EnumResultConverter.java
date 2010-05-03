@@ -7,15 +7,16 @@ import com.kenai.jaffl.util.EnumMapper;
 
 
 public class EnumResultConverter implements FromNativeConverter {
+    private final EnumMapper mapper;
     private final Class enumClass;
 
     EnumResultConverter(Class enumClass) {
+        this.mapper = EnumMapper.getInstance(enumClass.asSubclass(Enum.class));
         this.enumClass = enumClass;
     }
 
-    @SuppressWarnings("unchecked")
     public Object fromNative(Object nativeValue, FromNativeContext context) {
-        return EnumMapper.getInstance().valueOf(((Integer) nativeValue), enumClass);
+        return mapper.valueOf((Integer) nativeValue);
     }
 
     public Class nativeType() {

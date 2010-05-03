@@ -1584,7 +1584,7 @@ public abstract class Struct /*implements Marshallable */{
          * @return a java Enum value.
          */
         public final E get() {
-            return EnumMapper.getInstance().valueOf(intValue(), enumClass);
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
         
         /**
@@ -1593,7 +1593,7 @@ public abstract class Struct /*implements Marshallable */{
          * @param value the java <tt>Enum</tt> value.
          */
         public final void set(E value) {
-            getMemory().putByte(offset(), (byte) EnumMapper.getInstance().intValue(value));
+            getMemory().putByte(offset(), (byte) EnumMapper.getInstance(enumClass).intValue(value));
         }
 
         public void set(java.lang.Number value) {
@@ -1615,10 +1615,10 @@ public abstract class Struct /*implements Marshallable */{
             super(NativeType.SSHORT, enumClass);
         }
         public final E get() {
-            return EnumMapper.getInstance().valueOf(intValue(), enumClass);
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
         public final void set(E value) {
-            getMemory().putShort(offset(), (short) EnumMapper.getInstance().intValue(value));
+            getMemory().putShort(offset(), (short) EnumMapper.getInstance(enumClass).intValue(value));
         }
         public void set(java.lang.Number value) {
             getMemory().putShort(offset(), value.shortValue());
@@ -1634,10 +1634,10 @@ public abstract class Struct /*implements Marshallable */{
             super(NativeType.SINT, enumClass);
         }
         public final E get() {
-            return EnumMapper.getInstance().valueOf(intValue(), enumClass);
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
         public final void set(E value) {
-            getMemory().putInt(offset(), EnumMapper.getInstance().intValue(value));
+            getMemory().putInt(offset(), EnumMapper.getInstance(enumClass).intValue(value));
         }
         public void set(java.lang.Number value) {
             getMemory().putInt(offset(), value.intValue());
@@ -1653,10 +1653,10 @@ public abstract class Struct /*implements Marshallable */{
             super(NativeType.SLONGLONG, enumClass);
         }
         public final E get() {
-            return EnumMapper.getInstance().valueOf(intValue(), enumClass);
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
         public final void set(E value) {
-            getMemory().putLong(offset(), EnumMapper.getInstance().intValue(value));
+            getMemory().putLong(offset(), EnumMapper.getInstance(enumClass).intValue(value));
         }
         public void set(java.lang.Number value) {
             getMemory().putLong(offset(), value.longValue());
@@ -1677,10 +1677,10 @@ public abstract class Struct /*implements Marshallable */{
         }
         
         public final E get() {
-            return EnumMapper.getInstance().valueOf(intValue(), enumClass);
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
         public final void set(E value) {
-            getMemory().putNativeLong(offset(), EnumMapper.getInstance().intValue(value));
+            getMemory().putNativeLong(offset(), EnumMapper.getInstance(enumClass).intValue(value));
         }
         public void set(java.lang.Number value) {
             getMemory().putNativeLong(offset(), value.longValue());
