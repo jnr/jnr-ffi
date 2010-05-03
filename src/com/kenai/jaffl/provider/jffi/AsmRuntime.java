@@ -244,7 +244,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(InvocationSession session, InvocationBuffer buffer, ByReference parameter, int flags) {
+    public static final void marshal(InvocationBuffer buffer, InvocationSession session, ByReference parameter, int flags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
@@ -267,7 +267,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(InvocationSession session, InvocationBuffer buffer, StringBuilder parameter, int inout, int nflags) {
+    public static final void marshal(InvocationBuffer buffer, InvocationSession session, StringBuilder parameter, int inout, int nflags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
@@ -289,7 +289,7 @@ public final class AsmRuntime {
         }
     }
     
-    public static final void marshal(InvocationSession session, InvocationBuffer buffer, final StringBuffer parameter, int inout, int nflags) {
+    public static final void marshal(InvocationBuffer buffer, InvocationSession session, final StringBuffer parameter, int inout, int nflags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
@@ -311,7 +311,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(InvocationSession session, InvocationBuffer buffer,
+    public static final void marshal(InvocationBuffer buffer, InvocationSession session,
             final CharSequence[] strings, final int inout, int nativeArrayFlags) {
         if (strings == null) {
             buffer.putAddress(0L);
@@ -337,7 +337,7 @@ public final class AsmRuntime {
             // pass it as an array of pointers
             final Pointer[] tmp = new Pointer[pointers.length];
             System.arraycopy(pointers, 0, tmp, 0, tmp.length);
-            marshal(session, buffer, tmp, inout, nativeArrayFlags);
+            marshal(buffer, session, tmp, inout, nativeArrayFlags);
 
             // Reload any elements of the native array that were changed, and convert back to java strings
             // the PostInvoke also keeps the native memory alive until after the function call
@@ -374,7 +374,7 @@ public final class AsmRuntime {
     }
 
 
-    public static final void marshal(InvocationSession session, InvocationBuffer buffer, 
+    public static final void marshal(InvocationBuffer buffer, InvocationSession session,
             final Pointer[] pointers, int inout, int nativeArrayFlags) {
         if (pointers == null) {
             buffer.putAddress(0L);

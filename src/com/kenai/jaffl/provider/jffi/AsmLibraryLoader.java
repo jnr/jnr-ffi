@@ -536,9 +536,9 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.dup(); // dup ref to HeapInvocationBuffer
+
             if (isSessionRequired(parameterTypes[i])) {
                 mv.aload(lvarSession);
-                mv.swap();
             }
 
             lvar = loadParameter(mv, parameterTypes[i], lvar);
@@ -1039,7 +1039,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
         mv.invokestatic(p(AsmRuntime.class), "marshal",
-                sig(void.class, ci(InvocationSession.class) + ci(InvocationBuffer.class), parameterTypes));
+                sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
     }
     
     private static final Function getFunction(long address, Class returnType, Class[] paramTypes, 

@@ -599,7 +599,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         
         @Override
         public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            AsmRuntime.marshal(session, buffer, (StringBuilder) parameter, inout, nflags);
+            AsmRuntime.marshal(buffer, session, (StringBuilder) parameter, inout, nflags);
         }
     }
 
@@ -613,7 +613,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         @Override
         public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            AsmRuntime.marshal(session, buffer, (CharSequence[]) parameter, inout, nflags);
+            AsmRuntime.marshal(buffer, session, (CharSequence[]) parameter, inout, nflags);
         }
     }
 
@@ -627,7 +627,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         @Override
         public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            AsmRuntime.marshal(session, buffer, (StringBuffer) parameter, inout, nflags);
+            AsmRuntime.marshal(buffer, session, (StringBuffer) parameter, inout, nflags);
         }
     }
             
@@ -704,7 +704,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         @Override
         public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            AsmRuntime.marshal(session, buffer, (Pointer[]) parameter, inout, nflags);
+            AsmRuntime.marshal(buffer, session, (Pointer[]) parameter, inout, nflags);
         }
     }
 
@@ -782,7 +782,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         @Override
         public final void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            AsmRuntime.marshal(session, buffer, (ByReference) parameter, flags);
+            AsmRuntime.marshal(buffer, session, (ByReference) parameter, flags);
         }
     }
 
