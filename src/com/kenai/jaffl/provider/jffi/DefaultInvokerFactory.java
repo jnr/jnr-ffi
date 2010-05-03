@@ -319,7 +319,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         final HeapInvocationBuffer marshal(InvocationSession session, Object[] parameters) {
             HeapInvocationBuffer buffer = new HeapInvocationBuffer(function);
             for (int i = 0; i < parameters.length; ++i) {
-                marshallers[i].marshal(session, buffer, parameters[i]);
+                marshallers[i].marshal(buffer, session, parameters[i]);
             }
             return buffer;
         }
@@ -357,7 +357,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
     
     static interface Marshaller {
         abstract boolean isSessionRequired();
-        abstract void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter);
+        public abstract void marshal( InvocationBuffer buffer, InvocationSession session, Object parameter);
         abstract void marshal(InvocationBuffer buffer, Object parameter);
     }
 
@@ -367,7 +367,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
     static abstract class BaseMarshaller implements Marshaller {
         public boolean isSessionRequired() { return false; }
-        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+        public void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
             marshal(buffer, parameter);
         }
     }
@@ -598,7 +598,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         
         @Override
-        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+        public void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
             AsmRuntime.marshal(buffer, session, (StringBuilder) parameter, inout, nflags);
         }
     }
@@ -612,7 +612,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
 
         @Override
-        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+        public void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
             AsmRuntime.marshal(buffer, session, (CharSequence[]) parameter, inout, nflags);
         }
     }
@@ -626,7 +626,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
 
         @Override
-        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+        public void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
             AsmRuntime.marshal(buffer, session, (StringBuffer) parameter, inout, nflags);
         }
     }
@@ -703,7 +703,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         @Override
-        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+        public void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
             AsmRuntime.marshal(buffer, session, (Pointer[]) parameter, inout, nflags);
         }
     }
@@ -781,7 +781,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         @Override
-        public final void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
+        public final void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
             AsmRuntime.marshal(buffer, session, (ByReference) parameter, flags);
         }
     }
@@ -830,8 +830,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
 
         @Override
-        public void marshal(InvocationSession session, InvocationBuffer buffer, Object parameter) {
-            marshaller.marshal(session, buffer, converter.toNative(parameter, context));
+        public void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
+            marshaller.marshal(buffer, session, converter.toNative(parameter, context));
         }
         
     }
