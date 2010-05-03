@@ -18,9 +18,9 @@ class AsmUtil {
     
     public static final MethodVisitor newTraceMethodVisitor(MethodVisitor mv) {
         try {
-            Class tmvClass = Class.forName("org.objectweb.asm.util.TraceMethodVisitor");
-            Constructor c = tmvClass.getDeclaredConstructor(MethodVisitor.class);
-            return (MethodVisitor) c.newInstance(mv);
+            Class<? extends MethodVisitor> tmvClass = Class.forName("org.objectweb.asm.util.TraceMethodVisitor").asSubclass(MethodVisitor.class);
+            Constructor<? extends MethodVisitor> c = tmvClass.getDeclaredConstructor(MethodVisitor.class);
+            return c.newInstance(mv);
         } catch (Throwable t) {
             return mv;
         }
@@ -33,9 +33,9 @@ class AsmUtil {
     public static final ClassVisitor newTraceClassVisitor(ClassVisitor cv, PrintWriter out) {
         try {
 
-            Class tmvClass = Class.forName("org.objectweb.asm.util.TraceClassVisitor");
-            Constructor c = tmvClass.getDeclaredConstructor(ClassVisitor.class, PrintWriter.class);
-            return (ClassVisitor) c.newInstance(cv, out);
+            Class<? extends ClassVisitor> tmvClass = Class.forName("org.objectweb.asm.util.TraceClassVisitor").asSubclass(ClassVisitor.class);
+            Constructor<? extends ClassVisitor> c = tmvClass.getDeclaredConstructor(ClassVisitor.class, PrintWriter.class);
+            return c.newInstance(cv, out);
         } catch (Throwable t) {
             return cv;
         }
@@ -43,9 +43,9 @@ class AsmUtil {
 
     public static final ClassVisitor newCheckClassAdapter(ClassVisitor cv) {
         try {
-            Class tmvClass = Class.forName("org.objectweb.asm.util.CheckClassAdapter");
-            Constructor c = tmvClass.getDeclaredConstructor(ClassVisitor.class);
-            return (ClassVisitor) c.newInstance(cv);
+            Class<? extends ClassVisitor> tmvClass = Class.forName("org.objectweb.asm.util.CheckClassAdapter").asSubclass(ClassVisitor.class);
+            Constructor<? extends ClassVisitor> c = tmvClass.getDeclaredConstructor(ClassVisitor.class);
+            return c.newInstance(cv);
         } catch (Throwable t) {
             return cv;
         }
