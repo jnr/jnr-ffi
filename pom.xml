@@ -4,7 +4,7 @@
   <groupId>org.jruby.extras</groupId>
   <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
-  <version>0.5.3</version>
+  <version>0.5.4</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
   <url>http://github.com/wmeissner/jaffl</url>
