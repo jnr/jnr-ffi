@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.commons.EmptyVisitor;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 
@@ -38,6 +39,17 @@ class AsmUtil {
             return c.newInstance(cv, out);
         } catch (Throwable t) {
             return cv;
+        }
+    }
+
+    public static final ClassVisitor newTraceClassVisitor(PrintWriter out) {
+        try {
+
+            Class<? extends ClassVisitor> tmvClass = Class.forName("org.objectweb.asm.util.TraceClassVisitor").asSubclass(ClassVisitor.class);
+            Constructor<? extends ClassVisitor> c = tmvClass.getDeclaredConstructor(PrintWriter.class);
+            return c.newInstance(out);
+        } catch (Throwable t) {
+            return new EmptyVisitor();
         }
     }
 

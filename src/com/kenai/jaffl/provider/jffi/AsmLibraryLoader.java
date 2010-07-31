@@ -19,6 +19,8 @@
 
 package com.kenai.jaffl.provider.jffi;
 
+import java.io.PrintWriter;
+import org.objectweb.asm.util.TraceClassVisitor;
 import com.kenai.jaffl.Address;
 import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
@@ -49,6 +51,7 @@ import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -128,7 +131,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
     private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(AsmUtil.newTraceClassVisitor(cw, System.err)) : cw;
+        ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
 
@@ -270,7 +273,13 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         cv.visitEnd();
 
         try {
-            Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), cw.toByteArray());
+            byte[] bytes = cw.toByteArray();
+            if (DEBUG) {
+                ClassVisitor trace = AsmUtil.newTraceClassVisitor(new PrintWriter(System.err));
+                new ClassReader(bytes).accept(trace, 0);
+            }
+
+            Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), bytes);
             Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class, ResultConverter[].class, ParameterConverter[][].class);
             T result = cons.newInstance(library, functions, resultConverters, parameterConverters);
 
