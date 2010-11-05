@@ -36,10 +36,11 @@ import java.util.WeakHashMap;
  * Base class for most X86_32/X86_64 stub compilers
  */
 abstract class AbstractX86StubCompiler extends StubCompiler {
-    // Keep a reference from the loaded class to the pages holding the code for that class.
-    static final Map<Class, PageHolder> pages
-            = Collections.synchronizedMap(new WeakHashMap<Class, PageHolder>());
-
+    private static final class StaticDataHolder {
+        // Keep a reference from the loaded class to the pages holding the code for that class.
+        static final Map<Class, PageHolder> PAGES
+                = Collections.synchronizedMap(new WeakHashMap<Class, PageHolder>());
+    }
     final List<Stub> stubs = new LinkedList<Stub>();
 
 
@@ -111,7 +112,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         pm.protectPages(code, (int) npages, PageManager.PROT_READ | PageManager.PROT_EXEC);
 
         NativeMethods.register(clazz, methods);
-        pages.put(clazz, page);
+        StaticDataHolder.PAGES.put(clazz, page);
     }
 
     static final int align(int offset, int align) {

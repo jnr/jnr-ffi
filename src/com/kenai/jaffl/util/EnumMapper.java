@@ -16,9 +16,13 @@ import java.util.concurrent.ConcurrentMap;
  * Provides mapping from Enum values to native integers and vice-versa
  */
 public final class EnumMapper implements FromNativeConverter, ToNativeConverter {
-    private static final ConcurrentMap<Class<? extends Enum>, EnumMapper> mappers
-            = new ConcurrentHashMap<Class<? extends Enum>, EnumMapper>();
 
+    private static final class StaticDataHolder {
+        private static final ConcurrentMap<Class<? extends Enum>, EnumMapper> MAPPERS
+                = new ConcurrentHashMap<Class<? extends Enum>, EnumMapper>();
+
+    };
+    
     private final Class<? extends Enum> enumClass;
     private final Integer[] values;
     private final Map<Integer, Enum> reverseLookupMap = new HashMap<Integer, Enum>();
@@ -54,7 +58,7 @@ public final class EnumMapper implements FromNativeConverter, ToNativeConverter 
     }
 
     public static EnumMapper getInstance(Class<? extends Enum> enumClass) {
-        EnumMapper mapper = mappers.get(enumClass);
+        EnumMapper mapper = StaticDataHolder.MAPPERS.get(enumClass);
         if (mapper != null) {
             return mapper;
         }
@@ -64,7 +68,7 @@ public final class EnumMapper implements FromNativeConverter, ToNativeConverter 
 
     private static EnumMapper addMapper(Class<? extends Enum> enumClass) {
         EnumMapper mapper = new EnumMapper(enumClass);
-        mappers.put(enumClass, mapper);
+        StaticDataHolder.MAPPERS.put(enumClass, mapper);
         return mapper;
     }
 
