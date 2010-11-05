@@ -17,9 +17,12 @@ public class EnumMapper {
         Map<Integer, Enum> enumMap = new HashMap<Integer, Enum>();
         Map<Enum, Integer> valueMap = new HashMap<Enum, Integer>();
     }
-    private static final EnumMapper mapper = new EnumMapper();
+
+    private static final class SingletonHolder {
+        private static final EnumMapper INSTANCE = new EnumMapper();
+    }
     public static EnumMapper getInstance() {
-        return mapper;
+        return SingletonHolder.INSTANCE;
     }
     private static final int getIntegerValue(Enum e) {
         if (e instanceof IntegerEnum) {

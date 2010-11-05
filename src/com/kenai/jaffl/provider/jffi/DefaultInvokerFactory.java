@@ -47,9 +47,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
     }
     public final Invoker createInvoker(Method method, com.kenai.jaffl.provider.Library library, Map<LibraryOption, ?> options) {
         FunctionMapper functionMapper = options.containsKey(LibraryOption.FunctionMapper)
-                ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.INSTANCE;
+                ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
         final long address = ((Library) library).findSymbolAddress(functionMapper.mapFunctionName(method.getName(), null));
-
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
 

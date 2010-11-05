@@ -60,7 +60,9 @@ import static com.kenai.jaffl.provider.jffi.AsmUtil.*;
 
 public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     public final static boolean DEBUG = false || Boolean.getBoolean("jaffl.compile.dump");
-    private static final LibraryLoader INSTANCE = new AsmLibraryLoader();
+    private static final class SingletonHolder {
+        static final LibraryLoader INSTANCE = new AsmLibraryLoader();
+    }
     private static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
     private static final boolean FAST_LONG_AVAILABLE = isFastLongAvailable();
     private final AtomicLong nextClassID = new AtomicLong(0);
@@ -68,7 +70,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
     private final AtomicLong nextMethodID = new AtomicLong(0);
 
     static final LibraryLoader getInstance() {
-        return INSTANCE;
+        return SingletonHolder.INSTANCE;
     }
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
@@ -152,7 +154,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         ToNativeConverter[][] parameterConverters = new ToNativeConverter[methods.length][0];
         
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
-                ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.INSTANCE;
+                ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
         TypeMapper typeMapper = libraryOptions.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;

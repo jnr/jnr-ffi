@@ -15,30 +15,34 @@ import java.nio.charset.CodingErrorAction;
  *
  */
 public class StringIO {
-    private static final ThreadLocal<SoftReference<StringIO>> localData = new ThreadLocal<SoftReference<StringIO>>() {
+    private static final class SingletonHolder {
 
-        @Override
-        protected synchronized SoftReference<StringIO> initialValue() {
-            return new SoftReference<StringIO>(new StringIO());
-        }
-    };
-    private static final Charset defaultCharset = Charset.defaultCharset();
+        public static final ThreadLocal<SoftReference<StringIO>> THREAD_LOCAL_STRINGIO = new ThreadLocal<SoftReference<StringIO>>() {
+
+            @Override
+            protected synchronized SoftReference<StringIO> initialValue() {
+                return new SoftReference<StringIO>(new StringIO());
+            }
+        };
+    }
 
     public static final StringIO getStringIO() {
-        StringIO io = localData.get().get();
+        StringIO io = SingletonHolder.THREAD_LOCAL_STRINGIO.get().get();
         if (io == null) {
-            localData.set(new SoftReference<StringIO>(io = new StringIO()));
+            SingletonHolder.THREAD_LOCAL_STRINGIO.set(new SoftReference<StringIO>(io = new StringIO()));
         }
         return io;
     }
-    public final CharsetEncoder encoder = defaultCharset.newEncoder();
-    public final CharsetDecoder decoder = defaultCharset.newDecoder();
+    
+    public final CharsetEncoder encoder = Charset.defaultCharset().newEncoder();
+    public final CharsetDecoder decoder = Charset.defaultCharset().newDecoder();
     public final int nulByteCount = Math.round(encoder.maxBytesPerChar());
 
     public StringIO() {
         encoder.onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE);
         decoder.onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE);
     }
+    
     public final ByteBuffer toNative(final CharSequence value, final int minSize, boolean copyIn) {
         // Calculate the raw byte size required (with allowance for NUL termination)
         final int len = (int) (((float)Math.max(minSize, value.length()) + 1) * encoder.maxBytesPerChar());
@@ -48,6 +52,8 @@ public class StringIO {
         }
         return buf;
     }
+
+    
     public final ByteBuffer toNative(final CharSequence value, final ByteBuffer buf) {
         //
         // Copy the string to native memory
@@ -63,6 +69,8 @@ public class StringIO {
         }
         return buf;
     }
+
+    
     public final CharSequence fromNative(final ByteBuffer buf, final int maxSize) {
         // Find the NUL terminator and limit to that, so the
         // StringBuffer/StringBuilder does not have superfluous NUL chars
@@ -81,6 +89,8 @@ public class StringIO {
             buf.limit(limit);
         }
     }
+
+
     public final CharSequence fromNative(final ByteBuffer buf) {
         try {
             return decoder.reset().decode(buf);
@@ -88,6 +98,8 @@ public class StringIO {
             throw new Error("Illegal character data in native string", ex);
         }
     }
+
+    
     public final void nulTerminate(ByteBuffer buf) {
         // NUL terminate the string
         int nulSize = nulByteCount;
