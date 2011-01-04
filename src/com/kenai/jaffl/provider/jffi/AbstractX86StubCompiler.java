@@ -31,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Base class for most X86_32/X86_64 stub compilers
@@ -57,17 +59,26 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
     }
 
     static final class PageHolder {
+        final PageManager pm;
         final long memory;
         final long pageCount;
 
-        public PageHolder(long memory, long pageCount) {
+        public PageHolder(PageManager pm, long memory, long pageCount) {
+            this.pm = pm;
             this.memory = memory;
             this.pageCount = pageCount;
         }
 
         @Override
         protected void finalize() throws Throwable {
-            PageManager.getInstance().freePages(memory, (int) pageCount);
+            try {
+                pm.freePages(memory, (int) pageCount);
+            } catch (Throwable t) {
+                Logger.getLogger(getClass().getName()).log(Level.WARNING, 
+                    "Exception when freeing native pages: %s", t.getLocalizedMessage());
+            } finally {
+                super.finalize();
+            }
         }
 
     }
@@ -93,7 +104,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         if (code == 0) {
             throw new OutOfMemoryError("allocatePages failed for codeSize=" + codeSize);
         }
-        PageHolder page = new PageHolder(code, npages);
+        PageHolder page = new PageHolder(pm, code, npages);
 
         // Now relocate/copy all the assembler stubs into the real code area
         List<NativeMethod> methods = new ArrayList<NativeMethod>(stubs.size());
