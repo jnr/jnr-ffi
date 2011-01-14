@@ -68,4 +68,12 @@ public final class Memory {
     public static final Pointer wrap(Runtime runtime, ByteBuffer buffer) {
         return runtime.getMemoryManager().wrap(buffer);
     }
+    
+    public static Pointer newPointer(Runtime runtime, long address) {
+        return runtime.getMemoryManager().wrap(address);
+    }
+    
+    public static Pointer newPointer(Runtime runtime, long address, long size) {
+        return runtime.getMemoryManager().wrap(address, size);
+    }
 }
