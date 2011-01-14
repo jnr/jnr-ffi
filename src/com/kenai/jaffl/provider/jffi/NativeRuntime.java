@@ -13,7 +13,7 @@ import java.util.EnumSet;
  *
  */
 public final class NativeRuntime extends AbstractRuntime {
-    private final NativeMemoryManager mm = new NativeMemoryManager();
+    private final NativeMemoryManager mm = new NativeMemoryManager(this);
 
     public static final NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;

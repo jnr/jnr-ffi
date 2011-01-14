@@ -10,14 +10,14 @@ public final class MemoryUtil {
     private MemoryUtil() {}
 
     static final com.kenai.jaffl.Pointer newPointer(long ptr) {
-        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
+        return ptr != 0 ? new DirectMemoryIO(NativeRuntime.getInstance(), ptr) : null;
     }
 
     static final com.kenai.jaffl.Pointer newPointer(int ptr) {
-        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
+        return ptr != 0 ? new DirectMemoryIO(NativeRuntime.getInstance(), ptr) : null;
     }
     
     static final com.kenai.jaffl.Pointer newPointer(long ptr, long size) {
-        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(ptr), 0, size) : null;
+        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(NativeRuntime.getInstance(), ptr), 0, size) : null;
     }
 }
