@@ -77,12 +77,25 @@
     <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jffi</artifactId>
-      <version>0.6.5</version>
-      <scope>provided</scope>
+      <version>1.0.5-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jruby.extras</groupId>
+      <artifactId>jffi</artifactId>
+      <version>1.0.5-SNAPSHOT</version>
+      <scope>runtime</scope>
+      <classifier>native</classifier>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
+      <version>3.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-commons</artifactId>
       <version>3.2</version>
       <scope>provided</scope>
     </dependency>
