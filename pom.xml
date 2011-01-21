@@ -4,7 +4,7 @@
   <groupId>org.jruby.extras</groupId>
   <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
-  <version>0.5.7-SNAPSHOT</version>
+  <version>0.5.7</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
   <url>http://github.com/wmeissner/jaffl</url>
@@ -44,7 +44,7 @@
         <enabled>true</enabled>
       </releases>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </snapshots>
       <url>http://repository.codehaus.org</url>
     </repository>
@@ -77,13 +77,13 @@
     <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.0.5-SNAPSHOT</version>
+      <version>1.0.5</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.0.5-SNAPSHOT</version>
+      <version>1.0.5</version>
       <scope>runtime</scope>
       <classifier>native</classifier>
     </dependency>
@@ -153,6 +153,17 @@
         </configuration>
       </plugin>
     </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.jvnet.wagon-svn</groupId>
+        <artifactId>wagon-svn</artifactId>
+        <version>1.8</version>
+      </extension>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+      </extension>
+    </extensions>
   </build>
   <reporting>
     <outputDirectory>build/report</outputDirectory>
