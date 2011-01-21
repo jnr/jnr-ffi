@@ -31,6 +31,10 @@ public final class NullMemoryIO extends AbstractMemoryIO {
     public final long getLong(long offset) {
         throw npe();
     }
+    
+    public final long getLongLong(long offset) {
+        throw npe();
+    }
 
     public final float getFloat(long offset) {
         throw npe();
@@ -53,6 +57,10 @@ public final class NullMemoryIO extends AbstractMemoryIO {
     }
 
     public final void putLong(long offset, long value) {
+        throw npe();
+    }
+    
+    public final void putLongLong(long offset, long value) {
         throw npe();
     }
 

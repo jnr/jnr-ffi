@@ -67,6 +67,10 @@ class DirectMemoryIO extends AbstractMemoryIO {
     public final long getLong(long offset) {
         return IO.getLong(address + offset);
     }
+    
+    public final long getLongLong(long offset) {
+        return IO.getLong(address + offset);
+    }
 
     public final float getFloat(long offset) {
         return IO.getFloat(address + offset);
@@ -89,6 +93,10 @@ class DirectMemoryIO extends AbstractMemoryIO {
     }
 
     public final void putLong(long offset, long value) {
+        IO.putLong(address + offset, value);
+    }
+    
+    public final void putLongLong(long offset, long value) {
         IO.putLong(address + offset, value);
     }
 

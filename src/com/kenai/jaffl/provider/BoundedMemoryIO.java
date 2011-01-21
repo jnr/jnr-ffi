@@ -76,6 +76,12 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         checkBounds(size, offset, 8);
         return io.getLong(base + offset);
     }
+    
+    @Override
+    public long getLongLong(long offset) {
+        checkBounds(size, offset, 8);
+        return io.getLongLong(base + offset);
+    }
 
     @Override
     public float getFloat(long offset) {
@@ -121,6 +127,12 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
     public void putLong(long offset, long value) {
         checkBounds(size, offset, 8);
         io.putLong(base + offset, value);
+    }
+    
+    @Override
+    public void putLongLong(long offset, long value) {
+        checkBounds(size, offset, 8);
+        io.putLongLong(base + offset, value);
     }
 
     @Override

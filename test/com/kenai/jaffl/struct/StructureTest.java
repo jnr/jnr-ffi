@@ -18,6 +18,7 @@
 
 package com.kenai.jaffl.struct;
 
+import com.kenai.jaffl.annotations.LongLong;
 import com.kenai.jaffl.Library;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.Pointer;
@@ -47,9 +48,9 @@ public class StructureTest {
         double struct_field_Float64(struct1 s);
         short struct_align_Signed16(Int16Align s);
         int struct_align_Signed32(Int32Align s);
-        long struct_align_Signed64(Int64Align s);
+        @LongLong long struct_align_Signed64(Int64Align s);
         NativeLong struct_align_SignedLong(LongAlign s);
-        struct1 struct_make_struct(byte b, short s, int i, long ll, float f, double d);
+        struct1 struct_make_struct(byte b, short s, int i, @LongLong long ll, float f, double d);
 //        float struct_align_Float32(Float32Align s);
 //        double struct_align_Float64(Float64Align s);
 //        void struct_set_string(struct1 s, String string);

@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 
 public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
 
-    public ByteBufferMemoryIO(ByteBuffer buffer) {
-        super(NativeRuntime.getInstance(), buffer);
+    public ByteBufferMemoryIO(NativeRuntime runtime, ByteBuffer buffer) {
+        super(runtime, buffer);
     }
 
     public Pointer getPointer(long offset) {

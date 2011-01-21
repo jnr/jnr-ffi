@@ -13,7 +13,7 @@ public abstract class FFIProvider {
      * @return an instance of <tt>FFIProvider</tt>
      */
     static final FFIProvider getProvider() {
-        return SingletonHolder.INSTANCE;
+        return SingletonHolder.getInstance();
     }
 
     /** Gets the default <tt>Runtime</tt> for this provider */
@@ -43,10 +43,10 @@ public abstract class FFIProvider {
     public abstract <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames);
     
-    private static final class SingletonHolder {
+    static final class SingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();
 
-        private static final FFIProvider getInstance() {
+        static final FFIProvider getInstance() {
             String providerName = System.getProperty("jaffl.provider");
             if (providerName == null) {
                 providerName = FFIProvider.class.getPackage().getName() + ".provider.jffi.Provider";
@@ -55,6 +55,7 @@ public abstract class FFIProvider {
             try {
                 return (FFIProvider) Class.forName(providerName).newInstance();
             } catch (Throwable ex) {
+                ex.printStackTrace(System.out);
                 throw new RuntimeException("Could not load FFI provider " + providerName, ex);
             }
         }

@@ -6,6 +6,7 @@ import com.kenai.jaffl.LibraryOption;
 import com.kenai.jaffl.NativeLong;
 import com.kenai.jaffl.provider.ParameterFlags;
 import com.kenai.jaffl.Pointer;
+import com.kenai.jaffl.annotations.LongLong;
 import com.kenai.jaffl.annotations.StdCall;
 import com.kenai.jaffl.byref.ByReference;
 import com.kenai.jaffl.mapper.FromNativeContext;
@@ -27,7 +28,6 @@ import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
@@ -35,6 +35,9 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Map;
+
+import static com.kenai.jaffl.provider.jffi.InvokerUtil.*;
+
 
 final class DefaultInvokerFactory implements InvokerFactory {
     private final static class SingletonHolder {
@@ -71,17 +74,23 @@ final class DefaultInvokerFactory implements InvokerFactory {
         if (resultConverter != null) {
             returnType = resultConverter.nativeType();
         }
-        Function function = new Function(address, getNativeReturnType(returnType),
+
+        Function function = new Function(address, 
+                getNativeReturnType(returnType, method.getAnnotations()),
                 paramTypes, convention, InvokerUtil.requiresErrno(method));
-        FunctionInvoker invoker = getFunctionInvoker(returnType);
+
+        FunctionInvoker invoker = getFunctionInvoker(returnType, method.getAnnotations());
+        
         if (resultConverter != null) {
             MethodResultContext context = new MethodResultContext(method);
             invoker = new ConvertingInvoker(resultConverter, context, invoker);
         }
+
         return isSessionRequired(marshallers)
                 ? new SessionInvoker(function, invoker, marshallers)
                 : new DefaultInvoker(function, invoker, marshallers);
     }
+    
     private static final boolean isSessionRequired(Marshaller[] marshallers) {
         for (Marshaller m : marshallers) {
             if (m.isSessionRequired()) {
@@ -90,115 +99,67 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
         return false;
     }
-    private static final FunctionInvoker getFunctionInvoker(Class returnType) {
+    
+    private static final FunctionInvoker getFunctionInvoker(Class returnType, final Annotation[] annotations) {
         if (Void.class.isAssignableFrom(returnType) || void.class == returnType) {
             return VoidInvoker.INSTANCE;
+        
         } else if (Boolean.class.isAssignableFrom(returnType) || boolean.class == returnType) {
             return BooleanInvoker.INSTANCE;
+        
         } else if (Enum.class.isAssignableFrom(returnType)) {
             return new EnumInvoker(returnType);
+        
         } else if (Byte.class.isAssignableFrom(returnType) || byte.class == returnType) {
             return Int8Invoker.INSTANCE;
+        
         } else if (Short.class.isAssignableFrom(returnType) || short.class == returnType) {
             return Int16Invoker.INSTANCE;
+        
         } else if (Integer.class.isAssignableFrom(returnType) || int.class == returnType) {
             return Int32Invoker.INSTANCE;
+        
+        } else if (isLong32(returnType, annotations)) {
+            return Long32Invoker.INSTANCE;
+            
         } else if (Long.class.isAssignableFrom(returnType) || long.class == returnType) {
-            return Int64Invoker.INSTANCE;
+            return Long64Invoker.INSTANCE;
+        
         } else if (NativeLong.class.isAssignableFrom(returnType)) {
             return Platform.getPlatform().longSize() == 32
                 ? NativeLong32Invoker.INSTANCE : NativeLong64Invoker.INSTANCE;
+        
         } else if (Float.class.isAssignableFrom(returnType) || float.class == returnType) {
             return Float32Invoker.INSTANCE;
+        
         } else if (Double.class.isAssignableFrom(returnType) || double.class == returnType) {
             return Float64Invoker.INSTANCE;
+        
         } else if (Pointer.class.isAssignableFrom(returnType)) {
             return PointerInvoker.INSTANCE;
+        
         } else if (Address.class.isAssignableFrom(returnType)) {
             return AddressInvoker.INSTANCE;
+        
         } else if (Struct.class.isAssignableFrom(returnType)) {
             return new StructInvoker(returnType);
+        
         } else if (String.class.isAssignableFrom(returnType)) {
             return StringInvoker.INSTANCE;
+        
         } else {
             throw new IllegalArgumentException("Unknown return type: " + returnType);
         }
     }
-    private static final Type getNativeReturnType(Class type) {
-        if (Void.class.isAssignableFrom(type) || void.class == type) {
-            return Type.VOID;
-        } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
-            return Type.SINT32;
-        } else if (Byte.class.isAssignableFrom(type) || byte.class == type) {
-            return Type.SINT8;
-        } else if (Short.class.isAssignableFrom(type) || short.class == type) {
-            return Type.SINT16;
-        } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
-            return Type.SINT32;
-        } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return Type.SINT64;
-        } else if (NativeLong.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().longSize() == 32 ? Type.SINT32: Type.SINT64;
-        } else if (Float.class.isAssignableFrom(type) || float.class == type) {
-            return Type.FLOAT;
-        } else if (Double.class.isAssignableFrom(type) || double.class == type) {
-            return Type.DOUBLE;
-        } else if (Enum.class.isAssignableFrom(type)) {
-            return Type.SINT32;
-        } else if (Pointer.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else if (Address.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else if (Struct.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else if (String.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else {
-            throw new IllegalArgumentException("Unsupported return type: " + type);
-        }
-    }
-
+    
     private static final Type getNativeParameterType(Method method, int paramIndex, TypeMapper mapper) {
         Class type = method.getParameterTypes()[paramIndex];
         ToNativeConverter converter = mapper.getToNativeConverter(type);
-        return getNativeParameterType(converter != null ? converter.nativeType() : type);
+        
+        return InvokerUtil.getNativeParameterType(converter != null ? converter.nativeType() : type, 
+                method.getParameterAnnotations()[paramIndex]);
     }
 
-    private static final Type getNativeParameterType(Class type) {
-        if (Byte.class.isAssignableFrom(type) || byte.class == type) {
-            return Type.SINT8;
-        } else if (Short.class.isAssignableFrom(type) || short.class == type) {
-            return Type.SINT16;
-        } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
-            return Type.SINT32;
-        } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return Type.SINT64;
-        } else if (NativeLong.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().longSize() == 32 ? Type.SINT32: Type.SINT64;
-        } else if (Float.class.isAssignableFrom(type) || float.class == type) {
-            return Type.FLOAT;
-        } else if (Double.class.isAssignableFrom(type) || double.class == type) {
-            return Type.DOUBLE;
-        } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
-            return Type.SINT32;
-        } else if (Enum.class.isAssignableFrom(type)) {
-            return Type.SINT32;
-        } else if (Pointer.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else if (Struct.class.isAssignableFrom(type) || type.isArray() && Struct.class.isAssignableFrom(type.getComponentType())) {
-            return Type.POINTER;
-        } else if (Buffer.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else if (CharSequence.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else if (ByReference.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        } else if (type.isArray()) {
-            return Type.POINTER;
-        } else {
-            throw new IllegalArgumentException("Unsupported parameter type: " + type);
-        }
-    }
     static final int getParameterFlags(Method method, int paramIndex) {
         return getParameterFlags(method.getParameterAnnotations()[paramIndex]);
     }
@@ -238,27 +199,41 @@ final class DefaultInvokerFactory implements InvokerFactory {
     static final Marshaller getMarshaller(Class type, Annotation[] annotations) {
         if (Byte.class.isAssignableFrom(type) || byte.class == type) {
             return Int8Marshaller.INSTANCE;
+        
         } else if (Short.class.isAssignableFrom(type) || short.class == type) {
             return Int16Marshaller.INSTANCE;
+        
         } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
             return Int32Marshaller.INSTANCE;
+        
         } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return Int64Marshaller.INSTANCE;
+            return InvokerUtil.hasAnnotation(annotations, LongLong.class) 
+                    ? Int64Marshaller.INSTANCE
+                    : (Platform.getPlatform().longSize() == 32
+                        ? Int32Marshaller.INSTANCE : Int64Marshaller.INSTANCE);
+        
         } else if (NativeLong.class.isAssignableFrom(type)) {
             return Platform.getPlatform().longSize() == 32
                     ? Int32Marshaller.INSTANCE : Int64Marshaller.INSTANCE;
+        
         } else if (Float.class.isAssignableFrom(type) || float.class == type) {
             return Float32Marshaller.INSTANCE;
+        
         } else if (Double.class.isAssignableFrom(type) || double.class == type) {
             return Float64Marshaller.INSTANCE;
+        
         } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
             return BooleanMarshaller.INSTANCE;
+        
         } else if (Enum.class.isAssignableFrom(type)) {
             return new EnumMarshaller(type);
+        
         } else if (Pointer.class.isAssignableFrom(type)) {
             return PointerMarshaller.INSTANCE;
+        
         } else if (StringBuffer.class.isAssignableFrom(type)) {
             return new StringBufferMarshaller(getParameterFlags(annotations));
+        
         } else if (StringBuilder.class.isAssignableFrom(type)) {
             return new StringBuilderMarshaller(getParameterFlags(annotations));
 
@@ -270,32 +245,50 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         } else if (ByReference.class.isAssignableFrom(type)) {
             return new ByReferenceMarshaller(getParameterFlags(annotations));
+        
         } else if (Struct.class.isAssignableFrom(type)) {
             return new StructMarshaller(getParameterFlags(annotations));
+        
         } else if (ByteBuffer.class.isAssignableFrom(type)) {
             return new ByteBufferMarshaller(getParameterFlags(annotations));
+        
         } else if (ShortBuffer.class.isAssignableFrom(type)) {
             return new ShortBufferMarshaller(getParameterFlags(annotations));
+        
         } else if (IntBuffer.class.isAssignableFrom(type)) {
             return new IntBufferMarshaller(getParameterFlags(annotations));
+        
         } else if (LongBuffer.class.isAssignableFrom(type)) {
-            return new LongBufferMarshaller(getParameterFlags(annotations));
+            return Platform.getPlatform().longSize() == 32 && !InvokerUtil.hasAnnotation(annotations, LongLong.class)
+                    ? new Long32BufferMarshaller(getParameterFlags(annotations))
+                    : new LongBufferMarshaller(getParameterFlags(annotations));
+        
         } else if (FloatBuffer.class.isAssignableFrom(type)) {
             return new FloatBufferMarshaller(getParameterFlags(annotations));
+        
         } else if (DoubleBuffer.class.isAssignableFrom(type)) {
             return new DoubleBufferMarshaller(getParameterFlags(annotations));
+        
         } else if (type.isArray() && type.getComponentType() == byte.class) {
             return new ByteArrayMarshaller(getParameterFlags(annotations));
+        
         } else if (type.isArray() && type.getComponentType() == short.class) {
             return new ShortArrayMarshaller(getParameterFlags(annotations));
+        
         } else if (type.isArray() && type.getComponentType() == int.class) {
             return new IntArrayMarshaller(getParameterFlags(annotations));
+        
         } else if (type.isArray() && type.getComponentType() == long.class) {
-            return new LongArrayMarshaller(getParameterFlags(annotations));
+            return Platform.getPlatform().longSize() == 32 && !InvokerUtil.hasAnnotation(annotations, LongLong.class)
+                    ? new Long32ArrayMarshaller(getParameterFlags(annotations))
+                    : new LongArrayMarshaller(getParameterFlags(annotations));
+        
         } else if (type.isArray() && type.getComponentType() == float.class) {
             return new FloatArrayMarshaller(getParameterFlags(annotations));
+        
         } else if (type.isArray() && type.getComponentType() == double.class) {
             return new DoubleArrayMarshaller(getParameterFlags(annotations));
+        
         } else if (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType())) {
             return new StructArrayMarshaller(getParameterFlags(annotations));
 
@@ -306,6 +299,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             throw new IllegalArgumentException("Unsupported parameter type: " + type);
         }
     }
+
     static final class SessionInvoker implements com.kenai.jaffl.provider.Invoker {
         static final com.kenai.jffi.Invoker invoker = com.kenai.jffi.Invoker.getInstance();
         final Function function;
@@ -434,18 +428,35 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return Integer.valueOf(invoker.invokeInt(function, buffer));
         }
     }
+    
     static final class Int64Invoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new Int64Invoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
             return Long.valueOf(invoker.invokeLong(function, buffer));
         }
     }
+    
+    static final class Long32Invoker extends BaseInvoker {
+        static final FunctionInvoker INSTANCE = new NativeLong32Invoker();
+        public final Object invoke(Function function, HeapInvocationBuffer buffer) {
+            return Long.valueOf(invoker.invokeInt(function, buffer));
+        }
+    }
+    
+    static final class Long64Invoker extends BaseInvoker {
+        static final FunctionInvoker INSTANCE = new NativeLong32Invoker();
+        public final Object invoke(Function function, HeapInvocationBuffer buffer) {
+            return Long.valueOf(invoker.invokeLong(function, buffer));
+        }
+    }
+    
     static final class NativeLong32Invoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new NativeLong32Invoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
             return NativeLong.valueOf(invoker.invokeInt(function, buffer));
         }
     }
+    
     static final class NativeLong64Invoker extends BaseInvoker {
         static final FunctionInvoker INSTANCE = new NativeLong64Invoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
@@ -542,24 +553,28 @@ final class DefaultInvokerFactory implements InvokerFactory {
             buffer.putByte(((Number) parameter).intValue());
         }
     }
+    
     static final class Int16Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Int16Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
             buffer.putShort(((Number) parameter).intValue());
         }
     }
+    
     static final class Int32Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Int32Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
             buffer.putInt(((Number) parameter).intValue());
         }
     }
+    
     static final class Int64Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Int64Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
             buffer.putLong(((Number) parameter).longValue());
         }
     }
+    
     static final class Float32Marshaller extends BaseMarshaller {
         static final Marshaller INSTANCE = new Float32Marshaller();
         public void marshal(InvocationBuffer buffer, Object parameter) {
@@ -670,6 +685,19 @@ final class DefaultInvokerFactory implements InvokerFactory {
         }
     }
 
+    static final class Long32ArrayMarshaller extends SessionRequiredMarshaller {
+        private final int flags;
+
+        public Long32ArrayMarshaller(int flags) {
+            this.flags = getNativeArrayFlags(flags);
+        }
+       
+        
+        public final void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
+            AsmRuntime.marshal32(buffer, session, long[].class.cast(parameter), flags);
+        }
+    }
+    
     static final class LongArrayMarshaller extends BaseMarshaller {
         private final int flags;
         public LongArrayMarshaller(int flags) {
@@ -757,6 +785,51 @@ final class DefaultInvokerFactory implements InvokerFactory {
 
         public final void marshal(InvocationBuffer buffer, Object parameter) {
             AsmRuntime.marshal(buffer, (LongBuffer) parameter, flags);
+        }
+    }
+    
+    static final class Long32BufferMarshaller extends SessionRequiredMarshaller {
+        private final int flags;
+        public Long32BufferMarshaller(int flags) {
+            this.flags = getNativeArrayFlags(flags);
+        }
+
+        public final void marshal(InvocationBuffer buffer, InvocationSession session, Object parameter) {
+            final LongBuffer lbuf = (LongBuffer) parameter;
+            if (lbuf == null) {
+                buffer.putAddress(0L);
+
+            } else if (lbuf.hasArray()) {
+                // Need to convert to int[], copy+convert, then reload after the call
+                final int[] nativeArray = new int[lbuf.remaining()];
+                final long[] longArray = lbuf.array();
+                final int off = lbuf.arrayOffset() + lbuf.position();
+                
+                if (com.kenai.jffi.ArrayFlags.isIn(flags)) {
+                    for (int i = 0; i < nativeArray.length; ++i) {
+                        nativeArray[i] = (int) longArray[i + off];
+                    }
+                }
+
+                buffer.putArray(nativeArray, 0, nativeArray.length, flags);
+
+                if (com.kenai.jffi.ArrayFlags.isOut(flags)) {
+                    session.addPostInvoke(new InvocationSession.PostInvoke() {
+
+                        public void postInvoke() {
+                            for (int i = 0; i < nativeArray.length; ++i) {
+                                longArray[i] = nativeArray[i];
+                            }
+                        }
+                    });
+                }
+
+            } else if (lbuf.isDirect()) {
+                buffer.putDirectBuffer(lbuf, lbuf.position() << 3, lbuf.remaining() << 3);
+
+            } else {
+                throw new IllegalArgumentException("cannot marshal non-direct, non-array LongBuffer");
+            }
         }
     }
 

@@ -80,6 +80,14 @@ public interface Pointer {
      * @return the {@code long} value at the offset.
      */
     abstract public long getLong(long offset);
+    
+    /**
+     * Reads a {@code long} (64 bit) value at the given offset.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be read.
+     * @return the {@code long} value at the offset.
+     */
+    abstract public long getLongLong(long offset);
 
     /**
      * Reads a {@code float} (32 bit) value at the given offset.
@@ -143,6 +151,14 @@ public interface Pointer {
      * @param value the {@code long} value to be written.
      */
     abstract public void putLong(long offset, long value);
+    
+    /**
+     * Writes a {@code long} (64 bit) value at the given offset.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
+     * @param value the {@code long} value to be written.
+     */
+    abstract public void putLongLong(long offset, long value);
 
     /**
      * Writes a {@code float} (32 bit, single precision) value at the given offset.

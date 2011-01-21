@@ -18,6 +18,7 @@
 
 package com.kenai.jaffl;
 
+import com.kenai.jaffl.annotations.LongLong;
 import com.kenai.jaffl.annotations.In;
 import com.kenai.jaffl.annotations.Out;
 import org.junit.After;
@@ -35,14 +36,16 @@ public class ArrayTest {
         byte ptr_ret_int8_t(byte[] p, int offset);
         short ptr_ret_int16_t(short[] p, int offset);
         int ptr_ret_int32_t(int[] p, int offset);
-        long ptr_ret_int64_t(long[] p, int offset);
+        @LongLong long ptr_ret_int64_t(@LongLong long[] p, int offset);
+        long ptr_ret_int32_t(long[] p, int offset);
         float ptr_ret_float(float[] p, int offset);
 //        Pointer ptr_ret_pointer(Pointer[] p, int offset);
         double ptr_ret_double(double[] p, int offset);
         void ptr_set_int8_t(byte[] p, int offset, byte value);
         void ptr_set_int16_t(short[] p, int offset, short value);
         void ptr_set_int32_t(int[] p, int offset, int value);
-        void ptr_set_int64_t(long[] p, int offset, long value);
+        void ptr_set_int64_t(@LongLong long[] p, int offset, @LongLong long value);
+        void ptr_set_int32_t(long[] p, int offset, long value);
         void ptr_set_float(float[] p, int offset, float value);
         void ptr_set_double(double[] p, int offset, double value);
 //        void ptr_set_pointer(Pointer[] p, int offset, Pointer value);
@@ -53,12 +56,14 @@ public class ArrayTest {
         byte ptr_ret_int8_t(@In byte[] p, int offset);
         short ptr_ret_int16_t(@In short[] p, int offset);
         int ptr_ret_int32_t(@In int[] p, int offset);
-        long ptr_ret_int64_t(@In long[] p, int offset);
+        @LongLong long ptr_ret_int64_t(@In @LongLong long[] p, int offset);
+        long ptr_ret_int32_t(@In long[] p, int offset);
         float ptr_ret_float(@In float[] p, int offset);
         void ptr_set_int8_t(@In byte[] p, int offset, byte value);
         void ptr_set_int16_t(@In short[] p, int offset, short value);
         void ptr_set_int32_t(@In int[] p, int offset, int value);
-        void ptr_set_int64_t(@In long[] p, int offset, long value);
+        void ptr_set_int64_t(@In @LongLong long[] p, int offset, @LongLong long value);
+        void ptr_set_int32_t(@In long[] p, int offset, long value);
         void ptr_set_float(@In float[] p, int offset, float value);
         void ptr_set_double(@In double[] p, int offset, double value);
 //        void ptr_set_pointer(@In Pointer[] p, int offset, Pointer value);
@@ -67,12 +72,14 @@ public class ArrayTest {
         byte ptr_ret_int8_t(@Out byte[] p, int offset);
         short ptr_ret_int16_t(@Out short[] p, int offset);
         int ptr_ret_int32_t(@Out int[] p, int offset);
-        long ptr_ret_int64_t(@Out long[] p, int offset);
+        @LongLong long ptr_ret_int64_t(@Out @LongLong long[] p, int offset);
+        long ptr_ret_int32_t(@Out long[] p, int offset);
         float ptr_ret_float(@Out float[] p, int offset);
         void ptr_set_int8_t(@Out byte[] p, int offset, byte value);
         void ptr_set_int16_t(@Out short[] p, int offset, short value);
         void ptr_set_int32_t(@Out int[] p, int offset, int value);
-        void ptr_set_int64_t(@Out long[] p, int offset, long value);
+        void ptr_set_int64_t(@Out @LongLong long[] p, int offset, @LongLong long value);
+        void ptr_set_int32_t(@Out long[] p, int offset, long value);
         void ptr_set_float(@Out float[] p, int offset, float value);
         void ptr_set_double(@Out double[] p, int offset, double value);
 //        void ptr_set_pointer(@Out Pointer[] p, int offset, Pointer value);
@@ -141,6 +148,18 @@ public class ArrayTest {
         testlib.ptr_set_int64_t(ref, 0, MAGIC);
         assertEquals("long reference not written correctly", MAGIC, ref[0]);
     }
+    
+    @Test
+    public void setLong32ByReference() {
+        if (Library.getRuntime(testlib).longSize() == 4) {
+            
+            final long MAGIC = 0x12345678L;
+            long[] ref = {0L};
+            testlib.ptr_set_int32_t(ref, 0, MAGIC);
+            assertEquals("long reference not written correctly", MAGIC, ref[0]);
+        }
+    }
+    
 //    @Test
 //    public void pointerByReference() {
 //        final Pointer MAGIC = new Pointer(0xfee1dead);

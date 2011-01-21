@@ -55,6 +55,11 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     public long getLong(long offset) {
         return ptr.getLong(base + offset);
     }
+    
+    @Override
+    public long getLongLong(long offset) {
+        return ptr.getLongLong(base + offset);
+    }
 
     @Override
     public float getFloat(long offset) {
@@ -104,6 +109,11 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     @Override
     public void putLong(long offset, long value) {
         ptr.putLong(base + offset, value);
+    }
+    
+    @Override
+    public void putLongLong(long offset, long value) {
+        ptr.putLongLong(base + offset, value);
     }
 
     @Override
