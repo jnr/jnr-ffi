@@ -4,7 +4,7 @@
   <groupId>org.jruby.extras</groupId>
   <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
-  <version>0.5.7</version>
+  <version>0.5.8</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
   <url>http://github.com/wmeissner/jaffl</url>
@@ -77,13 +77,13 @@
     <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.0.5</version>
+      <version>1.0.6</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.0.5</version>
+      <version>1.0.6</version>
       <scope>runtime</scope>
       <classifier>native</classifier>
     </dependency>
