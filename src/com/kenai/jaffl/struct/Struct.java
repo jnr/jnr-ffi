@@ -490,6 +490,14 @@ public abstract class Struct /*implements Marshallable */{
         protected AbstractMember(int size, int align) {
             this.offset = __info.addField(size, align);
         }
+
+        protected AbstractMember(Type type) {
+            this.offset = __info.addField(type.size() * 8, type.alignment() * 8);
+        }
+
+        protected AbstractMember(Type type, Offset offset) {
+            this.offset = __info.addField(type.size() * 8, type.alignment() * 8, offset);
+        }
         
         /**
          * Gets the <tt>MemoryIO</tt> used to read/write this <tt>Member</tt>.
@@ -517,6 +525,77 @@ public abstract class Struct /*implements Marshallable */{
         }
     }
     
+    /**
+     * Base class for Boolean fields
+     */
+    protected abstract class AbstractBoolean extends AbstractMember {
+        protected AbstractBoolean(Type type) {
+            super(type);
+        }
+
+        protected AbstractBoolean(Type type, Offset offset) {
+            super(type, offset);
+        }
+
+        /**
+         * Gets the value for this field.
+         *
+         * @return a boolean.
+         */
+        public abstract boolean get();
+
+        /**
+         * Sets the field to a new value.
+         *
+         * @param value The new value.
+         */
+        public abstract void set(boolean value);
+
+        /**
+         * Returns a string representation of this <code>Address</code>.
+         *
+         * @return a string representation of this <code>Address</code>.
+         */
+        @Override
+        public java.lang.String toString() {
+            return java.lang.Boolean.toString(get());
+        }
+    }
+
+    /**
+     * A normal C boolean - 1 byte in size
+     */
+    protected final class Boolean extends AbstractBoolean {
+        protected Boolean() {
+            super(Type.SCHAR);
+        }
+
+        public final boolean get() {
+            return (getMemoryIO().getByte(offset()) & 0x1) != 0;
+        }
+
+        public final void set(boolean value) {
+            getMemoryIO().putByte(offset(), (byte) (value ? 1 : 0));
+        }
+    }
+
+    /**
+     * A Windows BOOL - 4 bytes
+     */
+    protected final class WBOOL extends AbstractBoolean {
+        protected WBOOL() {
+            super(Type.SINT);
+        }
+
+        public final boolean get() {
+            return (getMemoryIO().getInt(offset()) & 0x1) != 0;
+        }
+
+        public final void set(boolean value) {
+            getMemoryIO().putInt(offset(), value ? 1 : 0);
+        }
+    }
+
     /**
      * Base class for all Number structure fields.
      */
