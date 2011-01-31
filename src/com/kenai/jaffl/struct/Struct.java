@@ -481,7 +481,7 @@ public abstract class Struct /*implements Marshallable */{
     /**
      * Base implementation of Member
      */
-    protected abstract class AbstractMember implements Member {
+    public abstract class AbstractMember implements Member {
         private final int offset;
         protected AbstractMember(int size) {
             this(size, size);
@@ -530,8 +530,8 @@ public abstract class Struct /*implements Marshallable */{
     /**
      * Base class for Boolean fields
      */
-    protected abstract class AbstractBoolean extends AbstractMember {
-        protected AbstractBoolean(Type type) {
+    public abstract class AbstractBoolean extends AbstractMember {
+        public AbstractBoolean(Type type) {
             super(type);
         }
 
@@ -567,8 +567,8 @@ public abstract class Struct /*implements Marshallable */{
     /**
      * A normal C boolean - 1 byte in size
      */
-    protected final class Boolean extends AbstractBoolean {
-        protected Boolean() {
+    public final class Boolean extends AbstractBoolean {
+        public Boolean() {
             super(Type.SCHAR);
         }
 
@@ -584,8 +584,8 @@ public abstract class Struct /*implements Marshallable */{
     /**
      * A Windows BOOL - 4 bytes
      */
-    protected final class WBOOL extends AbstractBoolean {
-        protected WBOOL() {
+    public final class WBOOL extends AbstractBoolean {
+        public WBOOL() {
             super(Type.SINT);
         }
 
@@ -1871,7 +1871,7 @@ public abstract class Struct /*implements Marshallable */{
      * members for more efficient struct construction.
      */
     public final class Padding extends AbstractMember {
-        Padding(Type type, int length) {
+        public Padding(Type type, int length) {
             super(type.size() * 8 * length, type.alignment() * 8);
         }
     }
