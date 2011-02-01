@@ -4,14 +4,14 @@
   <groupId>org.jruby.extras</groupId>
   <artifactId>jaffl</artifactId>
   <packaging>jar</packaging>
-  <version>0.5.8</version>
+  <version>0.5.9</version>
   <name>jaffl</name>
   <description>An abstracted interface to invoking native functions from java</description>
   <url>http://github.com/wmeissner/jaffl</url>
   <licenses>
     <license>
-      <name>GNU Lesser General Public License Version 3</name>
-      <url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
