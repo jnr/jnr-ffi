@@ -64,7 +64,6 @@
     </developer>
   </developers>
   <properties>
-    <maven.test.skip>true</maven.test.skip>
     <maven.test.failure.ignore>true</maven.test.failure.ignore>
   </properties>
   <dependencies>
@@ -91,19 +90,19 @@
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
       <version>3.2</version>
-      <scope>provided</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm-commons</artifactId>
       <version>3.2</version>
-      <scope>provided</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jnr-x86asm</artifactId>
-      <version>0.1</version>
-      <scope>provided</scope>
+      <version>1.0.0</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
   <build>
