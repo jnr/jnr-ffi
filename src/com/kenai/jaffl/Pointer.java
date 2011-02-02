@@ -1,6 +1,8 @@
 
 package com.kenai.jaffl;
 
+import java.nio.charset.Charset;
+
 public interface Pointer {
     public static final int SIZE = Platform.getPlatform().addressSize();
 
@@ -31,6 +33,8 @@ public interface Pointer {
     abstract public Pointer getPointer(long offset);
     abstract public void putPointer(long offset, Pointer value);
     abstract public String getString(long offset);
+    abstract public String getString(long offset, int maxLength, Charset cs);
+    abstract public void putString(long offset, String string, int maxLength, Charset cs);
     abstract public long address();
     abstract public boolean isDirect();
 }

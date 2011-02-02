@@ -30,7 +30,6 @@ public class StringArrayTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
-        runtime = Library.getRuntime(testlib);
     }
 
     @AfterClass
@@ -71,7 +70,7 @@ public class StringArrayTest {
     @Test public void elementsSetByNativeCodeShouldBeReloaded() {
         final String MAGIC = "test";
         String[] strings = new String[1];
-        Pointer ptr = Memory.allocateDirect(runtime, 1024);
+        Pointer ptr = FFIProvider.getProvider().getMemoryManager().allocateDirect(1024);
         ptr.putString(0, MAGIC, 1024, Charset.defaultCharset());
         testlib.ptr_set_array_element(strings, 0, ptr);
         assertEquals(MAGIC, strings[0]);

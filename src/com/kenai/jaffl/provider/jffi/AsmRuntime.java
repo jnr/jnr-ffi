@@ -309,13 +309,6 @@ public final class AsmRuntime {
                             }
                         }
                     }
-
-                    // Dispose all the allocated memory as soon as the call is finished
-                    for (int i = 0; i < pointers.length; ++i) {
-                        if (pointers[i] != null) {
-                            pointers[i].dispose();
-                        }
-                    }
                 }
             });
 
@@ -333,7 +326,7 @@ public final class AsmRuntime {
         if (pointers == null) {
             buffer.putAddress(0L);
         } else {
-            if (Platform.getPlatform().addressSize() == 32) {
+            if (Pointer.SIZE == 32) {
                 final int[] raw = new int[pointers.length + 1];
                 for (int i = 0; i < pointers.length; ++i) {
                     if (pointers[i] != null && !pointers[i].isDirect()) {
