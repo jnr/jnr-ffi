@@ -23,8 +23,8 @@ import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Internals;
 import com.kenai.jffi.PageManager;
-import com.kenai.jnr.x86asm.Assembler;
-import com.kenai.jnr.x86asm.CPU;
+import jnr.x86asm.Assembler;
+import jnr.x86asm.CPU;
 
 /**
  * Compiles asm trampoline stubs for java class methods

@@ -21,8 +21,8 @@ package com.kenai.jaffl.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Internals;
-import static com.kenai.jnr.x86asm.Asm.*;
-import com.kenai.jnr.x86asm.Assembler;
+import static jnr.x86asm.Asm.*;
+import jnr.x86asm.Assembler;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 
 /**

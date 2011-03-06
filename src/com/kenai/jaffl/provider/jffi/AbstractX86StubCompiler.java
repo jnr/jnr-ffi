@@ -22,7 +22,7 @@ import com.kenai.jffi.MemoryIO;
 import com.kenai.jffi.NativeMethod;
 import com.kenai.jffi.NativeMethods;
 import com.kenai.jffi.PageManager;
-import com.kenai.jnr.x86asm.Assembler;
+import jnr.x86asm.Assembler;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
