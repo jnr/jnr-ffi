@@ -31,7 +31,7 @@ import org.objectweb.asm.commons.EmptyVisitor;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 
-class AsmUtil {
+final class AsmUtil {
     private AsmUtil() {}
     
     public static final MethodVisitor newTraceMethodVisitor(MethodVisitor mv) {
@@ -168,7 +168,7 @@ class AsmUtil {
     /**
      * Calculates the size of a list of types in the local variable area.
      *
-     * @param type The type of parameter
+     * @param types The type of parameter
      * @return The size in parameter units
      */
     static final int calculateLocalVariableSpace(Class... types) {
@@ -199,34 +199,49 @@ class AsmUtil {
             sig(nativeType, Enum.class));
     }
 
+    static final void unboxBoolean(final SkinnyMethodAdapter mv, Class boxedType, final Class nativeType) {
+        mv.invokevirtual(p(boxedType), "booleanValue", "()Z");
+        widen(mv, boolean.class, nativeType);
+    }
+
+    static final void unboxBoolean(final SkinnyMethodAdapter mv, final Class nativeType) {
+        unboxBoolean(mv, Boolean.class, nativeType);
+    }
+
     static final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeType) {
-        String intValueMethod = long.class == nativeType ? "longValue" : "intValue";
-        String intValueSignature = long.class == nativeType ? "()J" : "()I";
 
-        if (Byte.class == boxedType || Short.class == boxedType || Integer.class == boxedType) {
-            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
+        if (Number.class.isAssignableFrom(boxedType)) {
 
-        } else if (Long.class == boxedType) {
-            mv.invokevirtual(p(boxedType), "longValue", "()J");
+            if (byte.class == nativeType) {
+                mv.invokevirtual(p(boxedType), "byteValue", "()B");
 
-        } else if (Float.class == boxedType) {
-            mv.invokevirtual(p(boxedType), "floatValue", "()F");
+            } else if (short.class == nativeType) {
+                mv.invokevirtual(p(boxedType), "shortValue", "()S");
 
-        } else if (Double.class == boxedType) {
-            mv.invokevirtual(p(boxedType), "doubleValue", "()D");
+            } else if (int.class == nativeType) {
+                mv.invokevirtual(p(boxedType), "intValue", "()I");
 
-        } else if (NativeLong.class.isAssignableFrom(boxedType)) {
-            mv.invokevirtual(p(boxedType), intValueMethod, intValueSignature);
-        
+            } else if (long.class == nativeType) {
+                mv.invokevirtual(p(boxedType), "longValue", "()J");
+
+            } else if (float.class == nativeType) {
+                mv.invokevirtual(p(boxedType), "floatValue", "()F");
+
+            } else if (double.class == nativeType) {
+                mv.invokevirtual(p(boxedType), "doubleValue", "()D");
+
+            } else {
+                throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
+            }
+
         } else if (Boolean.class.isAssignableFrom(boxedType)) {
-            mv.invokevirtual(p(boxedType), "booleanValue", "()Z");
-            widen(mv, boolean.class, nativeType);
+            unboxBoolean(mv, nativeType);
 
         } else if (Enum.class.isAssignableFrom(boxedType)) {
             unboxEnum(mv, nativeType);
 
         } else {
-            throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
+            throw new IllegalArgumentException("unsupported boxed type: " + boxedType);
         }
     }
 }

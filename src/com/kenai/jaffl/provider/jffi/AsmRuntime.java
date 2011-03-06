@@ -419,6 +419,18 @@ public final class AsmRuntime {
         }
     }
 
+    public static final void marshal(InvocationBuffer buffer, final Boolean parameter) {
+        if (parameter == null) {
+            throw new IllegalArgumentException("Boolean value cannot be null");
+        } else {
+            buffer.putInt(parameter.booleanValue() ? 1 : 0);
+        }
+    }
+
+    public static final void marshal(InvocationBuffer buffer, final boolean parameter) {
+        buffer.putInt(parameter ? 1 : 0);
+    }
+
 
     public static final void marshal(InvocationBuffer buffer, InvocationSession session,
             final Pointer[] pointers, int inout, int nativeArrayFlags) {

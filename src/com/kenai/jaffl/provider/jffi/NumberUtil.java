@@ -99,7 +99,7 @@ public final class NumberUtil {
     }
 
     public static boolean isPrimitiveInt(Class c) {
-        return byte.class == c || short.class == c || int.class == c || boolean.class == c;
+        return byte.class == c || char.class == c || short.class == c || int.class == c || boolean.class == c;
     }
 
 
@@ -118,10 +118,13 @@ public final class NumberUtil {
 
                 if (byte.class == to) {
                     mv.i2b();
+
                 } else if (short.class == to) {
                     mv.i2s();
+
                 } else if (char.class == to) {
                     mv.i2c();
+
                 } else if (boolean.class == to) {
                     // Ensure only 0x0 and 0x1 values are used for boolean
                     mv.iconst_1();

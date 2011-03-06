@@ -58,7 +58,6 @@ import org.objectweb.asm.Label;
 import static com.kenai.jaffl.provider.jffi.CodegenUtils.*;
 import static com.kenai.jaffl.provider.jffi.NumberUtil.*;
 import static com.kenai.jaffl.provider.jffi.AsmUtil.*;
-import static com.kenai.jaffl.provider.jffi.InvokerUtil.*;
 import static org.objectweb.asm.Opcodes.*;
 
 public class AsmLibraryLoader extends LibraryLoader {
@@ -451,6 +450,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                     if (Number.class.isAssignableFrom(parameterTypes[i])) {
                         unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
 
+                    } else if (Boolean.class.isAssignableFrom(parameterTypes[i])) {
+                        unboxBoolean(mv, parameterTypes[i], nativeParameterTypes[i]);
+
                     } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
                         unboxPointer(mv, nativeParameterTypes[i]);
                         
@@ -630,8 +632,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                 mv.pushInt(nativeArrayFlags);
                 sessionmarshal(mv, Pointer[].class, int.class, int.class);
 
-            } else if (parameterTypes[i].isPrimitive() || Number.class.isAssignableFrom(parameterTypes[i])) {
-                emitInvocationBufferIntParameter(mv, parameterTypes[i], parameterAnnotations[i]);
+            } else if (parameterTypes[i].isPrimitive() || Number.class.isAssignableFrom(parameterTypes[i])
+                    || Boolean.class == parameterTypes[i]) {
+                emitInvocationBufferNumericParameter(mv, parameterTypes[i], parameterAnnotations[i]);
 
             } else {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
@@ -650,13 +653,9 @@ public class AsmLibraryLoader extends LibraryLoader {
             invokeMethod = "invokeInt";
             nativeReturnType = int.class;
             
-        } else if (Long.class == returnType || long.class == returnType) {
+        } else if (isLong64(returnType, resultAnnotations)) {
             invokeMethod = "invokeLong";
             nativeReturnType = long.class;
-
-        } else if (NativeLong.class == returnType) {
-            invokeMethod = Platform.getPlatform().longSize() == 32 ? "invokeInt" : "invokeLong";
-            nativeReturnType = Platform.getPlatform().longSize() == 32 ? int.class : long.class;
 
         } else if (Pointer.class == returnType || Address.class == returnType
             || Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
@@ -703,6 +702,9 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             } else if (Number.class.isAssignableFrom(parameterTypes[i])) {
                 unboxNumber(mv, parameterTypes[i], nativeIntType);
+
+            } else if (Boolean.class.isAssignableFrom(parameterTypes[i])) {
+                unboxBoolean(mv, parameterTypes[i], nativeIntType);
 
             } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
                 unboxEnum(mv, nativeIntType);
@@ -848,7 +850,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             if (isInt32Param(t, parameterAnnotations[i])) {
                 p32 = true;
 
-            } else if (long.class == t || Long.class == t || NativeLong.class == t
+            } else if (isLong64(t, parameterAnnotations[i])
                     || (Platform.getPlatform().addressSize() == 64 && isPointerParam(t))) {
                 p64 = true;
 
@@ -950,38 +952,10 @@ public class AsmLibraryLoader extends LibraryLoader {
     private final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativeType) {
         Class primitiveClass = getPrimitiveClass(type);
 
-        if (Byte.class.isAssignableFrom(type)) {
-            narrow(mv, nativeType, byte.class);
+        // Emit widening/narrowing ops if necessary
+        widen(mv, nativeType, primitiveClass);
+        narrow(mv, nativeType, primitiveClass);
 
-        } else if (Character.class.isAssignableFrom(type)) {
-            narrow(mv, nativeType, char.class);
-
-        } else if (Short.class.isAssignableFrom(type)) {
-            narrow(mv, nativeType, short.class);
-
-        } else if (Integer.class.isAssignableFrom(type)) {
-            narrow(mv, nativeType, int.class);
-
-        } else if (Long.class.isAssignableFrom(type)) {
-            widen(mv, nativeType, long.class);
-
-        } else if (NativeLong.class.isAssignableFrom(type)) {
-            if (Platform.getPlatform().longSize() == 64) {
-                widen(mv, nativeType, long.class);
-                primitiveClass = long.class;
-            } else {
-                primitiveClass = int.class;
-            }
-
-        } else if (Boolean.class.isAssignableFrom(type)) {
-            narrow(mv, nativeType, boolean.class);
-
-        } else if (Float.class == type || Double.class == type) {
-            // nothing to do
-        } else {
-            throw new IllegalArgumentException("invalid Number subclass");
-        }
-        
         mv.invokestatic(type, "valueOf", type, primitiveClass);
     }
 
@@ -1013,50 +987,47 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
     }
 
-    private final void emitInvocationBufferIntParameter(final SkinnyMethodAdapter mv, 
+    private final void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv,
             final Class parameterType, final Annotation[] parameterAnnotations) {
         String paramMethod = null;
-        Class paramClass = int.class;
+        Class nativeParamType = int.class;
         
-        if (!parameterType.isPrimitive()) {
-            unboxNumber(mv, parameterType, null);
-        }
-
         if (byte.class == parameterType || Byte.class == parameterType) {
             paramMethod = "putByte";
+
         } else if (short.class == parameterType || Short.class == parameterType) {
             paramMethod = "putShort";
-        } else if (int.class == parameterType || Integer.class == parameterType || boolean.class == parameterType) {
+
+        } else if (int.class == parameterType || Integer.class == parameterType
+                || boolean.class == parameterType || Boolean.class == parameterType) {
             paramMethod = "putInt";
         
         } else if (isLong32(parameterType, parameterAnnotations)) {
             paramMethod = "putInt";
-            paramClass = int.class;
-            narrow(mv, parameterType, paramClass);
+            nativeParamType = int.class;
             
-        } else if (long.class == parameterType || Long.class == parameterType) {
+        } else if (isLong64(parameterType, parameterAnnotations)) {
             paramMethod = "putLong";
-            paramClass = long.class;
+            nativeParamType = long.class;
         
         } else if (float.class == parameterType || Float.class == parameterType) {
             paramMethod = "putFloat";
-            paramClass = float.class;
+            nativeParamType = float.class;
         
         } else if (double.class == parameterType || Double.class == parameterType) {
             paramMethod = "putDouble";
-            paramClass = double.class;
+            nativeParamType = double.class;
         
-        } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 32) {
-            paramMethod = "putInt";
-            paramClass = int.class;
-        } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 64) {
-            paramMethod = "putLong";
-            paramClass = long.class;
         } else {
             throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
-        
-        mv.invokevirtual(HeapInvocationBuffer.class, paramMethod, void.class, paramClass);
+
+        if (!parameterType.isPrimitive()) {
+            unboxNumber(mv, parameterType, nativeParamType);
+        }
+
+
+        mv.invokevirtual(HeapInvocationBuffer.class, paramMethod, void.class, nativeParamType);
     }
 
     private final void marshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
@@ -1126,9 +1097,17 @@ public class AsmLibraryLoader extends LibraryLoader {
     }
     
     static boolean isLong32(Class type, Annotation[] annotations) {
-        return (long.class == type || Long.class.isAssignableFrom(type))
-                && Platform.getPlatform().longSize() == 32
-                && !InvokerUtil.hasAnnotation(annotations, LongLong.class);
+        return Platform.getPlatform().longSize() == 32
+            && (((long.class == type || Long.class.isAssignableFrom(type))
+                 && !InvokerUtil.hasAnnotation(annotations, LongLong.class))
+               || NativeLong.class.isAssignableFrom(type));
+    }
+
+    static boolean isLong64(Class type, Annotation[] annotations) {
+        return ((long.class == type || Long.class.isAssignableFrom(type))
+                && (Platform.getPlatform().longSize() == 64
+                    || InvokerUtil.hasAnnotation(annotations, LongLong.class)))
+            || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 64);
     }
 
     final static boolean isInt32(Class type, Annotation[] annotations) {
@@ -1137,7 +1116,6 @@ public class AsmLibraryLoader extends LibraryLoader {
                 || Short.class.isAssignableFrom(type) || short.class == type
                 || Integer.class.isAssignableFrom(type) || int.class == type
                 || isLong32(type, annotations)
-                || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32)
                 || Enum.class.isAssignableFrom(type)
                 ;
     }
@@ -1175,10 +1153,6 @@ public class AsmLibraryLoader extends LibraryLoader {
             return true;
         }
 
-        if (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32) {
-            return true;
-        }
-
         // For x86_64, any args that promote up to 64bit can be accepted.
         final boolean isLong = Long.class == type || long.class == type;
         return Platform.getPlatform().addressSize() == 64 && FAST_LONG_AVAILABLE &&
@@ -1192,10 +1166,6 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         final boolean isPointer = isPointerParam(type);
         if (isPointer && Platform.getPlatform().addressSize() == 32) {
-            return true;
-        }
-
-        if (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 32) {
             return true;
         }
 
