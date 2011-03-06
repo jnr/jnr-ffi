@@ -18,26 +18,19 @@
 
 package com.kenai.jaffl.util;
 
+import com.kenai.jaffl.mapper.AbstractDataConverter;
 import com.kenai.jaffl.mapper.FromNativeContext;
-import com.kenai.jaffl.mapper.FromNativeConverter;
 import com.kenai.jaffl.mapper.ToNativeContext;
-import com.kenai.jaffl.mapper.ToNativeConverter;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+
+import java.util.*;
 
 /**
  * Provides mapping from Enum values to native integers and vice-versa
  */
-public final class EnumMapper implements FromNativeConverter, ToNativeConverter {
+public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
 
     private static final class StaticDataHolder {
-        private static final ConcurrentMap<Class<? extends Enum>, EnumMapper> MAPPERS
-                = new ConcurrentHashMap<Class<? extends Enum>, EnumMapper>();
-
+        private static volatile Map<Class<? extends Enum>, EnumMapper> MAPPERS = Collections.emptyMap();
     };
     
     private final Class<? extends Enum> enumClass;
@@ -58,15 +51,15 @@ public final class EnumMapper implements FromNativeConverter, ToNativeConverter 
         
     }
 
-    public Object fromNative(Object nativeValue, FromNativeContext context) {
-        return valueOf((Number) nativeValue);
+    public Enum fromNative(Integer nativeValue, FromNativeContext context) {
+        return valueOf(nativeValue);
     }
 
-    public Class nativeType() {
+    public Class<Integer> nativeType() {
         return Integer.class;
     }
 
-    public Object toNative(Object value, ToNativeContext context) {
+    public Integer toNative(Enum value, ToNativeContext context) {
         return intValue(enumClass.cast(value));
     }
 
@@ -83,9 +76,15 @@ public final class EnumMapper implements FromNativeConverter, ToNativeConverter 
         return addMapper(enumClass);
     }
 
-    private static EnumMapper addMapper(Class<? extends Enum> enumClass) {
+    private static synchronized EnumMapper addMapper(Class<? extends Enum> enumClass) {
         EnumMapper mapper = new EnumMapper(enumClass);
-        StaticDataHolder.MAPPERS.put(enumClass, mapper);
+
+        Map<Class<? extends Enum>, EnumMapper> tmp
+                = new IdentityHashMap<Class<? extends Enum>, EnumMapper>(StaticDataHolder.MAPPERS);
+        tmp.put(enumClass, mapper);
+
+        StaticDataHolder.MAPPERS = tmp;
+
         return mapper;
     }
 
@@ -106,7 +105,6 @@ public final class EnumMapper implements FromNativeConverter, ToNativeConverter 
     }
 
     public Enum valueOf(int value) {
-        Collections.emptyList();
         return valueOf(Integer.valueOf(value));
     }
 
@@ -135,6 +133,4 @@ public final class EnumMapper implements FromNativeConverter, ToNativeConverter 
                     + value + " of type " + enumClass.getName());
         }
     }
-
-    
 }
