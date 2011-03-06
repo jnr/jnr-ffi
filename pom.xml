@@ -106,8 +106,6 @@
     </dependency>
   </dependencies>
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -128,7 +126,7 @@
               <tasks>
                 <exec dir="${basedir}" executable="make" failonerror="true">
                   <arg line="-f libtest/GNUmakefile"/>
-                  <arg line="BUILD_DIR=${build.directory}"/>
+                  <arg line="BUILD_DIR=${project.build.directory}"/>
                 </exec>
               </tasks>
             </configuration>
@@ -146,7 +144,7 @@
           <systemProperties>
             <property>
               <name>jna.library.path</name>
-              <value>${build.directory}</value>
+              <value>${project.build.directory}</value>
             </property>
           </systemProperties>
         </configuration>
