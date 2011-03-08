@@ -40,7 +40,7 @@ import java.nio.charset.Charset;
  * 
  * <b>Note:</b> This class is not threadsafe.
  */
-public abstract class Struct /*implements Marshallable */{
+public abstract class Struct {
 
     static final class Info {
         private final Runtime runtime;
@@ -84,27 +84,7 @@ public abstract class Struct /*implements Marshallable */{
                 return runtime.getMemoryManager().allocate(size());
             }
         }
-        /*
-        public final Marshaller.Session marshal(Marshaller marshaller, MarshalContext context) {
-            final int flags = context.getFlags();
-            if (io == null) {
-                allocateMemory(flags);
-            } else if (!ParameterFlags.isTransient(flags) && !io.isDirect()) {
-                // Switching from heap memory to native memory
-                final ByteBuffer old = buffer;
-                allocateMemory(flags);
-                if (ParameterFlags.isIn(flags)) {
-                    io.put(0, old.array(), old.arrayOffset(), old.capacity());
-                }
-            }
-            if (memory != null) {
-                marshaller.add(memory);
-            } else {
-                marshaller.add(buffer, context);
-            }
-            return Marshaller.EMPTY_SESSION;
-        }
-        */
+
         public final void useMemory(jnr.ffi.Pointer io) {
             this.memory = io;
         }
@@ -182,7 +162,7 @@ public abstract class Struct /*implements Marshallable */{
     public java.lang.String toString() {
         StringBuilder sb = new StringBuilder();
         java.lang.reflect.Field[] fields = getClass().getDeclaredFields();
-        sb.append(getClass().getSimpleName() + " { \n");
+        sb.append(getClass().getSimpleName()).append(" { \n");
         final java.lang.String fieldPrefix = "    ";
         for (java.lang.reflect.Field field : fields) {
             try {
