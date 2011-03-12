@@ -19,6 +19,8 @@
 package jnr.ffi.provider;
 
 import jnr.ffi.Runtime;
+import jnr.ffi.util.BufferUtil;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -59,12 +61,10 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         return length;
     }
 
-    @Override
     public final boolean isDirect() {
         return false;
     }
 
-    @Override
     public final long address() {
         return 0;
     }
@@ -76,28 +76,35 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     protected final int index(long off) {
         return this.offset + (int) off;
     }
+
+    protected final int remaining(long offset) {
+        return length - (int) offset;
+    }
+
     public final boolean isNull() {
         return false;
     }
 
-    @Override
     public String getString(long offset) {
-        ByteBuffer tmp = ByteBuffer.wrap(buffer, index(offset), length - (int) offset);
-        return StringIO.getStringIO().fromNative(tmp, length - (int) offset).toString();
+        return BufferUtil.getString(ByteBuffer.wrap(buffer, index(offset), length - (int) offset), Charset.defaultCharset());
     }
 
-
-    @Override
     public String getString(long offset, int maxLength, Charset cs) {
-        ByteBuffer tmp = ByteBuffer.wrap(buffer, index(offset), length - (int) offset);
-        return StringIO.getStringIO().fromNative(tmp, Math.min(maxLength, length - (int) offset)).toString();
+        return BufferUtil.getString(ByteBuffer.wrap(buffer, index(offset), Math.min(length - (int) offset, maxLength)), cs);
     }
     
-    @Override
     public void putString(long offset, String string, int maxLength, Charset cs) {
-        StringIO.getStringIO().toNative(string,
-                ByteBuffer.wrap(buffer, index(offset), Math.min(maxLength, length - (int) offset)));
+        ByteBuffer buf = cs.encode(string);
+        int len = Math.min(maxLength - 1, Math.min(buf.remaining(), remaining(offset)));
+        buf.get(buffer, index(offset), len);
+        buffer[index(offset) + len] = (byte) 0;
     }
+
+    public void putZeroTerminatedByteArray(long offset, byte[] src, int off, int len) {
+        System.arraycopy(src, off, buffer, index(offset), length - (int) offset);
+        buffer[index(offset) + len] = (byte) 0;
+    }
+
     public final byte getByte(long offset) {
         return (byte) (buffer[index(offset)] & 0xff);
     }

@@ -173,7 +173,6 @@ class DirectMemoryIO extends AbstractMemoryIO {
         IO.putDoubleArray(address + offset, src, off, len);
     }
 
-    @Override
     public Pointer getPointer(long offset) {
         return MemoryUtil.newPointer(IO.getAddress(address + offset));
     }
@@ -182,31 +181,28 @@ class DirectMemoryIO extends AbstractMemoryIO {
         return MemoryUtil.newPointer(IO.getAddress(this.address + offset), size);
     }
 
-    @Override
     public void putPointer(long offset, Pointer value) {
         IO.putAddress(address + offset, value.address());
     }
 
-    @Override
     public String getString(long offset) {
-        final byte[] bytes = IO.getZeroTerminatedByteArray(address + offset);
-        
-        return StringIO.getStringIO().fromNative(ByteBuffer.wrap(bytes)).toString();
+        return Charset.defaultCharset().decode(ByteBuffer.wrap(IO.getZeroTerminatedByteArray(address + offset))).toString();
     }
 
 
-    @Override
     public String getString(long offset, int maxLength, Charset cs) {
-        byte[] bytes = IO.getZeroTerminatedByteArray(address + offset, maxLength);
-        final ByteBuffer buf = ByteBuffer.wrap(bytes);
-
-        return StringIO.getStringIO().fromNative(buf).toString();
+        final byte[] bytes = IO.getZeroTerminatedByteArray(address + offset, maxLength);
+        return Charset.defaultCharset().decode(ByteBuffer.wrap(bytes)).toString();
     }
 
-    @Override
     public void putString(long offset, String string, int maxLength, Charset cs) {
-        ByteBuffer buf = StringIO.getStringIO().toNative(string, 0, true);
-        IO.putByteArray(address + offset, buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+        ByteBuffer buf = cs.encode(string);
+        int len = Math.min(maxLength, buf.remaining());
+        IO.putZeroTerminatedByteArray(address + offset, buf.array(), buf.arrayOffset() + buf.position(), len);
+    }
+
+    public void putZeroTerminatedByteArray(long offset, byte[] src, int off, int len) {
+        IO.putZeroTerminatedByteArray(address + offset, src, off, len);
     }
 
 

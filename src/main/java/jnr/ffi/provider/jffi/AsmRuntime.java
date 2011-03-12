@@ -34,12 +34,9 @@ import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.InvocationBuffer;
 import com.kenai.jffi.Platform;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
+
+import java.nio.*;
+import java.nio.charset.Charset;
 
 /**
  * Utility methods that are used at runtime by generated code.
@@ -248,7 +245,7 @@ public final class AsmRuntime {
         if (cs == null) {
             buffer.putAddress(0L);
         } else {
-            ByteBuffer buf = StringIO.getStringIO().toNative(cs, cs.length(), true);
+            ByteBuffer buf = Charset.defaultCharset().encode(CharBuffer.wrap(cs));
             buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), com.kenai.jffi.ArrayFlags.IN | com.kenai.jffi.ArrayFlags.NULTERMINATE);
         }
     }
@@ -364,14 +361,14 @@ public final class AsmRuntime {
 
         } else {
             final AllocatedDirectMemoryIO[] pointers = new AllocatedDirectMemoryIO[strings.length];
-            final StringIO io = StringIO.getStringIO();
+            Charset charset = Charset.defaultCharset();
 
             if (ParameterFlags.isIn(inout)) {
                 for (int i = 0; i < strings.length; ++i) {
                     if (strings[i] != null) {
-                        ByteBuffer buf = io.toNative(strings[i], strings[i].length(), ParameterFlags.isIn(inout));
-                        AllocatedDirectMemoryIO ptr = new AllocatedDirectMemoryIO(buf.remaining(), false);
-                        ptr.put(0, buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+                        ByteBuffer buf = charset.encode(CharBuffer.wrap(strings[i]));
+                        AllocatedDirectMemoryIO ptr = new AllocatedDirectMemoryIO(buf.remaining() + 1, false);
+                        ptr.putZeroTerminatedByteArray(0, buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
                         pointers[i] = ptr;
 
                     } else {
@@ -494,9 +491,7 @@ public final class AsmRuntime {
         if (ptr == 0) {
             return null;
         }
-        final ByteBuffer buf = ByteBuffer.wrap(IO.getZeroTerminatedByteArray(ptr));
-
-        return StringIO.getStringIO().fromNative(buf).toString();
+        return Charset.defaultCharset().decode(ByteBuffer.wrap(IO.getZeroTerminatedByteArray(ptr))).toString();
     }
 
     public static final String stringValue(int ptr) {

@@ -45,10 +45,6 @@ public final class StringIO {
         return StaticDataHolder.INSTANCE;
     }
 
-    public static StringIO getStringIO(Charset charset) {
-        return new StringIO(charset);
-    }
-    
     private StringIO(Charset charset) {
         this.charset = charset;
     }

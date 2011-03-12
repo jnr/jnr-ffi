@@ -18,42 +18,29 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.*;
 import jnr.ffi.Address;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.NativeLong;
-import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.FunctionMapper;
-import jnr.ffi.mapper.MethodResultContext;
-import jnr.ffi.mapper.ToNativeContext;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.*;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.Invoker;
-import jnr.ffi.provider.StringIO;
+import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.struct.Struct;
 import jnr.ffi.util.EnumMapper;
-import com.kenai.jffi.Function;
-import com.kenai.jffi.HeapInvocationBuffer;
-import com.kenai.jffi.InvocationBuffer;
-import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
+import java.nio.*;
+import java.nio.charset.Charset;
 import java.util.Map;
 
-import static jnr.ffi.provider.jffi.InvokerUtil.*;
+import static jnr.ffi.provider.jffi.InvokerUtil.getNativeReturnType;
+import static jnr.ffi.provider.jffi.InvokerUtil.isLong32;
 
 
 final class DefaultInvokerFactory implements InvokerFactory {
@@ -539,9 +526,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
             if (ptr == 0) {
                 return null;
             }
-            final ByteBuffer buf = ByteBuffer.wrap(IO.getZeroTerminatedByteArray(ptr));
-
-            return StringIO.getStringIO().fromNative(buf).toString();
+            return Charset.defaultCharset().decode(ByteBuffer.wrap(IO.getZeroTerminatedByteArray(ptr))).toString();
         }
     }
 
