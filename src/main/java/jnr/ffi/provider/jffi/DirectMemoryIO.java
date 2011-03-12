@@ -21,7 +21,7 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.AbstractMemoryIO;
-import jnr.ffi.provider.StringIO;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 

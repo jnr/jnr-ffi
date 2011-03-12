@@ -26,7 +26,6 @@ import jnr.ffi.provider.AbstractArrayMemoryIO;
 import jnr.ffi.provider.AbstractBufferMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
 import jnr.ffi.provider.InvocationSession;
-import jnr.ffi.provider.StringIO;
 import jnr.ffi.struct.Struct;
 import jnr.ffi.struct.StructUtil;
 import jnr.ffi.util.BufferUtil;
