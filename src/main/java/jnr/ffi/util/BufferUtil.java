@@ -62,8 +62,17 @@ public final class BufferUtil {
         }
     }
     public final static CharSequence getCharSequence(ByteBuffer buf, Charset charset) {
-        return getCharSequence(buf, charset.newDecoder());
+        final ByteBuffer buffer = buf.slice();
+        // Find the NUL terminator and limit to that, so the
+        // StringBuffer/StringBuilder does not have superfluous NUL chars
+        int end = indexOf(buffer, (byte) 0);
+        if (end < 0) {
+            end = buffer.limit();
+        }
+        buffer.position(0).limit(end);
+        return charset.decode(buffer);
     }
+
     public final static CharSequence getCharSequence(final ByteBuffer buf, final CharsetDecoder decoder) {
         final ByteBuffer buffer = buf.slice();
         // Find the NUL terminator and limit to that, so the
