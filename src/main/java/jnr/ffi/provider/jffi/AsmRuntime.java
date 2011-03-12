@@ -29,6 +29,7 @@ import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.StringIO;
 import jnr.ffi.struct.Struct;
 import jnr.ffi.struct.StructUtil;
+import jnr.ffi.util.BufferUtil;
 import jnr.ffi.util.EnumMapper;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
@@ -315,17 +316,27 @@ public final class AsmRuntime {
             buffer.putAddress(0L);
         } else {
             final StringBuilder sb = parameter;
-            final StringIO io = StringIO.getStringIO();
-            final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
-            buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), nflags);
+            ByteBuffer buf = ParameterFlags.isIn(inout)
+                ? Charset.defaultCharset().encode(CharBuffer.wrap(parameter))
+                : ByteBuffer.allocate(sb.capacity() + 1);
+            if (ParameterFlags.isOut(inout) && buf.capacity() < sb.capacity() + 1) {
+                ByteBuffer tmp = ByteBuffer.allocate(sb.capacity() + 1);
+                tmp.put(buf);
+                tmp.flip();
+                buf = tmp;
+            }
+            buffer.putArray(buf.array(), buf.arrayOffset(), buf.capacity(), nflags);
             //
             // Copy the string back out if its an OUT parameter
             //
             if (ParameterFlags.isOut(inout)) {
+                final ByteBuffer tmp = buf;
                 session.addPostInvoke(new InvocationSession.PostInvoke() {
 
                     public void postInvoke() {
-                        sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
+                        tmp.limit(tmp.capacity());
+                        tmp.position(0);
+                        sb.delete(0, sb.length()).append(BufferUtil.getCharSequence(tmp, Charset.defaultCharset()));
                     }
                 });
             }
@@ -337,17 +348,28 @@ public final class AsmRuntime {
             buffer.putAddress(0L);
         } else {
             final StringBuffer sb = parameter;
-            final StringIO io = StringIO.getStringIO();
-            final ByteBuffer buf = io.toNative(sb, sb.capacity(), ParameterFlags.isIn(inout));
-            buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), nflags);
+            ByteBuffer buf = ParameterFlags.isIn(inout)
+                            ? Charset.defaultCharset().encode(CharBuffer.wrap(parameter))
+                            : ByteBuffer.allocate(sb.capacity() + 1);
+
+            if (ParameterFlags.isOut(inout) && buf.capacity() < sb.capacity() + 1) {
+                ByteBuffer tmp = ByteBuffer.allocate(sb.capacity() + 1);
+                tmp.put(buf);
+                tmp.flip();
+                buf = tmp;
+            }
+            buffer.putArray(buf.array(), buf.arrayOffset(), buf.capacity(), nflags);
             //
             // Copy the string back out if its an OUT parameter
             //
             if (ParameterFlags.isOut(inout)) {
+                final ByteBuffer tmp = buf;
                 session.addPostInvoke(new InvocationSession.PostInvoke() {
 
                     public void postInvoke() {
-                        sb.delete(0, sb.length()).append(io.fromNative(buf, sb.capacity()));
+                        tmp.limit(tmp.capacity());
+                        tmp.position(0);
+                        sb.delete(0, sb.length()).append(BufferUtil.getCharSequence(tmp, Charset.defaultCharset()));
                     }
                 });
             }
