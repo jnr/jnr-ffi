@@ -19,9 +19,8 @@
 package jnr.ffi.byref;
 
 
-import jnr.ffi.byref.AddressByReference;
+import jnr.ffi.TstUtil;
 import jnr.ffi.Address;
-import jnr.ffi.jaffl.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import org.junit.After;

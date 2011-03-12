@@ -16,7 +16,7 @@
  * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jnr.ffi.jaffl;
+package jnr.ffi;
 
 import org.junit.After;
 import org.junit.AfterClass;

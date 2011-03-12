@@ -1,12 +1,10 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.struct.Struct;
-import jnr.ffi.struct.StructUtil;
 import jnr.ffi.Library;
 import jnr.ffi.NativeType;
 import jnr.ffi.Runtime;
-import jnr.ffi.jaffl.TstUtil;
+import jnr.ffi.TstUtil;
 import jnr.ffi.Type;
 import jnr.ffi.struct.PaddingTest.TestLib.LongPadding;
 import org.junit.After;

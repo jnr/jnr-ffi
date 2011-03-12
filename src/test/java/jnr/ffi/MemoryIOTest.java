@@ -16,14 +16,10 @@
  * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jnr.ffi.jaffl;
+package jnr.ffi;
 
-import jnr.ffi.Pointer;
-import jnr.ffi.Runtime;
-import jnr.ffi.Library;
-import jnr.ffi.Memory;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -16,10 +16,8 @@
  * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jnr.ffi.jaffl;
+package jnr.ffi;
 
-import jnr.ffi.Runtime;
-import jnr.ffi.Library;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;

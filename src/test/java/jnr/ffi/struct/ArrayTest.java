@@ -1,12 +1,10 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.struct.Struct;
-import jnr.ffi.struct.StructUtil;
 import jnr.ffi.Library;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-import jnr.ffi.jaffl.TstUtil;
+import jnr.ffi.TstUtil;
 import jnr.ffi.provider.AbstractArrayMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
 import org.junit.After;

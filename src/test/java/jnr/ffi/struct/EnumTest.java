@@ -18,12 +18,11 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.struct.Struct;
 import jnr.ffi.Library;
 import jnr.ffi.NativeLong;
 import jnr.ffi.util.EnumMapper;
 import jnr.ffi.Runtime;
-import jnr.ffi.jaffl.TstUtil;
+import jnr.ffi.TstUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

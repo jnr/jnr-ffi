@@ -1,10 +1,5 @@
+package jnr.ffi;
 
-package jnr.ffi.jaffl;
-
-import jnr.ffi.Pointer;
-import jnr.ffi.Runtime;
-import jnr.ffi.Library;
-import jnr.ffi.Memory;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import java.nio.charset.Charset;

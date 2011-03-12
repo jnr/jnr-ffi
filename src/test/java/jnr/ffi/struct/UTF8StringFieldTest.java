@@ -18,10 +18,9 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.struct.Struct;
+import jnr.ffi.TstUtil;
 import jnr.ffi.Library;
 import jnr.ffi.Runtime;
-import jnr.ffi.jaffl.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;

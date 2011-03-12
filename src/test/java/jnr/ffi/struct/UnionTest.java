@@ -18,10 +18,9 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.struct.Union;
 import jnr.ffi.Library;
 import jnr.ffi.Runtime;
-import jnr.ffi.jaffl.TstUtil;
+import jnr.ffi.TstUtil;
 import java.nio.ByteOrder;
 import org.junit.After;
 import org.junit.AfterClass;

@@ -1,5 +1,4 @@
-
-package jnr.ffi.jaffl;
+package jnr.ffi;
 
 import jnr.ffi.LibraryOption;
 import jnr.ffi.Pointer;

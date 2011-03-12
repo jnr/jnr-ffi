@@ -1,10 +1,5 @@
+package jnr.ffi;
 
-package jnr.ffi.jaffl;
-
-import jnr.ffi.FFIProvider;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.Pointer;
-import jnr.ffi.Library;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;

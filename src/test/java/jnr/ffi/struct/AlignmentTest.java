@@ -1,11 +1,9 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.struct.Struct;
-import jnr.ffi.struct.StructUtil;
 import jnr.ffi.Library;
 import jnr.ffi.Runtime;
-import jnr.ffi.jaffl.TstUtil;
+import jnr.ffi.TstUtil;
 import jnr.ffi.struct.AlignmentTest.TestLib.PointerStruct;
 import org.junit.After;
 import org.junit.AfterClass;

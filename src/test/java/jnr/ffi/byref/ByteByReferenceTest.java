@@ -18,8 +18,7 @@
 
 package jnr.ffi.byref;
 
-import jnr.ffi.byref.ByteByReference;
-import jnr.ffi.jaffl.TstUtil;
+import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import org.junit.After;
