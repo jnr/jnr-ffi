@@ -66,10 +66,9 @@ public abstract class FFIProvider {
         static final FFIProvider getInstance() {
             String providerName = System.getProperty("jnr.ffi.provider");
             if (providerName == null) {
-                providerName = FFIProvider.class.getPackage().getName() + ".provider.jffi.Provider";
-            }
-            if (providerName == null) {
-                providerName = "jnr.ffi.provider.jffi.Provider";
+                Package pkg = FFIProvider.class.getPackage();
+                String pkgName = pkg != null && pkg.getName() != null ? pkg.getName() : "jnr.ffi";
+                providerName = pkgName + ".provider.jffi.Provider";
             }
 
             try {
