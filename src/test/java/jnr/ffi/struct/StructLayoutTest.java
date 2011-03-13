@@ -21,34 +21,30 @@ package jnr.ffi.struct;
 import jnr.ffi.*;
 import jnr.ffi.Runtime;
 import jnr.ffi.annotations.LongLong;
-import jnr.ffi.TstUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
  */
-public class StructureTest {
+public class StructLayoutTest {
 
-    public StructureTest() {
+    public StructLayoutTest() {
     }
     
     public static interface TestLib {
-        byte struct_field_Signed8(struct1 s);
-        short struct_field_Signed16(struct1 s);
-        int struct_field_Signed32(struct1 s);
-        @LongLong long struct_field_Signed64(struct1 s);
-        float struct_field_Float32(struct1 s);
-        double struct_field_Float64(struct1 s);
-        short struct_align_Signed16(Int16Align s);
-        int struct_align_Signed32(Int32Align s);
-        @LongLong long struct_align_Signed64(Int64Align s);
-        NativeLong struct_align_SignedLong(LongAlign s);
-        struct1 struct_make_struct(byte b, short s, int i, @LongLong long ll, float f, double d);
+        byte struct_field_Signed8(Pointer s);
+        short struct_field_Signed16(Pointer s);
+        int struct_field_Signed32(Pointer s);
+        @LongLong long struct_field_Signed64(Pointer s);
+        float struct_field_Float32(Pointer s);
+        double struct_field_Float64(Pointer s);
+        short struct_align_Signed16(Pointer s);
+        int struct_align_Signed32(Pointer s);
+        @LongLong long struct_align_Signed64(Pointer s);
+        NativeLong struct_align_SignedLong(Pointer s);
+        Pointer struct_make_struct(byte b, short s, int i, @LongLong long ll, float f, double d);
 //        float struct_align_Float32(Float32Align s);
 //        double struct_align_Float64(Float64Align s);
 //        void struct_set_string(struct1 s, String string);
@@ -74,7 +70,7 @@ public class StructureTest {
     @After
     public void tearDown() {
     }
-    public static class struct1 extends Struct {
+    public static class struct1 extends StructLayout {
         public final Signed8 b = new Signed8();
         public final Signed16 s = new Signed16();
         public final Signed32 i = new Signed32();
@@ -89,7 +85,7 @@ public class StructureTest {
 
 
     }
-    public static class Int16Align extends Struct {
+    public static class Int16Align extends StructLayout {
         public final Signed8 first = new Signed8();
         public final Signed16 s = new Signed16();
 
@@ -98,7 +94,7 @@ public class StructureTest {
         }
 
     }
-    public static class Int32Align extends Struct {
+    public static class Int32Align extends StructLayout {
         public final Signed8 first = new Signed8();
         public final Signed32 i = new Signed32();
 
@@ -107,7 +103,7 @@ public class StructureTest {
         }
 
     }
-    public static class Int64Align extends Struct {
+    public static class Int64Align extends StructLayout {
         public final Signed8 first = new Signed8();
         public final Signed64 l = new Signed64();
 
@@ -116,7 +112,7 @@ public class StructureTest {
         }
 
     }
-    public static class LongAlign extends Struct {
+    public static class LongAlign extends StructLayout {
         public final Signed8 first = new Signed8();
         public final SignedLong l = new SignedLong();
 
@@ -128,89 +124,99 @@ public class StructureTest {
 
     @Test public void testInt8InitialValue() {
         struct1 s = new struct1();
-        assertEquals("default value not zero", (byte) 0, s.b.get());
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        assertEquals("default value not zero", (byte) 0, s.b.get(ptr));
     }
 
     @Test public void testInt8Set() {
         struct1 s = new struct1();
+        Pointer ptr = Memory.allocate(runtime, s.size());
         final byte MAGIC = (byte) 0xfe;
-        s.b.set(MAGIC);
-        assertEquals("Byte value not set correctly", MAGIC, s.b.get());
+        s.b.set(ptr, MAGIC);
+        assertEquals("Byte value not set correctly", MAGIC, s.b.get(ptr));
     }
 
     @Test
     public void byteField() {
         final byte MAGIC = (byte) 0xbe;
         struct1 s = new struct1();
-        s.b.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.b.set(ptr, MAGIC);
         
-        assertEquals("byte field not set", MAGIC, testlib.struct_field_Signed8(s));
-        s.b.set((byte) 0);
-        assertEquals("byte field not cleared", (byte) 0, testlib.struct_field_Signed8(s));
+        assertEquals("byte field not set", MAGIC, testlib.struct_field_Signed8(ptr));
+        s.b.set(ptr, (byte) 0);
+        assertEquals("byte field not cleared", (byte) 0, testlib.struct_field_Signed8(ptr));
     }
 
     @Test
     public void shortField() {
         final short MAGIC = (short) 0xbeef;
         struct1 s = new struct1();
-        s.s.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.s.set(ptr, MAGIC);
         
-        assertEquals("short field not set", MAGIC, testlib.struct_field_Signed16(s));
-        s.s.set((short) 0);
-        assertEquals("short field not cleared", (short) 0, testlib.struct_field_Signed16(s));
+        assertEquals("short field not set", MAGIC, testlib.struct_field_Signed16(ptr));
+        s.s.set(ptr, (short) 0);
+        assertEquals("short field not cleared", (short) 0, testlib.struct_field_Signed16(ptr));
     }
 
     @Test
     public void intField() {
         final int MAGIC = 0xdeadbeef;
         struct1 s = new struct1();
-        s.i.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.i.set(ptr, MAGIC);
         
-        assertEquals("int field not set", MAGIC, testlib.struct_field_Signed32(s));
-        s.i.set(0);
-        assertEquals("int field not cleared", 0, testlib.struct_field_Signed32(s));
+        assertEquals("int field not set", MAGIC, testlib.struct_field_Signed32(ptr));
+        s.i.set(ptr, 0);
+        assertEquals("int field not cleared", 0, testlib.struct_field_Signed32(ptr));
     }
     @Test 
     public void int64Field() {
         final long MAGIC = 0x1234deadbeef5678L;
         struct1 s = new struct1();
-        s.i64.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.i64.set(ptr, MAGIC);
         
-        assertEquals("long field not set", MAGIC, testlib.struct_field_Signed64(s));
-        s.i64.set(0);
-        assertEquals("long field not cleared", 0L, testlib.struct_field_Signed64(s));
+        assertEquals("long field not set", MAGIC, testlib.struct_field_Signed64(ptr));
+        s.i64.set(ptr, 0);
+        assertEquals("long field not cleared", 0L, testlib.struct_field_Signed64(ptr));
     }
     @Test 
     public void alignInt16Field() {
         final short MAGIC = (short) 0xbeef;
         Int16Align s = new Int16Align();
-        s.s.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.s.set(ptr, MAGIC);
         
-        assertEquals("short field not aligned", MAGIC, testlib.struct_align_Signed16(s));
+        assertEquals("short field not aligned", MAGIC, testlib.struct_align_Signed16(ptr));
     }
     @Test 
     public void alignSigned32Field() {
         final int MAGIC = (int) 0xdeadbeef;
         Int32Align s = new Int32Align();
-        s.i.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.i.set(ptr, MAGIC);
         
-        assertEquals("int field not aligned", MAGIC, testlib.struct_align_Signed32(s));
+        assertEquals("int field not aligned", MAGIC, testlib.struct_align_Signed32(ptr));
     }
     @Test 
     public void alignSigned64Field() {
         final long MAGIC = 0x1234deadbeef5678L;
         Int64Align s = new Int64Align();
-        s.l.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.l.set(ptr, MAGIC);
         
-        assertEquals("long field not aligned", MAGIC, testlib.struct_align_Signed64(s));
+        assertEquals("long field not aligned", MAGIC, testlib.struct_align_Signed64(ptr));
     }
     @Test 
     public void alignSignedLongField() {
         final NativeLong MAGIC = new NativeLong(0xdeadbeef);
         LongAlign s = new LongAlign();
-        s.l.set(MAGIC);
+        Pointer ptr = Memory.allocate(runtime, s.size());
+        s.l.set(ptr, MAGIC);
         
-        assertEquals("native long field not aligned", MAGIC, testlib.struct_align_SignedLong(s));
+        assertEquals("native long field not aligned", MAGIC, testlib.struct_align_SignedLong(ptr));
     }
     @Test
     public void returnStructAddress() throws Throwable {
@@ -220,16 +226,17 @@ public class StructureTest {
         final long L = 0x4444444444444444L;
         final float F = (float) 0x55555555;
         final double D = (double) 0x6666666666666666L;
-        struct1 s = testlib.struct_make_struct(B, S, I, L, F, D);
-        assertEquals("Incorrect byte value in struct", B, s.b.get());
-        assertEquals("Incorrect short value in struct", S, s.s.get());
-        assertEquals("Incorrect int value in struct", I, s.i.get());
-        assertEquals("Incorrect int64 value in struct", L, s.i64.get());
-        assertEquals("Incorrect float value in struct", F, s.f.get(), 0.0001);
-        assertEquals("Incorrect double value in struct", D, s.d.get(), 0.0001);
+        struct1 s = new struct1();
+        Pointer ptr = testlib.struct_make_struct(B, S, I, L, F, D);
+        assertEquals("Incorrect byte value in struct", B, s.b.get(ptr));
+        assertEquals("Incorrect short value in struct", S, s.s.get(ptr));
+        assertEquals("Incorrect int value in struct", I, s.i.get(ptr));
+        assertEquals("Incorrect int64 value in struct", L, s.i64.get(ptr));
+        assertEquals("Incorrect float value in struct", F, s.f.get(ptr), 0.0001);
+        assertEquals("Incorrect double value in struct", D, s.d.get(ptr), 0.0001);
         
     }
-    private static final class ArrayTest extends Struct {
+    private static final class ArrayTest extends StructLayout {
         public final Signed8[] byteArray = array(new Signed8[8]);
 
         public ArrayTest() {
@@ -244,7 +251,7 @@ public class StructureTest {
         assertEquals("Second element not at correct offset", 1L, s.byteArray[1].offset());
         assertEquals("Last element not at correct offset", 7L, s.byteArray[7].offset());
     }
-    private static final class Unsigned8Test extends Struct {
+    private static final class Unsigned8Test extends StructLayout {
         public final Unsigned8 u8 = new Unsigned8();
 
         public Unsigned8Test() {
@@ -255,9 +262,10 @@ public class StructureTest {
     @Test
     public void unsigned8() {
         Unsigned8Test s = new Unsigned8Test();
+        Pointer ptr = Memory.allocate(runtime, s.size());
         final short MAGIC = (short) Byte.MAX_VALUE + 1;
-        s.u8.set(MAGIC);
-        assertEquals("Incorrect unsigned byte value", MAGIC, s.u8.shortValue());
+        s.u8.set(ptr, MAGIC);
+        assertEquals("Incorrect unsigned byte value", MAGIC, s.u8.shortValue(ptr));
     }
     private static final class Unsigned16Test extends Struct {
         public final Unsigned16 u16 = new Unsigned16();
@@ -290,7 +298,7 @@ public class StructureTest {
         assertEquals("Incorrect unsigned int value", MAGIC, s.u32.longValue());
     }
     
-    private static final class Unsigned64Test extends Struct {
+    private static final class Unsigned64Test extends StructLayout {
         public final Unsigned64 u64 = new Unsigned64();
 
         public Unsigned64Test() {
@@ -301,15 +309,16 @@ public class StructureTest {
     @Test
     public void unsigned64() {
         Unsigned64Test s = new Unsigned64Test();
+        Pointer ptr = Memory.allocate(runtime, s.size());
         final long MAGIC = Long.MAX_VALUE;
-        s.u64.set(MAGIC);
-        assertEquals("Incorrect unsigned long long value", MAGIC, s.u64.longValue());
+        s.u64.set(ptr, MAGIC);
+        assertEquals("Incorrect unsigned long long value", MAGIC, s.u64.longValue(ptr));
         // Just make sure that an Unsigned64 doesn't do anything weird with negative values
-        s.u64.set(Long.MIN_VALUE);
-        assertEquals("Incorrect unsigned long long value", Long.MIN_VALUE, s.u64.longValue());
+        s.u64.set(ptr, Long.MIN_VALUE);
+        assertEquals("Incorrect unsigned long long value", Long.MIN_VALUE, s.u64.longValue(ptr));
     }
     
-    private static final class UnsignedLongTest extends Struct {
+    private static final class UnsignedLongTest extends StructLayout {
         public final UnsignedLong ul = new UnsignedLong();
 
         public UnsignedLongTest() {
@@ -320,9 +329,10 @@ public class StructureTest {
     @Test
     public void unsignedLong() {
         UnsignedLongTest s = new UnsignedLongTest();
+        Pointer ptr = Memory.allocate(runtime, s.size());
         final long MAGIC = (long) Integer.MAX_VALUE + 1;
-        s.ul.set(MAGIC);
-        assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue());
+        s.ul.set(ptr, MAGIC);
+        assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue(ptr));
     }
 
     private class InnerStruct extends Struct {
