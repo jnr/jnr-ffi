@@ -41,15 +41,15 @@ public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
         return new BoundedMemoryIO(new AllocatedDirectMemoryIO(runtime, size, clear), 0, size);
     }
 
-    public Pointer wrap(ByteBuffer buffer) {
+    public Pointer newPointer(ByteBuffer buffer) {
         return new ByteBufferMemoryIO(runtime, buffer);
     }
 
-    public Pointer wrap(long address) {
+    public Pointer newPointer(long address) {
         return new DirectMemoryIO(runtime, address);
     }
 
-    public Pointer wrap(long address, long size) {
+    public Pointer newPointer(long address, long size) {
         return new BoundedMemoryIO(new DirectMemoryIO(runtime, address), 0, size);
     }
 }

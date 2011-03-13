@@ -78,19 +78,19 @@ public final class Memory {
      *
      * @param runtime the {@code Runtime} the wrapped {@code ByteBuffer} will
      * be used with.
-     * @param buffer the {@code ByteBuffer} to wrap.
+     * @param buffer the {@code ByteBuffer} to newPointer.
      *
      * @return a {@code Pointer} instance that will proxy all accesses to the ByteBuffer contents.
      */
     public static final Pointer wrap(Runtime runtime, ByteBuffer buffer) {
-        return runtime.getMemoryManager().wrap(buffer);
+        return runtime.getMemoryManager().newPointer(buffer);
     }
     
     public static Pointer newPointer(Runtime runtime, long address) {
-        return runtime.getMemoryManager().wrap(address);
+        return runtime.getMemoryManager().newPointer(address);
     }
     
     public static Pointer newPointer(Runtime runtime, long address, long size) {
-        return runtime.getMemoryManager().wrap(address, size);
+        return runtime.getMemoryManager().newPointer(address, size);
     }
 }

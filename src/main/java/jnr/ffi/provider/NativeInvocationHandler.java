@@ -108,7 +108,7 @@ public class NativeInvocationHandler implements InvocationHandler {
         
         //
         // If either the method or the library is specified as requiring
-        // synchronization, then wrap the raw invoker in a synchronized proxy
+        // synchronization, then newPointer the raw invoker in a synchronized proxy
         //
         if (method.getAnnotation(Synchronized.class) != null
                 || interfaceClass.getAnnotation(Synchronized.class) != null) {
@@ -201,7 +201,7 @@ public class NativeInvocationHandler implements InvocationHandler {
                         break Loop;
                     }
                 }
-                start = 0; // wrap around
+                start = 0; // newPointer around
             }
             entries = tmp; // write volatile
         }
@@ -224,7 +224,7 @@ public class NativeInvocationHandler implements InvocationHandler {
                         break Loop;
                     }
                 }
-                start = 0; // wrap around
+                start = 0; // newPointer around
             }
             return null;
         }

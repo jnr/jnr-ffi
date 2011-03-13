@@ -19,9 +19,12 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
+import jnr.ffi.ObjectReferenceManager;
 import jnr.ffi.Type;
 import jnr.ffi.provider.AbstractRuntime;
 import jnr.ffi.provider.BadType;
+import jnr.ffi.provider.DefaultObjectReferenceManager;
+
 import java.nio.ByteOrder;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -58,7 +61,12 @@ public final class NativeRuntime extends AbstractRuntime {
     public final NativeMemoryManager getMemoryManager() {
         return mm;
     }
-    
+
+    @Override
+    public ObjectReferenceManager newObjectReferenceManager() {
+        return new DefaultObjectReferenceManager(this);
+    }
+
     @Override
     public int getLastError() {
         return com.kenai.jffi.LastError.getInstance().get();

@@ -46,6 +46,8 @@ public abstract class Runtime {
      */
     public abstract MemoryManager getMemoryManager();
 
+    public abstract ObjectReferenceManager newObjectReferenceManager();
+
     /**
      * Gets the last native error code.
      * <p>
