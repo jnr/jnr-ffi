@@ -92,6 +92,10 @@ public final class NativeRuntime extends AbstractRuntime {
         public int size() {
             return type.size();
         }
+
+        public String toString() {
+            return type.toString();
+        }
     }
     
     private static final jnr.ffi.Type jafflType(NativeType type) {

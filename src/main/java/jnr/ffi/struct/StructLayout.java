@@ -1,17 +1,17 @@
 package jnr.ffi.struct;
 
 import jnr.ffi.NativeType;
-import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.Type;
 
 import java.lang.reflect.Constructor;
+
 import static jnr.ffi.struct.Struct.Offset;
 
 /**
  *
  */
-public class StructLayout {
+public class StructLayout implements Type {
     private final Runtime runtime;
     private final boolean isUnion = false;
     private StructLayout enclosing = null;
@@ -71,38 +71,28 @@ public class StructLayout {
         return alignment + ((offset - 1) & ~(alignment - 1));
     }
 
-    protected final int addField(int fieldSize, int fieldAlign, Offset offset) {
-        this.size = Math.max(this.size, offset.intValue() + fieldSize);
+    protected final int addField(int fieldSize, int fieldAlign, int offset) {
+        this.size = Math.max(this.size, offset + fieldSize);
         this.alignment = Math.max(this.alignment, fieldAlign);
-        this.paddedSize = align(this.size, fieldAlign);
+        this.paddedSize = align(this.size, this.alignment);
 
-        return offset.intValue();
+        return offset;
+    }
+
+    protected final int addField(int fieldSize, int fieldAlign, Offset offset) {
+        return addField(fieldSize, fieldAlign, offset.intValue());
     }
 
     protected final int addField(int fieldSize, int fieldAlign) {
-        int off = resetIndex ? 0 : align(this.size, fieldAlign);
-        this.size = Math.max(this.size, off + fieldSize);
-        this.alignment = Math.max(this.alignment, fieldAlign);
-        this.paddedSize = align(this.size, fieldAlign);
-
-        return off;
+        return addField(fieldSize, fieldAlign, resetIndex ? 0 : align(this.size, fieldAlign));
     }
 
     protected final int addField(Type t) {
-        int off = resetIndex ? 0 : align(size, t.alignment());
-        this.size = Math.max(this.size, off + t.size());
-        this.alignment = Math.max(this.alignment, t.alignment());
-        this.paddedSize = align(this.size, t.alignment());
-
-        return off;
+        return addField(t.size(), t.alignment());
     }
 
     protected final int addField(Type t, int offset) {
-        this.size = Math.max(this.size, offset + t.size());
-        this.alignment = Math.max(this.alignment, t.alignment());
-        this.paddedSize = align(this.size, t.alignment());
-
-        return offset;
+        return addField(t.size(), t.alignment(), offset);
     }
 
     protected final int addField(Type t, Offset offset) {
@@ -164,13 +154,13 @@ public class StructLayout {
         return array;
     }
 
-    protected final <T extends StructLayout> T inner(StructLayout structLayout) {
-        int off = structLayout.alignment + ((size - 1) & ~(structLayout.alignment - 1));
+    protected final <T extends StructLayout> T inner(T structLayout) {
+        structLayout.offset = align(this.size, structLayout.alignment);
         structLayout.enclosing = this;
-        structLayout.offset = off;
-        size = off + structLayout.size;
+        this.size = structLayout.offset + structLayout.size;
+        this.paddedSize = align(this.size, structLayout.alignment());
 
-        return (T) structLayout;
+        return structLayout;
     }
 
 /**
@@ -178,11 +168,9 @@ public class StructLayout {
      */
     protected abstract class AbstractField implements Field {
         private final int offset;
-        protected AbstractField(int size) {
-            this(size, size);
-        }
+
         protected AbstractField(int size, int align, Offset offset) {
-            this.offset = addField(size, align, offset);
+            this.offset = addField(size, align, offset.intValue());
         }
         protected AbstractField(int size, int align) {
             this.offset = addField(size, align);
@@ -193,8 +181,7 @@ public class StructLayout {
         }
 
         protected AbstractField(NativeType type, Offset offset) {
-            final Type t = getRuntime().findType(type);
-            this.offset = addField(t.size() * 8, t.alignment() * 8, offset);
+            this.offset = addField(getRuntime().findType(type), offset);
         }
 
         /**
@@ -1195,6 +1182,19 @@ public class StructLayout {
         @Override
         public final java.lang.String toString(jnr.ffi.Pointer ptr) {
             return get(ptr).toString();
+        }
+    }
+
+    /**
+     * Specialized padding fields for structs.  Use this instead of arrays of other
+     * members for more efficient struct construction.
+     */
+    public final class Padding extends AbstractField {
+        Padding(Type type, int length) {
+            super(type.size() * length, type.alignment());
+        }
+        Padding(NativeType type, int length) {
+            this(getRuntime().findType(type), length);
         }
     }
 

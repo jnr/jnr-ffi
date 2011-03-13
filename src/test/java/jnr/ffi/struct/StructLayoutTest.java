@@ -335,7 +335,7 @@ public class StructLayoutTest {
         assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue(ptr));
     }
 
-    private class InnerStruct extends Struct {
+    private class InnerStruct extends StructLayout {
         public final Signed8 s8 = new Signed8();
 
         public InnerStruct() {
@@ -343,7 +343,7 @@ public class StructLayoutTest {
         }
 
     }
-    private class InnerTest extends Struct {
+    private class InnerTest extends StructLayout {
         public final Signed32 i32 = new Signed32();
         public final InnerStruct s = inner(new InnerStruct());
 
@@ -354,9 +354,42 @@ public class StructLayoutTest {
     }
     @Test public void innerStruct() {
         InnerTest t = new InnerTest();
-        Pointer io = StructUtil.getMemory(t);
-        io.putInt(0, 0xdeadbeef);
-        io.putByte(4, (byte) 0x12);
-        assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get());
+        Pointer ptr = Memory.allocate(runtime, t.size());
+        ptr.putInt(0, 0xdeadbeef);
+        ptr.putByte(4, (byte) 0x12);
+        assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get(ptr));
+    }
+
+    static final class LongPadding extends StructLayout {
+
+        public final Signed8 s8 = new Signed8();
+        public final Padding pad = new Padding(NativeType.SLONG, 3);
+
+        public LongPadding() {
+            super(runtime);
+        }
+    }
+
+    @Test public void longPadding() throws Throwable {
+        Type longType = runtime.findType(NativeType.SLONG);
+        final int SIZE = longType.alignment() + (longType.size() * 3);
+        assertEquals("incorrect size", SIZE, new LongPadding().size());
+    }
+
+    static final class TailPadding extends StructLayout {
+
+        public final SignedLong sl = new SignedLong();
+        public final Signed8 s8 = new Signed8();
+
+
+        public TailPadding() {
+            super(runtime);
+        }
+    }
+
+    @Test public void tailPadding() throws Throwable {
+        Type longType = runtime.findType(NativeType.SLONG);
+        assertEquals("incorrect size", longType.size() * 2, new TailPadding().size());
+        assertEquals("incorrect alignment", longType.alignment(), new TailPadding().alignment());
     }
 }
