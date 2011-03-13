@@ -6,7 +6,7 @@ package jnr.ffi;
 public abstract class ObjectReferenceManager {
 
     public static ObjectReferenceManager newInstance() {
-        return Runtime.getDefault().newObjectReferenceManager();
+        return Runtime.getSystemRuntime().newObjectReferenceManager();
     }
 
     public abstract Pointer newReference(Object obj);

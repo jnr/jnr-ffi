@@ -30,7 +30,7 @@ public final class LastError {
      * @return An integer containing the errno value.
      */
     public static final int getLastError() {
-        return Runtime.getDefault().getLastError();
+        return Runtime.getSystemRuntime().getLastError();
     }
 
     /**
@@ -39,6 +39,6 @@ public final class LastError {
      * @param error The value to set errno to.
      */
     public static final void setLastError(int error) {
-        Runtime.getDefault().setLastError(error);
+        Runtime.getSystemRuntime().setLastError(error);
     }
 }

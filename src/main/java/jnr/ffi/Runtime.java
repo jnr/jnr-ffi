@@ -27,13 +27,13 @@ import java.nio.ByteOrder;
 public abstract class Runtime {
 
     /** Gets the global Runtime for the current FFI provider */
-    public static final Runtime getDefault() {
-        return SingletonHolder.DEFAULT_RUNTIME;
+    public static final Runtime getSystemRuntime() {
+        return SingletonHolder.SYSTEM_RUNTIME;
     }
 
     /** singleton holder for the default Runtime */
     private static final class SingletonHolder {
-        public static final Runtime DEFAULT_RUNTIME = FFIProvider.getProvider().getRuntime();
+        public static final Runtime SYSTEM_RUNTIME = FFIProvider.getSystemProvider().getRuntime();
     }
 
     /** Looks up the runtime-specific that corresponds to the pseudo-type */

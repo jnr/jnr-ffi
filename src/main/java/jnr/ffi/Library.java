@@ -81,7 +81,7 @@ public final class Library {
      */
     public static <T> T loadLibrary(String libraryName, Class<T> interfaceClass,
             Map<LibraryOption, ?> libraryOptions) {
-        return FFIProvider.getProvider().loadLibrary(libraryName, interfaceClass, libraryOptions);
+        return FFIProvider.getSystemProvider().loadLibrary(libraryName, interfaceClass, libraryOptions);
     }
 
     /**
@@ -95,7 +95,7 @@ public final class Library {
      */
     public static <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames) {
-        return FFIProvider.getProvider().loadLibrary(interfaceClass, libraryOptions, libraryNames);
+        return FFIProvider.getSystemProvider().loadLibrary(interfaceClass, libraryOptions, libraryNames);
     }
     
     /**
