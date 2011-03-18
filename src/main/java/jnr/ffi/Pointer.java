@@ -20,7 +20,7 @@ package jnr.ffi;
 
 import java.nio.charset.Charset;
 
-public interface Pointer {
+abstract public class Pointer {
     /**
      * Indicates whether or not this memory object represents a native memory address.
      *

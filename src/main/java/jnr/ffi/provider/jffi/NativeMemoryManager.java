@@ -30,7 +30,7 @@ public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
     }
     
     public Pointer allocate(int size) {
-        return new ArrayMemoryIO(size);
+        return new ArrayMemoryIO(runtime, size);
     }
 
     public Pointer allocateDirect(int size) {

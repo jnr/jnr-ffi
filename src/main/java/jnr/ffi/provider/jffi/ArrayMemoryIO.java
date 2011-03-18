@@ -33,7 +33,6 @@ public final class ArrayMemoryIO extends AbstractArrayMemoryIO {
         super(NativeRuntime.getInstance(), size);
     }
 
-    @Override
     public Pointer getPointer(long offset) {
         return MemoryUtil.newPointer(getAddress(offset));
     }
