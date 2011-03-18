@@ -6,7 +6,6 @@ import jnr.ffi.Runtime;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -14,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class DefaultObjectReferenceManager extends ObjectReferenceManager {
     private final Runtime runtime;
     private final ConcurrentMap<Pointer, Object> references = new ConcurrentHashMap<Pointer, Object>();
-    private final AtomicInteger nextId = new AtomicInteger();
 
     public DefaultObjectReferenceManager(Runtime runtime) {
         this.runtime = runtime;
@@ -25,13 +23,15 @@ public final class DefaultObjectReferenceManager extends ObjectReferenceManager 
             throw new IllegalArgumentException("reference to null value not allowed");
         }
 
-        while (true) {
-            int id = nextId.addAndGet(7);
-            Pointer ptr = runtime.getMemoryManager().newPointer(id);
-            if (references.putIfAbsent(ptr, obj) == null) {
-                return ptr;
-            }
+        int nextId = System.identityHashCode(obj);
+
+        ObjectReference ptr = null;
+        while (references.putIfAbsent(ptr = new ObjectReference(runtime, nextId), obj) != null) {
+            // A collision on the identity hash is extremely rare, but possible, so probe for a vacant slot
+            ++nextId;
         }
+
+        return ptr;
     }
 
     public void freeReference(Pointer reference) {
@@ -40,5 +40,36 @@ public final class DefaultObjectReferenceManager extends ObjectReferenceManager 
 
     public Object getObject(Pointer reference) {
         return references.get(reference);
+    }
+
+    private static final class ObjectReference extends InAccessibleMemoryIO {
+        private final int address;
+
+        public ObjectReference(jnr.ffi.Runtime runtime, int address) {
+            super(runtime);
+            this.address = address;
+        }
+
+        public boolean isDirect() {
+            return true;
+        }
+
+        public long address() {
+            return address & 0xffffffffL;
+        }
+
+        public long size() {
+            return 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return address;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj.getClass() == ObjectReference.class && ((ObjectReference) obj).address == address;
+        }
     }
 }

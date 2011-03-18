@@ -22,169 +22,26 @@ import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import java.nio.charset.Charset;
 
-public final class NullMemoryIO extends AbstractMemoryIO {
-    private static final String msg = "Attempted access to a NULL memory address";
+public final class NullMemoryIO extends InAccessibleMemoryIO {
+    private static final String msg = "attempted access to a NULL memory address";
 
     public NullMemoryIO(Runtime runtime) {
         super(runtime);
     }
 
-    private static final NullPointerException npe() {
+    protected final NullPointerException error() {
         return new NullPointerException(msg);
-    }
-
-    public final byte getByte(long offset) {
-        throw npe();
-    }
-
-    public final short getShort(long offset) {
-        throw npe();
-    }
-
-    public final int getInt(long offset) {
-        throw npe();
-    }
-
-    public final long getLong(long offset) {
-        throw npe();
-    }
-    
-    public final long getLongLong(long offset) {
-        throw npe();
-    }
-
-    public final float getFloat(long offset) {
-        throw npe();
-    }
-
-    public final double getDouble(long offset) {
-        throw npe();
-    }
-
-    public final void putByte(long offset, byte value) {
-        throw npe();
-    }
-
-    public final void putShort(long offset, short value) {
-        throw npe();
-    }
-
-    public final void putInt(long offset, int value) {
-        throw npe();
-    }
-
-    public final void putLong(long offset, long value) {
-        throw npe();
-    }
-    
-    public final void putLongLong(long offset, long value) {
-        throw npe();
-    }
-
-    public final void putFloat(long offset, float value) {
-        throw npe();
-    }
-
-    public final void putDouble(long offset, double value) {
-        throw npe();
-    }
-
-    public final void get(long offset, byte[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void put(long offset, byte[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void get(long offset, short[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void put(long offset, short[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void get(long offset, int[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void put(long offset, int[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void get(long offset, long[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void put(long offset, long[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void get(long offset, float[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void put(long offset, float[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void get(long offset, double[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final void put(long offset, double[] dst, int off, int len) {
-        throw npe();
-    }
-
-    public final Pointer getPointer(long offset, long size) {
-        throw npe();
-    }
-
-    public final Pointer getPointer(long offset) {
-        throw npe();
-    }
-
-    public final void putPointer(long offset, Pointer value) {
-        throw npe();
-    }
-
-    public String getString(long offset) {
-        throw npe();
-    }
-
-
-    @Override
-    public String getString(long offset, int maxLength, Charset cs) {
-        throw npe();
-    }
-
-    @Override
-    public void putString(long offset, String string, int maxLength, Charset cs) {
-        throw npe();
-    }
-
-
-    public final int indexOf(long offset, byte value, int maxlen) {
-        throw npe();
     }
 
     public final boolean isDirect() {
         return true;
     }
 
-    @Override
     public long address() {
         return 0;
     }
 
     public long size() {
         return Long.MAX_VALUE;
-    }
-
-
-    @Override
-    public final void setMemory(long offset, long size, byte value) {
-        throw npe();
     }
 }
