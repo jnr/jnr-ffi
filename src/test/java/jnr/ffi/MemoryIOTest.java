@@ -85,7 +85,7 @@ public class MemoryIOTest {
     }
 
     private static final Pointer wrap(ByteBuffer buffer) {
-        return Memory.wrap(runtime, buffer);
+        return Pointer.wrap(runtime, buffer);
     }
     private static final Pointer allocateDirect(int size) {
         return Memory.allocateDirect(runtime, size);
@@ -376,7 +376,7 @@ public class MemoryIOTest {
     }
     @Test public void transferDirectToHeap() throws Exception {
         ByteBuffer buf = ByteBuffer.allocate(1024);
-        Pointer dst = Memory.wrap(runtime, buf);
+        Pointer dst = Pointer.wrap(runtime, buf);
         Pointer src = Memory.allocateDirect(runtime, 1024);
         byte[] MAGIC = "MAGIC".getBytes();
         src.put(0, MAGIC, 0, MAGIC.length);

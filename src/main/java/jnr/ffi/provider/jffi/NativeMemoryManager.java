@@ -20,6 +20,8 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.provider.BoundedMemoryIO;
+import jnr.ffi.provider.IntPointer;
+
 import java.nio.ByteBuffer;
 
 public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
@@ -52,4 +54,9 @@ public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
     public Pointer newPointer(long address, long size) {
         return new BoundedMemoryIO(new DirectMemoryIO(runtime, address), 0, size);
     }
+
+    public Pointer newOpaquePointer(long address) {
+        return new IntPointer(runtime, address);
+    }
+
 }

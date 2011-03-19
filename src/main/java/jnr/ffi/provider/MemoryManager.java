@@ -31,4 +31,5 @@ public interface MemoryManager {
     public abstract Pointer newPointer(ByteBuffer buffer);
     public abstract Pointer newPointer(long address);
     public abstract Pointer newPointer(long address, long size);
+    public abstract Pointer newOpaquePointer(long address);
 }

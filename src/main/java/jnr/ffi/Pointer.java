@@ -18,9 +18,68 @@
 
 package jnr.ffi;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 abstract public class Pointer {
+    /**
+     * Wraps a native address in a {@link Pointer} instance.
+     *
+     * @param runtime the {@code Runtime} of the pointer.
+     * @param address the {@code address} to wrap in a Pointer instance.
+     *
+     * @return a {@code Pointer} instance.
+     */
+    public static Pointer wrap(Runtime runtime, long address) {
+        return runtime.getMemoryManager().newPointer(address);
+    }
+
+    /**
+     * Wraps a native address in a {@link Pointer} instance.
+     *
+     * @param runtime the {@code Runtime} of the pointer.
+     * @param address the {@code address} to wrap in a Pointer instance.
+     * @param size the size of the native memory region.
+     *
+     * @return a {@code Pointer} instance.
+     */
+    public static Pointer wrap(Runtime runtime, long address, long size) {
+        return runtime.getMemoryManager().newPointer(address, size);
+    }
+
+    /**
+     * Wraps an existing ByteBuffer in a {@link Pointer} implementation so it can
+     * be used as a parameter to native functions.
+     *
+     * <p>Wrapping a ByteBuffer is only neccessary if the native function parameter
+     * was declared as a {@code Pointer}.  The if the method will always be used
+     * with {@code ByteBuffer} parameters, then the parameter type can just be declared
+     * as {@code ByteBuffer} and the conversion will be performed automatically.
+     *
+     * @param runtime the {@code Runtime} the wrapped {@code ByteBuffer} will
+     * be used with.
+     * @param buffer the {@code ByteBuffer} to wrap.
+     *
+     * @return a {@code Pointer} instance that will proxy all accesses to the ByteBuffer contents.
+     */
+    public static final Pointer wrap(Runtime runtime, ByteBuffer buffer) {
+        return runtime.getMemoryManager().newPointer(buffer);
+    }
+
+    /**
+     * Wraps an integer value in an opaque {@link Pointer} instance.  This is a Pointer instance that
+     * throws errors when any of the memory access methods are used, but can be otherwise used interchangeably
+     * with a real Pointer.
+     *
+     * @param runtime the {@code Runtime} of the pointer.
+     * @param address the {@code address} to wrap in a Pointer instance.
+     *
+     * @return a {@code Pointer} instance.
+     */
+    public static Pointer newIntPointer(Runtime runtime, long address) {
+        return runtime.getMemoryManager().newOpaquePointer(address);
+    }
+
     /**
      * Indicates whether or not this memory object represents a native memory address.
      *
