@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import jnr.ffi.Address;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.NativeLong;
+import jnr.ffi.provider.IdentityFunctionMapper;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;

@@ -27,6 +27,7 @@ import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
+import jnr.ffi.provider.IdentityFunctionMapper;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.Invoker;
 import jnr.ffi.provider.ParameterFlags;
