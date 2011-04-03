@@ -125,7 +125,7 @@ public abstract class NativeClosureFactory<T extends Closure> {
                 closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getInt", sig(type, int.class));
 
             } else if (long.class == type) {
-                if (AsmLibraryLoader.isLong32(parameterType, callMethod.getParameterAnnotations()[i])) {
+                if (isLong32(parameterType, callMethod.getParameterAnnotations()[i])) {
                     closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getInt", sig(int.class, int.class));
                     widen(closureInvoke, int.class, long.class);
                 } else {
@@ -154,7 +154,7 @@ public abstract class NativeClosureFactory<T extends Closure> {
         Annotation[] returnAnnotations = callMethod.getAnnotations();
         Class nativeReturnType = AsmUtil.unboxedType(returnType);
 
-        if (AsmLibraryLoader.isLong32(returnType, returnAnnotations)) {
+        if (isLong32(returnType, returnAnnotations)) {
             nativeReturnType = int.class;
         }
 

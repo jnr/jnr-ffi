@@ -16,23 +16,23 @@
  * limitations under the License.
  */
 
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider;
 
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.util.EnumMapper;
 
 
-public class EnumResultConverter implements FromNativeConverter {
+public final class EnumResultConverter implements FromNativeConverter {
     private final EnumMapper mapper;
     private final Class enumClass;
 
-    EnumResultConverter(Class enumClass) {
+    public EnumResultConverter(Class enumClass) {
         this.mapper = EnumMapper.getInstance(enumClass.asSubclass(Enum.class));
         this.enumClass = enumClass;
     }
 
-    public Object fromNative(Object nativeValue, FromNativeContext context) {
+    public Enum fromNative(Object nativeValue, FromNativeContext context) {
         return mapper.valueOf((Integer) nativeValue);
     }
 

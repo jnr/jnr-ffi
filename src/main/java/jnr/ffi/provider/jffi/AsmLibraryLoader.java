@@ -19,7 +19,6 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.annotations.LongLong;
 import java.io.PrintWriter;
 import jnr.ffi.Address;
 import jnr.ffi.LibraryOption;
@@ -1011,33 +1010,9 @@ public class AsmLibraryLoader extends LibraryLoader {
         return com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.I386
                 || com.kenai.jffi.Platform.getPlatform().getCPU() == com.kenai.jffi.Platform.CPU.X86_64;
     }
-    
-    static boolean isLong32(Class type, Annotation[] annotations) {
-        return Platform.getPlatform().longSize() == 32
-            && (((long.class == type || Long.class.isAssignableFrom(type))
-                 && !InvokerUtil.hasAnnotation(annotations, LongLong.class))
-               || NativeLong.class.isAssignableFrom(type));
-    }
-
-    static boolean isLong64(Class type, Annotation[] annotations) {
-        return ((long.class == type || Long.class.isAssignableFrom(type))
-                && (Platform.getPlatform().longSize() == 64
-                    || InvokerUtil.hasAnnotation(annotations, LongLong.class)))
-            || (NativeLong.class.isAssignableFrom(type) && Platform.getPlatform().longSize() == 64);
-    }
-
-    final static boolean isInt32(Class type, Annotation[] annotations) {
-        return Boolean.class.isAssignableFrom(type) || boolean.class == type
-                || Byte.class.isAssignableFrom(type) || byte.class == type
-                || Short.class.isAssignableFrom(type) || short.class == type
-                || Integer.class.isAssignableFrom(type) || int.class == type
-                || isLong32(type, annotations)
-                || Enum.class.isAssignableFrom(type)
-                ;
-    }
 
     final static boolean isInt32Result(Class type, Annotation[] annotations) {
-        return isInt32(type, annotations) 
+        return isInt32(type, annotations)
             || Void.class.isAssignableFrom(type) || void.class == type
             || (isPointerResult(type) && Platform.getPlatform().addressSize() == 32);
     }

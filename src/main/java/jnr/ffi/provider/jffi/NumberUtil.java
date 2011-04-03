@@ -18,7 +18,11 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.Platform;
 import jnr.ffi.NativeLong;
+import jnr.ffi.annotations.LongLong;
+
+import java.lang.annotation.Annotation;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -132,5 +136,29 @@ public final class NumberUtil {
                 }
             }
         }
+    }
+
+    static boolean isLong32(Class type, Annotation[] annotations) {
+        return Platform.getPlatform().longSize() == 32
+            && (((long.class == type || Long.class.isAssignableFrom(type))
+                 && !InvokerUtil.hasAnnotation(annotations, LongLong.class))
+               || NativeLong.class.isAssignableFrom(type));
+    }
+
+    static boolean isLong64(Class type, Annotation[] annotations) {
+        final int longSize = Platform.getPlatform().longSize();
+        return ((long.class == type || Long.class.isAssignableFrom(type))
+                && (longSize == 64 || InvokerUtil.hasAnnotation(annotations, LongLong.class)))
+            || (NativeLong.class.isAssignableFrom(type) && longSize == 64);
+    }
+
+    static boolean isInt32(Class type, Annotation[] annotations) {
+        return Boolean.class.isAssignableFrom(type) || boolean.class == type
+                || Byte.class.isAssignableFrom(type) || byte.class == type
+                || Short.class.isAssignableFrom(type) || short.class == type
+                || Integer.class.isAssignableFrom(type) || int.class == type
+                || isLong32(type, annotations)
+                || Enum.class.isAssignableFrom(type)
+                ;
     }
 }
