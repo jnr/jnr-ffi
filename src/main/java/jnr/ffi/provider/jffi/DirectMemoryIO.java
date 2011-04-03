@@ -55,7 +55,9 @@ class DirectMemoryIO extends AbstractMemoryIO {
         return Long.MAX_VALUE;
     }
 
-
+    public String toString() {
+        return String.format(getClass().getName() + "[address=%x]", address);
+    }
 
     @Override
     public int hashCode() {

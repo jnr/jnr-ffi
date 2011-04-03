@@ -56,6 +56,10 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
         return super.equals(obj);
     }
 
+    public String toString() {
+        return String.format(getClass().getName() + " address=%x size=%d", address, size());
+    }
+
     public final void dispose() {
         if (allocated.getAndSet(false)) {
             IO.freeMemory(address);
