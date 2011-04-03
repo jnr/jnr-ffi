@@ -56,7 +56,6 @@ public class AsmLibraryLoader extends LibraryLoader {
     private static final class SingletonHolder {
         static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     }
-    static final boolean FAST_NUMERIC_AVAILABLE = FastNumericInvocationGenerator.FAST_NUMERIC_AVAILABLE;
     static final boolean FAST_LONG_AVAILABLE = FastLongInvocationGenerator.isFastLongAvailable();
 
     private final AtomicLong nextClassID = new AtomicLong(0);
@@ -491,13 +490,17 @@ public class AsmLibraryLoader extends LibraryLoader {
         mv.aload(0);
         mv.getfield(className, functionFieldName, ci(Function.class));
 
-        if (convention == CallingConvention.DEFAULT && FAST_NUMERIC_AVAILABLE && 
-                FastNumericInvocationGenerator.isFastNumericMethod(returnType, resultAnnotations, parameterTypes, parameterAnnotations)) {
-            FastNumericInvocationGenerator.generateFastNumericInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreErrno);
-        } else {
-            BufferInvocationGenerator.generateBufferInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
+        final AsmInvocationGenerator[] generators = {
+                new FastNumericInvocationGenerator(),
+                new BufferInvocationGenerator()
+        };
+        for (AsmInvocationGenerator g : generators) {
+            if (g.isSupported(returnType, resultAnnotations, parameterTypes, parameterAnnotations, convention)) {
+                g.generate(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreErrno);
+                break;
+            }
         }
-        
+
         mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
         mv.visitEnd();
     }

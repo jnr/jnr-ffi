@@ -24,7 +24,21 @@ import static jnr.ffi.provider.jffi.NumberUtil.isPrimitiveInt;
 /**
  *
  */
-final class BufferInvocationGenerator {
+final class BufferInvocationGenerator implements AsmInvocationGenerator {
+
+
+    public void generate(SkinnyMethodAdapter mv,
+                         Class returnType, Annotation[] resultAnnotations,
+                         Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreError) {
+        generateBufferInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
+    }
+
+    public boolean isSupported(Class returnType, Annotation[] resultAnnotations,
+                         Class[] parameterTypes, Annotation[][] parameterAnnotations,
+                         CallingConvention convention) {
+        // Buffer invocation supports everything
+        return true;
+    }
 
     static final void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv,
             final Class parameterType, final Annotation[] parameterAnnotations) {
@@ -97,12 +111,6 @@ final class BufferInvocationGenerator {
     static final void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
         mv.invokestatic(p(AsmRuntime.class), "marshal",
                 sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
-    }
-
-    void generate(SkinnyMethodAdapter mv,
-                                               Class returnType, Annotation[] resultAnnotations,
-                                               Class[] parameterTypes, Annotation[][] parameterAnnotations) {
-        generateBufferInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
     }
 
     static final void generateBufferInvocation(SkinnyMethodAdapter mv,

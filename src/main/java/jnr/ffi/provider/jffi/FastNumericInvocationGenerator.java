@@ -1,5 +1,6 @@
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
 import jnr.ffi.NativeLong;
@@ -18,8 +19,19 @@ import static jnr.ffi.provider.jffi.NumberUtil.widen;
 /**
  *
  */
-public class FastNumericInvocationGenerator {
+public class FastNumericInvocationGenerator implements AsmInvocationGenerator {
+
     static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
+
+    public boolean isSupported(Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations,
+                               CallingConvention convention) {
+        return convention == CallingConvention.DEFAULT &&
+                isFastNumericMethod(returnType, resultAnnotations, parameterTypes, parameterAnnotations);
+    }
+
+    public void generate(SkinnyMethodAdapter mv, Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreError) {
+        generateFastNumericInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreError);
+    }
 
     static final void generateFastNumericInvocation(SkinnyMethodAdapter mv, Class returnType,
                                                     Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreErrno) {
@@ -185,7 +197,7 @@ public class FastNumericInvocationGenerator {
     final static boolean isFastNumericMethod(Class returnType, Annotation[] resultAnnotations,
             Class[] parameterTypes, Annotation[][] parameterAnnotations) {
 
-        if (!AsmLibraryLoader.FAST_NUMERIC_AVAILABLE || parameterTypes.length > 6) {
+        if (!FAST_NUMERIC_AVAILABLE || parameterTypes.length > 6) {
             return false;
         }
 
