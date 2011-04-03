@@ -19,7 +19,6 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import com.kenai.jffi.Invoker;
 import jnr.ffi.Address;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.NativeLong;
@@ -53,7 +52,7 @@ final class DefaultInvokerFactory implements InvokerFactory {
         return true; // The default factory supports everything
     }
 
-    public final Invoker createInvoker(Method method, jnr.ffi.provider.Library library, Map<LibraryOption, ?> options) {
+    public final jnr.ffi.provider.Invoker createInvoker(Method method, jnr.ffi.provider.Library library, Map<LibraryOption, ?> options) {
         FunctionMapper functionMapper = options.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) options.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
         final long address = ((NativeLibrary) library).findSymbolAddress(functionMapper.mapFunctionName(method.getName(), null));
