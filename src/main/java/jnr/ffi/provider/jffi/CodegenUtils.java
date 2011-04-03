@@ -39,6 +39,13 @@ public class CodegenUtils {
     }
 
     /**
+     * Creates a class path name, from a class name.
+     */
+    public static String p(String n) {
+        return n.replace('.', '/');
+    }
+
+    /**
      * Creates a class identifier of form Labc/abc;, from a Class.
      */
     public static String ci(Class n) {
