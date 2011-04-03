@@ -23,17 +23,12 @@ import java.io.PrintWriter;
 import jnr.ffi.Address;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.NativeLong;
+import jnr.ffi.mapper.*;
 import jnr.ffi.provider.*;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.FunctionMapper;
-import jnr.ffi.mapper.MethodParameterContext;
-import jnr.ffi.mapper.MethodResultContext;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.struct.Struct;
 import jnr.ffi.util.EnumMapper;
 import com.kenai.jffi.ArrayFlags;
@@ -92,37 +87,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         return true;
     }
 
-    private boolean isReturnTypeSupported(Class type) {
-        return type.isPrimitive() || Byte.class == type
-                || Short.class == type || Integer.class == type
-                || Long.class == type || Float.class == type
-                || Double.class == type || NativeLong.class == type
-                || Enum.class.isAssignableFrom(type)
-                || Pointer.class == type || Address.class == type
-                || String.class == type
-                || Struct.class.isAssignableFrom(type);
-        
-    }
-
-    private boolean isParameterTypeSupported(Class type) {
-        return type.isPrimitive() || Byte.class == type
-                || Short.class == type || Integer.class == type
-                || Long.class == type || Float.class == type
-                || Double.class == type || NativeLong.class == type
-                || Pointer.class.isAssignableFrom(type) || Address.class.isAssignableFrom(type)
-                || Enum.class.isAssignableFrom(type)
-                || Buffer.class.isAssignableFrom(type)
-                || (type.isArray() && type.getComponentType().isPrimitive())
-                || Struct.class.isAssignableFrom(type)
-                || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))
-                || (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType()))
-                || (type.isArray() && CharSequence.class.isAssignableFrom(type.getComponentType()))
-                || CharSequence.class.isAssignableFrom(type)
-                || ByReference.class.isAssignableFrom(type)
-                || StringBuilder.class.isAssignableFrom(type)
-                || StringBuffer.class.isAssignableFrom(type);
-    }
-
     @Override
     <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         return generateInterfaceImpl(library, interfaceClass, libraryOptions);
@@ -139,7 +103,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         // Create the constructor to set the 'library' & functions fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
-                sig(void.class, NativeLibrary.class, Function[].class, ResultConverter[].class, ParameterConverter[][].class),
+                sig(void.class, NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class),
                 null, null));
         init.start();
         // Invokes the super class constructor as super(Library)
@@ -151,8 +115,8 @@ public class AsmLibraryLoader extends LibraryLoader {
         
         final Method[] methods = interfaceClass.getMethods();
         Function[] functions = new Function[methods.length];
-        FromNativeConverter[] resultConverters = new ResultConverter[methods.length];
-        ParameterConverter[][] parameterConverters = new ParameterConverter[methods.length][0];
+        FromNativeConverter[] resultConverters = new FromNativeConverter[methods.length];
+        ToNativeConverter[][] parameterConverters = new ToNativeConverter[methods.length][0];
         
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
@@ -181,14 +145,14 @@ public class AsmLibraryLoader extends LibraryLoader {
                 conversionRequired = true;
             }
 
-            parameterConverters[i] = new ParameterConverter[parameterTypes.length];
+            parameterConverters[i] = new ToNativeConverter[parameterTypes.length];
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
                 ToNativeConverter converter = Enum.class.isAssignableFrom(parameterTypes[pidx])
                         ? EnumMapper.getInstance(parameterTypes[pidx].asSubclass(Enum.class))
                         : typeMapper.getToNativeConverter(parameterTypes[pidx]);
                 if (converter != null) {
                     cv.visitField(ACC_PRIVATE | ACC_FINAL, getParameterConverterFieldName(i, pidx),
-                            ci(ParameterConverter.class), null, null);
+                            ci(ToNativeConverter.class), null, null);
                     nativeParameterTypes[pidx] = converter.nativeType();
                     
                     parameterConverters[i][pidx] = new ParameterConverter(converter,
@@ -257,7 +221,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 init.aload(3);
                 init.pushInt(i);
                 init.aaload();
-                init.putfield(className, getResultConverterFieldName(i), ci(ResultConverter.class));
+                init.putfield(className, getResultConverterFieldName(i), ci(FromNativeConverter.class));
             }
 
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
@@ -268,7 +232,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                     init.aaload();
                     init.pushInt(pidx);
                     init.aaload();
-                    init.putfield(className, getParameterConverterFieldName(i, pidx), ci(ParameterConverter.class));
+                    init.putfield(className, getParameterConverterFieldName(i, pidx), ci(ToNativeConverter.class));
                 }
             }
         }
@@ -287,7 +251,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
             Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), bytes);
-            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class, ResultConverter[].class, ParameterConverter[][].class);
+            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class);
             T result = cons.newInstance(library, functions, resultConverters, parameterConverters);
 
             // Attach any native method stubs - we have to delay this until the
@@ -355,7 +319,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         // If there is a result converter, retrieve it and put on the stack
         if (!returnType.equals(nativeReturnType)) {
             mv.aload(0);
-            mv.getfield(className, getResultConverterFieldName(idx), ci(ResultConverter.class));
+            mv.getfield(className, getResultConverterFieldName(idx), ci(FromNativeConverter.class));
         }
 
         
@@ -367,7 +331,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             final boolean convertParameter = !parameterTypes[pidx].equals(nativeParameterTypes[pidx]);
             if (convertParameter) {
                 mv.aload(0);
-                mv.getfield(className, getParameterConverterFieldName(idx, pidx), ci(ParameterConverter.class));
+                mv.getfield(className, getParameterConverterFieldName(idx, pidx), ci(ToNativeConverter.class));
             }
 
             lvar = loadParameter(mv, parameterTypes[pidx], lvar);
@@ -376,9 +340,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                 if (parameterTypes[pidx].isPrimitive()) {
                     boxValue(mv, getBoxedClass(parameterTypes[pidx]), parameterTypes[pidx]);
                 }
-
-                mv.invokevirtual(ParameterConverter.class, "toNative",
-                        Object.class, Object.class);
+                mv.aconst_null();
+                mv.invokeinterface(ToNativeConverter.class, "toNative",
+                        Object.class, Object.class, ToNativeContext.class);
                 mv.checkcast(p(nativeParameterTypes[pidx]));
             }
         }
@@ -389,9 +353,9 @@ public class AsmLibraryLoader extends LibraryLoader {
             if (nativeReturnType.isPrimitive()) {
                 boxValue(mv, getBoxedClass(nativeReturnType), nativeReturnType);
             }
-
-            mv.invokevirtual(ResultConverter.class, "fromNative",
-                    Object.class, Object.class);
+            mv.aconst_null();
+            mv.invokeinterface(FromNativeConverter.class, "fromNative",
+                    Object.class, Object.class, FromNativeContext.class);
             mv.checkcast(p(returnType));
         }
         emitReturnOp(mv, returnType);
@@ -1106,6 +1070,39 @@ public class AsmLibraryLoader extends LibraryLoader {
             return false;
         }
     }
+
+
+    private static boolean isReturnTypeSupported(Class type) {
+        return type.isPrimitive() || Byte.class == type
+                || Short.class == type || Integer.class == type
+                || Long.class == type || Float.class == type
+                || Double.class == type || NativeLong.class == type
+                || Enum.class.isAssignableFrom(type)
+                || Pointer.class == type || Address.class == type
+                || String.class == type
+                || Struct.class.isAssignableFrom(type);
+
+    }
+
+    private static boolean isParameterTypeSupported(Class type) {
+        return type.isPrimitive() || Byte.class == type
+                || Short.class == type || Integer.class == type
+                || Long.class == type || Float.class == type
+                || Double.class == type || NativeLong.class == type
+                || Pointer.class.isAssignableFrom(type) || Address.class.isAssignableFrom(type)
+                || Enum.class.isAssignableFrom(type)
+                || Buffer.class.isAssignableFrom(type)
+                || (type.isArray() && type.getComponentType().isPrimitive())
+                || Struct.class.isAssignableFrom(type)
+                || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))
+                || (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType()))
+                || (type.isArray() && CharSequence.class.isAssignableFrom(type.getComponentType()))
+                || CharSequence.class.isAssignableFrom(type)
+                || ByReference.class.isAssignableFrom(type)
+                || StringBuilder.class.isAssignableFrom(type)
+                || StringBuffer.class.isAssignableFrom(type);
+    }
+
 
     
     public static abstract class AbstractNativeInterface implements LoadedLibrary {
