@@ -19,10 +19,10 @@ import static jnr.ffi.provider.jffi.NumberUtil.widen;
 /**
  *
  */
-public class FastNumericInvocationGenerator extends BaseMethodGenerator {
-    private final BufferInvocationGenerator bufgen;
+public class FastNumericMethodGenerator extends BaseMethodGenerator {
+    private final BufferMethodGenerator bufgen;
 
-    public FastNumericInvocationGenerator(BufferInvocationGenerator bufgen) {
+    public FastNumericMethodGenerator(BufferMethodGenerator bufgen) {
         this.bufgen = bufgen;
     }
 

@@ -9,7 +9,7 @@ import java.lang.annotation.Annotation;
 /**
  *
  */
-public interface AsmInvocationGenerator {
+public interface AsmMethodGenerator {
 
     public boolean isSupported(Class returnType, Annotation[] resultAnnotations,
                          Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention);

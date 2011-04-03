@@ -9,7 +9,6 @@ import org.objectweb.asm.Label;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
@@ -19,12 +18,12 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  *
  */
-class X86MethodGenerator implements AsmInvocationGenerator {
+class X86MethodGenerator implements AsmMethodGenerator {
     private final StubCompiler compiler = StubCompiler.newCompiler();
     private final AtomicLong nextMethodID = new AtomicLong(0);
-    private final BufferInvocationGenerator bufgen;
+    private final BufferMethodGenerator bufgen;
 
-    X86MethodGenerator(BufferInvocationGenerator bufgen) {
+    X86MethodGenerator(BufferMethodGenerator bufgen) {
         this.bufgen = bufgen;
     }
 
@@ -146,7 +145,7 @@ class X86MethodGenerator implements AsmInvocationGenerator {
                 bi.aload(0);
                 bi.getfield(className, functionFieldName, ci(Function.class));
 
-                BufferInvocationGenerator.generateBufferInvocation(bi, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
+                BufferMethodGenerator.generateBufferInvocation(bi, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
                 bi.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
                 bi.visitEnd();
             }

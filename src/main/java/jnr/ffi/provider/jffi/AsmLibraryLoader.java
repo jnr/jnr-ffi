@@ -124,11 +124,11 @@ public class AsmLibraryLoader extends LibraryLoader {
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
-        BufferInvocationGenerator bufgen = new BufferInvocationGenerator();
+        BufferMethodGenerator bufgen = new BufferMethodGenerator();
         X86MethodGenerator compiler = new X86MethodGenerator(bufgen);
-        final AsmInvocationGenerator[] generators = {
+        final AsmMethodGenerator[] generators = {
                 compiler,
-                new FastNumericInvocationGenerator(bufgen),
+                new FastNumericMethodGenerator(bufgen),
                 bufgen
         };
 
@@ -194,7 +194,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
-            for (AsmInvocationGenerator g : generators) {
+            for (AsmMethodGenerator g : generators) {
                 if (g.isSupported(returnType, resultAnnotations, parameterTypes, parameterAnnotations, callingConvention)) {
                     g.generate(functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
                         functionFieldName, nativeReturnType, m.getAnnotations(),
