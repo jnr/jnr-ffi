@@ -124,7 +124,13 @@ public class AsmLibraryLoader extends LibraryLoader {
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
-        StubCompiler compiler = StubCompiler.newCompiler();
+        BufferInvocationGenerator bufgen = new BufferInvocationGenerator();
+        X86MethodGenerator compiler = new X86MethodGenerator(bufgen);
+        final AsmInvocationGenerator[] generators = {
+                compiler,
+                new FastNumericInvocationGenerator(bufgen),
+                bufgen
+        };
 
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
@@ -188,17 +194,14 @@ public class AsmLibraryLoader extends LibraryLoader {
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
-            if (canCompile(compiler, nativeReturnType, nativeParameterTypes, callingConvention)) {
-                // The method can be generated via a direct java -> jni mapping
-                compile(compiler, functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                        functionFieldName, nativeReturnType, m.getAnnotations(), 
-                        nativeParameterTypes, m.getParameterAnnotations(), 
+            for (AsmInvocationGenerator g : generators) {
+                if (g.isSupported(returnType, resultAnnotations, parameterTypes, parameterAnnotations, callingConvention)) {
+                    g.generate(functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
+                        functionFieldName, nativeReturnType, m.getAnnotations(),
+                        nativeParameterTypes, m.getParameterAnnotations(),
                         callingConvention, ignoreErrno);
-            
-            } else {
-                generateMethod(cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                        functionFieldName, nativeReturnType, m.getAnnotations(), nativeParameterTypes,
-                        m.getParameterAnnotations(), callingConvention, ignoreErrno);
+                    break;
+                }
             }
 
             if (conversionRequired) {
@@ -359,149 +362,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
         emitReturnOp(mv, returnType);
         mv.visitMaxs(10, 10);
-        mv.visitEnd();
-    }
-
-    private final boolean canCompile(StubCompiler compiler, Class returnType, Class[] parameterTypes,
-            CallingConvention convention) {
-
-        Class[] nativeParameterTypes = new Class[parameterTypes.length];
-        for (int i = 0; i < nativeParameterTypes.length; ++i) {
-            nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
-        }
-
-        return compiler.canCompile(AsmUtil.unboxedReturnType(returnType), nativeParameterTypes, convention);
-    }
-
-    private final void compile(StubCompiler compiler, Function function,
-            ClassVisitor cv, String className, String functionName, String functionFieldName,
-            Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations,
-            CallingConvention convention, boolean ignoreErrno) {
-
-        Class[] nativeParameterTypes = new Class[parameterTypes.length];
-        boolean unboxing = false;
-        boolean ptrCheck = false;
-        for (int i = 0; i < nativeParameterTypes.length; ++i) {
-            nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
-            unboxing |= nativeParameterTypes[i] != parameterTypes[i];
-            ptrCheck |= Pointer.class.isAssignableFrom(parameterTypes[i])
-                    || Struct.class.isAssignableFrom(parameterTypes[i]);
-        }
-        
-        Class nativeReturnType = AsmUtil.unboxedReturnType(returnType);
-        unboxing |= nativeReturnType != returnType;
-
-        String stubName = functionName + (unboxing || ptrCheck ? "$jni$" + nextMethodID.getAndIncrement() : "");
-        
-        // If unboxing of parameters is required, generate a wrapper
-        if (unboxing || ptrCheck) {
-            SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
-                    functionName, sig(returnType, parameterTypes), null, null));
-            mv.start();
-            mv.aload(0);
-
-            Label bufferInvocationLabel = emitDirectCheck(mv, parameterTypes);
-            
-            // Emit the unboxing wrapper
-            for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-                lvar = loadParameter(mv, parameterTypes[i], lvar);
-                if (parameterTypes[i] != nativeParameterTypes[i]) {
-
-                    if (Number.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
-
-                    } else if (Boolean.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxBoolean(mv, parameterTypes[i], nativeParameterTypes[i]);
-
-                    } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxPointer(mv, nativeParameterTypes[i]);
-                        
-                    } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxStruct(mv, nativeParameterTypes[i]);
-                        
-                    } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxEnum(mv, nativeParameterTypes[i]);
-                    }
-                }
-            }
-
-            // invoke the compiled stub
-            mv.invokevirtual(className, stubName, sig(nativeReturnType, nativeParameterTypes));
-
-            // emitReturn will box the return value if needed
-            emitReturn(mv, returnType, nativeReturnType);
-
-            String bufInvoke = null;
-            if (bufferInvocationLabel != null) {
-                // If there was a non-direct pointer in the parameters, need to
-                // handle it via a call to the slow buffer invocation
-                mv.label(bufferInvocationLabel);
-
-                bufInvoke = functionName + "$buf$" + nextMethodID.getAndIncrement();
-                // reload all the parameters
-                for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-                    lvar = loadParameter(mv, parameterTypes[i], lvar);
-                }
-                mv.invokevirtual(className, bufInvoke, sig(returnType, parameterTypes));
-                emitReturnOp(mv, returnType);
-            }
-            mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
-            mv.visitEnd();
-
-            if (bufInvoke != null) {
-                SkinnyMethodAdapter bi = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
-                        bufInvoke, sig(returnType, parameterTypes), null, null));
-                bi.start();
-
-                // Retrieve the static 'ffi' Invoker instance
-                bi.getstatic(p(AbstractNativeInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
-
-                // retrieve this.function
-                bi.aload(0);
-                bi.getfield(className, functionFieldName, ci(Function.class));
-
-                BufferInvocationGenerator.generateBufferInvocation(bi, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
-                bi.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
-                bi.visitEnd();
-            }
-        }
-
-        cv.visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE,
-                stubName, sig(nativeReturnType, nativeParameterTypes), null, null);
-        
-
-        compiler.compile(function, stubName, nativeReturnType, nativeParameterTypes,
-                convention, !ignoreErrno);
-    }
-
-    private final void generateMethod(ClassVisitor cv, String className, String functionName,
-            String functionFieldName,
-            Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations,
-            CallingConvention convention, boolean ignoreErrno) {
-
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName, 
-                sig(returnType, parameterTypes), null, null));
-        mv.start();
-        
-        // Retrieve the static 'ffi' Invoker instance
-        mv.getstatic(p(AbstractNativeInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
-
-        // retrieve this.function
-        mv.aload(0);
-        mv.getfield(className, functionFieldName, ci(Function.class));
-
-        final AsmInvocationGenerator[] generators = {
-                new FastNumericInvocationGenerator(),
-                new BufferInvocationGenerator()
-        };
-        for (AsmInvocationGenerator g : generators) {
-            if (g.isSupported(returnType, resultAnnotations, parameterTypes, parameterAnnotations, convention)) {
-                g.generate(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreErrno);
-                break;
-            }
-        }
-
-        mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
         mv.visitEnd();
     }
 

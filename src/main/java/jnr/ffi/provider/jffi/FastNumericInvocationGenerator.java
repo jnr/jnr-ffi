@@ -19,7 +19,12 @@ import static jnr.ffi.provider.jffi.NumberUtil.widen;
 /**
  *
  */
-public class FastNumericInvocationGenerator implements AsmInvocationGenerator {
+public class FastNumericInvocationGenerator extends BaseMethodGenerator {
+    private final BufferInvocationGenerator bufgen;
+
+    public FastNumericInvocationGenerator(BufferInvocationGenerator bufgen) {
+        this.bufgen = bufgen;
+    }
 
     static final boolean FAST_NUMERIC_AVAILABLE = isFastNumericAvailable();
 
@@ -33,7 +38,7 @@ public class FastNumericInvocationGenerator implements AsmInvocationGenerator {
         generateFastNumericInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreError);
     }
 
-    static final void generateFastNumericInvocation(SkinnyMethodAdapter mv, Class returnType,
+    private void generateFastNumericInvocation(SkinnyMethodAdapter mv, Class returnType,
                                                     Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreErrno) {
         // [ stack contains: Invoker, Function ]
 
@@ -95,7 +100,7 @@ public class FastNumericInvocationGenerator implements AsmInvocationGenerator {
         if (bufferInvocationLabel != null) {
             // Now emit the alternate path for any parameters that might require it
             mv.label(bufferInvocationLabel);
-            BufferInvocationGenerator.generateBufferInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
+            bufgen.generate(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreErrno);
         }
     }
 

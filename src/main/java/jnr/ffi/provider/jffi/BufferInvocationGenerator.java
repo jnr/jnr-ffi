@@ -24,7 +24,7 @@ import static jnr.ffi.provider.jffi.NumberUtil.isPrimitiveInt;
 /**
  *
  */
-final class BufferInvocationGenerator implements AsmInvocationGenerator {
+final class BufferInvocationGenerator extends BaseMethodGenerator {
 
 
     public void generate(SkinnyMethodAdapter mv,
