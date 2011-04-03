@@ -18,6 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
+import jnr.ffi.Address;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
@@ -26,6 +27,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.EmptyVisitor;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
@@ -243,5 +245,80 @@ final class AsmUtil {
         } else {
             throw new IllegalArgumentException("unsupported boxed type: " + boxedType);
         }
+    }
+
+    static final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
+        if (returnType == nativeReturnType) {
+            return;
+
+        } else if (Boolean.class.isAssignableFrom(returnType)) {
+            narrow(mv, nativeReturnType, boolean.class);
+            mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
+
+        } else if (Pointer.class.isAssignableFrom(returnType)) {
+            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, nativeReturnType);
+
+        } else if (Address.class == returnType) {
+            mv.invokestatic(returnType, "valueOf", returnType, nativeReturnType);
+
+        } else if (Struct.class.isAssignableFrom(returnType)) {
+            boxStruct(mv, returnType, nativeReturnType);
+
+        } else if (Number.class.isAssignableFrom(returnType)) {
+            boxNumber(mv, returnType, nativeReturnType);
+
+        } else if (String.class == returnType) {
+            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, nativeReturnType);
+
+        } else {
+            throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);
+        }
+    }
+
+    static final void boxStruct(SkinnyMethodAdapter mv, Class structClass, Class nativeType) {
+        Label nonnull = new Label();
+        Label end = new Label();
+
+        if (long.class == nativeType) {
+            mv.dup2();
+            mv.lconst_0();
+            mv.lcmp();
+            mv.ifne(nonnull);
+            mv.pop2();
+
+        } else {
+            mv.dup();
+            mv.ifne(nonnull);
+            mv.pop();
+        }
+
+        mv.aconst_null();
+        mv.go_to(end);
+
+        mv.label(nonnull);
+
+        // Create an instance of the struct subclass
+        mv.newobj(p(structClass));
+        mv.dup();
+        mv.invokespecial(structClass, "<init>", void.class);
+        if (long.class == nativeType) {
+            mv.dup_x2();
+        } else {
+            mv.dup_x1();
+        }
+
+        // associate the memory with the struct and return the struct
+        mv.invokestatic(AsmRuntime.class, "useMemory", void.class, nativeType, Struct.class);
+        mv.label(end);
+    }
+
+    static final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativeType) {
+        Class primitiveClass = getPrimitiveClass(type);
+
+        // Emit widening/narrowing ops if necessary
+        widen(mv, nativeType, primitiveClass);
+        narrow(mv, nativeType, primitiveClass);
+
+        mv.invokestatic(type, "valueOf", type, primitiveClass);
     }
 }

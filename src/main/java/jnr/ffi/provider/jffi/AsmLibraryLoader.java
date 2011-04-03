@@ -61,7 +61,7 @@ import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static org.objectweb.asm.Opcodes.*;
 
 public class AsmLibraryLoader extends LibraryLoader {
-    public final static boolean DEBUG = false || Boolean.getBoolean("jaffl.compile.dump");
+    public final static boolean DEBUG = false || Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final class SingletonHolder {
         static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     }
@@ -377,7 +377,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             
             if (convertParameter) {
                 if (parameterTypes[pidx].isPrimitive()) {
-                    boxPrimitive(mv, parameterTypes[pidx]);
+                    boxValue(mv, getBoxedClass(parameterTypes[pidx]), parameterTypes[pidx]);
                 }
 
                 mv.invokevirtual(ParameterConverter.class, "toNative",
@@ -390,7 +390,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         mv.invokevirtual(className, functionName + "$raw", sig(nativeReturnType, nativeParameterTypes));
         if (!returnType.equals(nativeReturnType)) {
             if (nativeReturnType.isPrimitive()) {
-                boxPrimitive(mv, nativeReturnType);
+                boxValue(mv, getBoxedClass(nativeReturnType), nativeReturnType);
             }
 
             mv.invokevirtual(ResultConverter.class, "fromNative",
@@ -903,88 +903,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         sb.append(")").append(iType);
 
         return sb.toString();
-    }
-
-
-    
-    private final void boxStruct(SkinnyMethodAdapter mv, Class returnType, Class nativeType) {
-        Label nonnull = new Label();
-        Label end = new Label();
-
-        if (long.class == nativeType) {
-            mv.dup2();
-            mv.lconst_0();
-            mv.lcmp();
-            mv.ifne(nonnull);
-            mv.pop2();
-
-        } else {
-            mv.dup();
-            mv.ifne(nonnull);
-            mv.pop();
-        }
-        
-        mv.aconst_null();
-        mv.go_to(end);
-
-        mv.label(nonnull);
-        
-        // Create an instance of the struct subclass
-        mv.newobj(p(returnType));
-        mv.dup();
-        mv.invokespecial(returnType, "<init>", void.class);
-        if (long.class == nativeType) {
-            mv.dup_x2();
-        } else {
-            mv.dup_x1();
-        }
-
-        // associate the memory with the struct and return the struct
-        mv.invokestatic(AsmRuntime.class, "useMemory", void.class, nativeType, Struct.class);
-        mv.label(end);
-    }
-
-    private final void boxPrimitive(SkinnyMethodAdapter mv, Class primitiveType) {
-        Class objClass = getBoxedClass(primitiveType);
-        mv.invokestatic(objClass, "valueOf", objClass, primitiveType);
-    }
-
-    private final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativeType) {
-        Class primitiveClass = getPrimitiveClass(type);
-
-        // Emit widening/narrowing ops if necessary
-        widen(mv, nativeType, primitiveClass);
-        narrow(mv, nativeType, primitiveClass);
-
-        mv.invokestatic(type, "valueOf", type, primitiveClass);
-    }
-
-    private final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
-        if (returnType == nativeReturnType) {
-            return;
-
-        } else if (Boolean.class.isAssignableFrom(returnType)) {
-            narrow(mv, nativeReturnType, boolean.class);
-            mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
-            
-        } else if (Pointer.class.isAssignableFrom(returnType)) {
-            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, nativeReturnType);
-
-        } else if (Address.class == returnType) {
-            mv.invokestatic(returnType, "valueOf", returnType, nativeReturnType);
-
-        } else if (Struct.class.isAssignableFrom(returnType)) {
-            boxStruct(mv, returnType, nativeReturnType);
-         
-        } else if (Number.class.isAssignableFrom(returnType)) {
-            boxNumber(mv, returnType, nativeReturnType);
-         
-        } else if (String.class == returnType) {
-            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, nativeReturnType);
-         
-        } else {
-            throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);
-        }
     }
 
     private final void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv,
