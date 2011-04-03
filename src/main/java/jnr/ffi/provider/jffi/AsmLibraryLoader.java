@@ -151,7 +151,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         
         final Method[] methods = interfaceClass.getMethods();
         Function[] functions = new Function[methods.length];
-        ResultConverter[] resultConverters = new ResultConverter[methods.length];
+        FromNativeConverter[] resultConverters = new ResultConverter[methods.length];
         ParameterConverter[][] parameterConverters = new ParameterConverter[methods.length][0];
         
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
@@ -176,7 +176,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             resultConverters[i] = getResultConverter(m, typeMapper);
             if (resultConverters[i] != null) {
-                cv.visitField(ACC_PRIVATE | ACC_FINAL, getResultConverterFieldName(i), ci(ResultConverter.class), null, null);
+                cv.visitField(ACC_PRIVATE | ACC_FINAL, getResultConverterFieldName(i), ci(FromNativeConverter.class), null, null);
                 nativeReturnType = resultConverters[i].nativeType();
                 conversionRequired = true;
             }
@@ -300,14 +300,14 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
     }
 
-    private final ResultConverter getResultConverter(Method m, TypeMapper typeMapper) {
+    private final FromNativeConverter getResultConverter(Method m, TypeMapper typeMapper) {
         Class returnType = m.getReturnType();
         FromNativeConverter conv = typeMapper.getFromNativeConverter(returnType);
         if (conv != null) {
             return new ResultConverter(conv, new MethodResultContext(m));
 
         } else if (Enum.class.isAssignableFrom(returnType)) {
-            return new ResultConverter(EnumMapper.getInstance(returnType.asSubclass(Enum.class)), null);
+            return EnumMapper.getInstance(returnType.asSubclass(Enum.class));
 
         } else {
             return null;
