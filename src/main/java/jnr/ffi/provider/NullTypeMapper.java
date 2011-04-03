@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider;
 
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
