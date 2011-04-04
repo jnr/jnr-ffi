@@ -16,7 +16,7 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 /**
  *
  */
-abstract class BaseMethodGenerator implements AsmMethodGenerator {
+abstract class BaseMethodGenerator implements MethodGenerator {
     public final void generate(Function function,
                              ClassVisitor cv, String className, String functionName, String functionFieldName,
                              Class returnType, Annotation[] resultAnnotations,

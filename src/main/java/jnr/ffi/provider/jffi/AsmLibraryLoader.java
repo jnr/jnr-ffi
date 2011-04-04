@@ -126,7 +126,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         BufferMethodGenerator bufgen = new BufferMethodGenerator();
         X86MethodGenerator compiler = new X86MethodGenerator(bufgen);
-        final AsmMethodGenerator[] generators = {
+        final MethodGenerator[] generators = {
                 compiler,
                 new FastNumericMethodGenerator(bufgen),
                 bufgen
@@ -194,7 +194,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
-            for (AsmMethodGenerator g : generators) {
+            for (MethodGenerator g : generators) {
                 if (g.isSupported(returnType, resultAnnotations, parameterTypes, parameterAnnotations, callingConvention)) {
                     g.generate(functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
                         functionFieldName, nativeReturnType, m.getAnnotations(),
