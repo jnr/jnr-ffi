@@ -129,6 +129,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         final MethodGenerator[] generators = {
                 compiler,
                 new FastIntMethodGenerator(bufgen),
+                new FastLongMethodGenerator(bufgen),
                 new FastNumericMethodGenerator(bufgen),
                 bufgen
         };
