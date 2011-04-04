@@ -80,7 +80,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             } else if (t == float.class || t == double.class) {
                 ++fCount;
             } else {
-                throw new IllegalArgumentException("invalid parameter type");
+                throw new IllegalArgumentException("invalid parameter type " + t);
             }
         }
         

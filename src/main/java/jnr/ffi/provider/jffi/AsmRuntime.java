@@ -18,6 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.*;
 import jnr.ffi.Address;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.Pointer;
@@ -30,10 +31,6 @@ import jnr.ffi.struct.Struct;
 import jnr.ffi.struct.StructUtil;
 import jnr.ffi.util.BufferUtil;
 import jnr.ffi.util.EnumMapper;
-import com.kenai.jffi.Function;
-import com.kenai.jffi.HeapInvocationBuffer;
-import com.kenai.jffi.InvocationBuffer;
-import com.kenai.jffi.Platform;
 
 import java.nio.*;
 import java.nio.charset.Charset;
@@ -547,6 +544,61 @@ public final class AsmRuntime {
         return ptr != null ? ptr.address() : 0L;
     }
 
+    public static final boolean isDirect(ByteBuffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
+    public static final boolean isDirect(CharBuffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
+    public static final boolean isDirect(ShortBuffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
+    public static final boolean isDirect(IntBuffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
+    public static final boolean isDirect(LongBuffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
+    public static final boolean isDirect(FloatBuffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
+    public static final boolean isDirect(DoubleBuffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
+    public static final long longValue(ByteBuffer buffer) {
+        return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + buffer.position(): 0L;
+    }
+
+    public static final long longValue(ShortBuffer buffer) {
+        return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 1): 0L;
+    }
+
+    public static final long longValue(CharBuffer buffer) {
+        return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 1): 0L;
+    }
+
+    public static final long longValue(IntBuffer buffer) {
+        return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 2): 0L;
+    }
+
+    public static final long longValue(LongBuffer buffer) {
+        return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 3): 0L;
+    }
+
+    public static final long longValue(FloatBuffer buffer) {
+        return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 2): 0L;
+    }
+
+    public static final long longValue(DoubleBuffer buffer) {
+        return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 3): 0L;
+    }
 
     public static final boolean isDirect(Struct s) {
         return s == null || StructUtil.isDirect(s);

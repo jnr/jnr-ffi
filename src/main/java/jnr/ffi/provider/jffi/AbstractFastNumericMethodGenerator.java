@@ -5,6 +5,7 @@ import jnr.ffi.struct.Struct;
 import org.objectweb.asm.Label;
 
 import java.lang.annotation.Annotation;
+import java.nio.Buffer;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
@@ -57,6 +58,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
             } else if (Struct.class.isAssignableFrom(parameterType)) {
                 unboxStruct(mv, nativeIntType);
+
+            } else if (Buffer.class.isAssignableFrom(parameterType)) {
+                unboxBuffer(mv, parameterType, nativeIntType);
 
             } else {
                 throw new IllegalArgumentException("unsupported numeric type " + parameterType);

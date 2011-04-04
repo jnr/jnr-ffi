@@ -8,6 +8,7 @@ import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
 
 import java.lang.annotation.Annotation;
+import java.nio.Buffer;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 
@@ -112,6 +113,7 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     final static boolean isFastNumericParameter(Platform platform, Class type, Annotation[] annotations) {
         return isNumericType(platform, type, annotations)
+                || Buffer.class.isAssignableFrom(type)
                 ;
     }
 

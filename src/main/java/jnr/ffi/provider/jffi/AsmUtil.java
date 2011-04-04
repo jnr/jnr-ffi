@@ -26,6 +26,8 @@ import com.kenai.jffi.Platform;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
+import java.nio.Buffer;
+
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -92,6 +94,15 @@ final class AsmUtil {
         return unboxedType(type);
     }
 
+    public static final Class unboxedParameterType(Class type) {
+        if (Buffer.class.isAssignableFrom(type)) {
+            return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
+
+        } else {
+            return unboxedType(type);
+        }
+    }
+
     public static final Class unboxedType(Class boxedType) {
         if (boxedType == Byte.class) {
             return byte.class;
@@ -107,8 +118,10 @@ final class AsmUtil {
             return double.class;
         } else if (boxedType == Boolean.class) {
             return boolean.class;
+
         } else if (boxedType == NativeLong.class) {
             return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
+
         } else if (Pointer.class.isAssignableFrom(boxedType) || Struct.class.isAssignableFrom(boxedType)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
@@ -194,6 +207,11 @@ final class AsmUtil {
 
     static final void unboxStruct(final SkinnyMethodAdapter mv, final Class nativeType) {
         unboxPointerOrStruct(mv, Struct.class, nativeType);
+    }
+
+    static final void unboxBuffer(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
+        mv.invokestatic(p(AsmRuntime.class), "longValue", sig(long.class, type));
+        narrow(mv, long.class, nativeType);
     }
 
     static final void unboxEnum(final SkinnyMethodAdapter mv, final Class nativeType) {

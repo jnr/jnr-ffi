@@ -42,7 +42,7 @@ import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.nio.Buffer;
+import java.nio.*;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -127,7 +127,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         BufferMethodGenerator bufgen = new BufferMethodGenerator();
         X86MethodGenerator compiler = new X86MethodGenerator(bufgen);
         final MethodGenerator[] generators = {
-//                compiler,
+                compiler,
                 new FastIntMethodGenerator(bufgen),
                 new FastLongMethodGenerator(bufgen),
                 new FastNumericMethodGenerator(bufgen),
@@ -384,7 +384,13 @@ public class AsmLibraryLoader extends LibraryLoader {
                 mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Struct.class);
                 mv.iffalse(bufferInvocationLabel);
                 needBufferInvocation = true;
-            
+
+            } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+                mv.aload(lvar++);
+                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, parameterTypes[i]);
+                mv.iffalse(bufferInvocationLabel);
+                needBufferInvocation = true;
+
             } else {
                 lvar += calculateLocalVariableSpace(parameterTypes[i]);
             }

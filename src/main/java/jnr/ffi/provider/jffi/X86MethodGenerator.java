@@ -9,6 +9,7 @@ import org.objectweb.asm.Label;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.annotation.Annotation;
+import java.nio.Buffer;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
@@ -52,7 +53,12 @@ class X86MethodGenerator implements MethodGenerator {
 
         Class[] nativeParameterTypes = new Class[parameterTypes.length];
         for (int i = 0; i < nativeParameterTypes.length; ++i) {
-            nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+            if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+                nativeParameterTypes[i] = AsmUtil.unboxedType(Pointer.class);
+
+            } else {
+                nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+            }
         }
 
         return compiler.canCompile(AsmUtil.unboxedReturnType(returnType), nativeParameterTypes, convention);
@@ -67,10 +73,16 @@ class X86MethodGenerator implements MethodGenerator {
         boolean unboxing = false;
         boolean ptrCheck = false;
         for (int i = 0; i < nativeParameterTypes.length; ++i) {
-            nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+            if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+                nativeParameterTypes[i] = AsmUtil.unboxedType(Pointer.class);
+
+            } else {
+                nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+            }
             unboxing |= nativeParameterTypes[i] != parameterTypes[i];
             ptrCheck |= Pointer.class.isAssignableFrom(parameterTypes[i])
-                    || Struct.class.isAssignableFrom(parameterTypes[i]);
+                    || Struct.class.isAssignableFrom(parameterTypes[i])
+                    || Buffer.class.isAssignableFrom(parameterTypes[i]);
         }
 
         Class nativeReturnType = AsmUtil.unboxedReturnType(returnType);
@@ -103,6 +115,9 @@ class X86MethodGenerator implements MethodGenerator {
 
                     } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
                         unboxStruct(mv, nativeParameterTypes[i]);
+
+                    } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+                        unboxBuffer(mv, parameterTypes[i], nativeParameterTypes[i]);
 
                     } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
                         unboxEnum(mv, nativeParameterTypes[i]);
