@@ -50,17 +50,10 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = false || Boolean.getBoolean("jnr.ffi.compile.dump");
-    private static final class SingletonHolder {
-        static final LibraryLoader INSTANCE = new AsmLibraryLoader();
-    }
+    private static final AtomicLong nextClassID = new AtomicLong(0);
 
-    private final AtomicLong nextClassID = new AtomicLong(0);
     private final AtomicLong nextIvarID = new AtomicLong(0);
     private final AtomicLong nextMethodID = new AtomicLong(0);
-
-    static final LibraryLoader getInstance() {
-        return SingletonHolder.INSTANCE;
-    }
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)

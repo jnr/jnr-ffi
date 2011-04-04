@@ -48,8 +48,9 @@ public final class Provider extends jnr.ffi.FFIProvider {
         final boolean compile = Boolean.parseBoolean(System.getProperty("jnr.ffi.compile.enabled", "true"));
 
         try {
-            if (compile && AsmLibraryLoader.getInstance().isInterfaceSupported(interfaceClass, libraryOptions)) {
-                return AsmLibraryLoader.getInstance().loadLibrary(library, interfaceClass, libraryOptions);
+            LibraryLoader loader = new AsmLibraryLoader();
+            if (compile && loader.isInterfaceSupported(interfaceClass, libraryOptions)) {
+                return loader.loadLibrary(library, interfaceClass, libraryOptions);
             }
         } catch (Exception ex) {
             ex.printStackTrace(System.err);
