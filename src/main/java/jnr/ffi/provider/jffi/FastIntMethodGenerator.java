@@ -77,11 +77,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
 
         final int parameterCount = parameterTypes.length;
 
-        System.out.println("fast-int checking for supported. paramcount=" + parameterCount);
-        System.out.println("longSize=" + Platform.getPlatform().longSize());
-        System.out.println("data.model=" + Integer.getInteger("sun.arch.data.model", 0));
-
-        if (parameterCount > MAX_FASTINT_PARAMETERS) {
+        if (convention != CallingConvention.DEFAULT || parameterCount > MAX_FASTINT_PARAMETERS) {
             return false;
         }
         final Platform platform = Platform.getPlatform();
@@ -92,9 +88,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
             }
         }
 
-        boolean supported = isFastIntResult(platform, returnType, resultAnnotations);
-        System.out.println("fast-int method supported=" + supported);
-        return supported;
+        return isFastIntResult(platform, returnType, resultAnnotations);
     }
 
 
@@ -117,18 +111,19 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
 
-    static boolean isInt32(Platform platform, Class type, Annotation[] annotations) {
+    private static boolean isFastIntType(Platform platform, Class type, Annotation[] annotations) {
         return Boolean.class.isAssignableFrom(type) || boolean.class == type
                 || Byte.class.isAssignableFrom(type) || byte.class == type
                 || Short.class.isAssignableFrom(type) || short.class == type
                 || Integer.class.isAssignableFrom(type) || int.class == type
                 || NumberUtil.isLong32(platform, type, annotations)
+//                || ((float.class == type || Float.class == type) && platform.getCPU() == Platform.CPU.I386)
                 ;
     }
 
 
     static boolean isFastIntResult(Platform platform, Class type, Annotation[] annotations) {
-        return isInt32(platform, type, annotations)
+        return isFastIntType(platform, type, annotations)
             || Void.class.isAssignableFrom(type) || void.class == type
             || (platform.addressSize() == 32
                 && (String.class.isAssignableFrom(type) || Pointer.class.isAssignableFrom(type) || Struct.class.isAssignableFrom(type))
@@ -137,7 +132,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     static boolean isFastIntParameter(Platform platform, Class type, Annotation[] annotations) {
-        return isInt32(platform, type, annotations)
+        return isFastIntType(platform, type, annotations)
                 || (platform.addressSize() == 32
                     && (Pointer.class.isAssignableFrom(type) || Struct.class.isAssignableFrom(type)))
                 ;
