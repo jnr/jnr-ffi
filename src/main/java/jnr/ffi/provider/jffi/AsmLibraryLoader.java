@@ -56,7 +56,6 @@ public class AsmLibraryLoader extends LibraryLoader {
     private static final class SingletonHolder {
         static final LibraryLoader INSTANCE = new AsmLibraryLoader();
     }
-    static final boolean FAST_LONG_AVAILABLE = FastLongInvocationGenerator.isFastLongAvailable();
 
     private final AtomicLong nextClassID = new AtomicLong(0);
     private final AtomicLong nextIvarID = new AtomicLong(0);
@@ -456,19 +455,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         return lvar;
     }
 
-    static final Class<? extends Number> getMinimumIntType(
-            Class resultType, Annotation[] resultAnnotations,
-            Class[] parameterTypes, Annotation[][] parameterAnnotations) {
-
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            if (!isInt32Param(parameterTypes[i], parameterAnnotations[i])) {
-                return long.class;
-            }
-        }
-
-        return !isInt32Result(resultType, resultAnnotations) ? long.class : int.class;
-    }
-
     private static final Function getFunction(long address, Class resultType, final Annotation[] resultAnnotations,
             Class[] parameterTypes, final Annotation[][] parameterAnnotations,
             boolean requiresErrno, CallingConvention convention) {
@@ -483,66 +469,6 @@ public class AsmLibraryLoader extends LibraryLoader {
                 nativeParamTypes, convention, requiresErrno);
 
     }
-
-    final static boolean isInt32Result(Class type, Annotation[] annotations) {
-        return isInt32(type, annotations)
-            || Void.class.isAssignableFrom(type) || void.class == type
-            || (isPointerResult(type) && Platform.getPlatform().addressSize() == 32);
-    }
-
-    final static boolean isInt32Param(Class type, Annotation[] annotations) {
-        return isInt32(type, annotations)
-                || (isPointerParam(type) && Platform.getPlatform().addressSize() == 32)
-                ;
-    }
-
-    final static boolean isPointerResult(Class type) {
-        return Pointer.class.isAssignableFrom(type)
-                || Struct.class.isAssignableFrom(type)
-                || String.class.isAssignableFrom(type);
-    }
-    
-    final static boolean isPointerParam(Class type) {
-        return Pointer.class.isAssignableFrom(type)
-                || Struct.class.isAssignableFrom(type);
-    }
-
-    static boolean isFastIntegerResult(Class type, Annotation[] annotations) {
-        if (isInt32Result(type, annotations)) {
-            return true;
-        }
-
-        final boolean isPointer = isPointerResult(type);
-        if (isPointer && Platform.getPlatform().addressSize() == 32) {
-            return true;
-        }
-
-        // For x86_64, any args that promote up to 64bit can be accepted.
-        final boolean isLong = Long.class == type || long.class == type;
-        return Platform.getPlatform().addressSize() == 64 && FAST_LONG_AVAILABLE &&
-                (isPointer || NativeLong.class.isAssignableFrom(type) || isLong);
-    }
-
-    static boolean isFastIntegerParam(Class type, Annotation[] annotations) {
-        if (isInt32Param(type, annotations)) {
-            return true;
-        }
-
-        final boolean isPointer = isPointerParam(type);
-        if (isPointer && Platform.getPlatform().addressSize() == 32) {
-            return true;
-        }
-
-        if (Enum.class.isAssignableFrom(type)) {
-            return true;
-        }
-
-        // For x86_64, any args that promote up to 64bit can be accepted.
-        final boolean isLong = Long.class == type || long.class == type;
-        return Platform.getPlatform().addressSize() == 64 && FAST_LONG_AVAILABLE &&
-                (isPointer || NativeLong.class.isAssignableFrom(type) || isLong);
-    }
-
 
     private static boolean isReturnTypeSupported(Class type) {
         return type.isPrimitive() || Byte.class == type
