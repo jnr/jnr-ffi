@@ -43,6 +43,7 @@ public class NumberTest {
 
         public int add_int32_t(int i1, int i2);
         public long add_int64_t(long i1, long i2);
+        public long add_long(long i1, long i2);
         public NativeLong add_long(NativeLong i1, NativeLong i2);
         public NativeLong sub_long(NativeLong i1, NativeLong i2);
         public NativeLong mul_long(NativeLong i1, NativeLong i2);
@@ -295,6 +296,20 @@ public class NumberTest {
 
             public long n(long i1, long i2) {
                 return testlib.add_long(NativeLong.valueOf(i1), NativeLong.valueOf(i2)).longValue();
+            }
+        });
+    }
+
+    @Test
+    public void testLongAddition() throws Exception {
+        testNativeLong(new NativeLongOp() {
+
+            public long j(long i1, long i2) {
+                return i1 + i2;
+            }
+
+            public long n(long i1, long i2) {
+                return testlib.add_long(i1, i2);
             }
         });
     }

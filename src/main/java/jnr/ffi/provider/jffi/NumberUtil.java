@@ -139,7 +139,11 @@ public final class NumberUtil {
     }
 
     static boolean isLong32(Class type, Annotation[] annotations) {
-        return Platform.getPlatform().longSize() == 32
+        return isLong32(Platform.getPlatform(), type, annotations);
+    }
+
+    static boolean isLong32(Platform platform, Class type, Annotation[] annotations) {
+        return platform.longSize() == 32
             && (((long.class == type || Long.class.isAssignableFrom(type))
                  && !InvokerUtil.hasAnnotation(annotations, LongLong.class))
                || NativeLong.class.isAssignableFrom(type));
