@@ -22,9 +22,11 @@ import static org.objectweb.asm.Opcodes.*;
 class X86MethodGenerator implements MethodGenerator {
     private final StubCompiler compiler = StubCompiler.newCompiler();
     private final AtomicLong nextMethodID = new AtomicLong(0);
+    private final AsmLibraryLoader loader;
     private final BufferMethodGenerator bufgen;
 
-    X86MethodGenerator(BufferMethodGenerator bufgen) {
+    X86MethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
+        this.loader = loader;
         this.bufgen = bufgen;
     }
 

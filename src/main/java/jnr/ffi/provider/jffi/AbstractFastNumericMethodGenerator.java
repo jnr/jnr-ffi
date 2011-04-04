@@ -16,9 +16,11 @@ import static jnr.ffi.provider.jffi.NumberUtil.widen;
  *
  */
 abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
+    protected final AsmLibraryLoader loader;
     private final BufferMethodGenerator bufgen;
 
-    public AbstractFastNumericMethodGenerator(BufferMethodGenerator bufgen) {
+    public AbstractFastNumericMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
+        this.loader = loader;
         this.bufgen = bufgen;
     }
 

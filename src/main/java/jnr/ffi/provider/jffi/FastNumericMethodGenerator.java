@@ -35,8 +35,8 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
         }
     }
 
-    FastNumericMethodGenerator(BufferMethodGenerator bufgen) {
-        super(bufgen);
+    FastNumericMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
+        super(loader, bufgen);
     }
 
     public boolean isSupported(Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes,

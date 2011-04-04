@@ -113,13 +113,13 @@ public class AsmLibraryLoader extends LibraryLoader {
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
-        BufferMethodGenerator bufgen = new BufferMethodGenerator();
-        X86MethodGenerator compiler = new X86MethodGenerator(bufgen);
+        BufferMethodGenerator bufgen = new BufferMethodGenerator(this);
+        X86MethodGenerator compiler = new X86MethodGenerator(this, bufgen);
         final MethodGenerator[] generators = {
                 compiler,
-                new FastIntMethodGenerator(bufgen),
-                new FastLongMethodGenerator(bufgen),
-                new FastNumericMethodGenerator(bufgen),
+                new FastIntMethodGenerator(this, bufgen),
+                new FastLongMethodGenerator(this, bufgen),
+                new FastNumericMethodGenerator(this, bufgen),
                 bufgen
         };
 
@@ -278,15 +278,15 @@ public class AsmLibraryLoader extends LibraryLoader {
         return InvokerUtil.getCallingConvention(options);
     }
     
-    private final String getFunctionFieldName(int idx) {
+    final String getFunctionFieldName(int idx) {
         return "function_" + idx;
     }
 
-    private final String getResultConverterFieldName(int idx) {
+    final String getResultConverterFieldName(int idx) {
         return "resultConverter_" + idx;
     }
 
-    private final String getParameterConverterFieldName(int idx, int paramIndex) {
+    final String getParameterConverterFieldName(int idx, int paramIndex) {
         return "parameterConverter_" + idx + "_" + paramIndex;
     }
 

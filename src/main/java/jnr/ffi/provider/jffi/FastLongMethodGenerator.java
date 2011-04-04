@@ -36,8 +36,8 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         }
     }
 
-    public FastLongMethodGenerator(BufferMethodGenerator bufgen) {
-        super(bufgen);
+    public FastLongMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
+        super(loader, bufgen);
     }
 
     @Override

@@ -40,8 +40,8 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
         }
     }
 
-    FastIntMethodGenerator(BufferMethodGenerator bufgen) {
-        super(bufgen);
+    FastIntMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
+        super(loader, bufgen);
     }
 
     @Override
