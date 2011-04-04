@@ -40,6 +40,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -54,6 +57,11 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final AtomicLong nextIvarID = new AtomicLong(0);
     private final AtomicLong nextMethodID = new AtomicLong(0);
+
+    private final List<ToNativeConverter> toNativeConverters = new ArrayList<ToNativeConverter>();
+    private final List<FromNativeConverter> fromNativeConverters = new ArrayList<FromNativeConverter>();
+    private final Map<ToNativeConverter, String> toNativeConverterNames = new IdentityHashMap<ToNativeConverter, String>();
+    private final Map<FromNativeConverter, String> fromNativeConverterNames = new IdentityHashMap<FromNativeConverter, String>();
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
@@ -91,7 +99,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         // Create the constructor to set the 'library' & functions fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
-                sig(void.class, NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class),
+                sig(void.class, NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[].class),
                 null, null));
         init.start();
         // Invokes the super class constructor as super(Library)
@@ -136,19 +144,15 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             resultConverters[i] = getResultConverter(m, typeMapper);
             if (resultConverters[i] != null) {
-                cv.visitField(ACC_PRIVATE | ACC_FINAL, getResultConverterFieldName(i), ci(FromNativeConverter.class), null, null);
+
                 nativeReturnType = resultConverters[i].nativeType();
                 conversionRequired = true;
             }
 
             parameterConverters[i] = new ToNativeConverter[parameterTypes.length];
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
-                ToNativeConverter converter = Enum.class.isAssignableFrom(parameterTypes[pidx])
-                        ? EnumMapper.getInstance(parameterTypes[pidx].asSubclass(Enum.class))
-                        : typeMapper.getToNativeConverter(parameterTypes[pidx]);
+                ToNativeConverter converter = getParameterConverter(m, pidx, typeMapper);
                 if (converter != null) {
-                    cv.visitField(ACC_PRIVATE | ACC_FINAL, getParameterConverterFieldName(i, pidx),
-                            ci(ToNativeConverter.class), null, null);
                     nativeParameterTypes[pidx] = converter.nativeType();
                     
                     parameterConverters[i][pidx] = new ParameterConverter(converter,
@@ -196,7 +200,8 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
             if (conversionRequired) {
-                generateConversionMethod(cv, className, m.getName(), i, returnType, parameterTypes, nativeReturnType, nativeParameterTypes);
+                generateConversionMethod(cv, className, m.getName(), i, returnType, parameterTypes, nativeReturnType,
+                        nativeParameterTypes, resultConverters[i], parameterConverters[i]);
             }
 
             // The Function[] array is passed in as the second param, so generate
@@ -206,29 +211,29 @@ public class AsmLibraryLoader extends LibraryLoader {
             init.pushInt(i);
             init.aaload();
             init.putfield(className, functionFieldName, ci(Function.class));
-
-            // If there is a result converter for this function, put it in a field too
-            if (resultConverters[i] != null) {
-                
-                init.aload(0);
-                init.aload(3);
-                init.pushInt(i);
-                init.aaload();
-                init.putfield(className, getResultConverterFieldName(i), ci(FromNativeConverter.class));
-            }
-
-            for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
-                if (parameterConverters[i][pidx] != null) {
-                    init.aload(0);
-                    init.aload(4);
-                    init.pushInt(i);
-                    init.aaload();
-                    init.pushInt(pidx);
-                    init.aaload();
-                    init.putfield(className, getParameterConverterFieldName(i, pidx), ci(ToNativeConverter.class));
-                }
-            }
         }
+
+        for (int i = 0; i < fromNativeConverters.size(); i++) {
+            String fieldName = getResultConverterName(fromNativeConverters.get(i));
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(FromNativeConverter.class), null, null);
+            init.aload(0);
+            init.aload(3);
+            init.pushInt(i);
+            init.aaload();
+
+            init.putfield(className, fieldName, ci(FromNativeConverter.class));
+        }
+
+        for (int i = 0; i < toNativeConverters.size(); i++) {
+            String fieldName = getParameterConverterName(toNativeConverters.get(i));
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(ToNativeConverter.class), null, null);
+            init.aload(0);
+            init.aload(4);
+            init.pushInt(i);
+            init.aaload();
+            init.putfield(className, fieldName, ci(ToNativeConverter.class));
+        }
+
 
         init.voidreturn();
         init.visitMaxs(10, 10);
@@ -244,8 +249,13 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
             Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), bytes);
-            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[][].class);
-            T result = cons.newInstance(library, functions, resultConverters, parameterConverters);
+            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class,
+                    FromNativeConverter[].class, ToNativeConverter[].class);
+            FromNativeConverter[] fnc = new FromNativeConverter[fromNativeConverters.size()];
+            fromNativeConverters.toArray(fnc);
+            ToNativeConverter[] tnc = new ToNativeConverter[toNativeConverters.size()];
+            toNativeConverters.toArray(tnc);
+            T result = cons.newInstance(library, functions, fnc, tnc);
 
             // Attach any native method stubs - we have to delay this until the
             // implementation class is loaded for it to work.
@@ -254,6 +264,44 @@ public class AsmLibraryLoader extends LibraryLoader {
             return result;
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    String getResultConverterName(FromNativeConverter converter) {
+        String name = fromNativeConverterNames.get(converter);
+        if (name == null) {
+            int idx = fromNativeConverters.size();
+            name = "fromNativeConverter" + idx;
+            fromNativeConverters.add(converter);
+            fromNativeConverterNames.put(converter, name);
+        }
+
+        return name;
+    }
+
+    String getParameterConverterName(ToNativeConverter converter) {
+        String name = toNativeConverterNames.get(converter);
+        if (name == null) {
+            int idx = toNativeConverters.size();
+            name = "toNativeConverter" + idx;
+            toNativeConverters.add(converter);
+            toNativeConverterNames.put(converter, name);
+        }
+
+        return name;
+    }
+
+    private final ToNativeConverter getParameterConverter(Method m, int parameterIndex, TypeMapper typeMapper) {
+        Class parameterType = m.getParameterTypes()[parameterIndex];
+        ToNativeConverter conv = typeMapper.getToNativeConverter(parameterType);
+        if (conv != null) {
+            return new ParameterConverter(conv, new MethodParameterContext(m, parameterIndex));
+
+        } else if (Enum.class.isAssignableFrom(parameterType)) {
+            return EnumMapper.getInstance(parameterType.asSubclass(Enum.class));
+
+        } else {
+            return null;
         }
     }
 
@@ -282,14 +330,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         return "function_" + idx;
     }
 
-    final String getResultConverterFieldName(int idx) {
-        return "resultConverter_" + idx;
-    }
-
-    final String getParameterConverterFieldName(int idx, int paramIndex) {
-        return "parameterConverter_" + idx + "_" + paramIndex;
-    }
-
     private final void generateFunctionNotFound(ClassVisitor cv, String className, int idx, String functionName,
             Class returnType, Class[] parameterTypes) {
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
@@ -303,7 +343,8 @@ public class AsmLibraryLoader extends LibraryLoader {
     }
 
     private final void generateConversionMethod(ClassVisitor cv, String className, String functionName, int idx,
-            Class returnType, Class[] parameterTypes, Class nativeReturnType, Class[] nativeParameterTypes) {
+            Class returnType, Class[] parameterTypes, Class nativeReturnType, Class[] nativeParameterTypes,
+            FromNativeConverter resultConverter, ToNativeConverter[] parameterConverters) {
 
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
                 sig(returnType, parameterTypes), null, null));
@@ -312,7 +353,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         // If there is a result converter, retrieve it and put on the stack
         if (!returnType.equals(nativeReturnType)) {
             mv.aload(0);
-            mv.getfield(className, getResultConverterFieldName(idx), ci(FromNativeConverter.class));
+            mv.getfield(className, getResultConverterName(resultConverter), ci(FromNativeConverter.class));
         }
 
         
@@ -324,7 +365,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             final boolean convertParameter = !parameterTypes[pidx].equals(nativeParameterTypes[pidx]);
             if (convertParameter) {
                 mv.aload(0);
-                mv.getfield(className, getParameterConverterFieldName(idx, pidx), ci(ToNativeConverter.class));
+                mv.getfield(className, getParameterConverterName(parameterConverters[pidx]), ci(ToNativeConverter.class));
             }
 
             lvar = loadParameter(mv, parameterTypes[pidx], lvar);

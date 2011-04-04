@@ -545,6 +545,10 @@ public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
     public void checkcast(String arg0) {
         getMethodVisitor().visitTypeInsn(CHECKCAST, arg0);
     }
+
+    public void checkcast(Class clazz) {
+        getMethodVisitor().visitTypeInsn(CHECKCAST, p(clazz));
+    }
     
     public void start() {
         getMethodVisitor().visitCode();

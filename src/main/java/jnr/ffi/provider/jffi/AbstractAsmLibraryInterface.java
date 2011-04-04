@@ -4,6 +4,8 @@ import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
 import jnr.ffi.*;
 import jnr.ffi.Runtime;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.LoadedLibrary;
 
 /**
