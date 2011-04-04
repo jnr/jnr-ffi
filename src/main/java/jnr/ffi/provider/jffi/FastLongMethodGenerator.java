@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
+import jnr.ffi.Address;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
@@ -108,6 +109,7 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
             || NativeLong.class == type
             || Pointer.class.isAssignableFrom(type)
             || Struct.class.isAssignableFrom(type)
+            || Address.class == type
             ;
     }
 

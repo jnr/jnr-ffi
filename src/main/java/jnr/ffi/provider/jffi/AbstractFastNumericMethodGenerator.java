@@ -27,14 +27,21 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
         //mv = new SkinnyMethodAdapter(AsmUtil.newTraceMethodVisitor(mv));
         Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, parameterTypes);
-        Class nativeIntType = getInvokerType();
+        final Class nativeIntType = getInvokerType();
 
         // Load and un-box parameters
         for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
             lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i], lvar);
             final Class parameterType = parameterTypes[i];
 
-            if (parameterType.isPrimitive()) {
+            if (Float.class == parameterType || float.class == parameterType) {
+                mv.invokestatic(Float.class, "floatToRawIntBits", int.class, float.class);
+                widen(mv, int.class, nativeIntType);
+
+            } else if (Double.class == parameterType || double.class == parameterType) {
+                mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
+
+            } else if (parameterType.isPrimitive()) {
                 // widen to long or narrow to int as needed
                 widen(mv, parameterType, nativeIntType);
                 narrow(mv, parameterType, nativeIntType);
@@ -50,15 +57,12 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
             } else if (Struct.class.isAssignableFrom(parameterType)) {
                 unboxStruct(mv, nativeIntType);
+
+            } else {
+                throw new IllegalArgumentException("unsupported numeric type " + parameterType);
             }
 
-            if (Float.class == parameterType || float.class == parameterType) {
-                mv.invokestatic(Float.class, "floatToRawIntBits", int.class, float.class);
-                widen(mv, int.class, nativeIntType);
 
-            } else if (Double.class == parameterType || double.class == parameterType) {
-                mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
-            }
         }
 
         // stack now contains [ IntInvoker, Function, int/long args ]

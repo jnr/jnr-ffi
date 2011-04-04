@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
+import jnr.ffi.Address;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
 
@@ -117,6 +118,9 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
                 || Short.class.isAssignableFrom(type) || short.class == type
                 || Integer.class.isAssignableFrom(type) || int.class == type
                 || NumberUtil.isLong32(platform, type, annotations)
+                || (Address.class == type && platform.addressSize() == 32)
+                || (Pointer.class.isAssignableFrom(type) && platform.addressSize() == 32)
+                || (Struct.class.isAssignableFrom(type) && platform.addressSize() == 32)
 //                || ((float.class == type || Float.class == type) && platform.getCPU() == Platform.CPU.I386)
                 ;
     }
@@ -125,16 +129,12 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     static boolean isFastIntResult(Platform platform, Class type, Annotation[] annotations) {
         return isFastIntType(platform, type, annotations)
             || Void.class.isAssignableFrom(type) || void.class == type
-            || (platform.addressSize() == 32
-                && (String.class.isAssignableFrom(type) || Pointer.class.isAssignableFrom(type) || Struct.class.isAssignableFrom(type))
-               );
-
+            || (platform.addressSize() == 32 && String.class.isAssignableFrom(type))
+            ;
     }
 
     static boolean isFastIntParameter(Platform platform, Class type, Annotation[] annotations) {
         return isFastIntType(platform, type, annotations)
-                || (platform.addressSize() == 32
-                    && (Pointer.class.isAssignableFrom(type) || Struct.class.isAssignableFrom(type)))
-                ;
+            ;
     }
 }
