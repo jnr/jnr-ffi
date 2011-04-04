@@ -45,7 +45,7 @@ public final class Provider extends jnr.ffi.FFIProvider {
     }
 
     private <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        final boolean compile = Boolean.parseBoolean(System.getProperty("jaffl.compile.enabled", "true"));
+        final boolean compile = Boolean.parseBoolean(System.getProperty("jnr.ffi.compile.enabled", "true"));
 
         try {
             if (compile && AsmLibraryLoader.getInstance().isInterfaceSupported(interfaceClass, libraryOptions)) {
