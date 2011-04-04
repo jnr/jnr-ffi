@@ -21,18 +21,16 @@ package jnr.ffi;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
+
+import java.nio.*;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -44,10 +42,14 @@ public class BufferTest {
     }
     public static interface TestLib {
         void fillByteBuffer(@Out ByteBuffer buf, byte value, int size);
+        void fillByteBuffer(@Out Buffer buf, byte value, int size);
 //        void fillCharBuffer(@Out CharBuffer buf, char value, int size);
         void fillShortBuffer(@Out ShortBuffer buf, short value, int size);
+        void fillShortBuffer(@Out Buffer buf, short value, int size);
         void fillIntBuffer(@Out IntBuffer buf, int value, int size);
+        void fillIntBuffer(@Out Buffer buf, int value, int size);
         void fillLongBuffer(@Out LongBuffer buf, @LongLong long value, int size);
+        void fillLongBuffer(@Out Buffer buf, @LongLong long value, int size);
         void fillFloatBuffer(@Out FloatBuffer buf, float value, int size);
         void fillDoubleBuffer(@Out DoubleBuffer buf, double value, int size);
         void fillByteBuffer(@Out byte[] buf, byte value, int size);
@@ -288,6 +290,35 @@ public class BufferTest {
             assertEquals("Bad value at index " + i, MAGIC, shortBuf.get(i));
         }
     }
+
+    @Test
+    public void fillDirectShortBufferSlice() {
+        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*2).order(runtime.byteOrder());
+        ShortBuffer shortBuf = buf.asShortBuffer();
+        buf.position(2);
+        ShortBuffer sliced = buf.slice().asShortBuffer();
+        final short MAGIC = (short)0xABED;
+        lib.fillShortBuffer(sliced, MAGIC, SMALL - 1);
+        assertEquals("Bad value at index " + 0, 0, shortBuf.get(0));
+        for (int i=1; i < shortBuf.capacity() - 1; i++) {
+            assertEquals("Bad value at index " + i, MAGIC, shortBuf.get(i));
+        }
+    }
+
+    @Test
+    public void fillDirectShortBufferSliceAsBuffer() {
+        ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*2).order(runtime.byteOrder());
+        ShortBuffer shortBuf = buf.asShortBuffer();
+        buf.position(2);
+        Buffer sliced = buf.slice().asShortBuffer();
+        final short MAGIC = (short)0xABED;
+        lib.fillShortBuffer(sliced, MAGIC, SMALL - 1);
+        assertEquals("Bad value at index " + 0, 0, shortBuf.get(0));
+        for (int i=1; i < shortBuf.capacity() - 1; i++) {
+            assertEquals("Bad value at index " + i, MAGIC, shortBuf.get(i));
+        }
+    }
+
     @Test
     public void fillDirectIntBufferArgument() {
         ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*4).order(runtime.byteOrder());

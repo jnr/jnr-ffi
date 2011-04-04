@@ -544,6 +544,40 @@ public final class AsmRuntime {
         return ptr != null ? ptr.address() : 0L;
     }
 
+    public static final boolean isDirect5(Buffer buffer) {
+        if (buffer == null) {
+            return true;
+
+        } else if (buffer instanceof ByteBuffer) {
+            return ((ByteBuffer) buffer).isDirect();
+
+        } else if (buffer instanceof ShortBuffer) {
+            return ((ShortBuffer) buffer).isDirect();
+
+        } else if (buffer instanceof CharBuffer) {
+            return ((CharBuffer) buffer).isDirect();
+
+        } else if (buffer instanceof IntBuffer) {
+            return ((IntBuffer) buffer).isDirect();
+
+        } else if (buffer instanceof LongBuffer) {
+            return ((LongBuffer) buffer).isDirect();
+
+        } else if (buffer instanceof FloatBuffer) {
+            return ((FloatBuffer) buffer).isDirect();
+
+        } else if (buffer instanceof DoubleBuffer) {
+            return ((DoubleBuffer) buffer).isDirect();
+
+        } else {
+            throw new UnsupportedOperationException("unsupported java.nio.Buffer subclass " + buffer.getClass());
+        }
+    }
+
+    public static final boolean isDirect(Buffer buffer) {
+        return buffer == null || buffer.isDirect();
+    }
+
     public static final boolean isDirect(ByteBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
@@ -572,6 +606,32 @@ public final class AsmRuntime {
         return buffer == null || buffer.isDirect();
     }
 
+    public static long longValue(Buffer buffer) {
+
+        if (buffer == null) {
+            return 0;
+        }
+        final long address = MemoryIO.getInstance().getDirectBufferAddress(buffer);
+        long pos = buffer.position();
+
+        if (buffer instanceof ByteBuffer) {
+            // no adjustment needed
+
+        } else if (buffer instanceof ShortBuffer || buffer instanceof CharBuffer) {
+            pos <<= 1;
+
+        } else if (buffer instanceof IntBuffer || buffer instanceof FloatBuffer) {
+            pos <<= 2;
+
+        } else if (buffer instanceof LongBuffer || buffer instanceof DoubleBuffer) {
+            pos <<= 3;
+
+        } else {
+            throw new UnsupportedOperationException("unsupported java.nio.Buffer subclass " + buffer.getClass());
+        }
+
+        return address + pos;
+    }
     public static final long longValue(ByteBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + buffer.position(): 0L;
     }

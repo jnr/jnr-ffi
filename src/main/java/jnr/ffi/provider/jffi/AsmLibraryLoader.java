@@ -387,7 +387,16 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
                 mv.aload(lvar++);
-                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, parameterTypes[i]);
+
+
+                if (Platform.getPlatform().getJavaMajorVersion() < 6 && Buffer.class == parameterTypes[i]) {
+                    // Buffer#isDirect() is only available in java 6 or later, so need to use a slower test
+                    // that checks / casts to the appropriate buffer subclass
+                    mv.invokestatic(AsmRuntime.class, "isDirect5", boolean.class, Buffer.class);
+
+                } else {
+                    mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, parameterTypes[i]);
+                }
                 mv.iffalse(bufferInvocationLabel);
                 needBufferInvocation = true;
 
