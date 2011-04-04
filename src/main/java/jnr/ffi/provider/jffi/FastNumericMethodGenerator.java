@@ -131,11 +131,11 @@ public class FastNumericMethodGenerator extends BaseMethodGenerator {
         final boolean r32 = AsmLibraryLoader.isInt32Result(returnType, resultAnnotations);
         char numericType;
 
-        if (r32 && !p64 && !n) {
+        if (r32 && !p64 && !n && parameterTypes.length <= 3) {
             // all 32 bit integer params with a 32bit integer result - use the int path
             numericType = 'I';
 
-        } else if (!r32 && !n && (!p32 || Platform.getPlatform().addressSize() == 64)) {
+        } else if (!r32 && !n && (!p32 || Platform.getPlatform().getCPU() == Platform.CPU.X86_64)) {
             // A call that is 64bit result with all 64bit params, or it is a 64bit
             // machine where 32bit params will promote, then use the fast-long invoker
             numericType = 'L';
@@ -145,7 +145,7 @@ public class FastNumericMethodGenerator extends BaseMethodGenerator {
             numericType = 'N';
         }
 
-        if (ignoreErrno && numericType == 'I') {
+        if (ignoreErrno && numericType == 'I' && parameterTypes.length <= 3) {
             sb.append("NoErrno");
         }
 
