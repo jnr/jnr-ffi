@@ -21,15 +21,12 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
-import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.Platform;
 import jnr.ffi.*;
-import jnr.ffi.Runtime;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.IdentityFunctionMapper;
-import jnr.ffi.provider.LoadedLibrary;
 import jnr.ffi.provider.NullTypeMapper;
 import jnr.ffi.struct.Struct;
 import jnr.ffi.util.EnumMapper;
@@ -96,7 +93,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
 
-        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractNativeInterface.class),
+        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractAsmLibraryInterface.class),
                 new String[] { p(interfaceClass) });
 
         // Create the constructor to set the 'library' & functions fields
@@ -109,7 +106,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         init.aload(0);
         init.aload(1);
 
-        init.invokespecial(p(AbstractNativeInterface.class), "<init>", sig(void.class, NativeLibrary.class));
+        init.invokespecial(p(AbstractAsmLibraryInterface.class), "<init>", sig(void.class, NativeLibrary.class));
         
         final Method[] methods = interfaceClass.getMethods();
         Function[] functions = new Function[methods.length];
@@ -502,23 +499,4 @@ public class AsmLibraryLoader extends LibraryLoader {
     }
 
 
-    
-    public static abstract class AbstractNativeInterface implements LoadedLibrary {
-        public static final com.kenai.jffi.Invoker ffi = com.kenai.jffi.Invoker.getInstance();
-        
-        // Strong ref to keep the library alive
-        protected final NativeLibrary library;
-
-        public AbstractNativeInterface(NativeLibrary library) {
-            this.library = library;
-        }
-
-        protected static final HeapInvocationBuffer newInvocationBuffer(Function f) {
-            return new HeapInvocationBuffer(f);
-        }
-
-        public final Runtime __jaffl_runtime__() {
-            return NativeRuntime.getInstance();
-        }
-    }
 }

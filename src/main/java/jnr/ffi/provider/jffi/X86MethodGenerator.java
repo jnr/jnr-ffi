@@ -154,7 +154,7 @@ class X86MethodGenerator implements MethodGenerator {
                 bi.start();
 
                 // Retrieve the static 'ffi' Invoker instance
-                bi.getstatic(p(AsmLibraryLoader.AbstractNativeInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
+                bi.getstatic(p(AbstractAsmLibraryInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
 
                 // retrieve this.function
                 bi.aload(0);

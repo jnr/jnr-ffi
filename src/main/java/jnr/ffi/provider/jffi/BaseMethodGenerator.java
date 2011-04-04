@@ -26,7 +26,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         mv.start();
 
         // Retrieve the static 'ffi' Invoker instance
-        mv.getstatic(p(AsmLibraryLoader.AbstractNativeInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
+        mv.getstatic(p(AbstractAsmLibraryInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
 
         // retrieve this.function
         mv.aload(0);
