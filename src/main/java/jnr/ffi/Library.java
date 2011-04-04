@@ -41,7 +41,7 @@ public final class Library {
     }
 
     public static final Runtime getRuntime(Object obj) {
-        return ((LoadedLibrary) obj).__jaffl_runtime__();
+        return ((LoadedLibrary) obj).getRuntime();
     }
 
     /**

@@ -22,5 +22,5 @@ package jnr.ffi.provider;
  * All loaded libraries must implement this interface
  */
 public interface LoadedLibrary {
-    public jnr.ffi.Runtime __jaffl_runtime__();
+    public jnr.ffi.Runtime getRuntime();
 }

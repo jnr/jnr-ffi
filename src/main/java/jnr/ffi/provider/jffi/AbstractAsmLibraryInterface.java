@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
 import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.provider.LoadedLibrary;
 
 /**
@@ -10,6 +11,7 @@ import jnr.ffi.provider.LoadedLibrary;
  */
 public abstract class AbstractAsmLibraryInterface implements LoadedLibrary {
     public static final com.kenai.jffi.Invoker ffi = com.kenai.jffi.Invoker.getInstance();
+    public static final NativeRuntime runtime = NativeRuntime.getInstance();
 
     // Strong ref to keep the library alive
     protected final NativeLibrary library;
@@ -22,7 +24,7 @@ public abstract class AbstractAsmLibraryInterface implements LoadedLibrary {
         return new HeapInvocationBuffer(f);
     }
 
-    public final jnr.ffi.Runtime __jaffl_runtime__() {
-        return NativeRuntime.getInstance();
+    public final jnr.ffi.Runtime getRuntime() {
+        return runtime;
     }
 }
