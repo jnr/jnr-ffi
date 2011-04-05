@@ -42,10 +42,11 @@ class X86MethodGenerator implements MethodGenerator {
     }
 
     public void generate(Function function,
-                         ClassVisitor cv, String className, String functionName, String functionFieldName,
-                         Class returnType, Annotation[] resultAnnotations,
-                         Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention, boolean ignoreError) {
-        compile(function, cv, className, functionName, functionFieldName, returnType,
+            ClassVisitor cv, String className, String functionName,
+            Class returnType, Annotation[] resultAnnotations,
+            Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention,
+            boolean ignoreError) {
+        compile(function, cv, className, functionName, loader.getFunctionFieldName(function), returnType,
                 resultAnnotations, parameterTypes, parameterAnnotations, convention, ignoreError);
     }
 
@@ -146,7 +147,7 @@ class X86MethodGenerator implements MethodGenerator {
                 mv.invokevirtual(className, bufferFunctionName, sig(returnType, parameterTypes));
                 emitReturnOp(mv, returnType);
                 // Now generate the buffer invocation method body
-                bufgen.generate(function, cv, className, bufferFunctionName, functionFieldName, returnType,
+                bufgen.generate(function, cv, className, bufferFunctionName, returnType,
                     resultAnnotations, parameterTypes, parameterAnnotations, convention, ignoreErrno);
             }
             mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);

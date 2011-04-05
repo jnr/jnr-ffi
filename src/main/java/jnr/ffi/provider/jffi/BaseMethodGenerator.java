@@ -17,10 +17,17 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
  *
  */
 abstract class BaseMethodGenerator implements MethodGenerator {
+    protected final AsmLibraryLoader loader;
+
+    protected BaseMethodGenerator(AsmLibraryLoader loader) {
+        this.loader = loader;
+    }
+
     public final void generate(Function function,
-                             ClassVisitor cv, String className, String functionName, String functionFieldName,
-                             Class returnType, Annotation[] resultAnnotations,
-                             Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention, boolean ignoreError) {
+            ClassVisitor cv, String className, String functionName,
+            Class returnType, Annotation[] resultAnnotations,
+            Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention,
+            boolean ignoreError) {
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
                 sig(returnType, parameterTypes), null, null));
         mv.start();
@@ -30,7 +37,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
 
         // retrieve this.function
         mv.aload(0);
-        mv.getfield(className, functionFieldName, ci(Function.class));
+        mv.getfield(className, loader.getFunctionFieldName(function), ci(Function.class));
 
         generate(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreError);
 

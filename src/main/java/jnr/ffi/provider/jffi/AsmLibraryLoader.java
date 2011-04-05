@@ -62,6 +62,7 @@ public class AsmLibraryLoader extends LibraryLoader {
     private final List<FromNativeConverter> fromNativeConverters = new ArrayList<FromNativeConverter>();
     private final Map<ToNativeConverter, String> toNativeConverterNames = new IdentityHashMap<ToNativeConverter, String>();
     private final Map<FromNativeConverter, String> fromNativeConverterNames = new IdentityHashMap<FromNativeConverter, String>();
+    private final Map<Function, String> functionFieldNames = new IdentityHashMap<Function, String>();
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
@@ -185,6 +186,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
             String functionFieldName = "function_" + i;
+            functionFieldNames.put(functions[i], functionFieldName);
 
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
             final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
@@ -192,7 +194,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             for (MethodGenerator g : generators) {
                 if (g.isSupported(returnType, resultAnnotations, parameterTypes, parameterAnnotations, callingConvention)) {
                     g.generate(functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                        functionFieldName, nativeReturnType, m.getAnnotations(),
+                            nativeReturnType, m.getAnnotations(),
                         nativeParameterTypes, m.getParameterAnnotations(),
                         callingConvention, ignoreErrno);
                     break;
@@ -290,6 +292,16 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         return name;
     }
+
+    String getFunctionFieldName(Function function) {
+        String name = functionFieldNames.get(function);
+        if (name == null) {
+            throw new IllegalStateException("no function name registered for " + function);
+        }
+
+        return name;
+    }
+
 
     private final ToNativeConverter getParameterConverter(Method m, int parameterIndex, TypeMapper typeMapper) {
         Class parameterType = m.getParameterTypes()[parameterIndex];

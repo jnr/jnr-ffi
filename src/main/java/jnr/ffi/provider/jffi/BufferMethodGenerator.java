@@ -25,10 +25,9 @@ import static jnr.ffi.provider.jffi.NumberUtil.isPrimitiveInt;
  *
  */
 final class BufferMethodGenerator extends BaseMethodGenerator {
-    protected final AsmLibraryLoader loader;
 
     BufferMethodGenerator(AsmLibraryLoader loader) {
-        this.loader = loader;
+        super(loader);
     }
 
     public void generate(SkinnyMethodAdapter mv,
