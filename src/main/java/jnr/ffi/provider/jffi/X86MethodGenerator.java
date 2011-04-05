@@ -133,39 +133,24 @@ class X86MethodGenerator implements MethodGenerator {
             // emitReturn will box the return value if needed
             AsmLibraryLoader.emitReturn(mv, returnType, nativeReturnType);
 
-            String bufInvoke = null;
             if (bufferInvocationLabel != null) {
                 // If there was a non-direct pointer in the parameters, need to
-                // handle it via a call to the slow buffer invocation
+                // handle it via a call to the slower buffer invocation
                 mv.label(bufferInvocationLabel);
 
-                bufInvoke = functionName + "$buf$" + nextMethodID.incrementAndGet();
+                String bufferFunctionName = functionName + "$buf$" + nextMethodID.incrementAndGet();
                 // reload all the parameters
                 for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
                     lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i], lvar);
                 }
-                mv.invokevirtual(className, bufInvoke, sig(returnType, parameterTypes));
+                mv.invokevirtual(className, bufferFunctionName, sig(returnType, parameterTypes));
                 emitReturnOp(mv, returnType);
+                // Now generate the buffer invocation method body
+                bufgen.generate(function, cv, className, bufferFunctionName, functionFieldName, returnType,
+                    resultAnnotations, parameterTypes, parameterAnnotations, convention, ignoreErrno);
             }
             mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
             mv.visitEnd();
-
-            if (bufInvoke != null) {
-                SkinnyMethodAdapter bi = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
-                        bufInvoke, sig(returnType, parameterTypes), null, null));
-                bi.start();
-
-                // Retrieve the static 'ffi' Invoker instance
-                bi.getstatic(p(AbstractAsmLibraryInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
-
-                // retrieve this.function
-                bi.aload(0);
-                bi.getfield(className, functionFieldName, ci(Function.class));
-
-                BufferMethodGenerator.generateBufferInvocation(bi, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
-                bi.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
-                bi.visitEnd();
-            }
         }
 
         cv.visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE,
