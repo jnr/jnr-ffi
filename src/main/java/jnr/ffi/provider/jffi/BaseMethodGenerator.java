@@ -1,10 +1,6 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
-import org.objectweb.asm.ClassVisitor;
-
-import java.lang.annotation.Annotation;
 
 import static jnr.ffi.provider.jffi.AsmUtil.calculateLocalVariableSpace;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -17,19 +13,11 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
  *
  */
 abstract class BaseMethodGenerator implements MethodGenerator {
-    protected final AsmLibraryLoader loader;
 
-    protected BaseMethodGenerator(AsmLibraryLoader loader) {
-        this.loader = loader;
-    }
-
-    public final void generate(Function function,
-            ClassVisitor cv, String className, String functionName,
-            Class returnType, Annotation[] resultAnnotations,
-            Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention,
-            boolean ignoreError) {
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
-                sig(returnType, parameterTypes), null, null));
+    public void generate(AsmBuilder builder, String functionName, Function function, Signature signature) {
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL,
+                functionName,
+                sig(signature.resultType, signature.parameterTypes), null, null));
         mv.start();
 
         // Retrieve the static 'ffi' Invoker instance
@@ -37,13 +25,13 @@ abstract class BaseMethodGenerator implements MethodGenerator {
 
         // retrieve this.function
         mv.aload(0);
-        mv.getfield(className, loader.getFunctionFieldName(function), ci(Function.class));
+        mv.getfield(builder.getClassNamePath(), builder.getFunctionFieldName(function), ci(Function.class));
 
-        generate(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreError);
+        generate(mv, signature);
 
-        mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
+        mv.visitMaxs(100, calculateLocalVariableSpace(signature.parameterTypes) + 10);
         mv.visitEnd();
     }
-    abstract void generate(SkinnyMethodAdapter mv, Class returnType, Annotation[] resultAnnotations,
-                         Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreError);
+
+    abstract void generate(SkinnyMethodAdapter mv, Signature signature);
 }

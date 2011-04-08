@@ -40,9 +40,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.*;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -57,12 +54,6 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final AtomicLong nextIvarID = new AtomicLong(0);
     private final AtomicLong nextMethodID = new AtomicLong(0);
-
-    private final List<ToNativeConverter> toNativeConverters = new ArrayList<ToNativeConverter>();
-    private final List<FromNativeConverter> fromNativeConverters = new ArrayList<FromNativeConverter>();
-    private final Map<ToNativeConverter, String> toNativeConverterNames = new IdentityHashMap<ToNativeConverter, String>();
-    private final Map<FromNativeConverter, String> fromNativeConverterNames = new IdentityHashMap<FromNativeConverter, String>();
-    private final Map<Function, String> functionFieldNames = new IdentityHashMap<Function, String>();
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
@@ -94,6 +85,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
+        AsmBuilder builder = new AsmBuilder(className, cv);
 
         cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractAsmLibraryInterface.class),
                 new String[] { p(interfaceClass) });
@@ -122,13 +114,14 @@ public class AsmLibraryLoader extends LibraryLoader {
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
-        BufferMethodGenerator bufgen = new BufferMethodGenerator(this);
-        X86MethodGenerator compiler = new X86MethodGenerator(this, bufgen);
+        BufferMethodGenerator bufgen = new BufferMethodGenerator();
+        StubCompiler compiler = StubCompiler.newCompiler();
+
         final MethodGenerator[] generators = {
-                compiler,
-                new FastIntMethodGenerator(this, bufgen),
-                new FastLongMethodGenerator(this, bufgen),
-                new FastNumericMethodGenerator(this, bufgen),
+                new X86MethodGenerator(compiler, bufgen),
+                new FastIntMethodGenerator(bufgen),
+                new FastLongMethodGenerator(bufgen),
+                new FastNumericMethodGenerator(bufgen),
                 bufgen
         };
 
@@ -186,23 +179,21 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
             String functionFieldName = "function_" + i;
-            functionFieldNames.put(functions[i], functionFieldName);
+            builder.addFunctionField(functions[i], functionFieldName);
 
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
-            final boolean ignoreErrno = !InvokerUtil.requiresErrno(m);
 
+            Signature signature = new Signature(nativeReturnType, nativeParameterTypes, resultAnnotations, parameterAnnotations,
+                    callingConvention, !InvokerUtil.requiresErrno(m));
             for (MethodGenerator g : generators) {
-                if (g.isSupported(returnType, resultAnnotations, parameterTypes, parameterAnnotations, callingConvention)) {
-                    g.generate(functions[i], cv, className, m.getName() + (conversionRequired ? "$raw" : ""),
-                            nativeReturnType, m.getAnnotations(),
-                        nativeParameterTypes, m.getParameterAnnotations(),
-                        callingConvention, ignoreErrno);
+                if (g.isSupported(signature)) {
+                    g.generate(builder, m.getName() + (conversionRequired ? "$raw" : ""), functions[i], signature);
                     break;
                 }
             }
 
             if (conversionRequired) {
-                generateConversionMethod(cv, className, m.getName(), i, returnType, parameterTypes, nativeReturnType,
+                generateConversionMethod(builder, m.getName(), i, returnType, parameterTypes, nativeReturnType,
                         nativeParameterTypes, resultConverters[i], parameterConverters[i]);
             }
 
@@ -215,8 +206,9 @@ public class AsmLibraryLoader extends LibraryLoader {
             init.putfield(className, functionFieldName, ci(Function.class));
         }
 
-        for (int i = 0; i < fromNativeConverters.size(); i++) {
-            String fieldName = getResultConverterName(fromNativeConverters.get(i));
+        FromNativeConverter[] fromNativeConverters = builder.getFromNativeConverterArray();
+        for (int i = 0; i < fromNativeConverters.length; i++) {
+            String fieldName = builder.getResultConverterName(fromNativeConverters[i]);
             cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(FromNativeConverter.class), null, null);
             init.aload(0);
             init.aload(3);
@@ -226,8 +218,9 @@ public class AsmLibraryLoader extends LibraryLoader {
             init.putfield(className, fieldName, ci(FromNativeConverter.class));
         }
 
-        for (int i = 0; i < toNativeConverters.size(); i++) {
-            String fieldName = getParameterConverterName(toNativeConverters.get(i));
+        ToNativeConverter[] toNativeConverters = builder.getToNativeConverterArray();
+        for (int i = 0; i < toNativeConverters.length; i++) {
+            String fieldName = builder.getParameterConverterName(toNativeConverters[i]);
             cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(ToNativeConverter.class), null, null);
             init.aload(0);
             init.aload(4);
@@ -253,11 +246,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), bytes);
             Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class,
                     FromNativeConverter[].class, ToNativeConverter[].class);
-            FromNativeConverter[] fnc = new FromNativeConverter[fromNativeConverters.size()];
-            fromNativeConverters.toArray(fnc);
-            ToNativeConverter[] tnc = new ToNativeConverter[toNativeConverters.size()];
-            toNativeConverters.toArray(tnc);
-            T result = cons.newInstance(library, functions, fnc, tnc);
+            T result = cons.newInstance(library, functions, fromNativeConverters, toNativeConverters);
 
             // Attach any native method stubs - we have to delay this until the
             // implementation class is loaded for it to work.
@@ -268,40 +257,6 @@ public class AsmLibraryLoader extends LibraryLoader {
             throw new RuntimeException(ex);
         }
     }
-
-    String getResultConverterName(FromNativeConverter converter) {
-        String name = fromNativeConverterNames.get(converter);
-        if (name == null) {
-            int idx = fromNativeConverters.size();
-            name = "fromNativeConverter" + idx;
-            fromNativeConverters.add(converter);
-            fromNativeConverterNames.put(converter, name);
-        }
-
-        return name;
-    }
-
-    String getParameterConverterName(ToNativeConverter converter) {
-        String name = toNativeConverterNames.get(converter);
-        if (name == null) {
-            int idx = toNativeConverters.size();
-            name = "toNativeConverter" + idx;
-            toNativeConverters.add(converter);
-            toNativeConverterNames.put(converter, name);
-        }
-
-        return name;
-    }
-
-    String getFunctionFieldName(Function function) {
-        String name = functionFieldNames.get(function);
-        if (name == null) {
-            throw new IllegalStateException("no function name registered for " + function);
-        }
-
-        return name;
-    }
-
 
     private final ToNativeConverter getParameterConverter(Method m, int parameterIndex, TypeMapper typeMapper) {
         Class parameterType = m.getParameterTypes()[parameterIndex];
@@ -337,10 +292,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
         return InvokerUtil.getCallingConvention(options);
     }
-    
-    final String getFunctionFieldName(int idx) {
-        return "function_" + idx;
-    }
 
     private final void generateFunctionNotFound(ClassVisitor cv, String className, int idx, String functionName,
             Class returnType, Class[] parameterTypes) {
@@ -354,18 +305,19 @@ public class AsmLibraryLoader extends LibraryLoader {
         mv.visitEnd();
     }
 
-    private final void generateConversionMethod(ClassVisitor cv, String className, String functionName, int idx,
+    private final void generateConversionMethod(AsmBuilder builder, String functionName, int idx,
             Class returnType, Class[] parameterTypes, Class nativeReturnType, Class[] nativeParameterTypes,
             FromNativeConverter resultConverter, ToNativeConverter[] parameterConverters) {
 
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL,
+                functionName,
                 sig(returnType, parameterTypes), null, null));
         mv.start();
 
         // If there is a result converter, retrieve it and put on the stack
         if (!returnType.equals(nativeReturnType)) {
             mv.aload(0);
-            mv.getfield(className, getResultConverterName(resultConverter), ci(FromNativeConverter.class));
+            mv.getfield(builder.getClassNamePath(), builder.getResultConverterName(resultConverter), ci(FromNativeConverter.class));
         }
 
         
@@ -377,7 +329,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             final boolean convertParameter = !parameterTypes[pidx].equals(nativeParameterTypes[pidx]);
             if (convertParameter) {
                 mv.aload(0);
-                mv.getfield(className, getParameterConverterName(parameterConverters[pidx]), ci(ToNativeConverter.class));
+                mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterConverters[pidx]), ci(ToNativeConverter.class));
             }
 
             lvar = loadParameter(mv, parameterTypes[pidx], lvar);
@@ -394,7 +346,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
 
         // Invoke the real native method
-        mv.invokevirtual(className, functionName + "$raw", sig(nativeReturnType, nativeParameterTypes));
+        mv.invokevirtual(builder.getClassNamePath(), functionName + "$raw", sig(nativeReturnType, nativeParameterTypes));
         if (!returnType.equals(nativeReturnType)) {
             if (nativeReturnType.isPrimitive()) {
                 boxValue(mv, getBoxedClass(nativeReturnType), nativeReturnType);

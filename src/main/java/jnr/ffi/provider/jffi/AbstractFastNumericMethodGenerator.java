@@ -18,29 +18,33 @@ import static jnr.ffi.provider.jffi.NumberUtil.widen;
 abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
     private final BufferMethodGenerator bufgen;
 
-    public AbstractFastNumericMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
-        super(loader);
+    public AbstractFastNumericMethodGenerator(BufferMethodGenerator bufgen) {
         this.bufgen = bufgen;
     }
 
-    public void generate(SkinnyMethodAdapter mv, Class returnType, Annotation[] resultAnnotations,
-            Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreErrno) {
+    public void generate(SkinnyMethodAdapter mv, Signature signature) {
         // [ stack contains: Invoker, Function ]
 
         //mv = new SkinnyMethodAdapter(AsmUtil.newTraceMethodVisitor(mv));
-        Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, parameterTypes);
+        Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, signature.parameterTypes);
         final Class nativeIntType = getInvokerType();
 
         // Load and un-box parameters
-        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-            lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i], lvar);
-            final Class parameterType = parameterTypes[i];
+        for (int i = 0, lvar = 1; i < signature.parameterTypes.length; ++i) {
+            final Class parameterType = signature.parameterTypes[i];
+            lvar = AsmLibraryLoader.loadParameter(mv, parameterType, lvar);
 
             if (Float.class == parameterType || float.class == parameterType) {
+                if (!parameterType.isPrimitive()) {
+                    unboxNumber(mv, parameterType, float.class);
+                }
                 mv.invokestatic(Float.class, "floatToRawIntBits", int.class, float.class);
                 widen(mv, int.class, nativeIntType);
 
             } else if (Double.class == parameterType || double.class == parameterType) {
+                if (!parameterType.isPrimitive()) {
+                    unboxNumber(mv, parameterType, double.class);
+                }
                 mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
 
             } else if (parameterType.isPrimitive()) {
@@ -72,27 +76,27 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
         // stack now contains [ IntInvoker, Function, int/long args ]
         mv.invokevirtual(p(com.kenai.jffi.Invoker.class),
-                getInvokerMethodName(returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreErrno),
-                getInvokerSignature(parameterTypes.length, nativeIntType));
+                getInvokerMethodName(signature.resultType, signature.resultAnnotations, signature.parameterTypes, signature.parameterAnnotations, signature.ignoreError),
+                getInvokerSignature(signature.parameterTypes.length, nativeIntType));
 
         // Convert the result from long/int to the correct return type
-        if (Float.class == returnType || float.class == returnType) {
+        if (Float.class == signature.resultType || float.class == signature.resultType) {
             narrow(mv, nativeIntType, int.class);
             mv.invokestatic(Float.class, "intBitsToFloat", float.class, int.class);
 
-        } else if (Double.class == returnType || double.class == returnType) {
+        } else if (Double.class == signature.resultType || double.class == signature.resultType) {
             widen(mv, nativeIntType, long.class);
             mv.invokestatic(Double.class, "longBitsToDouble", double.class, long.class);
 
         }
 
         // emitReturn will box or narrow/widen the return value if needed
-        AsmLibraryLoader.emitReturn(mv, returnType, nativeIntType);
+        AsmLibraryLoader.emitReturn(mv, signature.resultType, nativeIntType);
 
         if (bufferInvocationLabel != null) {
             // Now emit the alternate path for any parameters that might require it
             mv.label(bufferInvocationLabel);
-            bufgen.generate(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations, ignoreErrno);
+            bufgen.generate(mv, signature);
         }
     }
 

@@ -36,8 +36,8 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         }
     }
 
-    public FastLongMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
-        super(loader, bufgen);
+    public FastLongMethodGenerator(BufferMethodGenerator bufgen) {
+        super(bufgen);
     }
 
     @Override
@@ -69,11 +69,10 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         return long.class;
     }
 
-    public boolean isSupported(Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes,
-            Annotation[][] parameterAnnotations, CallingConvention convention) {
-        final int parameterCount = parameterTypes.length;
+    public boolean isSupported(Signature signature) {
+        final int parameterCount = signature.parameterTypes.length;
 
-        if (convention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
+        if (signature.callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
             return false;
         }
         final Platform platform = Platform.getPlatform();
@@ -82,13 +81,18 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
             return false;
         }
 
+        if (platform.getOS().equals(Platform.OS.WINDOWS)) {
+            return false;
+        }
+
+
         for (int i = 0; i < parameterCount; i++) {
-            if (!isFastLongParameter(platform, parameterTypes[i], parameterAnnotations[i])) {
+            if (!isFastLongParameter(platform, signature.parameterTypes[i], signature.parameterAnnotations[i])) {
                 return false;
             }
         }
 
-        return isFastLongResult(platform, returnType, resultAnnotations);
+        return isFastLongResult(platform, signature.resultType, signature.resultAnnotations);
     }
 
     final static int getMaximumFastLongParameters() {

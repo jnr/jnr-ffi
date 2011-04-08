@@ -11,11 +11,6 @@ import java.lang.annotation.Annotation;
  */
 public interface MethodGenerator {
 
-    public boolean isSupported(Class returnType, Annotation[] resultAnnotations,
-                         Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention);
-    public void generate(Function function,
-            ClassVisitor cv, String className, String functionName,
-            Class returnType, Annotation[] resultAnnotations,
-            Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention,
-            boolean ignoreError);
+    public boolean isSupported(Signature signature);
+    public void generate(AsmBuilder builder, String functionName, Function function, Signature signature);
 }

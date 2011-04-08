@@ -26,19 +26,12 @@ import static jnr.ffi.provider.jffi.NumberUtil.isPrimitiveInt;
  */
 final class BufferMethodGenerator extends BaseMethodGenerator {
 
-    BufferMethodGenerator(AsmLibraryLoader loader) {
-        super(loader);
-    }
-
     public void generate(SkinnyMethodAdapter mv,
-                         Class returnType, Annotation[] resultAnnotations,
-                         Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreError) {
-        generateBufferInvocation(mv, returnType, resultAnnotations, parameterTypes, parameterAnnotations);
+                         Signature signature) {
+        generateBufferInvocation(mv, signature.resultType, signature.resultAnnotations, signature.parameterTypes, signature.parameterAnnotations);
     }
 
-    public boolean isSupported(Class returnType, Annotation[] resultAnnotations,
-                         Class[] parameterTypes, Annotation[][] parameterAnnotations,
-                         CallingConvention convention) {
+    public boolean isSupported(Signature signature) {
         // Buffer invocation supports everything
         return true;
     }

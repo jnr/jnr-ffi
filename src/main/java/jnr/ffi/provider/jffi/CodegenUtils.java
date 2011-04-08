@@ -25,21 +25,21 @@ import org.objectweb.asm.Type;
 
 public class CodegenUtils {
     /**
-     * Creates a dotted class name from a path/package name
+     * Creates a dotted class className from a path/package className
      */
     public static String c(String p) {
         return p.replace('/', '.');
     }
 
     /**
-     * Creates a class path name, from a Class.
+     * Creates a class path className, from a Class.
      */
     public static String p(Class n) {
         return n.getName().replace('.','/');
     }
 
     /**
-     * Creates a class path name, from a class name.
+     * Creates a class path className, from a class className.
      */
     public static String p(String n) {
         return n.replace('.', '/');

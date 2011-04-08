@@ -1,14 +1,10 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.lang.annotation.Annotation;
 import java.nio.Buffer;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -20,119 +16,96 @@ import static org.objectweb.asm.Opcodes.*;
  *
  */
 class X86MethodGenerator implements MethodGenerator {
-    private final StubCompiler compiler = StubCompiler.newCompiler();
     private final AtomicLong nextMethodID = new AtomicLong(0);
-    private final AsmLibraryLoader loader;
+    private final StubCompiler compiler;
     private final BufferMethodGenerator bufgen;
 
-    X86MethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
-        this.loader = loader;
+    X86MethodGenerator(StubCompiler compiler, BufferMethodGenerator bufgen) {
+        this.compiler = compiler;
         this.bufgen = bufgen;
     }
 
-    public boolean isSupported(Class returnType, Annotation[] resultAnnotations,
-                               Class[] parameterTypes, Annotation[][] parameterAnnotations,
-                               CallingConvention convention) {
-        return canCompile(compiler, returnType, parameterTypes, convention);
-    }
+    public boolean isSupported(Signature signature) {
 
-
-    public void generate(SkinnyMethodAdapter mv, Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreError) {
-        throw new NotImplementedException();
-    }
-
-    public void generate(Function function,
-            ClassVisitor cv, String className, String functionName,
-            Class returnType, Annotation[] resultAnnotations,
-            Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention,
-            boolean ignoreError) {
-        compile(function, cv, className, functionName, loader.getFunctionFieldName(function), returnType,
-                resultAnnotations, parameterTypes, parameterAnnotations, convention, ignoreError);
-    }
-
-
-    static boolean canCompile(StubCompiler compiler, Class returnType, Class[] parameterTypes,
-                              CallingConvention convention) {
-
-        Class[] nativeParameterTypes = new Class[parameterTypes.length];
+        Class[] nativeParameterTypes = new Class[signature.parameterTypes.length];
         for (int i = 0; i < nativeParameterTypes.length; ++i) {
-            if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+            if (Buffer.class.isAssignableFrom(signature.parameterTypes[i])) {
                 nativeParameterTypes[i] = AsmUtil.unboxedType(Pointer.class);
 
             } else {
-                nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+                nativeParameterTypes[i] = AsmUtil.unboxedType(signature.parameterTypes[i]);
             }
         }
 
-        return compiler.canCompile(AsmUtil.unboxedReturnType(returnType), nativeParameterTypes, convention);
+        return compiler.canCompile(AsmUtil.unboxedReturnType(signature.resultType), nativeParameterTypes, signature.callingConvention);
     }
 
-    private void compile(Function function,
-                        ClassVisitor cv, String className, String functionName, String functionFieldName,
-                        Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations,
-                        CallingConvention convention, boolean ignoreErrno) {
+    public void generate(AsmBuilder builder, String functionName, Function function, Signature signature) {
 
-        Class[] nativeParameterTypes = new Class[parameterTypes.length];
+        Class[] nativeParameterTypes = new Class[signature.parameterTypes.length];
         boolean unboxing = false;
         boolean ptrCheck = false;
-        for (int i = 0; i < nativeParameterTypes.length; ++i) {
-            if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+        for (int i = 0; i < signature.parameterTypes.length; ++i) {
+            Class parameterType = signature.parameterTypes[i];
+            if (Buffer.class.isAssignableFrom(parameterType)) {
                 nativeParameterTypes[i] = AsmUtil.unboxedType(Pointer.class);
 
             } else {
-                nativeParameterTypes[i] = AsmUtil.unboxedType(parameterTypes[i]);
+                nativeParameterTypes[i] = AsmUtil.unboxedType(parameterType);
             }
-            unboxing |= nativeParameterTypes[i] != parameterTypes[i];
-            ptrCheck |= Pointer.class.isAssignableFrom(parameterTypes[i])
-                    || Struct.class.isAssignableFrom(parameterTypes[i])
-                    || Buffer.class.isAssignableFrom(parameterTypes[i]);
+            unboxing |= nativeParameterTypes[i] != parameterType;
+            ptrCheck |= Pointer.class.isAssignableFrom(parameterType)
+                    || Struct.class.isAssignableFrom(parameterType)
+                    || Buffer.class.isAssignableFrom(parameterType);
         }
 
-        Class nativeReturnType = AsmUtil.unboxedReturnType(returnType);
-        unboxing |= nativeReturnType != returnType;
+        Class nativeReturnType = AsmUtil.unboxedReturnType(signature.resultType);
+        unboxing |= nativeReturnType != signature.resultType;
 
         String stubName = functionName + (unboxing || ptrCheck ? "$jni$" + nextMethodID.incrementAndGet() : "");
 
         // If unboxing of parameters is required, generate a wrapper
         if (unboxing || ptrCheck) {
-            SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL,
-                    functionName, sig(returnType, parameterTypes), null, null));
+            SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(
+                    ACC_PUBLIC | ACC_FINAL,
+                    functionName, sig(signature.resultType, signature.parameterTypes), null, null));
             mv.start();
             mv.aload(0);
 
-            Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, parameterTypes);
+            Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, signature.parameterTypes);
 
             // Emit the unboxing wrapper
-            for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-                lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i], lvar);
-                if (parameterTypes[i] != nativeParameterTypes[i]) {
+            for (int i = 0, lvar = 1; i < signature.parameterTypes.length; ++i) {
+                Class parameterType = signature.parameterTypes[i];
+                lvar = AsmLibraryLoader.loadParameter(mv, parameterType, lvar);
+                if (parameterType != nativeParameterTypes[i]) {
 
-                    if (Number.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxNumber(mv, parameterTypes[i], nativeParameterTypes[i]);
+                    if (Number.class.isAssignableFrom(parameterType)) {
+                        unboxNumber(mv, parameterType, nativeParameterTypes[i]);
 
-                    } else if (Boolean.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxBoolean(mv, parameterTypes[i], nativeParameterTypes[i]);
+                    } else if (Boolean.class.isAssignableFrom(parameterType)) {
+                        unboxBoolean(mv, parameterType, nativeParameterTypes[i]);
 
-                    } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+                    } else if (Pointer.class.isAssignableFrom(parameterType)) {
                         unboxPointer(mv, nativeParameterTypes[i]);
 
-                    } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+                    } else if (Struct.class.isAssignableFrom(parameterType)) {
                         unboxStruct(mv, nativeParameterTypes[i]);
 
-                    } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
-                        unboxBuffer(mv, parameterTypes[i], nativeParameterTypes[i]);
+                    } else if (Buffer.class.isAssignableFrom(parameterType)) {
+                        unboxBuffer(mv, parameterType, nativeParameterTypes[i]);
 
-                    } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
+                    } else if (Enum.class.isAssignableFrom(parameterType)) {
                         unboxEnum(mv, nativeParameterTypes[i]);
                     }
                 }
             }
 
             // invoke the compiled stub
-            mv.invokevirtual(className, stubName, sig(nativeReturnType, nativeParameterTypes));
+            mv.invokevirtual(builder.getClassNamePath(), stubName, sig(nativeReturnType, nativeParameterTypes));
 
             // emitReturn will box the return value if needed
-            AsmLibraryLoader.emitReturn(mv, returnType, nativeReturnType);
+            AsmLibraryLoader.emitReturn(mv, signature.resultType, nativeReturnType);
 
             if (bufferInvocationLabel != null) {
                 // If there was a non-direct pointer in the parameters, need to
@@ -141,25 +114,24 @@ class X86MethodGenerator implements MethodGenerator {
 
                 String bufferFunctionName = functionName + "$buf$" + nextMethodID.incrementAndGet();
                 // reload all the parameters
-                for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-                    lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i], lvar);
+                for (int i = 0, lvar = 1; i < signature.parameterTypes.length; ++i) {
+                    lvar = AsmLibraryLoader.loadParameter(mv, signature.parameterTypes[i], lvar);
                 }
-                mv.invokevirtual(className, bufferFunctionName, sig(returnType, parameterTypes));
-                emitReturnOp(mv, returnType);
+                mv.invokevirtual(builder.getClassNamePath(), bufferFunctionName, sig(signature.resultType, signature.parameterTypes));
+                emitReturnOp(mv, signature.resultType);
                 // Now generate the buffer invocation method body
-                bufgen.generate(function, cv, className, bufferFunctionName, returnType,
-                    resultAnnotations, parameterTypes, parameterAnnotations, convention, ignoreErrno);
+                bufgen.generate(builder, bufferFunctionName, function, signature);
             }
-            mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
+            mv.visitMaxs(100, calculateLocalVariableSpace(signature.parameterTypes) + 10);
             mv.visitEnd();
         }
 
-        cv.visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE,
+        builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE,
                 stubName, sig(nativeReturnType, nativeParameterTypes), null, null);
 
 
         compiler.compile(function, stubName, nativeReturnType, nativeParameterTypes,
-                convention, !ignoreErrno);
+                signature.callingConvention, !signature.ignoreError);
     }
 
     void attach(Class clazz) {

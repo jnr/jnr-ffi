@@ -40,8 +40,8 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
         }
     }
 
-    FastIntMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
-        super(loader, bufgen);
+    FastIntMethodGenerator(BufferMethodGenerator bufgen) {
+        super(bufgen);
     }
 
     @Override
@@ -73,24 +73,25 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
         return int.class;
     }
 
+    public boolean isSupported(Signature signature) {
+        final int parameterCount = signature.parameterTypes.length;
 
-    public boolean isSupported(Class returnType, Annotation[] resultAnnotations,
-            Class[] parameterTypes, Annotation[][] parameterAnnotations, CallingConvention convention) {
-
-        final int parameterCount = parameterTypes.length;
-
-        if (convention != CallingConvention.DEFAULT || parameterCount > MAX_FASTINT_PARAMETERS) {
+        if (signature.callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_FASTINT_PARAMETERS) {
             return false;
         }
         final Platform platform = Platform.getPlatform();
 
+        if (platform.getOS().equals(Platform.OS.WINDOWS)) {
+            return false;
+        }
+
         for (int i = 0; i < parameterCount; i++) {
-            if (!isFastIntParameter(platform, parameterTypes[i], parameterAnnotations[i])) {
+            if (!isFastIntParameter(platform, signature.parameterTypes[i], signature.parameterAnnotations[i])) {
                 return false;
             }
         }
 
-        return isFastIntResult(platform, returnType, resultAnnotations);
+        return isFastIntResult(platform, signature.resultType, signature.resultAnnotations);
     }
 
 

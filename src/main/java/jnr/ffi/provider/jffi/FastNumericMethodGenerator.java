@@ -35,15 +35,14 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
         }
     }
 
-    FastNumericMethodGenerator(AsmLibraryLoader loader, BufferMethodGenerator bufgen) {
-        super(loader, bufgen);
+    FastNumericMethodGenerator(BufferMethodGenerator bufgen) {
+        super(bufgen);
     }
 
-    public boolean isSupported(Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes,
-            Annotation[][] parameterAnnotations, CallingConvention convention) {
-        final int parameterCount = parameterTypes.length;
+    public boolean isSupported(Signature signature) {
+        final int parameterCount = signature.parameterTypes.length;
 
-        if (convention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
+        if (signature.callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
             return false;
         }
         final Platform platform = Platform.getPlatform();
@@ -53,13 +52,17 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
             return false;
         }
 
+        if (platform.getOS().equals(Platform.OS.WINDOWS)) {
+            return false;
+        }
+
         for (int i = 0; i < parameterCount; i++) {
-            if (!isFastNumericParameter(platform, parameterTypes[i], parameterAnnotations[i])) {
+            if (!isFastNumericParameter(platform, signature.parameterTypes[i], signature.parameterAnnotations[i])) {
                 return false;
             }
         }
 
-        return isFastNumericResult(platform, returnType, resultAnnotations);
+        return isFastNumericResult(platform, signature.resultType, signature.resultAnnotations);
     }
 
     @Override
