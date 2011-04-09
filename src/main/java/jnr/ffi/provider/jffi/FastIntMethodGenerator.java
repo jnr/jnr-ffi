@@ -76,12 +76,17 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     public boolean isSupported(Signature signature) {
         final int parameterCount = signature.parameterTypes.length;
 
-        if (signature.callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_FASTINT_PARAMETERS) {
+        if (!signature.callingConvention.equals(CallingConvention.DEFAULT) || parameterCount > MAX_FASTINT_PARAMETERS) {
             return false;
         }
+
         final Platform platform = Platform.getPlatform();
 
         if (platform.getOS().equals(Platform.OS.WINDOWS)) {
+            return false;
+        }
+
+        if (!platform.getCPU().equals(Platform.CPU.I386) && !platform.getCPU().equals(Platform.CPU.X86_64)) {
             return false;
         }
 

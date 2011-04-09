@@ -1,6 +1,8 @@
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
+import com.kenai.jffi.Platform;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
 import org.objectweb.asm.Label;
@@ -26,6 +28,19 @@ class X86MethodGenerator implements MethodGenerator {
     }
 
     public boolean isSupported(Signature signature) {
+        final Platform platform = Platform.getPlatform();
+
+        if (platform.getOS().equals(Platform.OS.WINDOWS)) {
+            return false;
+        }
+
+        if (!platform.getCPU().equals(Platform.CPU.I386) && !platform.getCPU().equals(Platform.CPU.X86_64)) {
+            return false;
+        }
+
+        if (!signature.callingConvention.equals(CallingConvention.DEFAULT)) {
+            return false;
+        }
 
         Class[] nativeParameterTypes = new Class[signature.parameterTypes.length];
         for (int i = 0; i < nativeParameterTypes.length; ++i) {
