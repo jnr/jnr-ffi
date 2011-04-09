@@ -124,24 +124,28 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             throw new IllegalArgumentException("float argument count > 8");
         }
 
-        
-        if (saveErrno) {
-            // Need to align the stack to 16 bytes for function call.
-            // It already has 8 bytes pushed (the return address), so making space
-            // to save the return value from the function neatly aligns it to 16 bytes
-            int space = returnType == float.class || returnType == double.class
+        // Need to align the stack to 16 bytes for function call.
+        // It already has 8 bytes pushed (the return address), so making space
+        // to save the return value from the function neatly aligns it to 16 bytes
+        int space = returnType == float.class || returnType == double.class
                     ? 24 : 8;
-            a.sub(rsp, imm(space));
-            
-            // Call to the actual native function
-            a.mov(rax, imm(function.getFunctionAddress()));
-            a.call(rax);
+        a.sub(rsp, imm(space));
 
+        // Call to the actual native function
+        a.mov(rax, imm(function.getFunctionAddress()));
+        a.call(rax);
+
+        if (saveErrno) {
             // Save the return on the stack
-            if (returnType == float.class) {
+            if (returnType == void.class) {
+                // No need to save/reload return value registers
+
+            } else if (returnType == float.class) {
                 a.movss(dword_ptr(rsp, 0), xmm0);
+
             } else if (returnType == double.class) {
                 a.movsd(qword_ptr(rsp, 0), xmm0);
+
             } else {
                 a.mov(qword_ptr(rsp, 0), rax);
             }
@@ -149,27 +153,25 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             // Save the errno in a thread-local variable
             a.mov(rax, imm(errnoFunctionAddress));
             a.call(rax);
-            
+
             // Retrieve return value and put it back in the appropriate return register
-            if (returnType == float.class) {
+            if (returnType == void.class) {
+                // No need to save/reload return value registers
+
+            } else if (returnType == float.class) {
                 a.movss(xmm0, dword_ptr(rsp, 0));
+
             } else if (returnType == double.class) {
                 a.movsd(xmm0, qword_ptr(rsp, 0));
+
             } else {
                 a.mov(rax, dword_ptr(rsp, 0));
             }
-
-            // Restore rsp to original position
-            a.add(rsp, imm(space));
-            a.ret();
-        } else {
-            // Since there is no need to return here to save the errno, and the
-            // stack was not modified, we can just do a jmpq directly to the
-            // native function, and let it return back to the caller.
-            a.mov(rax, imm(function.getFunctionAddress()));
-            a.jmp(rax);
         }
 
+        // Restore rsp to original position
+        a.add(rsp, imm(space));
+        a.ret();
 
         stubs.add(new Stub(name, sig(returnType, parameterTypes), a));
     }
