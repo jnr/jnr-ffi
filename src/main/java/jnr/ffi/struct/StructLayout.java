@@ -14,15 +14,15 @@ import static jnr.ffi.struct.Struct.Offset;
 public class StructLayout implements Type {
     private final Runtime runtime;
     private final boolean isUnion = false;
-    private StructLayout enclosing = null;
     private boolean resetIndex = false;
-    private int offset = 0;
-    private int size = 0;
-    private int alignment = 1;
-    private int paddedSize = 0;
+    StructLayout enclosing = null;
+    int offset = 0;
+    int size = 0;
+    int alignment = 1;
+    int paddedSize = 0;
 
     /**
-     * Creates a new <tt>Struct</tt>.
+     * Creates a new <tt>StructLayout</tt>.
      */
     protected StructLayout() {
         this(Runtime.getSystemRuntime());
