@@ -1021,7 +1021,7 @@ public abstract class Struct {
          * @param offset The offset within the memory area for this field.
          */
         public Unsigned32(Offset offset) {
-            super(NativeType.SINT, offset);
+            super(NativeType.UINT, offset);
         }
 
         /**
@@ -1816,13 +1816,13 @@ public abstract class Struct {
 
     public class UTF8String extends UTFString {
         public UTF8String(int size) {
-            super(size, Charset.forName("UTF-8"));
+            super(size, StructUtil.utf8);
         }
     }
 
     public class AsciiString extends UTFString {
         public AsciiString(int size) {
-            super(size, Charset.forName("ASCII"));
+            super(size, StructUtil.ascii);
         }
     }
 
@@ -1862,18 +1862,19 @@ public abstract class Struct {
 
     public class UTF8StringRef extends UTFStringRef {
         public UTF8StringRef(int size) {
-            super(size, Charset.forName("UTF-8"));
+            super(size, StructUtil.utf8);
         }
         public UTF8StringRef() {
-            super(Integer.MAX_VALUE, Charset.forName("UTF-8"));
+            super(Integer.MAX_VALUE, StructUtil.utf8);
         }
     }
+
     public class AsciiStringRef extends UTFStringRef {
         public AsciiStringRef(int size) {
-            super(size, Charset.forName("ASCII"));
+            super(size, StructUtil.ascii);
         }
         public AsciiStringRef() {
-            super(Integer.MAX_VALUE, Charset.forName("ASCII"));
+            super(Integer.MAX_VALUE, StructUtil.ascii);
         }
     }
 
@@ -1882,16 +1883,12 @@ public abstract class Struct {
      * members for more efficient struct construction.
      */
     public final class Padding extends AbstractMember {
-        Padding(Type type, int length) {
+        protected Padding(Type type, int length) {
             super(type.size() * 8 * length, type.alignment() * 8);
         }
-        Padding(NativeType type, int length) {
+
+        protected Padding(NativeType type, int length) {
             super(getRuntime().findType(type).size() * 8 * length, getRuntime().findType(type).alignment() * 8);
         }
     }
-    /*
-    public final Marshaller.Session marshal(Marshaller marshaller, MarshalContext context) {
-        return __info.marshal(marshaller, context);
-    }
-    */
 }

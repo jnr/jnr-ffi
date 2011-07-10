@@ -21,11 +21,15 @@ package jnr.ffi.struct;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 
 /**
  *
  */
 public final class StructUtil {
+    static final Charset ascii = Charset.forName("ASCII");
+    static final Charset utf8 = Charset.forName("UTF-8");
+
     private StructUtil() {}
     public final static Pointer getMemory(Struct struct) {
         return struct.__info.getMemory(0);
@@ -72,5 +76,9 @@ public final class StructUtil {
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    static Charset defaultCharset() {
+        return Charset.forName("ASCII");
     }
 }
