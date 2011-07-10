@@ -569,7 +569,7 @@ public abstract class Struct {
     /**
      * A normal C boolean - 1 byte in size
      */
-    protected final class Boolean extends AbstractBoolean {
+    public final class Boolean extends AbstractBoolean {
         protected Boolean() {
             super(NativeType.SCHAR);
         }
@@ -586,7 +586,7 @@ public abstract class Struct {
     /**
      * A Windows BOOL - 4 bytes
      */
-    protected final class WBOOL extends AbstractBoolean {
+    public final class WBOOL extends AbstractBoolean {
         protected WBOOL() {
             super(NativeType.SINT);
         }
@@ -603,7 +603,7 @@ public abstract class Struct {
     /**
      * Base class for all Number structure fields.
      */
-    protected abstract class NumberField implements Member {
+    public abstract class NumberField implements Member {
         /**
          * Offset from the start of the <tt>Struct</tt> memory this field is located at.
          */
