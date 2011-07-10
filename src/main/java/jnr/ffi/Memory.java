@@ -42,6 +42,18 @@ public final class Memory {
     }
 
     /**
+     * Allocates a new block of java memory and wraps it in a {@link Pointer}
+     * accessor.
+     *
+     * @param type The native type to allocate memory for.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static final Pointer allocate(Runtime runtime, NativeType type) {
+        return runtime.getMemoryManager().allocate(runtime.findType(type).size());
+    }
+
+    /**
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
@@ -57,6 +69,18 @@ public final class Memory {
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param type The native type to allocate memory for.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static final Pointer allocateDirect(Runtime runtime, NativeType type) {
+        return runtime.getMemoryManager().allocateDirect(runtime.findType(type).size());
+    }
+
+    /**
+     * Allocates a new block of native memory and wraps it in a {@link Pointer}
+     * accessor.
+     *
      * @param size The size in bytes of memory to allocate.
      * @param clear Whether the memory contents should be cleared, or left as
      * random data.
@@ -65,5 +89,33 @@ public final class Memory {
      */
     public static final Pointer allocateDirect(Runtime runtime, int size, boolean clear) {
         return runtime.getMemoryManager().allocateDirect(size, clear);
+    }
+
+    /**
+     * Allocates a new block of transient native memory and wraps it in a {@link Pointer}
+     * accessor.  The memory returned by this method should not be passed to native methods
+     * that store the address for later use, as it may change each time it is passed to native code.
+     *
+     * @param type The native type to allocate memory for.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static final Pointer allocateTemporary(Runtime runtime, NativeType type) {
+        return runtime.getMemoryManager().allocateTemporary(runtime.findType(type).size(), true);
+    }
+    
+    /**
+     * Allocates a new block of transient native memory and wraps it in a {@link Pointer}
+     * accessor.  The memory returned by this method should not be passed to native methods
+     * that store the address for later use, as it may change each time it is passed to native code.
+     *
+     * @param type The native type to allocate memory for.
+     * @param clear Whether the memory contents should be cleared, or left as
+     * random data.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static final Pointer allocateTemporary(Runtime runtime, NativeType type, boolean clear) {
+        return runtime.getMemoryManager().allocateTemporary(runtime.findType(type).size(), clear);
     }
 }

@@ -99,6 +99,24 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-analysis</artifactId>
+      <version>3.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>3.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>3.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.jruby.extras</groupId>
       <artifactId>jnr-x86asm</artifactId>
       <version>1.0.0</version>

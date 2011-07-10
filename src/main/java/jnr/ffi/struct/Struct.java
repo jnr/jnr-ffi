@@ -113,21 +113,8 @@ public abstract class Struct {
     /**
      * Creates a new <tt>Struct</tt>.
      */
-    protected Struct() {
-        this(Runtime.getSystemRuntime());
-    }
-
     protected Struct(Runtime runtime) {
         this.__info = new Info(runtime);
-    }
-
-    /**
-     * Creates a new <tt>Struct</tt>.
-     * 
-     * @param isUnion if this Struct is a Union
-     */
-    Struct(final boolean isUnion) {
-        this(Runtime.getSystemRuntime(), isUnion);
     }
 
     /**
@@ -570,7 +557,7 @@ public abstract class Struct {
      * A normal C boolean - 1 byte in size
      */
     public final class Boolean extends AbstractBoolean {
-        protected Boolean() {
+        public Boolean() {
             super(NativeType.SCHAR);
         }
 
@@ -587,7 +574,7 @@ public abstract class Struct {
      * A Windows BOOL - 4 bytes
      */
     public final class WBOOL extends AbstractBoolean {
-        protected WBOOL() {
+        public WBOOL() {
             super(NativeType.SINT);
         }
 
@@ -1485,14 +1472,14 @@ public abstract class Struct {
         /**
          * Reads an {@code Address} value from the struct.
          * 
-         * @return a {@link com.kenai.jaffl.Address}.
+         * @return a {@link jnr.ffi.Address}.
          */
         public final jnr.ffi.Address get() {
             return jnr.ffi.Address.valueOf(getMemory().getAddress(offset()));
         }
         
         /**
-         * Puts a {@link com.kenai.jffi.Address} value into the native memory.
+         * Puts a {@link jnr.ffi.Address} value into the native memory.
          */
         public final void set(jnr.ffi.Address value) {
             getMemory().putAddress(offset(), value != null ? value.nativeAddress() : 0);
@@ -1547,9 +1534,9 @@ public abstract class Struct {
         }
 
         /**
-         * Gets the {@link com.kenai.jffi.Address} value from the native memory.
+         * Gets the {@link jnr.ffi.Pointer} value from the native memory.
          * 
-         * @return a {@link com.kenai.jffi.Address}.
+         * @return a {@link jnr.ffi.Pointer}.
          */
         public final jnr.ffi.Pointer get() {
             return getMemory().getPointer(offset());
@@ -1565,7 +1552,7 @@ public abstract class Struct {
         }
         
         /**
-         * Puts a {@link com.kenai.jffi.Address} value into the native memory.
+         * Puts a {@link jnr.ffi.Address} value into the native memory.
          */
         public final void set(jnr.ffi.Pointer value) {
             getMemory().putPointer(offset(), value);

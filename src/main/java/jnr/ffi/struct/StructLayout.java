@@ -24,10 +24,6 @@ public class StructLayout implements Type {
     /**
      * Creates a new <tt>StructLayout</tt>.
      */
-    protected StructLayout() {
-        this(Runtime.getSystemRuntime());
-    }
-
     protected StructLayout(Runtime runtime) {
         this.runtime = runtime;
     }

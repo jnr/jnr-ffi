@@ -27,18 +27,20 @@ public final class LastError {
     /**
      * Gets the value of errno from the last native call.
      *
+     * @param runtime FFI runtime to get errno for.
      * @return An integer containing the errno value.
      */
-    public static final int getLastError() {
-        return Runtime.getSystemRuntime().getLastError();
+    public static final int getLastError(Runtime runtime) {
+        return runtime.getLastError();
     }
 
     /**
      * Sets the native errno value.
      *
+     * @param runtime FFI runtime to set errno for.
      * @param error The value to set errno to.
      */
-    public static final void setLastError(int error) {
-        Runtime.getSystemRuntime().setLastError(error);
+    public static final void setLastError(Runtime runtime, int error) {
+        runtime.setLastError(error);
     }
 }
