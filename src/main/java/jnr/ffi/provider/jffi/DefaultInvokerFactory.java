@@ -32,6 +32,7 @@ import jnr.ffi.struct.Struct;
 import jnr.ffi.util.EnumMapper;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.*;
 import java.nio.charset.Charset;
@@ -506,7 +507,8 @@ final class DefaultInvokerFactory implements InvokerFactory {
                 return null;
             }
             try {
-                Struct s = (Struct) structClass.newInstance();
+                Constructor<? extends Struct> constructor = structClass.getConstructor(jnr.ffi.Runtime.class);
+                Struct s = constructor.newInstance(NativeRuntime.getInstance());
                 s.useMemory(new DirectMemoryIO(ptr));
                 return s;
             } catch (Throwable t) {

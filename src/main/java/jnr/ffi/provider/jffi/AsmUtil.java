@@ -318,7 +318,14 @@ final class AsmUtil {
         // Create an instance of the struct subclass
         mv.newobj(p(structClass));
         mv.dup();
-        mv.invokespecial(structClass, "<init>", void.class);
+        try {
+            Constructor<? extends Struct> constructor = structClass.asSubclass(Struct.class).getConstructor(jnr.ffi.Runtime.class);
+        } catch (NoSuchMethodException ex) {
+            throw new RuntimeException("struct subclass " + structClass.getName() + " has no constructor that takes a "
+                + jnr.ffi.Runtime.class.getName(), ex);
+        }
+        mv.invokestatic(p(NativeRuntime.class), "getInstance", sig(NativeRuntime.class));
+        mv.invokespecial(structClass, "<init>", void.class, jnr.ffi.Runtime.class);
         if (long.class == nativeType) {
             mv.dup_x2();
         } else {

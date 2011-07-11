@@ -83,7 +83,7 @@ public class StructureTest {
         public final Float f = new Float();
         public final Double d = new Double();
 
-        public struct1() {
+        public struct1(jnr.ffi.Runtime runtime) {
             super(runtime);
         }
 
@@ -93,7 +93,7 @@ public class StructureTest {
         public final Signed8 first = new Signed8();
         public final Signed16 s = new Signed16();
 
-        public Int16Align() {
+        public Int16Align(jnr.ffi.Runtime runtime) {
             super(runtime);
         }
 
@@ -102,7 +102,7 @@ public class StructureTest {
         public final Signed8 first = new Signed8();
         public final Signed32 i = new Signed32();
 
-        public Int32Align() {
+        public Int32Align(jnr.ffi.Runtime runtime) {
             super(runtime);
         }
 
@@ -111,7 +111,7 @@ public class StructureTest {
         public final Signed8 first = new Signed8();
         public final Signed64 l = new Signed64();
 
-        public Int64Align() {
+        public Int64Align(jnr.ffi.Runtime runtime) {
             super(runtime);
         }
 
@@ -120,19 +120,19 @@ public class StructureTest {
         public final Signed8 first = new Signed8();
         public final SignedLong l = new SignedLong();
 
-        public LongAlign() {
+        public LongAlign(jnr.ffi.Runtime runtime) {
             super(runtime);
         }
 
     }
 
     @Test public void testInt8InitialValue() {
-        struct1 s = new struct1();
+        struct1 s = new struct1(runtime);
         assertEquals("default value not zero", (byte) 0, s.b.get());
     }
 
     @Test public void testInt8Set() {
-        struct1 s = new struct1();
+        struct1 s = new struct1(runtime);
         final byte MAGIC = (byte) 0xfe;
         s.b.set(MAGIC);
         assertEquals("Byte value not set correctly", MAGIC, s.b.get());
@@ -141,7 +141,7 @@ public class StructureTest {
     @Test
     public void byteField() {
         final byte MAGIC = (byte) 0xbe;
-        struct1 s = new struct1();
+        struct1 s = new struct1(runtime);
         s.b.set(MAGIC);
         
         assertEquals("byte field not set", MAGIC, testlib.struct_field_Signed8(s));
@@ -152,7 +152,7 @@ public class StructureTest {
     @Test
     public void shortField() {
         final short MAGIC = (short) 0xbeef;
-        struct1 s = new struct1();
+        struct1 s = new struct1(runtime);
         s.s.set(MAGIC);
         
         assertEquals("short field not set", MAGIC, testlib.struct_field_Signed16(s));
@@ -163,7 +163,7 @@ public class StructureTest {
     @Test
     public void intField() {
         final int MAGIC = 0xdeadbeef;
-        struct1 s = new struct1();
+        struct1 s = new struct1(runtime);
         s.i.set(MAGIC);
         
         assertEquals("int field not set", MAGIC, testlib.struct_field_Signed32(s));
@@ -173,7 +173,7 @@ public class StructureTest {
     @Test 
     public void int64Field() {
         final long MAGIC = 0x1234deadbeef5678L;
-        struct1 s = new struct1();
+        struct1 s = new struct1(runtime);
         s.i64.set(MAGIC);
         
         assertEquals("long field not set", MAGIC, testlib.struct_field_Signed64(s));
@@ -183,7 +183,7 @@ public class StructureTest {
     @Test 
     public void alignInt16Field() {
         final short MAGIC = (short) 0xbeef;
-        Int16Align s = new Int16Align();
+        Int16Align s = new Int16Align(runtime);
         s.s.set(MAGIC);
         
         assertEquals("short field not aligned", MAGIC, testlib.struct_align_Signed16(s));
@@ -191,7 +191,7 @@ public class StructureTest {
     @Test 
     public void alignSigned32Field() {
         final int MAGIC = (int) 0xdeadbeef;
-        Int32Align s = new Int32Align();
+        Int32Align s = new Int32Align(runtime);
         s.i.set(MAGIC);
         
         assertEquals("int field not aligned", MAGIC, testlib.struct_align_Signed32(s));
@@ -199,7 +199,7 @@ public class StructureTest {
     @Test 
     public void alignSigned64Field() {
         final long MAGIC = 0x1234deadbeef5678L;
-        Int64Align s = new Int64Align();
+        Int64Align s = new Int64Align(runtime);
         s.l.set(MAGIC);
         
         assertEquals("long field not aligned", MAGIC, testlib.struct_align_Signed64(s));
@@ -207,7 +207,7 @@ public class StructureTest {
     @Test 
     public void alignSignedLongField() {
         final NativeLong MAGIC = new NativeLong(0xdeadbeef);
-        LongAlign s = new LongAlign();
+        LongAlign s = new LongAlign(runtime);
         s.l.set(MAGIC);
         
         assertEquals("native long field not aligned", MAGIC, testlib.struct_align_SignedLong(s));
