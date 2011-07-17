@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
+import jnr.ffi.Closure;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
@@ -116,8 +117,9 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     final static boolean isFastNumericParameter(Platform platform, Class type, Annotation[] annotations) {
         return isNumericType(platform, type, annotations)
-                || Buffer.class.isAssignableFrom(type)
-                ;
+            || Buffer.class.isAssignableFrom(type)
+            || Closure.class.isAssignableFrom(type)
+            ;
     }
 
     final static int getMaximumParameters() {

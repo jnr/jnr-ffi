@@ -189,6 +189,12 @@ final class DefaultInvokerFactory implements InvokerFactory {
         if (converter != null) {
             return new ToNativeConverterMarshaller(converter, 
                     getMarshaller(converter.nativeType(), method.getParameterAnnotations()[paramIndex]));
+
+        } else if (jnr.ffi.Closure.class.isAssignableFrom(type)) {
+            NativeClosureFactory closureFactory
+                    = NativeRuntime.getInstance().getClosureManager().getClosureFactory(type.asSubclass(jnr.ffi.Closure.class));
+            return new ToNativeConverterMarshaller(closureFactory,
+                    getMarshaller(closureFactory.nativeType(), method.getParameterAnnotations()[paramIndex]));
         } else {
             return getMarshaller(method, paramIndex);
         }
@@ -440,14 +446,14 @@ final class DefaultInvokerFactory implements InvokerFactory {
     }
     
     static final class Long32Invoker extends BaseInvoker {
-        static final FunctionInvoker INSTANCE = new NativeLong32Invoker();
+        static final FunctionInvoker INSTANCE = new Long32Invoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
             return Long.valueOf(invoker.invokeInt(function, buffer));
         }
     }
     
     static final class Long64Invoker extends BaseInvoker {
-        static final FunctionInvoker INSTANCE = new NativeLong32Invoker();
+        static final FunctionInvoker INSTANCE = new Long64Invoker();
         public final Object invoke(Function function, HeapInvocationBuffer buffer) {
             return Long.valueOf(invoker.invokeLong(function, buffer));
         }

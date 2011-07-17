@@ -34,6 +34,7 @@ import java.util.EnumSet;
  */
 public final class NativeRuntime extends AbstractRuntime {
     private final NativeMemoryManager mm = new NativeMemoryManager(this);
+    private final NativeClosureManager closureManager = new NativeClosureManager(this);
 
     public static final NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
@@ -60,6 +61,10 @@ public final class NativeRuntime extends AbstractRuntime {
 
     public final NativeMemoryManager getMemoryManager() {
         return mm;
+    }
+
+    public NativeClosureManager getClosureManager() {
+        return closureManager;
     }
 
     @Override

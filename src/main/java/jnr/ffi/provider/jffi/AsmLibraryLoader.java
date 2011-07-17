@@ -54,6 +54,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final AtomicLong nextIvarID = new AtomicLong(0);
     private final AtomicLong nextMethodID = new AtomicLong(0);
+    private final NativeClosureManager closureManager = NativeRuntime.getInstance().getClosureManager();
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
@@ -267,6 +268,9 @@ public class AsmLibraryLoader extends LibraryLoader {
         } else if (Enum.class.isAssignableFrom(parameterType)) {
             return EnumMapper.getInstance(parameterType.asSubclass(Enum.class));
 
+        } else if (Closure.class.isAssignableFrom(parameterType)) {
+
+            return closureManager.getClosureFactory(parameterType);
         } else {
             return null;
         }
@@ -493,7 +497,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                 || CharSequence.class.isAssignableFrom(type)
                 || ByReference.class.isAssignableFrom(type)
                 || StringBuilder.class.isAssignableFrom(type)
-                || StringBuffer.class.isAssignableFrom(type);
+                || StringBuffer.class.isAssignableFrom(type)
+                || Closure.class.isAssignableFrom(type)
+                ;
     }
 
 

@@ -18,10 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.Address;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.NativeLong;
-import jnr.ffi.Pointer;
+import jnr.ffi.*;
 import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.SaveError;
@@ -136,6 +133,9 @@ final class InvokerUtil {
             return Type.POINTER;
         
         } else if (type.isArray()) {
+            return Type.POINTER;
+
+        } else if (Closure.class.isAssignableFrom(type)) {
             return Type.POINTER;
         
         } else {

@@ -46,6 +46,10 @@ public class AsciiStringFieldTest {
             super(runtime);
         }
 
+        public StringFieldStruct(Runtime runtime) {
+            super(runtime);
+        }
+
     }
     public static interface TestLib {
         // This makes use of the string being the first field in the struct

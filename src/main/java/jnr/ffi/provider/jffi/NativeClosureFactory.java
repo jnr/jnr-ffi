@@ -1,8 +1,30 @@
+/*
+ * Copyright (C) 2011 Wayne Meissner
+ *
+ * This file is part of the JNR project.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.CallContext;
+import com.kenai.jffi.CallContextCache;
 import jnr.ffi.Closure;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -11,6 +33,8 @@ import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
@@ -21,39 +45,35 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  *
  */
-public abstract class NativeClosureFactory<T extends Closure> {
-    public final static boolean DEBUG = true || Boolean.getBoolean("jnr.ffi.compile.dump");
+public final class NativeClosureFactory<T extends Closure> implements ToNativeConverter<Closure, Pointer> {
+    public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
-    protected final NativeRuntime runtime;
-    protected final Class<? extends T> closureClass;
-    protected NativeClosureFactory(NativeRuntime runtime, Class<? extends T> closureClass) {
+    private final NativeRuntime runtime;
+    private final CallContext callContext;
+    private final Constructor<? extends NativeClosure> nativeClosureConstructor;
+    private final Map<Closure, Pointer> closures = new WeakHashMap<Closure, Pointer>();
+    private final com.kenai.jffi.ClosureManager nativeClosureManager = com.kenai.jffi.ClosureManager.getInstance();
+
+    protected NativeClosureFactory(NativeRuntime runtime, CallContext callContext,
+                                   Constructor<? extends NativeClosure> nativeClosureConstructor) {
         this.runtime = runtime;
-        this.closureClass = closureClass;
+        this.callContext = callContext;
+        this.nativeClosureConstructor = nativeClosureConstructor;
     }
 
-    abstract public T newClosure(T instance);
-
-    static NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<? extends Closure> closureClass) {
-        ClassWriter factoryClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor factoryClassVisitor = DEBUG ? AsmUtil.newCheckClassAdapter(factoryClassWriter) : factoryClassWriter;
+    static <T extends Closure> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass) {
         final long classIdx = nextClassID.getAndIncrement();
 
-        String factoryClassName = p(NativeClosureFactory.class) + '$' + closureClass.getName().replace('.', '$')
-                + '$' + classIdx;
-
-        factoryClassVisitor.visit(V1_5, ACC_PUBLIC | ACC_FINAL, factoryClassName, null, p(NativeClosureFactory.class),
-                new String[]{});
-
-        final String closureInstanceClassName = factoryClassName + "$ClosureInstance";
+        final String closureInstanceClassName = p(NativeClosureFactory.class) + "$ClosureInstance";
         final ClassWriter closureClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         final ClassVisitor closureClassVisitor = DEBUG ? AsmUtil.newCheckClassAdapter(closureClassWriter) : closureClassWriter;
 
         closureClassVisitor.visit(V1_5, ACC_PUBLIC | ACC_FINAL, closureInstanceClassName, null, p(NativeClosure.class),
-                        new String[]{ p(closureClass), p(com.kenai.jffi.Closure.class) });
+                        new String[]{ p(com.kenai.jffi.Closure.class) });
 
         SkinnyMethodAdapter closureInit = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "<init>",
-               sig(void.class, NativeRuntime.class, closureClass),
+               sig(void.class, NativeRuntime.class, Closure.class),
                null, null));
         closureClassVisitor.visitField(ACC_PRIVATE | ACC_FINAL, "closure", ci(closureClass), null, null);
         closureInit.start();
@@ -115,6 +135,7 @@ public abstract class NativeClosureFactory<T extends Closure> {
 
             if (byte.class == type) {
                 closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getByte", sig(type, int.class));
+
             } else if (char.class == type) {
                 closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getShort", sig(short.class, int.class));
 
@@ -124,13 +145,19 @@ public abstract class NativeClosureFactory<T extends Closure> {
             } else if (int.class == type) {
                 closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getInt", sig(type, int.class));
 
-            } else if (long.class == type) {
+            } else if (long.class == type && (long.class == parameterType || Long.class == parameterType)) {
+                // Handle native long
                 if (isLong32(parameterType, callMethod.getParameterAnnotations()[i])) {
                     closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getInt", sig(int.class, int.class));
                     widen(closureInvoke, int.class, long.class);
                 } else {
                     closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getLong", sig(long.class, int.class));
                 }
+
+            } else if (long.class == type) {
+                // This long type is used by Pointer/Struct/String, etc
+                closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getLong", sig(long.class, int.class));
+
             } else if (float.class == type) {
                 closureInvoke.invokeinterface(p(com.kenai.jffi.Closure.Buffer.class), "getFloat", sig(type, int.class));
 
@@ -141,10 +168,10 @@ public abstract class NativeClosureFactory<T extends Closure> {
                 throw new IllegalArgumentException("unsupported closure parameter type " + parameterType);
             }
 
-            if (type != parameterType) {
-                AsmUtil.boxValue(closureInvoke, parameterType, type);
-            }
+            AsmUtil.boxValue(closureInvoke, parameterType, type);
         }
+
+        // dispatch to java method
         closureInvoke.invokeinterface(p(closureClass), callMethod.getName(), sig(callMethod.getReturnType(), callMethod.getParameterTypes()));
 
         Class returnType = callMethod.getReturnType();
@@ -202,53 +229,13 @@ public abstract class NativeClosureFactory<T extends Closure> {
 
         closureClassVisitor.visitEnd();
 
-        // Create the constructor to set the 'library' & functions fields
-        SkinnyMethodAdapter factoryInit = new SkinnyMethodAdapter(factoryClassVisitor.visitMethod(ACC_PUBLIC, "<init>",
-               sig(void.class, NativeRuntime.class, Class.class),
-               null, null));
-        factoryInit.start();
-
-        factoryInit.aload(0);
-        factoryInit.aload(1);
-        factoryInit.aload(2);
-
-        factoryInit.invokespecial(p(NativeClosureFactory.class), "<init>", sig(void.class, NativeRuntime.class, Class.class));
-
-        factoryInit.voidreturn();
-        factoryInit.visitMaxs(10, 10);
-        factoryInit.visitEnd();
-
-
-
-        // Generate the 'newClosure' method
-        SkinnyMethodAdapter newClosure = new SkinnyMethodAdapter(factoryClassVisitor.visitMethod(ACC_PUBLIC | ACC_FINAL, "newClosure",
-                sig(Closure.class, Closure.class), null, null));
-        newClosure.start();
-        newClosure.newobj(p(closureInstanceClassName));
-        newClosure.dup();
-        newClosure.aload(0);
-        newClosure.getfield(factoryClassName, "runtime", ci(NativeRuntime.class));
-        newClosure.aload(1);
-        newClosure.checkcast(p(closureClass));
-        newClosure.invokespecial(p(closureInstanceClassName), "<init>", sig(void.class, NativeRuntime.class, closureClass));
-        newClosure.areturn();
-        newClosure.visitMaxs(10, 10);
-        newClosure.visitEnd();
-
-        factoryClassVisitor.visitEnd();
 
         try {
-            byte[] factoryImpBytes = factoryClassWriter.toByteArray();
             byte[] closureImpBytes = closureClassWriter.toByteArray();
-            System.out.println("debug=" + DEBUG);
             if (DEBUG) {
                 ClassVisitor trace = AsmUtil.newTraceClassVisitor(new PrintWriter(System.err));
                 new ClassReader(closureImpBytes).accept(trace, 0);
-                //trace.visitEnd();
-                trace = AsmUtil.newTraceClassVisitor(new PrintWriter(System.err));
-                new ClassReader(factoryImpBytes).accept(trace, 0);
-                //trace.visitEnd();
-                System.err.flush();
+                trace.visitEnd();
             }
             ClassLoader cl = NativeClosureFactory.class.getClassLoader();
             if (cl == null) {
@@ -258,12 +245,11 @@ public abstract class NativeClosureFactory<T extends Closure> {
                 cl = ClassLoader.getSystemClassLoader();
             }
             AsmClassLoader asm = new AsmClassLoader(cl);
-            asm.defineClass(c(closureInstanceClassName), closureImpBytes);
-            Class<? extends NativeClosureFactory> factoryImpClass = asm.defineClass(c(factoryClassName), factoryImpBytes);
-            Constructor<? extends NativeClosureFactory> cons = factoryImpClass.getDeclaredConstructor(NativeRuntime.class, Class.class);
-            NativeClosureFactory result = cons.newInstance(runtime, closureClass);
+            Class<? extends NativeClosure> nativeClosureClass = asm.defineClass(c(closureInstanceClassName), closureImpBytes);
+            Constructor<? extends NativeClosure> nativeClosureConstructor
+                    = nativeClosureClass.getConstructor(NativeRuntime.class, Closure.class);
 
-            return result;
+            return new NativeClosureFactory(runtime, getCallContext(callMethod), nativeClosureConstructor);
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }
@@ -303,91 +289,45 @@ public abstract class NativeClosureFactory<T extends Closure> {
                 */
                 ;
     }
-    public static interface MyClosure extends Closure {
-        public void call(Byte b, char c, int i, Long l, Float f, Double d, Pointer p);
+
+
+    public synchronized Pointer toNative(Closure value, ToNativeContext context) {
+        Pointer ptr = closures.get(value);
+        if (ptr != null) {
+            return ptr;
+        }
+
+        return newClosure(value);
     }
 
-    private static final class MyBuffer implements com.kenai.jffi.Closure.Buffer {
-        public byte getByte(int i) {
-            return (byte) 1;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public short getShort(int i) {
-            return (short) 2;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public int getInt(int i) {
-            return 3;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public long getLong(int i) {
-            return 4;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public float getFloat(int i) {
-            return 5;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public double getDouble(int i) {
-            return 6;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public long getAddress(int i) {
-            return 0;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public long getStruct(int i) {
-            return 0;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setByteReturn(byte b) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setShortReturn(short i) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setIntReturn(int i) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setLongReturn(long l) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setFloatReturn(float v) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setDoubleReturn(double v) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setAddressReturn(long l) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setStructReturn(long l) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        public void setStructReturn(byte[] bytes, int i) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
+    public Class<Pointer> nativeType() {
+        return Pointer.class;
     }
-    public static void main(String[] args) {
-        NativeRuntime runtime = NativeRuntime.getInstance();
-        NativeClosureFactory f = NativeClosureFactory.newClosureFactory(runtime, MyClosure.class);
-        System.out.println("factory class=" + f.getClass());
-        MyClosure closure = (MyClosure) f.newClosure(new MyClosure() {
-            public void call(Byte b, char c, int i, Long l, Float f, Double d, Pointer p) {
-                System.out.println("b=" + b + ", c=" + c + ", i=" + i + ", l=" + l + ", p=" + p);
-            }
-        });
-        System.out.println("Closure instance=" + closure.getClass());
-        NativeClosure ncl = (NativeClosure) closure;
-        ncl.invoke(new MyBuffer());
 
+    NativeClosurePointer newClosure(Closure value) {
+        NativeClosure nativeClosure;
+        try {
+            nativeClosure = nativeClosureConstructor.newInstance(NativeRuntime.getInstance(), value);
+        } catch (RuntimeException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+
+        return new NativeClosurePointer(runtime, nativeClosure,
+                nativeClosureManager.newClosure(nativeClosure, callContext));
+    }
+
+    private static CallContext getCallContext(Method m) {
+        com.kenai.jffi.Type resultType = ClosureUtil.getNativeResultType(m);
+        com.kenai.jffi.Type[] parameterTypes = new com.kenai.jffi.Type[m.getParameterTypes().length];
+
+        for (int i = 0; i < parameterTypes.length; i++) {
+            parameterTypes[i] = ClosureUtil.getNativeParameterType(m, i);
+        }
+        
+
+        return CallContextCache.getInstance().getCallContext(resultType, parameterTypes,
+                ClosureUtil.getNativeCallingConvention(m));
     }
 }

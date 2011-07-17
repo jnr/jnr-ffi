@@ -3,10 +3,13 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
+import jnr.ffi.Closure;
+import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
 import org.objectweb.asm.Label;
 
+import java.lang.annotation.Annotation;
 import java.nio.Buffer;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -44,6 +47,10 @@ class X86MethodGenerator implements MethodGenerator {
 
         Class[] nativeParameterTypes = new Class[signature.parameterTypes.length];
         for (int i = 0; i < nativeParameterTypes.length; ++i) {
+            if (!isSupportedParameter(platform, signature.parameterTypes[i], signature.parameterAnnotations[i])) {
+                return false;
+            }
+
             if (Buffer.class.isAssignableFrom(signature.parameterTypes[i])) {
                 nativeParameterTypes[i] = AsmUtil.unboxedType(Pointer.class);
 
@@ -52,7 +59,8 @@ class X86MethodGenerator implements MethodGenerator {
             }
         }
 
-        return compiler.canCompile(AsmUtil.unboxedReturnType(signature.resultType), nativeParameterTypes, signature.callingConvention);
+        return isSupportedResult(platform, signature.resultType, signature.resultAnnotations)
+            && compiler.canCompile(AsmUtil.unboxedReturnType(signature.resultType), nativeParameterTypes, signature.callingConvention);
     }
 
     public void generate(AsmBuilder builder, String functionName, Function function, Signature signature) {
@@ -153,4 +161,30 @@ class X86MethodGenerator implements MethodGenerator {
         compiler.attach(clazz);
     }
 
+    private static boolean isSupportedType(Platform platform, Class type, Annotation[] annotations) {
+        return Boolean.class.isAssignableFrom(type) || boolean.class == type
+            || Byte.class.isAssignableFrom(type) || byte.class == type
+            || Short.class.isAssignableFrom(type) || short.class == type
+            || Integer.class.isAssignableFrom(type) || int.class == type
+            || Long.class == type || long.class == type
+            || NativeLong.class == type
+            || Pointer.class.isAssignableFrom(type)
+            || Struct.class.isAssignableFrom(type)
+            || float.class == type || Float.class == type
+            || double.class == type || Double.class == type
+            ;
+    }
+
+    final static boolean isSupportedResult(Platform platform, Class type, Annotation[] annotations) {
+        return isSupportedType(platform, type, annotations)
+            || String.class == type
+            ;
+    }
+
+    final static boolean isSupportedParameter(Platform platform, Class type, Annotation[] annotations) {
+        return isSupportedType(platform, type, annotations)
+            || Buffer.class.isAssignableFrom(type)
+            || Closure.class.isAssignableFrom(type)
+            ;
+    }
 }

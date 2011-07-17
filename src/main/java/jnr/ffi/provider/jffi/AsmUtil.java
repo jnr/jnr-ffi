@@ -106,16 +106,22 @@ final class AsmUtil {
     public static final Class unboxedType(Class boxedType) {
         if (boxedType == Byte.class) {
             return byte.class;
+
         } else if (boxedType == Short.class) {
             return short.class;
+
         } else if (boxedType == Integer.class) {
             return int.class;
+
         } else if (boxedType == Long.class) {
             return long.class;
+
         } else if (boxedType == Float.class) {
             return float.class;
+
         } else if (boxedType == Double.class) {
             return double.class;
+
         } else if (boxedType == Boolean.class) {
             return boolean.class;
 
@@ -123,6 +129,9 @@ final class AsmUtil {
             return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
 
         } else if (Pointer.class.isAssignableFrom(boxedType) || Struct.class.isAssignableFrom(boxedType)) {
+            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
+
+        } else if (String.class == boxedType) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
         } else if (Enum.class.isAssignableFrom(boxedType)) {

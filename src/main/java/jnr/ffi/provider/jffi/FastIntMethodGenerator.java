@@ -4,6 +4,7 @@ import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
 import jnr.ffi.Address;
+import jnr.ffi.Closure;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
 
@@ -129,6 +130,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
                 || (Pointer.class.isAssignableFrom(type) && platform.addressSize() == 32)
                 || (Struct.class.isAssignableFrom(type) && platform.addressSize() == 32)
                 || (Buffer.class.isAssignableFrom(type) && platform.addressSize() == 32)
+
 //                || ((float.class == type || Float.class == type) && platform.getCPU() == Platform.CPU.I386)
                 ;
     }
@@ -143,6 +145,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     static boolean isFastIntParameter(Platform platform, Class type, Annotation[] annotations) {
         return isFastIntType(platform, type, annotations)
+            || (Closure.class.isAssignableFrom(type) && platform.addressSize() == 32)
             ;
     }
 }
