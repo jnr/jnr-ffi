@@ -1,10 +1,10 @@
 package jnr.ffi.provider;
 
-import jnr.ffi.Closure;
+import jnr.ffi.Callable;
 
 /**
  *
  */
 public interface ClosureManager {
-    public abstract <T extends Closure> T newClosure(Class<? extends T> closureClass, T instance);
+    public abstract <T extends Callable> T newClosure(Class<? extends T> closureClass, T instance);
 }

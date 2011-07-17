@@ -3,7 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
-import jnr.ffi.Closure;
+import jnr.ffi.Callable;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.struct.Struct;
@@ -184,7 +184,7 @@ class X86MethodGenerator implements MethodGenerator {
     final static boolean isSupportedParameter(Platform platform, Class type, Annotation[] annotations) {
         return isSupportedType(platform, type, annotations)
             || Buffer.class.isAssignableFrom(type)
-            || Closure.class.isAssignableFrom(type)
+            || Callable.class.isAssignableFrom(type)
             ;
     }
 }

@@ -135,7 +135,7 @@ final class InvokerUtil {
         } else if (type.isArray()) {
             return Type.POINTER;
 
-        } else if (Closure.class.isAssignableFrom(type)) {
+        } else if (Callable.class.isAssignableFrom(type)) {
             return Type.POINTER;
         
         } else {

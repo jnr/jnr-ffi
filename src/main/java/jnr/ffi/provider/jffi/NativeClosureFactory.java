@@ -20,7 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallContextCache;
-import jnr.ffi.Closure;
+import jnr.ffi.Callable;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.mapper.ToNativeContext;
@@ -45,14 +45,14 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  *
  */
-public final class NativeClosureFactory<T extends Closure> implements ToNativeConverter<Closure, Pointer> {
+public final class NativeClosureFactory<T extends Callable> implements ToNativeConverter<Callable, Pointer> {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
     private final NativeRuntime runtime;
     private final CallContext callContext;
     private final Constructor<? extends NativeClosure> nativeClosureConstructor;
-    private final Map<Closure, Pointer> closures = new WeakHashMap<Closure, Pointer>();
+    private final Map<Callable, Pointer> closures = new WeakHashMap<Callable, Pointer>();
     private final com.kenai.jffi.ClosureManager nativeClosureManager = com.kenai.jffi.ClosureManager.getInstance();
 
     protected NativeClosureFactory(NativeRuntime runtime, CallContext callContext,
@@ -62,7 +62,7 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
         this.nativeClosureConstructor = nativeClosureConstructor;
     }
 
-    static <T extends Closure> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass) {
+    static <T extends Callable> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass) {
         final long classIdx = nextClassID.getAndIncrement();
 
         final String closureInstanceClassName = p(NativeClosureFactory.class) + "$ClosureInstance";
@@ -73,7 +73,7 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
                         new String[]{ p(com.kenai.jffi.Closure.class) });
 
         SkinnyMethodAdapter closureInit = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "<init>",
-               sig(void.class, NativeRuntime.class, Closure.class),
+               sig(void.class, NativeRuntime.class, Callable.class),
                null, null));
         closureClassVisitor.visitField(ACC_PRIVATE | ACC_FINAL, "closure", ci(closureClass), null, null);
         closureInit.start();
@@ -81,7 +81,7 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
         closureInit.aload(1);
         closureInit.aload(2);
 
-        closureInit.invokespecial(p(NativeClosure.class), "<init>", sig(void.class, NativeRuntime.class, Closure.class));
+        closureInit.invokespecial(p(NativeClosure.class), "<init>", sig(void.class, NativeRuntime.class, Callable.class));
 
         closureInit.aload(0);
         closureInit.aload(2);
@@ -103,17 +103,17 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
         }
 
         SkinnyMethodAdapter closureInvoke = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "invoke",
-                       sig(void.class, com.kenai.jffi.Closure.Buffer.class, Closure.class),
+                       sig(void.class, com.kenai.jffi.Closure.Buffer.class, Callable.class),
                        null, null));
         closureInvoke.start();
 
         if (void.class != callMethod.getReturnType() && Void.class != callMethod.getReturnType()) {
-            // If the Closure returns a value, push the Closure.Buffer on the stack
-            // for the call to Closure.Buffer#set<Foo>Return()
+            // If the Callable returns a value, push the Callable.Buffer on the stack
+            // for the call to Callable.Buffer#set<Foo>Return()
             closureInvoke.aload(1);
         }
 
-        // Cast the Closure instance to the Closure subclass
+        // Cast the Callable instance to the Callable subclass
         closureInvoke.aload(2);
         closureInvoke.checkcast(p(closureClass));
 
@@ -125,7 +125,7 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
                 throw new IllegalArgumentException("unsupported closure parameter type " + parameterType);
             }
 
-            // Load the Closure.Buffer for the parameter set call
+            // Load the Callable.Buffer for the parameter set call
             closureInvoke.aload(1);
 
             // Load the parameter index
@@ -247,7 +247,7 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
             AsmClassLoader asm = new AsmClassLoader(cl);
             Class<? extends NativeClosure> nativeClosureClass = asm.defineClass(c(closureInstanceClassName), closureImpBytes);
             Constructor<? extends NativeClosure> nativeClosureConstructor
-                    = nativeClosureClass.getConstructor(NativeRuntime.class, Closure.class);
+                    = nativeClosureClass.getConstructor(NativeRuntime.class, Callable.class);
 
             return new NativeClosureFactory(runtime, getCallContext(callMethod), nativeClosureConstructor);
         } catch (Throwable ex) {
@@ -291,7 +291,7 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
     }
 
 
-    public synchronized Pointer toNative(Closure value, ToNativeContext context) {
+    public synchronized Pointer toNative(Callable value, ToNativeContext context) {
         Pointer ptr = closures.get(value);
         if (ptr != null) {
             return ptr;
@@ -304,7 +304,7 @@ public final class NativeClosureFactory<T extends Closure> implements ToNativeCo
         return Pointer.class;
     }
 
-    NativeClosurePointer newClosure(Closure value) {
+    NativeClosurePointer newClosure(Callable value) {
         NativeClosure nativeClosure;
         try {
             nativeClosure = nativeClosureConstructor.newInstance(NativeRuntime.getInstance(), value);

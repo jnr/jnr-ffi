@@ -19,34 +19,36 @@
 package jnr.ffi.provider.jffi;
 
 
+import jnr.ffi.Callable;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 
 /**
  *
  */
-public abstract class NativeClosure extends WeakReference<jnr.ffi.Closure> implements com.kenai.jffi.Closure {
+public abstract class NativeClosure extends WeakReference<Callable> implements com.kenai.jffi.Closure {
     NativeClosure next, prev;
     protected final NativeRuntime runtime;
 
-    public NativeClosure(NativeRuntime runtime, jnr.ffi.Closure closure) {
-        super(closure);
+    public NativeClosure(NativeRuntime runtime, Callable callable) {
+        super(callable);
         this.runtime = runtime;
     }
 
-    public NativeClosure(NativeRuntime runtime, jnr.ffi.Closure closure, ReferenceQueue<jnr.ffi.Closure> queue) {
-        super(closure, queue);
+    public NativeClosure(NativeRuntime runtime, Callable callable, ReferenceQueue<Callable> queue) {
+        super(callable, queue);
         this.runtime = runtime;
     }
 
     public final void invoke(com.kenai.jffi.Closure.Buffer buffer) {
-        jnr.ffi.Closure closure = get();
-        if (closure == null) {
+        Callable callable = get();
+        if (callable == null) {
             buffer.setLongReturn(0L);
             return;
         }
-        invoke(buffer, closure);
+        invoke(buffer, callable);
     }
 
-    abstract protected void invoke(com.kenai.jffi.Closure.Buffer buffer, jnr.ffi.Closure closure);
+    abstract protected void invoke(com.kenai.jffi.Closure.Buffer buffer, Callable callable);
 }

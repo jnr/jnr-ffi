@@ -19,10 +19,9 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import jnr.ffi.Address;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.NativeLong;
-import jnr.ffi.Pointer;
+import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
+import jnr.ffi.*;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
@@ -190,9 +189,9 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return new ToNativeConverterMarshaller(converter, 
                     getMarshaller(converter.nativeType(), method.getParameterAnnotations()[paramIndex]));
 
-        } else if (jnr.ffi.Closure.class.isAssignableFrom(type)) {
+        } else if (Callable.class.isAssignableFrom(type)) {
             NativeClosureFactory closureFactory
-                    = NativeRuntime.getInstance().getClosureManager().getClosureFactory(type.asSubclass(jnr.ffi.Closure.class));
+                    = NativeRuntime.getInstance().getClosureManager().getClosureFactory(type.asSubclass(Callable.class));
             return new ToNativeConverterMarshaller(closureFactory,
                     getMarshaller(closureFactory.nativeType(), method.getParameterAnnotations()[paramIndex]));
         } else {

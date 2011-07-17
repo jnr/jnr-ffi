@@ -28,9 +28,9 @@ import static org.junit.Assert.*;
 /**
  *
  */
-public class ClosureTest {
+public class CallableTest {
 
-    public ClosureTest() {
+    public CallableTest() {
     }
     private static TestLib lib;
     @BeforeClass
@@ -52,91 +52,91 @@ public class ClosureTest {
     // FIXME: re-enable when closure/callbacks are working
     @Test public void nop() {}
     public static interface TestLib {
-        public static interface ClosureVrV extends Closure {
+        public static interface CallableVrV extends Callable {
             public void call();
         }
-        void testClosureVrV(ClosureVrV closure);
-        public static interface ClosureVrB extends Closure {
+        void testClosureVrV(CallableVrV closure);
+        public static interface CallableVrB extends Callable {
             public byte call();
         }
-        byte testClosureVrB(ClosureVrB closure);
-        public static interface ClosureVrS extends Closure {
+        byte testClosureVrB(CallableVrB closure);
+        public static interface CallableVrS extends Callable {
             public short call();
         }
-        short testClosureVrS(ClosureVrS closure);
-        public static interface ClosureVrI extends Closure {
+        short testClosureVrS(CallableVrS closure);
+        public static interface CallableVrI extends Callable {
             public int call();
         }
-        int testClosureVrI(ClosureVrI closure);
-        public static interface ClosureVrL extends Closure {
+        int testClosureVrI(CallableVrI closure);
+        public static interface CallableVrL extends Callable {
             public @LongLong long call();
         }
-        @LongLong long testClosureVrL(ClosureVrL closure);
-        public interface ClosureVrF extends Closure {
+        @LongLong long testClosureVrL(CallableVrL closure);
+        public interface CallableVrF extends Callable {
             public float call();
         }
-        float testClosureVrF(ClosureVrF closure);
-        public interface ClosureVrD extends Closure {
+        float testClosureVrF(CallableVrF closure);
+        public interface CallableVrD extends Callable {
             public double call();
         }
-        double testClosureVrD(ClosureVrD closure);
+        double testClosureVrD(CallableVrD closure);
 
-        public interface ClosureBrV extends Closure {
+        public interface CallableBrV extends Callable {
             public void call(byte a1);
         }
-        void testClosureBrV(ClosureBrV closure, byte a1);
+        void testClosureBrV(CallableBrV closure, byte a1);
 
-        public interface ClosureSrV extends Closure {
+        public interface CallableSrV extends Callable {
             public void call(short a1);
         }
-        void testClosureSrV(ClosureSrV closure, short a1);
+        void testClosureSrV(CallableSrV closure, short a1);
 
-        public interface ClosureIrV extends Closure {
+        public interface CallableIrV extends Callable {
             public void call(int a1);
         }
-        void testClosureIrV(ClosureIrV closure, int a1);
-//        void testClosureBrV(Closure closure, byte a1);
-//        void testClosureSrV(Closure closure, short a1);
+        void testClosureIrV(CallableIrV closure, int a1);
+//        void testClosureBrV(Callable closure, byte a1);
+//        void testClosureSrV(Callable closure, short a1);
 
-//        void testClosureLrV(Closure closure, long a1);
-//        void testClosureFrV(Closure closure, float a1);
-//        void testClosureDrV(Closure closure, double a1);
+//        void testClosureLrV(Callable closure, long a1);
+//        void testClosureFrV(Callable closure, float a1);
+//        void testClosureDrV(Callable closure, double a1);
 //
 //        // closures with small-big-small arguments
-//        void testClosureBSBrV(Closure closure, byte a1, short a2, byte a3);
-//        void testClosureBIBrV(Closure closure, byte a1, int a2, byte a3);
-//        void testClosureBLBrV(Closure closure, byte a1, long a2, byte a3);
-//        void testClosureBFBrV(Closure closure, byte a1, float a2, byte a3);
-//        void testClosureBDBrV(Closure closure, byte a1, double a2, byte a3);
+//        void testClosureBSBrV(Callable closure, byte a1, short a2, byte a3);
+//        void testClosureBIBrV(Callable closure, byte a1, int a2, byte a3);
+//        void testClosureBLBrV(Callable closure, byte a1, long a2, byte a3);
+//        void testClosureBFBrV(Callable closure, byte a1, float a2, byte a3);
+//        void testClosureBDBrV(Callable closure, byte a1, double a2, byte a3);
 //
-//        void testClosureSBSrV(Closure closure, short a1, byte a2, short a3);
-//        void testClosureSISrV(Closure closure, short a1, int a2, short a3);
-//        void testClosureSLSrV(Closure closure, short a1, long a2, short a3);
-//        void testClosureSFSrV(Closure closure, short a1, float a2, short a3);
-//        void testClosureSDSrV(Closure closure, short a1, double a2, short a3);
+//        void testClosureSBSrV(Callable closure, short a1, byte a2, short a3);
+//        void testClosureSISrV(Callable closure, short a1, int a2, short a3);
+//        void testClosureSLSrV(Callable closure, short a1, long a2, short a3);
+//        void testClosureSFSrV(Callable closure, short a1, float a2, short a3);
+//        void testClosureSDSrV(Callable closure, short a1, double a2, short a3);
 //
 //        // Now big-smaller-smaller
-//        void testClosureLSBrV(Closure closure, long a1, short a2, byte a3);
+//        void testClosureLSBrV(Callable closure, long a1, short a2, byte a3);
 //        // big-smaller-small
-//        void testClosureLBSrV(Closure closure, long a1, byte a2, short a3);
+//        void testClosureLBSrV(Callable closure, long a1, byte a2, short a3);
     }
     @Test
     public void closureVrV() {
         final boolean[] called = { false };
-        final TestLib.ClosureVrV closure = new TestLib.ClosureVrV() {
+        final TestLib.CallableVrV closure = new TestLib.CallableVrV() {
 
             public void call() {
                 called[0] = true;
             }
         };
         lib.testClosureVrV(closure);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
     }
     @Test
     public void closureVrB() {
         final boolean[] called = { false };
         final byte MAGIC = (byte) 0xfe;
-        TestLib.ClosureVrB closure = new TestLib.ClosureVrB() {
+        TestLib.CallableVrB closure = new TestLib.CallableVrB() {
 
             public byte call() {
                 called[0] = true;
@@ -144,14 +144,14 @@ public class ClosureTest {
             }
         };
         byte retVal = lib.testClosureVrB(closure);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Incorrect return value from closure", MAGIC, retVal);
     }
     @Test
     public void closureVrS() {
         final boolean[] called = { false };
         final short MAGIC = (short) 0xfee1;
-        TestLib.ClosureVrS closure = new TestLib.ClosureVrS() {
+        TestLib.CallableVrS closure = new TestLib.CallableVrS() {
 
             public short call() {
                 called[0] = true;
@@ -159,14 +159,14 @@ public class ClosureTest {
             }
         };
         short retVal = lib.testClosureVrS(closure);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Incorrect return value from closure", MAGIC, retVal);
     }
     @Test
     public void closureVrI() {
         final boolean[] called = { false };
         final int MAGIC = (int) 0xfee1dead;
-        TestLib.ClosureVrI closure = new TestLib.ClosureVrI() {
+        TestLib.CallableVrI closure = new TestLib.CallableVrI() {
 
             public int call() {
                 called[0] = true;
@@ -174,14 +174,14 @@ public class ClosureTest {
             }
         };
         int retVal = lib.testClosureVrI(closure);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Incorrect return value from closure", MAGIC, retVal);
     }
     @Test
     public void closureVrL() {
         final boolean[] called = { false };
         final long MAGIC = 0xfee1deadcafebabeL;
-        TestLib.ClosureVrL closure = new TestLib.ClosureVrL() {
+        TestLib.CallableVrL closure = new TestLib.CallableVrL() {
 
             public long call() {
                 called[0] = true;
@@ -189,14 +189,14 @@ public class ClosureTest {
             }
         };
         long retVal = lib.testClosureVrL(closure);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Incorrect return value from closure", MAGIC, retVal);
     }
     @Test
     public void closureVrF() {
         final boolean[] called = { false };
         final float MAGIC = (float) 0xfee1dead;
-        TestLib.ClosureVrF closure = new TestLib.ClosureVrF() {
+        TestLib.CallableVrF closure = new TestLib.CallableVrF() {
 
             public float call() {
                 called[0] = true;
@@ -204,14 +204,14 @@ public class ClosureTest {
             }
         };
         float retVal = lib.testClosureVrF(closure);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Incorrect return value from closure", MAGIC, retVal, 0f);
     }
     @Test
     public void closureVrD() {
         final boolean[] called = { false };
         final double MAGIC = (double) 0xfee1dead;
-        TestLib.ClosureVrD closure = new TestLib.ClosureVrD() {
+        TestLib.CallableVrD closure = new TestLib.CallableVrD() {
 
             public double call() {
                 called[0] = true;
@@ -219,7 +219,7 @@ public class ClosureTest {
             }
         };
         double retVal = lib.testClosureVrD(closure);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Incorrect return value from closure", MAGIC, retVal, 0d);
     }
     @Test
@@ -227,7 +227,7 @@ public class ClosureTest {
         final boolean[] called = { false };
         final byte[] val = { 0 };
         final byte MAGIC = (byte) 0xde;
-        TestLib.ClosureBrV closure = new TestLib.ClosureBrV() {
+        TestLib.CallableBrV closure = new TestLib.CallableBrV() {
 
             public void call(byte a1) {
                 called[0] = true;
@@ -235,7 +235,7 @@ public class ClosureTest {
             }
         };
         lib.testClosureBrV(closure, MAGIC);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Wrong value passed to closure", MAGIC, val[0]);
     }
     @Test
@@ -243,7 +243,7 @@ public class ClosureTest {
         final boolean[] called = { false };
         final short[] val = { 0 };
         final short MAGIC = (short) 0xdead;
-        TestLib.ClosureSrV closure = new TestLib.ClosureSrV() {
+        TestLib.CallableSrV closure = new TestLib.CallableSrV() {
 
             public void call(short a1) {
                 called[0] = true;
@@ -251,7 +251,7 @@ public class ClosureTest {
             }
         };
         lib.testClosureSrV(closure, MAGIC);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Wrong value passed to closure", MAGIC, val[0]);
     }
     @Test
@@ -259,7 +259,7 @@ public class ClosureTest {
         final boolean[] called = { false };
         final int[] val = { 0 };
         final int MAGIC = 0xdeadbeef;
-        TestLib.ClosureIrV closure = new TestLib.ClosureIrV() {
+        TestLib.CallableIrV closure = new TestLib.CallableIrV() {
 
             public void call(int a1) {
                 called[0] = true;
@@ -267,7 +267,7 @@ public class ClosureTest {
             }
         };
         lib.testClosureIrV(closure, MAGIC);
-        assertTrue("Closure not called", called[0]);
+        assertTrue("Callable not called", called[0]);
         assertEquals("Wrong value passed to closure", MAGIC, val[0]);
     }
 //    @Test
@@ -275,7 +275,7 @@ public class ClosureTest {
 //        final boolean[] called = { false };
 //        final long[] val = { 0 };
 //        final long MAGIC = 0xfee1deadcafebabeL;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(long a1) {
 //                called[0] = true;
@@ -283,7 +283,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureLrV(closure, MAGIC);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
 //    }
 //    @Test
@@ -291,7 +291,7 @@ public class ClosureTest {
 //        final boolean[] called = { false };
 //        final float[] val = { 0 };
 //        final float MAGIC = (float) 0xdeadbeef;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(float a1) {
 //                called[0] = true;
@@ -299,7 +299,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureFrV(closure, MAGIC);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", MAGIC, val[0], 0f);
 //    }
 //    @Test
@@ -307,7 +307,7 @@ public class ClosureTest {
 //        final boolean[] called = { false };
 //        final double[] val = { 0 };
 //        final double MAGIC = (double) 0xfee1deadcafebabeL;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(double a1) {
 //                called[0] = true;
@@ -315,7 +315,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureDrV(closure, MAGIC);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", MAGIC, val[0], 0d);
 //    }
 //    @Test
@@ -327,7 +327,7 @@ public class ClosureTest {
 //        final byte A1 = (byte) 0x11;
 //        final short A2 = (short) 0xfee1;
 //        final byte A3 = (byte) 0x22;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(byte a1, short a2, byte a3) {
 //                called[0] = true;
@@ -337,7 +337,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureBSBrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -351,7 +351,7 @@ public class ClosureTest {
 //        final byte A1 = (byte) 0x11;
 //        final int A2 = (int) 0xfee1dead;
 //        final byte A3 = (byte) 0x22;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(byte a1, int a2, byte a3) {
 //                called[0] = true;
@@ -361,7 +361,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureBIBrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -375,7 +375,7 @@ public class ClosureTest {
 //        final byte A1 = (byte) 0x11;
 //        final long A2 = (long) 0xfee1deadcafebabeL;
 //        final byte A3 = (byte) 0x22;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(byte a1, long a2, byte a3) {
 //                called[0] = true;
@@ -385,7 +385,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureBLBrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -399,7 +399,7 @@ public class ClosureTest {
 //        final byte A1 = (byte) 0x11;
 //        final float A2 = (float) 0xfee1dead;
 //        final byte A3 = (byte) 0x22;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(byte a1, float a2, byte a3) {
 //                called[0] = true;
@@ -409,7 +409,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureBFBrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0], 0f);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -423,7 +423,7 @@ public class ClosureTest {
 //        final byte A1 = (byte) 0x11;
 //        final double A2 = (double) 0xfee1deadcafebabeL;
 //        final byte A3 = (byte) 0x22;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(byte a1, double a2, byte a3) {
 //                called[0] = true;
@@ -433,7 +433,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureBDBrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0], 0d);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -447,7 +447,7 @@ public class ClosureTest {
 //        final short A1 = (short) 0x1111;
 //        final byte A2 = (byte) 0xfe;
 //        final short A3 = (short) 0x2222;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(short a1, byte a2, short a3) {
 //                called[0] = true;
@@ -457,7 +457,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureSBSrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -471,7 +471,7 @@ public class ClosureTest {
 //        final short A1 = (short) 0x1111;
 //        final int A2 = (int) 0xfee1dead;
 //        final short A3 = (short) 0x2222;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(short a1, int a2, short a3) {
 //                called[0] = true;
@@ -481,7 +481,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureSISrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -496,7 +496,7 @@ public class ClosureTest {
 //        final short A1 = (short) 0x1111;
 //        final long A2 = (long) 0xfee1deadcafebabeL;
 //        final short A3 = (short) 0x2222;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(short a1, long a2, short a3) {
 //                called[0] = true;
@@ -506,7 +506,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureSLSrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -520,7 +520,7 @@ public class ClosureTest {
 //        final short A1 = (short) 0x1111;
 //        final float A2 = (float) 0xfee1dead;
 //        final short A3 = (short) 0x2222;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(short a1, float a2, short a3) {
 //                called[0] = true;
@@ -530,7 +530,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureSFSrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0], 0f);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -544,7 +544,7 @@ public class ClosureTest {
 //        final short A1 = (short) 0x1111;
 //        final double A2 = (double) 0xfee1deadcafebabeL;
 //        final short A3 = (short) 0x2222;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(short a1, double a2, short a3) {
 //                called[0] = true;
@@ -554,7 +554,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureSDSrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0], 0d);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -568,7 +568,7 @@ public class ClosureTest {
 //        final long A1 = (long) 0xfee1deadcafebabeL;
 //        final short A2 = (short) 0x1111;
 //        final byte A3 = (byte) 0x22;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(long a1, short a2, byte a3) {
 //                called[0] = true;
@@ -578,7 +578,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureLSBrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);
@@ -592,7 +592,7 @@ public class ClosureTest {
 //        final long A1 = (long) 0xfee1deadcafebabeL;
 //        final byte A2 = (byte) 0x11;
 //        final short A3 = (short) 0x2222;
-//        Closure closure = new Closure() {
+//        Callable closure = new Callable() {
 //
 //            public void invoke(long a1, byte a2, short a3) {
 //                called[0] = true;
@@ -602,7 +602,7 @@ public class ClosureTest {
 //            }
 //        };
 //        lib.testClosureLBSrV(closure, A1, A2, A3);
-//        assertTrue("Closure not called", called[0]);
+//        assertTrue("Callable not called", called[0]);
 //        assertEquals("Wrong value passed to closure", A1, v1[0]);
 //        assertEquals("Wrong value passed to closure", A2, v2[0]);
 //        assertEquals("Wrong value passed to closure", A3, v3[0]);

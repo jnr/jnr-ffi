@@ -3,5 +3,5 @@ package jnr.ffi;
 /**
  *
  */
-public interface Closure {
+public interface Callable {
 }
