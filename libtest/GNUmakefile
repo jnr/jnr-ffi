@@ -73,7 +73,7 @@ ifeq ($(OS), darwin)
     ARCHFLAGS = -arch ppc
   endif
   
-  CFLAGS += -fno-common
+  CFLAGS += -fno-common $(ARCHFLAGS)
   LDFLAGS = $(ARCHFLAGS) -dynamiclib
   LIBEXT = dylib
   PICFLAGS =
