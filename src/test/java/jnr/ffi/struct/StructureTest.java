@@ -344,7 +344,7 @@ public class StructureTest {
     }
     @Test public void innerStruct() {
         InnerTest t = new InnerTest();
-        Pointer io = StructUtil.getMemory(t);
+        Pointer io = Struct.getMemory(t);
         io.putInt(0, 0xdeadbeef);
         io.putByte(4, (byte) 0x12);
         assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get());

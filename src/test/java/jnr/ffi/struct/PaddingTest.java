@@ -1,11 +1,8 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.Library;
-import jnr.ffi.NativeType;
+import jnr.ffi.*;
 import jnr.ffi.Runtime;
-import jnr.ffi.TstUtil;
-import jnr.ffi.Type;
 import jnr.ffi.struct.PaddingTest.TestLib.LongPadding;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -55,7 +52,7 @@ public class PaddingTest {
     @Test public void longPadding() throws Throwable {
         Type longType = runtime.findType(NativeType.SLONG);
         final int SIZE = longType.alignment() + (longType.size() * 3);
-        assertEquals("incorrect size", SIZE, StructUtil.getSize(new LongPadding()));
+        assertEquals("incorrect size", SIZE, Struct.size(new LongPadding()));
     }
 
 }

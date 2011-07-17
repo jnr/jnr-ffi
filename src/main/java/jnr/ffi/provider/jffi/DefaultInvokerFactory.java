@@ -22,12 +22,12 @@ import com.kenai.jffi.*;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import jnr.ffi.*;
+import jnr.ffi.Struct;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.*;
-import jnr.ffi.struct.Struct;
 import jnr.ffi.util.EnumMapper;
 
 import java.lang.annotation.Annotation;

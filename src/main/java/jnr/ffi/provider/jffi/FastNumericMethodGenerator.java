@@ -6,7 +6,7 @@ import com.kenai.jffi.Platform;
 import jnr.ffi.Callable;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
-import jnr.ffi.struct.Struct;
+import jnr.ffi.Struct;
 
 import java.lang.annotation.Annotation;
 import java.nio.Buffer;

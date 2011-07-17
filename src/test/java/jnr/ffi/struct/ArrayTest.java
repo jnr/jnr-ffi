@@ -1,10 +1,8 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.Library;
-import jnr.ffi.Pointer;
+import jnr.ffi.*;
 import jnr.ffi.Runtime;
-import jnr.ffi.TstUtil;
 import jnr.ffi.provider.AbstractArrayMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
 import org.junit.After;
@@ -72,14 +70,14 @@ public class ArrayTest {
     // @Test
     // public void hello() {}
     @Test public void s8Array() {
-        s8[] array = StructUtil.newArray(runtime, s8.class, 10);
+        s8[] array = Struct.arrayOf(runtime, s8.class, 10);
         assertEquals("Array length incorrect", 10, array.length);
         for (int i = 0; i < array.length; ++i) {
-            assertNotNull("Memory not allocated for array member", StructUtil.getMemory(array[i]));
+            assertNotNull("Memory not allocated for array member", Struct.getMemory(array[i]));
         }
-        Pointer ptr = ((DelegatingMemoryIO) StructUtil.getMemory(array[0])).getDelegatedMemoryIO();
+        Pointer ptr = ((DelegatingMemoryIO) Struct.getMemory(array[0])).getDelegatedMemoryIO();
         for (int i = 0; i < array.length; ++i) {
-            assertSame("Different backing memory", ptr, ((DelegatingMemoryIO) StructUtil.getMemory(array[i])).getDelegatedMemoryIO());
+            assertSame("Different backing memory", ptr, ((DelegatingMemoryIO) Struct.getMemory(array[i])).getDelegatedMemoryIO());
         }
         if (ptr instanceof AbstractArrayMemoryIO) {
             assertEquals("Incorrect size", array.length, ((AbstractArrayMemoryIO)ptr).length());

@@ -18,6 +18,7 @@
 
 package jnr.ffi.struct;
 
+import jnr.ffi.Struct;
 import jnr.ffi.TstUtil;
 import jnr.ffi.Library;
 import jnr.ffi.Runtime;

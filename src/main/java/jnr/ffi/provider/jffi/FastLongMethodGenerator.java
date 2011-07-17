@@ -3,11 +3,8 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
-import jnr.ffi.Address;
-import jnr.ffi.Callable;
-import jnr.ffi.NativeLong;
-import jnr.ffi.Pointer;
-import jnr.ffi.struct.Struct;
+import jnr.ffi.*;
+import jnr.ffi.Struct;
 
 import java.lang.annotation.Annotation;
 import java.nio.Buffer;

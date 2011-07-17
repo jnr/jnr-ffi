@@ -22,6 +22,8 @@ import jnr.ffi.Library;
 import jnr.ffi.Runtime;
 import jnr.ffi.TstUtil;
 import java.nio.ByteOrder;
+
+import jnr.ffi.Union;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

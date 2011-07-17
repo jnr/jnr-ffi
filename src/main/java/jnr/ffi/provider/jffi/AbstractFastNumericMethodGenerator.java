@@ -1,7 +1,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Pointer;
-import jnr.ffi.struct.Struct;
+import jnr.ffi.Struct;
 import org.objectweb.asm.Label;
 
 import java.lang.annotation.Annotation;

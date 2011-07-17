@@ -1,13 +1,11 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import jnr.ffi.Address;
-import jnr.ffi.NativeLong;
-import jnr.ffi.Pointer;
+import com.kenai.jffi.Platform;
+import jnr.ffi.*;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.struct.Struct;
 
 import java.lang.annotation.Annotation;
 import java.nio.Buffer;
@@ -185,15 +183,15 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.pushInt(nativeArrayFlags);
                 sessionmarshal(mv, CharSequence[].class, int.class, int.class);
 
-            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (jnr.ffi.Struct.class.isAssignableFrom(parameterTypes[i])) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
-                marshal(mv, Struct.class, int.class, int.class);
+                marshal(mv, jnr.ffi.Struct.class, int.class, int.class);
 
-            } else if (parameterTypes[i].isArray() && Struct.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
+            } else if (parameterTypes[i].isArray() && jnr.ffi.Struct.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
-                marshal(mv, Struct[].class, int.class, int.class);
+                marshal(mv, jnr.ffi.Struct[].class, int.class, int.class);
 
             } else if (parameterTypes[i].isArray() && Pointer.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
                 mv.pushInt(parameterFlags);
@@ -226,7 +224,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             nativeReturnType = long.class;
 
         } else if (Pointer.class == returnType || Address.class == returnType
-            || Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
+            || jnr.ffi.Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
             invokeMethod = Platform.getPlatform().addressSize() == 32 ? "invokeInt" : "invokeLong";
             nativeReturnType = Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 

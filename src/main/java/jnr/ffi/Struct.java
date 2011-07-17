@@ -25,13 +25,12 @@
  * freely granted, provided that this notice is preserved.
  */
 
-package jnr.ffi.struct;
+package jnr.ffi;
 
 import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.Runtime;
-import jnr.ffi.Type;
-import jnr.ffi.NativeType;
 import jnr.ffi.util.EnumMapper;
+
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 
@@ -41,6 +40,8 @@ import java.nio.charset.Charset;
  * <b>Note:</b> This class is not threadsafe.
  */
 public abstract class Struct {
+    static final Charset ASCII = Charset.forName("ASCII");
+    static final Charset UTF8 = Charset.forName("UTF-8");
 
     static final class Info {
         private final Runtime runtime;
@@ -136,9 +137,57 @@ public abstract class Struct {
      *
      * @param address the native memory area.
      */
-    public void useMemory(jnr.ffi.Pointer address) {
+    public final void useMemory(jnr.ffi.Pointer address) {
         __info.useMemory(address);
     }
+
+    public static jnr.ffi.Pointer getMemory(Struct struct) {
+        return struct.__info.getMemory(0);
+    }
+
+    public static jnr.ffi.Pointer getMemory(Struct struct, int flags) {
+        return struct.__info.getMemory(flags);
+    }
+
+    public static int size(Struct struct) {
+        return struct.__info.size();
+    }
+
+    public static int alignment(Struct struct) {
+        return struct.__info.getMinimumAlignment();
+    }
+
+    public static boolean isDirect(Struct struct) {
+        return struct.__info.isDirect();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Struct> T[] arrayOf(Runtime runtime, Class<T> type, int length) {
+        try {
+            T[] array = (T[]) Array.newInstance(type, length);
+            for (int i = 0; i < length; ++i) {
+                array[i] = type.newInstance();
+            }
+
+            if (array.length > 0) {
+                final int align = Struct.alignment(array[0]);
+                int structSize = align + ((Struct.size(array[0]) - 1) & ~(align - 1));
+
+                jnr.ffi.Pointer memory = runtime.getMemoryManager().allocateDirect(structSize * length);
+                for (int i = 0; i < array.length; ++i) {
+                    array[i].useMemory(memory.slice(structSize * i, structSize));
+                }
+            }
+
+            return array;
+        } catch (RuntimeException ex) {
+            throw ex;
+
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     
     /**
      * Returns a human readable {@link java.lang.String} representation of the structure.
@@ -1816,13 +1865,13 @@ public abstract class Struct {
 
     public class UTF8String extends UTFString {
         public UTF8String(int size) {
-            super(size, StructUtil.utf8);
+            super(size, UTF8);
         }
     }
 
     public class AsciiString extends UTFString {
         public AsciiString(int size) {
-            super(size, StructUtil.ascii);
+            super(size, ASCII);
         }
     }
 
@@ -1862,19 +1911,19 @@ public abstract class Struct {
 
     public class UTF8StringRef extends UTFStringRef {
         public UTF8StringRef(int size) {
-            super(size, StructUtil.utf8);
+            super(size, UTF8);
         }
         public UTF8StringRef() {
-            super(Integer.MAX_VALUE, StructUtil.utf8);
+            super(Integer.MAX_VALUE, UTF8);
         }
     }
 
     public class AsciiStringRef extends UTFStringRef {
         public AsciiStringRef(int size) {
-            super(size, StructUtil.ascii);
+            super(size, ASCII);
         }
         public AsciiStringRef() {
-            super(Integer.MAX_VALUE, StructUtil.ascii);
+            super(Integer.MAX_VALUE, ASCII);
         }
     }
 
@@ -1882,12 +1931,12 @@ public abstract class Struct {
      * Specialized padding fields for structs.  Use this instead of arrays of other
      * members for more efficient struct construction.
      */
-    public final class Padding extends AbstractMember {
-        protected Padding(Type type, int length) {
+    protected final class Padding extends AbstractMember {
+        public Padding(Type type, int length) {
             super(type.size() * 8 * length, type.alignment() * 8);
         }
 
-        protected Padding(NativeType type, int length) {
+        public Padding(NativeType type, int length) {
             super(getRuntime().findType(type).size() * 8 * length, getRuntime().findType(type).alignment() * 8);
         }
     }

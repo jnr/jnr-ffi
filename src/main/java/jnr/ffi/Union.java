@@ -25,9 +25,7 @@
  * freely granted, provided that this notice is preserved.
  */
 
-package jnr.ffi.struct;
-
-import jnr.ffi.Runtime;
+package jnr.ffi;
 
 /**
  * Represents a C union

@@ -21,7 +21,7 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.Address;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
-import jnr.ffi.struct.Struct;
+import jnr.ffi.Struct;
 import com.kenai.jffi.Platform;
 import java.io.OutputStream;
 import java.io.PrintWriter;

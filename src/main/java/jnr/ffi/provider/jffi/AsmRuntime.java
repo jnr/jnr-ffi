@@ -19,16 +19,16 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import jnr.ffi.Address;
+import com.kenai.jffi.Platform;
+import jnr.ffi.*;
+import jnr.ffi.Struct;
 import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.Pointer;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.provider.AbstractArrayMemoryIO;
 import jnr.ffi.provider.AbstractBufferMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
 import jnr.ffi.provider.InvocationSession;
-import jnr.ffi.struct.Struct;
-import jnr.ffi.struct.StructUtil;
+import jnr.ffi.StructUtil;
 import jnr.ffi.util.BufferUtil;
 import jnr.ffi.util.EnumMapper;
 
@@ -247,12 +247,12 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(InvocationBuffer buffer, Struct parameter, int parameterFlags, int nativeArrayFlags) {
+    public static final void marshal(InvocationBuffer buffer, jnr.ffi.Struct parameter, int parameterFlags, int nativeArrayFlags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
-            Struct s = parameter;
-            Pointer memory = StructUtil.getMemory(s, parameterFlags);
+            jnr.ffi.Struct s = parameter;
+            Pointer memory = Struct.getMemory(s, parameterFlags);
             
             if (memory instanceof AbstractArrayMemoryIO) {
                 AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) memory;
@@ -264,12 +264,12 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(InvocationBuffer buffer, Struct[] parameter, int parameterFlags, int nativeArrayFlags) {
+    public static final void marshal(InvocationBuffer buffer, jnr.ffi.Struct[] parameter, int parameterFlags, int nativeArrayFlags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
-            Struct[] array = parameter;
-            Pointer memory = StructUtil.getMemory(array[0], parameterFlags);
+            jnr.ffi.Struct[] array = parameter;
+            Pointer memory = Struct.getMemory(array[0], parameterFlags);
             if (!(memory instanceof DelegatingMemoryIO)) {
                 throw new RuntimeException("Struct array must be backed by contiguous array");
             }
@@ -524,11 +524,11 @@ public final class AsmRuntime {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
 
-    public static final void useMemory(long ptr, Struct s) {
+    public static final void useMemory(long ptr, jnr.ffi.Struct s) {
         s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
     }
 
-    public static final void useMemory(int ptr, Struct s) {
+    public static final void useMemory(int ptr, jnr.ffi.Struct s) {
         s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
     }
 
@@ -660,20 +660,20 @@ public final class AsmRuntime {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 3): 0L;
     }
 
-    public static final boolean isDirect(Struct s) {
-        return s == null || StructUtil.isDirect(s);
+    public static final boolean isDirect(jnr.ffi.Struct s) {
+        return s == null || Struct.isDirect(s);
     }
 
-    public static final boolean isDirect(Struct s, int flags) {
-        return s == null || StructUtil.getMemory(s, flags).isDirect();
+    public static final boolean isDirect(jnr.ffi.Struct s, int flags) {
+        return s == null || Struct.getMemory(s, flags).isDirect();
     }
 
-    public static final int intValue(Struct s) {
-        return s != null ? (int) StructUtil.getMemory(s).address() : 0;
+    public static final int intValue(jnr.ffi.Struct s) {
+        return s != null ? (int) Struct.getMemory(s).address() : 0;
     }
 
-    public static final long longValue(Struct s) {
-        return s != null ? StructUtil.getMemory(s).address() : 0L;
+    public static final long longValue(jnr.ffi.Struct s) {
+        return s != null ? Struct.getMemory(s).address() : 0L;
     }
 
     public static final Enum enumValue(int value, Class<? extends Enum> enumClass) {

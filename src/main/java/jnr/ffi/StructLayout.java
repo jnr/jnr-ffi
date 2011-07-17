@@ -1,12 +1,8 @@
-package jnr.ffi.struct;
-
-import jnr.ffi.NativeType;
-import jnr.ffi.Runtime;
-import jnr.ffi.Type;
+package jnr.ffi;
 
 import java.lang.reflect.Constructor;
 
-import static jnr.ffi.struct.Struct.Offset;
+import static jnr.ffi.Struct.Offset;
 
 /**
  *
@@ -1185,11 +1181,11 @@ public class StructLayout implements Type {
      * Specialized padding fields for structs.  Use this instead of arrays of other
      * members for more efficient struct construction.
      */
-    public final class Padding extends AbstractField {
-        Padding(Type type, int length) {
+    protected final class Padding extends AbstractField {
+        public Padding(Type type, int length) {
             super(type.size() * length, type.alignment());
         }
-        Padding(NativeType type, int length) {
+        public Padding(NativeType type, int length) {
             this(getRuntime().findType(type), length);
         }
     }

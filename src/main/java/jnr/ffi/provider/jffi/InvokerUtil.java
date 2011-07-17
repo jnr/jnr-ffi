@@ -23,7 +23,7 @@ import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.SaveError;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.struct.Struct;
+import jnr.ffi.Struct;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import java.lang.annotation.Annotation;

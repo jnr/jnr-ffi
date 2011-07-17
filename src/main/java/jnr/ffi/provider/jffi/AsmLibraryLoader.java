@@ -28,7 +28,7 @@ import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.IdentityFunctionMapper;
 import jnr.ffi.provider.NullTypeMapper;
-import jnr.ffi.struct.Struct;
+import jnr.ffi.Struct;
 import jnr.ffi.util.EnumMapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;

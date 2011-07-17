@@ -19,6 +19,7 @@
 package jnr.ffi.struct;
 
 import jnr.ffi.Library;
+import jnr.ffi.Struct;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;
