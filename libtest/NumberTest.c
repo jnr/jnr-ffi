@@ -34,6 +34,7 @@ typedef long long Signed64;
 typedef float Float32;
 typedef double Float64;
 typedef long SignedLong;
+typedef void* pointer;
 
 #define ADD(T) T add_##T(T arg1, T arg2) { return arg1 + arg2; }
 #define SUB(T) T sub_##T(T arg1, T arg2) { return arg1 - arg2; }
@@ -56,3 +57,4 @@ TEST(Signed64);
 TEST(SignedLong);
 TEST(Float32);
 TEST(Float64);
+RET(pointer);

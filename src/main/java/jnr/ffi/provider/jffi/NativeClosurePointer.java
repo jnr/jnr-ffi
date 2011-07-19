@@ -50,4 +50,12 @@ class NativeClosurePointer extends InAccessibleMemoryIO {
     public long size() {
         return 0;
     }
+
+    Callable getCallable() {
+        return nativeClosure.get();
+    }
+
+    NativeClosure getNativeClosure() {
+        return nativeClosure;
+    }
 }

@@ -31,10 +31,13 @@ import org.objectweb.asm.ClassWriter;
 
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
@@ -52,8 +55,9 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
     private final NativeRuntime runtime;
     private final CallContext callContext;
     private final Constructor<? extends NativeClosure> nativeClosureConstructor;
-    private final Map<Callable, Pointer> closures = new WeakHashMap<Callable, Pointer>();
+    private final ConcurrentMap<Integer, Object> closures = new ConcurrentHashMap<Integer, Object>();
     private final com.kenai.jffi.ClosureManager nativeClosureManager = com.kenai.jffi.ClosureManager.getInstance();
+    private final ReferenceQueue<Callable> referenceQueue = new ReferenceQueue<Callable>();
 
     protected NativeClosureFactory(NativeRuntime runtime, CallContext callContext,
                                    Constructor<? extends NativeClosure> nativeClosureConstructor) {
@@ -73,19 +77,18 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
                         new String[]{ p(com.kenai.jffi.Closure.class) });
 
         SkinnyMethodAdapter closureInit = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "<init>",
-               sig(void.class, NativeRuntime.class, Callable.class),
+               sig(void.class, NativeRuntime.class, Callable.class, ReferenceQueue.class, Integer.class),
                null, null));
-        closureClassVisitor.visitField(ACC_PRIVATE | ACC_FINAL, "closure", ci(closureClass), null, null);
         closureInit.start();
         closureInit.aload(0);
         closureInit.aload(1);
         closureInit.aload(2);
+        closureInit.aload(3);
+        closureInit.aload(4);
 
-        closureInit.invokespecial(p(NativeClosure.class), "<init>", sig(void.class, NativeRuntime.class, Callable.class));
+        closureInit.invokespecial(p(NativeClosure.class), "<init>",
+                sig(void.class, NativeRuntime.class, Callable.class, ReferenceQueue.class, Integer.class));
 
-        closureInit.aload(0);
-        closureInit.aload(2);
-        closureInit.putfield(closureInstanceClassName, "closure", ci(closureClass));
         closureInit.voidreturn();
         closureInit.visitMaxs(10, 10);
         closureInit.visitEnd();
@@ -247,7 +250,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
             AsmClassLoader asm = new AsmClassLoader(cl);
             Class<? extends NativeClosure> nativeClosureClass = asm.defineClass(c(closureInstanceClassName), closureImpBytes);
             Constructor<? extends NativeClosure> nativeClosureConstructor
-                    = nativeClosureClass.getConstructor(NativeRuntime.class, Callable.class);
+                    = nativeClosureClass.getConstructor(NativeRuntime.class, Callable.class, ReferenceQueue.class, Integer.class);
 
             return new NativeClosureFactory(runtime, getCallContext(callMethod), nativeClosureConstructor);
         } catch (Throwable ex) {
@@ -291,31 +294,92 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
     }
 
 
-    public synchronized Pointer toNative(Callable value, ToNativeContext context) {
-        Pointer ptr = closures.get(value);
-        if (ptr != null) {
-            return ptr;
+    private void expunge() {
+        Reference<? extends Callable> ref = referenceQueue.poll();
+        if (ref != null) {
+            synchronized (closures) {
+                do {
+                    NativeClosure cl = NativeClosure.class.cast(ref);
+                    Integer key = cl.getKey();
+                    Object obj = closures.get(key);
+
+                    if (obj instanceof NativeClosurePointer) {
+                        closures.remove(key);
+
+                    } else if (obj instanceof Collection) {
+                        for (Iterator it = ((Collection) obj).iterator(); it.hasNext(); ) {
+                            NativeClosurePointer ptr = (NativeClosurePointer) it.next();
+                            if (ptr.getNativeClosure() == cl) {
+                                it.remove();
+                                break;
+                            }
+                        }
+                    }
+                } while ((ref = referenceQueue.poll()) != null);
+            }
+        }
+    }
+
+    public final Pointer toNative(Callable value, ToNativeContext context) {
+        Integer key = System.identityHashCode(value);
+        Object obj = closures.get(key);
+
+        // Simple case - no identity hash code clash - just return the ptr
+        if (obj instanceof NativeClosurePointer) {
+            return (Pointer) obj;
         }
 
-        return newClosure(value);
+        return obj != null ? getMatchingNativeClosure(obj, value, key) : newClosure(value, key);
     }
 
     public Class<Pointer> nativeType() {
         return Pointer.class;
     }
 
-    NativeClosurePointer newClosure(Callable value) {
+    NativeClosurePointer getMatchingNativeClosure(Object list, Callable value, Integer key) {
+        synchronized (closures) {
+            for (Object o : (Collection) list) {
+                NativeClosurePointer ptr = (NativeClosurePointer) o;
+                if (ptr.getCallable() == value) {
+                    return ptr;
+                }
+            }
+        }
+
+        return newClosure(value, key);
+    }
+
+    NativeClosurePointer newClosure(Callable value, Integer key) {
         NativeClosure nativeClosure;
         try {
-            nativeClosure = nativeClosureConstructor.newInstance(NativeRuntime.getInstance(), value);
+            nativeClosure = nativeClosureConstructor.newInstance(NativeRuntime.getInstance(), value, referenceQueue, key);
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
 
-        return new NativeClosurePointer(runtime, nativeClosure,
+        NativeClosurePointer ptr = new NativeClosurePointer(runtime, nativeClosure,
                 nativeClosureManager.newClosure(nativeClosure, callContext));
+
+        expunge();
+        if (closures.putIfAbsent(key, ptr) == null) {
+            return ptr;
+        }
+
+        synchronized (closures) {
+            Object old = closures.get(key);
+            if (old instanceof NativeClosurePointer) {
+                Collection<Object> list = new LinkedList<Object>();
+                list.add(old);
+                list.add(ptr);
+                closures.put(key, list);
+
+            } else if (old instanceof Collection) {
+                ((Collection) old).add(ptr);
+            }
+        }
+        return ptr;
     }
 
     private static CallContext getCallContext(Method m) {

@@ -119,6 +119,10 @@ public class CallableTest {
 //        void testClosureLSBrV(Callable closure, long a1, short a2, byte a3);
 //        // big-smaller-small
 //        void testClosureLBSrV(Callable closure, long a1, byte a2, short a3);
+        public interface ReusableCallable extends Callable {
+            public void call(int a1);
+        }
+        Pointer ret_pointer(ReusableCallable callable);
     }
     @Test
     public void closureVrV() {
@@ -270,6 +274,18 @@ public class CallableTest {
         assertTrue("Callable not called", called[0]);
         assertEquals("Wrong value passed to closure", MAGIC, val[0]);
     }
+
+    @Test
+    public void reuseClosure() {
+        TestLib.ReusableCallable closure = new TestLib.ReusableCallable() {
+
+            public void call(int a1) {}
+        };
+        Pointer p1 = lib.ret_pointer(closure);
+        Pointer p2 = lib.ret_pointer(closure);
+        assertEquals("not same native address for Callable instance", p1, p2);
+    }
+
 //    @Test
 //    public void closureLrV() {
 //        final boolean[] called = { false };
