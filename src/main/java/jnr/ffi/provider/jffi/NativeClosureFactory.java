@@ -55,7 +55,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
     private final NativeRuntime runtime;
     private final CallContext callContext;
     private final Constructor<? extends NativeClosure> nativeClosureConstructor;
-    private final ConcurrentMap<Integer, Object> closures = new ConcurrentHashMap<Integer, Object>();
+    private final ConcurrentMap<Integer, NativeClosurePointer> closures = new ConcurrentHashMap<Integer, NativeClosurePointer>();
     private final com.kenai.jffi.ClosureManager nativeClosureManager = com.kenai.jffi.ClosureManager.getInstance();
     private final ReferenceQueue<Callable> referenceQueue = new ReferenceQueue<Callable>();
 
@@ -293,66 +293,76 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
                 ;
     }
 
+    private void expunge(Reference<? extends Callable> ref) {
+        NativeClosure cl = NativeClosure.class.cast(ref);
+        Integer key = cl.getKey();
+        NativeClosurePointer ptr = closures.get(key);
+        if (ptr == null) {
+            return;
+        }
 
-    private void expunge() {
-        Reference<? extends Callable> ref = referenceQueue.poll();
-        if (ref != null) {
-            synchronized (closures) {
-                do {
-                    NativeClosure cl = NativeClosure.class.cast(ref);
-                    Integer key = cl.getKey();
-                    Object obj = closures.get(key);
+        // Fast case - no chained elements; can just remove from the hash map
+        if (ptr.next == null && closures.remove(key, ptr)) {
+            return;
+        }
 
-                    if (obj instanceof NativeClosurePointer) {
-                        closures.remove(key);
+        // Remove from chained list
+        synchronized (closures) {
+            retry: for (NativeClosurePointer prev = ptr; ptr != null; ptr = ptr.next) {
+                if (ptr.getNativeClosure() == cl) {
+                    if (prev != null) {
+                        prev.next = ptr.next;
+                        break;
 
-                    } else if (obj instanceof Collection) {
-                        for (Iterator it = ((Collection) obj).iterator(); it.hasNext(); ) {
-                            NativeClosurePointer ptr = (NativeClosurePointer) it.next();
-                            if (ptr.getNativeClosure() == cl) {
-                                it.remove();
-                                break;
-                            }
-                        }
+                    } else if (ptr.next != null && !closures.replace(key, ptr, ptr.next)) {
+                        continue retry;
                     }
-                } while ((ref = referenceQueue.poll()) != null);
+
+                }
             }
         }
     }
 
-    public final Pointer toNative(Callable value, ToNativeContext context) {
-        Integer key = System.identityHashCode(value);
-        Object obj = closures.get(key);
+    private void expunge() {
+        Reference<? extends Callable> ref;
+        while ((ref = referenceQueue.poll()) != null) {
+            expunge(ref);
+        }
+    }
 
-        // Simple case - no identity hash code clash - just return the ptr
-        if (obj instanceof NativeClosurePointer) {
-            return (Pointer) obj;
+    public final Pointer toNative(Callable callable, ToNativeContext context) {
+        expunge();
+
+        Integer key = System.identityHashCode(callable);
+        NativeClosurePointer ptr = closures.get(key);
+
+        if (ptr != null) {
+            // Simple case - no identity hash code clash - just return the ptr
+            if (ptr.getCallable() == callable) {
+                return ptr;
+            }
+
+            // There has been a key clash, search the list
+            synchronized (closures) {
+                while ((ptr = ptr.next) != null) {
+                    if (ptr.getCallable() == callable) {
+                        return ptr;
+                    }
+                }
+            }
         }
 
-        return obj != null ? getMatchingNativeClosure(obj, value, key) : newClosure(value, key);
+        return newClosure(callable, key);
     }
 
     public Class<Pointer> nativeType() {
         return Pointer.class;
     }
 
-    NativeClosurePointer getMatchingNativeClosure(Object list, Callable value, Integer key) {
-        synchronized (closures) {
-            for (Object o : (Collection) list) {
-                NativeClosurePointer ptr = (NativeClosurePointer) o;
-                if (ptr.getCallable() == value) {
-                    return ptr;
-                }
-            }
-        }
-
-        return newClosure(value, key);
-    }
-
-    NativeClosurePointer newClosure(Callable value, Integer key) {
+    NativeClosurePointer newClosure(Callable callable, Integer key) {
         NativeClosure nativeClosure;
         try {
-            nativeClosure = nativeClosureConstructor.newInstance(NativeRuntime.getInstance(), value, referenceQueue, key);
+            nativeClosure = nativeClosureConstructor.newInstance(NativeRuntime.getInstance(), callable, referenceQueue, key);
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -368,17 +378,17 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
         }
 
         synchronized (closures) {
-            Object old = closures.get(key);
-            if (old instanceof NativeClosurePointer) {
-                Collection<Object> list = new LinkedList<Object>();
-                list.add(old);
-                list.add(ptr);
-                closures.put(key, list);
+            do {
+                // prepend and make new pointer the list head
+                ptr.next = closures.get(key);
 
-            } else if (old instanceof Collection) {
-                ((Collection) old).add(ptr);
-            }
+                // If old value already removed (e.g. by expunge), just put the new value in
+                if (ptr.next == null && closures.putIfAbsent(key, ptr) == null) {
+                    break;
+                }
+            } while (closures.replace(key, ptr.next, ptr));
         }
+
         return ptr;
     }
 

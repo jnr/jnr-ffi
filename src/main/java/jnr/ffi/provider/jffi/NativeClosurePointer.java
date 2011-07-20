@@ -26,6 +26,7 @@ import jnr.ffi.provider.InAccessibleMemoryIO;
  *
  */
 class NativeClosurePointer extends InAccessibleMemoryIO {
+    volatile NativeClosurePointer next;
     private final NativeClosure nativeClosure;
     private final com.kenai.jffi.Closure.Handle handle;
 
