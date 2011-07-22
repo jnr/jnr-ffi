@@ -29,9 +29,9 @@ import static org.junit.Assert.*;
 /**
  *
  */
-public class CallableTest {
+public class DelegateTest {
 
-    public CallableTest() {
+    public DelegateTest() {
     }
     private static TestLib lib;
     @BeforeClass

@@ -96,7 +96,7 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
 
         Method callMethod = null;
         for (Method m : closureClass.getMethods()) {
-            if (m.getAnnotation(Delegate.class) != null && Modifier.isPublic(m.getModifiers())
+            if (m.isAnnotationPresent(Delegate.class) && Modifier.isPublic(m.getModifiers())
                     && !Modifier.isStatic(m.getModifiers())) {
                 callMethod = m;
                 break;

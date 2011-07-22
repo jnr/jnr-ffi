@@ -360,7 +360,7 @@ final class AsmUtil {
 
     static boolean isDelegate(Class klass) {
         for (Method m : klass.getMethods()) {
-            if (m.getAnnotation(Delegate.class) != null) {
+            if (m.isAnnotationPresent(Delegate.class)) {
                 return true;
             }
         }
