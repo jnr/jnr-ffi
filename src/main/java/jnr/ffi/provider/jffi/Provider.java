@@ -45,17 +45,15 @@ public final class Provider extends jnr.ffi.FFIProvider {
     }
 
     private <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        final boolean compile = Boolean.parseBoolean(System.getProperty("jnr.ffi.compile.enabled", "true"));
 
         try {
-            LibraryLoader loader = new AsmLibraryLoader();
-            if (compile && loader.isInterfaceSupported(interfaceClass, libraryOptions)) {
-                return loader.loadLibrary(library, interfaceClass, libraryOptions);
-            }
+            return new AsmLibraryLoader().loadLibrary(library, interfaceClass, libraryOptions);
+
+        } catch (RuntimeException ex) {
+            throw ex;
+
         } catch (Exception ex) {
-            ex.printStackTrace(System.err);
+            throw new RuntimeException(ex);
         }
-        
-        return ProxyLibraryLoader.getInstance().loadLibrary(library, interfaceClass, libraryOptions);
     }
 }

@@ -135,8 +135,8 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
             lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i], lvar);
 
-            final int parameterFlags = DefaultInvokerFactory.getParameterFlags(parameterAnnotations[i]);
-            final int nativeArrayFlags = DefaultInvokerFactory.getNativeArrayFlags(parameterFlags)
+            final int parameterFlags = AsmUtil.getParameterFlags(parameterAnnotations[i]);
+            final int nativeArrayFlags = AsmUtil.getNativeArrayFlags(parameterFlags)
                         | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
 
             if (parameterTypes[i].isArray() && parameterTypes[i].getComponentType().isPrimitive()) {

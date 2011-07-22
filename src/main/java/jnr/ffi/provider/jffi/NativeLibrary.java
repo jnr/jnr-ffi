@@ -18,16 +18,13 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.LibraryOption;
-import jnr.ffi.provider.Invoker;
-import jnr.ffi.provider.LoadedLibrary;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import jnr.ffi.Platform;
 
-public class NativeLibrary extends jnr.ffi.provider.Library {
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+public class NativeLibrary {
 
     private final String[] libraryNames;
     
@@ -41,16 +38,28 @@ public class NativeLibrary extends jnr.ffi.provider.Library {
         this.libraryNames = (String[]) names.clone();
     }
 
-    public Invoker getInvoker(Method method, Map<LibraryOption, ?> options) {
-        if (method.getDeclaringClass().equals(LoadedLibrary.class)) {
-            return new GetRuntimeInvoker();
+    public static String locateLibrary(String libraryName) {
+        if (new File(libraryName).isAbsolute()) {
+            return libraryName;
         }
+        List<String> searchPath = new LinkedList<String>();
 
-        return DefaultInvokerFactory.getInstance().createInvoker(method, this, options);
+        //
+        // Prepend any custom search paths specifically for this library
+        //
+        searchPath.addAll(0, jnr.ffi.Library.getLibraryPath(libraryName));
+        searchPath.addAll(StaticDataHolder.userLibraryPath);
+        String path = Platform.getNativePlatform().locateLibrary(libraryName, searchPath);
+        return path != null ? path : null;
     }
 
-    public Object libraryLock() {
-        return this;
+    private static final List<String> getPropertyPaths(String propName) {
+        String value = System.getProperty(propName);
+        if (value != null) {
+            String[] paths = value.split(File.pathSeparator);
+            return new ArrayList<String>(Arrays.asList(paths));
+        }
+        return Collections.emptyList();
     }
 
     long getSymbolAddress(String name) {
@@ -100,10 +109,12 @@ public class NativeLibrary extends jnr.ffi.provider.Library {
         return Collections.unmodifiableList(libs);
     }
 
-    private static final class GetRuntimeInvoker implements Invoker {
-
-        public Object invoke(Object[] parameters) {
-            return NativeRuntime.getInstance();
+    private static final class StaticDataHolder {
+        private static final List<String> userLibraryPath = new CopyOnWriteArrayList<String>();
+        static {
+            userLibraryPath.addAll(getPropertyPaths("jaffl.library.path"));
+            // Add JNA paths for compatibility
+            userLibraryPath.addAll(getPropertyPaths("jna.library.path"));
         }
     }
 }

@@ -18,6 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.Type;
 import jnr.ffi.Address;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
@@ -25,11 +26,15 @@ import jnr.ffi.Struct;
 import com.kenai.jffi.Platform;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 
 import jnr.ffi.annotations.Delegate;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -366,5 +371,33 @@ final class AsmUtil {
         }
 
         return false;
+    }
+
+    static final Type getNativeParameterType(Method method, int paramIndex, TypeMapper mapper) {
+        Class type = method.getParameterTypes()[paramIndex];
+        ToNativeConverter converter = mapper.getToNativeConverter(type);
+
+        return InvokerUtil.getNativeParameterType(converter != null ? converter.nativeType() : type,
+                method.getParameterAnnotations()[paramIndex]);
+    }
+
+    static final int getParameterFlags(Method method, int paramIndex) {
+        return getParameterFlags(method.getParameterAnnotations()[paramIndex]);
+    }
+
+    static final int getParameterFlags(Annotation[] annotations) {
+        return ParameterFlags.parse(annotations);
+    }
+
+    static final int getNativeArrayFlags(int flags) {
+        int nflags = 0;
+        nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ArrayFlags.IN : 0;
+        nflags |= ParameterFlags.isOut(flags) ? com.kenai.jffi.ArrayFlags.OUT : 0;
+        nflags |= ParameterFlags.isNulTerminate(flags) ? com.kenai.jffi.ArrayFlags.NULTERMINATE : 0;
+        return nflags;
+    }
+
+    static final int getNativeArrayFlags(Annotation[] annotations) {
+        return getNativeArrayFlags(getParameterFlags(annotations));
     }
 }
