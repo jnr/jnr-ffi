@@ -26,8 +26,10 @@ import com.kenai.jffi.Platform;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.nio.Buffer;
 
+import jnr.ffi.annotations.Delegate;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -354,5 +356,15 @@ final class AsmUtil {
         narrow(mv, nativeType, primitiveClass);
 
         mv.invokestatic(type, "valueOf", type, primitiveClass);
+    }
+
+    static boolean isDelegate(Class klass) {
+        for (Method m : klass.getMethods()) {
+            if (m.getAnnotation(Delegate.class) != null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

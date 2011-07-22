@@ -31,6 +31,8 @@ import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.Map;
 
+import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
+
 final class InvokerUtil {
     
     static final Type getNativeReturnType(Method method) {
@@ -135,7 +137,7 @@ final class InvokerUtil {
         } else if (type.isArray()) {
             return Type.POINTER;
 
-        } else if (Callable.class.isAssignableFrom(type)) {
+        } else if (isDelegate(type)) {
             return Type.POINTER;
         
         } else {

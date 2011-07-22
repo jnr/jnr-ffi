@@ -9,6 +9,7 @@ import jnr.ffi.Struct;
 import java.lang.annotation.Annotation;
 import java.nio.Buffer;
 
+import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 
 /**
@@ -127,7 +128,7 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
     static boolean isFastLongParameter(Platform platform, Class type, Annotation[] annotations) {
         return isLongType(platform, type, annotations)
             || (Buffer.class.isAssignableFrom(type) && platform.addressSize() == 64)
-            || (Callable.class.isAssignableFrom(type) && platform.addressSize() == 64)
+            || (isDelegate(type) && platform.addressSize() == 64)
             ;
     }
 }

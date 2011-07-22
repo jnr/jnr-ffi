@@ -4,13 +4,13 @@ import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
 import jnr.ffi.Address;
-import jnr.ffi.Callable;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 
 import java.lang.annotation.Annotation;
 import java.nio.Buffer;
 
+import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 
 /**
@@ -145,7 +145,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     static boolean isFastIntParameter(Platform platform, Class type, Annotation[] annotations) {
         return isFastIntType(platform, type, annotations)
-            || (Callable.class.isAssignableFrom(type) && platform.addressSize() == 32)
+            || (isDelegate(type) && platform.addressSize() == 32)
             ;
     }
 }

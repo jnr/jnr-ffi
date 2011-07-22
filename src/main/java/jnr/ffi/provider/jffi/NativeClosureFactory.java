@@ -20,9 +20,9 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallContextCache;
-import jnr.ffi.Callable;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
+import jnr.ffi.annotations.Delegate;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassReader;
@@ -35,7 +35,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -48,7 +48,7 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  *
  */
-public final class NativeClosureFactory<T extends Callable> implements ToNativeConverter<Callable, Pointer> {
+public final class NativeClosureFactory<T extends Object> implements ToNativeConverter<Object, Pointer> {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
@@ -57,7 +57,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
     private final Constructor<? extends NativeClosure> nativeClosureConstructor;
     private final ConcurrentMap<Integer, NativeClosurePointer> closures = new ConcurrentHashMap<Integer, NativeClosurePointer>();
     private final com.kenai.jffi.ClosureManager nativeClosureManager = com.kenai.jffi.ClosureManager.getInstance();
-    private final ReferenceQueue<Callable> referenceQueue = new ReferenceQueue<Callable>();
+    private final ReferenceQueue<Object> referenceQueue = new ReferenceQueue<Object>();
 
     protected NativeClosureFactory(NativeRuntime runtime, CallContext callContext,
                                    Constructor<? extends NativeClosure> nativeClosureConstructor) {
@@ -66,7 +66,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
         this.nativeClosureConstructor = nativeClosureConstructor;
     }
 
-    static <T extends Callable> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass) {
+    static <T extends Object> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass) {
         final long classIdx = nextClassID.getAndIncrement();
 
         final String closureInstanceClassName = p(NativeClosureFactory.class) + "$ClosureInstance";
@@ -77,7 +77,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
                         new String[]{ p(com.kenai.jffi.Closure.class) });
 
         SkinnyMethodAdapter closureInit = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "<init>",
-               sig(void.class, NativeRuntime.class, Callable.class, ReferenceQueue.class, Integer.class),
+               sig(void.class, NativeRuntime.class, Object.class, ReferenceQueue.class, Integer.class),
                null, null));
         closureInit.start();
         closureInit.aload(0);
@@ -87,7 +87,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
         closureInit.aload(4);
 
         closureInit.invokespecial(p(NativeClosure.class), "<init>",
-                sig(void.class, NativeRuntime.class, Callable.class, ReferenceQueue.class, Integer.class));
+                sig(void.class, NativeRuntime.class, Object.class, ReferenceQueue.class, Integer.class));
 
         closureInit.voidreturn();
         closureInit.visitMaxs(10, 10);
@@ -95,18 +95,19 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
 
 
         Method callMethod = null;
-        for (Method m : closureClass.getDeclaredMethods()) {
-            if (m.getName().equals("call")) {
+        for (Method m : closureClass.getMethods()) {
+            if (m.getAnnotation(Delegate.class) != null && Modifier.isPublic(m.getModifiers())
+                    && !Modifier.isStatic(m.getModifiers())) {
                 callMethod = m;
                 break;
             }
         }
         if (callMethod == null) {
-            throw new NoSuchMethodError("no call method defined in " + closureClass.getName());
+            throw new NoSuchMethodError("no public non-static delegate method defined in " + closureClass.getName());
         }
 
         SkinnyMethodAdapter closureInvoke = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "invoke",
-                       sig(void.class, com.kenai.jffi.Closure.Buffer.class, Callable.class),
+                       sig(void.class, com.kenai.jffi.Closure.Buffer.class, Object.class),
                        null, null));
         closureInvoke.start();
 
@@ -175,7 +176,11 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
         }
 
         // dispatch to java method
-        closureInvoke.invokeinterface(p(closureClass), callMethod.getName(), sig(callMethod.getReturnType(), callMethod.getParameterTypes()));
+        if (callMethod.getDeclaringClass().isInterface()) {
+            closureInvoke.invokeinterface(p(closureClass), callMethod.getName(), sig(callMethod.getReturnType(), callMethod.getParameterTypes()));
+        } else {
+            closureInvoke.invokevirtual(p(closureClass), callMethod.getName(), sig(callMethod.getReturnType(), callMethod.getParameterTypes()));
+        }
 
         Class returnType = callMethod.getReturnType();
         if (!isReturnTypeSupported(returnType)) {
@@ -250,7 +255,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
             AsmClassLoader asm = new AsmClassLoader(cl);
             Class<? extends NativeClosure> nativeClosureClass = asm.defineClass(c(closureInstanceClassName), closureImpBytes);
             Constructor<? extends NativeClosure> nativeClosureConstructor
-                    = nativeClosureClass.getConstructor(NativeRuntime.class, Callable.class, ReferenceQueue.class, Integer.class);
+                    = nativeClosureClass.getConstructor(NativeRuntime.class, Object.class, ReferenceQueue.class, Integer.class);
 
             return new NativeClosureFactory(runtime, getCallContext(callMethod), nativeClosureConstructor);
         } catch (Throwable ex) {
@@ -293,7 +298,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
                 ;
     }
 
-    private void expunge(Reference<? extends Callable> ref) {
+    private void expunge(Reference<? extends Object> ref) {
         NativeClosure cl = NativeClosure.class.cast(ref);
         Integer key = cl.getKey();
         NativeClosurePointer ptr = closures.get(key);
@@ -324,13 +329,13 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
     }
 
     private void expunge() {
-        Reference<? extends Callable> ref;
+        Reference<? extends Object> ref;
         while ((ref = referenceQueue.poll()) != null) {
             expunge(ref);
         }
     }
 
-    public final Pointer toNative(Callable callable, ToNativeContext context) {
+    public final Pointer toNative(Object callable, ToNativeContext context) {
         expunge();
 
         Integer key = System.identityHashCode(callable);
@@ -359,7 +364,7 @@ public final class NativeClosureFactory<T extends Callable> implements ToNativeC
         return Pointer.class;
     }
 
-    NativeClosurePointer newClosure(Callable callable, Integer key) {
+    NativeClosurePointer newClosure(Object callable, Integer key) {
         NativeClosure nativeClosure;
         try {
             nativeClosure = nativeClosureConstructor.newInstance(NativeRuntime.getInstance(), callable, referenceQueue, key);

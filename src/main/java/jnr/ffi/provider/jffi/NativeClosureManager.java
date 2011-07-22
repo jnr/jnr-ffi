@@ -18,7 +18,6 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.Callable;
 import jnr.ffi.provider.ClosureManager;
 
 import java.util.HashMap;
@@ -28,14 +27,14 @@ import java.util.Map;
  *
  */
 final class NativeClosureManager implements ClosureManager {
-    private volatile Map<Class<? extends Callable>, NativeClosureFactory> factories = new HashMap<Class<? extends Callable>, NativeClosureFactory>();
+    private volatile Map<Class<? extends Object>, NativeClosureFactory> factories = new HashMap<Class<? extends Object>, NativeClosureFactory>();
     private final NativeRuntime runtime;
 
     NativeClosureManager(NativeRuntime runtime) {
         this.runtime = runtime;
     }
 
-    public <T extends Callable> T newClosure(Class<? extends T> closureClass, T instance) {
+    public <T extends Object> T newClosure(Class<? extends T> closureClass, T instance) {
         NativeClosureFactory<T> factory = factories.get(closureClass);
         if (factory != null) {
             //return factory.newClosure(instance);
@@ -43,7 +42,7 @@ final class NativeClosureManager implements ClosureManager {
         return null;
     }
 
-    synchronized <T extends Callable> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
+    synchronized <T extends Object> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
         NativeClosureFactory<T> factory = factories.get(closureClass);
         if (factory != null) {
             return factory;

@@ -37,6 +37,7 @@ import java.nio.*;
 import java.nio.charset.Charset;
 import java.util.Map;
 
+import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeReturnType;
 import static jnr.ffi.provider.jffi.InvokerUtil.isLong32;
 
@@ -189,9 +190,9 @@ final class DefaultInvokerFactory implements InvokerFactory {
             return new ToNativeConverterMarshaller(converter, 
                     getMarshaller(converter.nativeType(), method.getParameterAnnotations()[paramIndex]));
 
-        } else if (Callable.class.isAssignableFrom(type)) {
+        } else if (isDelegate(type)) {
             NativeClosureFactory closureFactory
-                    = NativeRuntime.getInstance().getClosureManager().getClosureFactory(type.asSubclass(Callable.class));
+                    = NativeRuntime.getInstance().getClosureManager().getClosureFactory(type);
             return new ToNativeConverterMarshaller(closureFactory,
                     getMarshaller(closureFactory.nativeType(), method.getParameterAnnotations()[paramIndex]));
         } else {

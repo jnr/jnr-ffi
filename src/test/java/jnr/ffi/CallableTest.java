@@ -18,6 +18,7 @@
 
 package jnr.ffi;
 
+import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -49,50 +50,49 @@ public class CallableTest {
     @After
     public void tearDown() {
     }
-    // FIXME: re-enable when closure/callbacks are working
-    @Test public void nop() {}
+    
     public static interface TestLib {
-        public static interface CallableVrV extends Callable {
-            public void call();
+        public static interface CallableVrV {
+            @Delegate public void call();
         }
         void testClosureVrV(CallableVrV closure);
-        public static interface CallableVrB extends Callable {
-            public byte call();
+        public static interface CallableVrB {
+            @Delegate public byte call();
         }
         byte testClosureVrB(CallableVrB closure);
-        public static interface CallableVrS extends Callable {
-            public short call();
+        public static interface CallableVrS {
+            @Delegate public short call();
         }
         short testClosureVrS(CallableVrS closure);
-        public static interface CallableVrI extends Callable {
-            public int call();
+        public static interface CallableVrI {
+            @Delegate public int call();
         }
         int testClosureVrI(CallableVrI closure);
-        public static interface CallableVrL extends Callable {
-            public @LongLong long call();
+        public static interface CallableVrL {
+            @Delegate public @LongLong long call();
         }
         @LongLong long testClosureVrL(CallableVrL closure);
-        public interface CallableVrF extends Callable {
-            public float call();
+        public interface CallableVrF {
+            @Delegate public float call();
         }
         float testClosureVrF(CallableVrF closure);
-        public interface CallableVrD extends Callable {
-            public double call();
+        public interface CallableVrD {
+            @Delegate public double call();
         }
         double testClosureVrD(CallableVrD closure);
 
-        public interface CallableBrV extends Callable {
-            public void call(byte a1);
+        public interface CallableBrV {
+            @Delegate public void call(byte a1);
         }
         void testClosureBrV(CallableBrV closure, byte a1);
 
-        public interface CallableSrV extends Callable {
-            public void call(short a1);
+        public interface CallableSrV {
+            @Delegate public void call(short a1);
         }
         void testClosureSrV(CallableSrV closure, short a1);
 
-        public interface CallableIrV extends Callable {
-            public void call(int a1);
+        public interface CallableIrV {
+            @Delegate public void call(int a1);
         }
         void testClosureIrV(CallableIrV closure, int a1);
 //        void testClosureBrV(Callable closure, byte a1);
@@ -119,8 +119,8 @@ public class CallableTest {
 //        void testClosureLSBrV(Callable closure, long a1, short a2, byte a3);
 //        // big-smaller-small
 //        void testClosureLBSrV(Callable closure, long a1, byte a2, short a3);
-        public interface ReusableCallable extends Callable {
-            public void call(int a1);
+        public interface ReusableCallable {
+            @Delegate public void call(int a1);
         }
         Pointer ret_pointer(ReusableCallable callable);
     }

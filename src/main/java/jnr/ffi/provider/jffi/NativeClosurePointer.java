@@ -52,7 +52,7 @@ class NativeClosurePointer extends InAccessibleMemoryIO {
         return 0;
     }
 
-    Callable getCallable() {
+    Object getCallable() {
         return nativeClosure.get();
     }
 

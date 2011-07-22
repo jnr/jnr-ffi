@@ -268,7 +268,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         } else if (Enum.class.isAssignableFrom(parameterType)) {
             return EnumMapper.getInstance(parameterType.asSubclass(Enum.class));
 
-        } else if (Callable.class.isAssignableFrom(parameterType)) {
+        } else if (isDelegate(parameterType)) {
 
             return closureManager.getClosureFactory(parameterType);
         } else {
@@ -498,7 +498,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 || ByReference.class.isAssignableFrom(type)
                 || StringBuilder.class.isAssignableFrom(type)
                 || StringBuffer.class.isAssignableFrom(type)
-                || Callable.class.isAssignableFrom(type)
+                || isDelegate(type)
                 ;
     }
 
