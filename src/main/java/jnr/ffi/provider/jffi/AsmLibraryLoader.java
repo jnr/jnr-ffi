@@ -186,15 +186,16 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             Signature signature = new Signature(nativeReturnType, nativeParameterTypes, resultAnnotations, parameterAnnotations,
                     callingConvention, !InvokerUtil.requiresErrno(m));
+            String rawMethodName = m.getName() + (conversionRequired ? "$raw" + nextMethodID.incrementAndGet() : "");
             for (MethodGenerator g : generators) {
                 if (g.isSupported(signature)) {
-                    g.generate(builder, m.getName() + (conversionRequired ? "$raw" : ""), functions[i], signature);
+                    g.generate(builder, rawMethodName, functions[i], signature);
                     break;
                 }
             }
 
             if (conversionRequired) {
-                generateConversionMethod(builder, m.getName(), i, returnType, parameterTypes, nativeReturnType,
+                generateConversionMethod(builder, m.getName(), rawMethodName, i, returnType, parameterTypes, nativeReturnType,
                         nativeParameterTypes, resultConverters[i], parameterConverters[i]);
             }
 
@@ -309,7 +310,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         mv.visitEnd();
     }
 
-    private final void generateConversionMethod(AsmBuilder builder, String functionName, int idx,
+    private final void generateConversionMethod(AsmBuilder builder, String functionName, String rawFunctionName, int idx,
             Class returnType, Class[] parameterTypes, Class nativeReturnType, Class[] nativeParameterTypes,
             FromNativeConverter resultConverter, ToNativeConverter[] parameterConverters) {
 
@@ -331,14 +332,18 @@ public class AsmLibraryLoader extends LibraryLoader {
         int lvar = 1;
         for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
             final boolean convertParameter = !parameterTypes[pidx].equals(nativeParameterTypes[pidx]);
-            if (convertParameter) {
+            final boolean convertLong = long.class == parameterTypes[pidx] && int.class == nativeParameterTypes[pidx];
+
+            if (convertParameter && !convertLong) {
                 mv.aload(0);
-                mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterConverters[pidx]), ci(ToNativeConverter.class));
+                mv.getfield(builder.getClassNamePath(), builder.    getParameterConverterName(parameterConverters[pidx]), ci(ToNativeConverter.class));
             }
 
             lvar = loadParameter(mv, parameterTypes[pidx], lvar);
-            
-            if (convertParameter) {
+
+            if (convertParameter && convertLong) {
+                mv.l2i();
+            } else if (convertParameter) {
                 if (parameterTypes[pidx].isPrimitive()) {
                     boxValue(mv, getBoxedClass(parameterTypes[pidx]), parameterTypes[pidx]);
                 }
@@ -350,7 +355,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
 
         // Invoke the real native method
-        mv.invokevirtual(builder.getClassNamePath(), functionName + "$raw", sig(nativeReturnType, nativeParameterTypes));
+        mv.invokevirtual(builder.getClassNamePath(), rawFunctionName, sig(nativeReturnType, nativeParameterTypes));
         if (!returnType.equals(nativeReturnType)) {
             if (nativeReturnType.isPrimitive()) {
                 boxValue(mv, getBoxedClass(nativeReturnType), nativeReturnType);
