@@ -112,6 +112,7 @@ public class NativeLibrary {
     private static final class StaticDataHolder {
         private static final List<String> userLibraryPath = new CopyOnWriteArrayList<String>();
         static {
+            userLibraryPath.addAll(getPropertyPaths("jnr.ffi.library.path"));
             userLibraryPath.addAll(getPropertyPaths("jaffl.library.path"));
             // Add JNA paths for compatibility
             userLibraryPath.addAll(getPropertyPaths("jna.library.path"));
