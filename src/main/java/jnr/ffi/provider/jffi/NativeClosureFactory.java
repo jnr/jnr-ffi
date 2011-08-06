@@ -20,6 +20,8 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallContextCache;
+import com.kenai.jffi.ClosureManager;
+import com.kenai.jffi.ClosurePool;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.Delegate;
@@ -56,7 +58,7 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
     private final CallContext callContext;
     private final Constructor<? extends NativeClosure> nativeClosureConstructor;
     private final ConcurrentMap<Integer, NativeClosurePointer> closures = new ConcurrentHashMap<Integer, NativeClosurePointer>();
-    private final com.kenai.jffi.ClosureManager nativeClosureManager = com.kenai.jffi.ClosureManager.getInstance();
+    private final ClosurePool closurePool;
     private final ReferenceQueue<Object> referenceQueue = new ReferenceQueue<Object>();
 
     protected NativeClosureFactory(NativeRuntime runtime, CallContext callContext,
@@ -64,6 +66,7 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
         this.runtime = runtime;
         this.callContext = callContext;
         this.nativeClosureConstructor = nativeClosureConstructor;
+        this.closurePool = com.kenai.jffi.ClosureManager.getInstance().getClosurePool(callContext);
     }
 
     static <T extends Object> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass) {
@@ -375,7 +378,7 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
         }
 
         NativeClosurePointer ptr = new NativeClosurePointer(runtime, nativeClosure,
-                nativeClosureManager.newClosure(nativeClosure, callContext));
+                closurePool.newClosureHandle(nativeClosure));
 
         expunge();
         if (closures.putIfAbsent(key, ptr) == null) {
