@@ -25,18 +25,6 @@ import java.nio.charset.Charset;
  * <b>Note:</b> This class is not threadsafe.
  */
 public abstract class Struct /*implements Marshallable */{
-    /**
-     * Various platform-dependent constants needed for Struct construction
-     */
-    protected static final class Constants {
-        static final int LONG_SIZE = Type.SLONG.size() * 8;
-        static final int ADDRESS_SIZE = Type.ADDRESS.size() * 8;
-        static final long LONG_MASK = LONG_SIZE == 32 ? 0x7FFFFFFFL : 0x7FFFFFFFFFFFFFFFL;
-        static final int LONG_ALIGN = Type.SLONG.alignment() * 8;
-        static final int INT64_ALIGN = Type.SLONGLONG.alignment() * 8;
-        static final int DOUBLE_ALIGN = Type.DOUBLE.alignment() * 8;
-        static final int FLOAT_ALIGN = Type.FLOAT.alignment() * 8;;
-    }
 
     static final class Info {
         Struct enclosing = null;
