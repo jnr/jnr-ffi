@@ -97,11 +97,7 @@ public abstract class Struct {
         }
         
         protected final int addField(int sizeBits, int alignBits) {
-            final int mask = (alignBits >> 3) - 1;
-            int off = resetIndex ? 0 : this.size;
-            if ((off & mask) != 0) {
-                off = (off & ~mask) + (alignBits >> 3);
-            }
+            final int off = resetIndex ? 0 : align(this.size, alignBits >> 3);
             this.size = Math.max(this.size, off + (sizeBits >> 3));
             this.minAlign = Math.max(this.minAlign, alignBits >> 3);
             return off;
@@ -161,6 +157,10 @@ public abstract class Struct {
         return struct.__info.isDirect();
     }
 
+    private static int align(int offset, int align) {
+        return (offset + align - 1) & ~(align - 1);
+    }
+
     @SuppressWarnings("unchecked")
     public static <T extends Struct> T[] arrayOf(Runtime runtime, Class<T> type, int length) {
         try {
@@ -170,8 +170,7 @@ public abstract class Struct {
             }
 
             if (array.length > 0) {
-                final int align = Struct.alignment(array[0]);
-                int structSize = align + ((Struct.size(array[0]) - 1) & ~(align - 1));
+                final int structSize = align(Struct.size(array[0]), Struct.alignment(array[0]));
 
                 jnr.ffi.Pointer memory = runtime.getMemoryManager().allocateDirect(structSize * length);
                 for (int i = 0; i < array.length; ++i) {
@@ -510,8 +509,7 @@ public abstract class Struct {
     }
 
     protected final <T extends Struct> T inner(Struct struct) {
-        int salign = struct.__info.getMinimumAlignment();
-        int off = salign + ((__info.size - 1) & ~(salign - 1));
+        int off = align(__info.size, struct.__info.getMinimumAlignment());
         struct.__info.enclosing = this;
         struct.__info.offset = off;
         __info.size = off + struct.__info.size;

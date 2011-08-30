@@ -60,7 +60,7 @@ public class StructLayout implements Type {
     }
 
     private static int align(int offset, int alignment) {
-        return alignment + ((offset - 1) & ~(alignment - 1));
+        return (offset + alignment - 1) & ~(alignment - 1);
     }
 
     protected final int addField(int fieldSize, int fieldAlign, int offset) {
