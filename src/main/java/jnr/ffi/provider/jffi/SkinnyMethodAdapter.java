@@ -34,16 +34,18 @@ import org.objectweb.asm.Opcodes;
  *
  * @author headius
  */
-public class SkinnyMethodAdapter implements MethodVisitor, Opcodes {
+public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     private final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
     private MethodVisitor method;
     
     /** Creates a new instance of SkinnyMethodAdapter */
     public SkinnyMethodAdapter(MethodVisitor method) {
-        setMethodVisitor(method);
+        super(0, method);
+        this.method = method;
     }
     
     public SkinnyMethodAdapter() {
+        super(0);
     }
     
     public MethodVisitor getMethodVisitor() {

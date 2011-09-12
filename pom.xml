@@ -66,31 +66,31 @@
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
-      <version>3.2</version>
+      <version>4.0_RC2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm-commons</artifactId>
-      <version>3.2</version>
+      <version>4.0_RC2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm-analysis</artifactId>
-      <version>3.2</version>
+      <version>4.0_RC2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm-tree</artifactId>
-      <version>3.2</version>
+      <version>4.0_RC2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
       <artifactId>asm-util</artifactId>
-      <version>3.2</version>
+      <version>4.0_RC2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

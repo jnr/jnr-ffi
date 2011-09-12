@@ -38,7 +38,6 @@ import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.commons.EmptyVisitor;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 
@@ -77,7 +76,7 @@ final class AsmUtil {
             Constructor<? extends ClassVisitor> c = tmvClass.getDeclaredConstructor(PrintWriter.class);
             return c.newInstance(out);
         } catch (Throwable t) {
-            return new EmptyVisitor();
+            throw new RuntimeException(t);
         }
     }
 
