@@ -30,6 +30,10 @@ class X86MethodGenerator implements MethodGenerator {
     }
 
     public boolean isSupported(Signature signature) {
+        if (!Boolean.valueOf(System.getProperty("jnr.ffi.compile.x86asm", "true"))) {
+            return false;
+        }
+
         final Platform platform = Platform.getPlatform();
 
         if (platform.getOS().equals(Platform.OS.WINDOWS)) {
