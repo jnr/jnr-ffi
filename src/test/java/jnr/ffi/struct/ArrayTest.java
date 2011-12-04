@@ -21,7 +21,7 @@ public class ArrayTest {
             public final Signed8 s8 = new Signed8();
             public final Pointer p = new Pointer();
 
-            public PointerStruct() {
+            public PointerStruct(Runtime runtime) {
                 super(runtime);
             }
         }
@@ -52,14 +52,14 @@ public class ArrayTest {
     public static final class s8 extends Struct {
         public final Signed8 s8 = new Signed8();
 
-        public s8() {
+        public s8(Runtime runtime) {
             super(runtime);
         }
 
     }
     public static final class s32 extends Struct {
         public final Signed8 s8 = new Signed8();
-        public s32() {
+        public s32(Runtime runtime) {
             super(runtime);
         }
     }

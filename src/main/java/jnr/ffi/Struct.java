@@ -165,8 +165,9 @@ public abstract class Struct {
     public static <T extends Struct> T[] arrayOf(Runtime runtime, Class<T> type, int length) {
         try {
             T[] array = (T[]) Array.newInstance(type, length);
+            Constructor<T> c = type.getConstructor(Runtime.class);
             for (int i = 0; i < length; ++i) {
-                array[i] = type.newInstance();
+                array[i] = c.newInstance(runtime);
             }
 
             if (array.length > 0) {
