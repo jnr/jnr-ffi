@@ -64,33 +64,33 @@
       <classifier>native</classifier>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>4.0_RC2</version>
+      <version>4.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
-      <version>4.0_RC2</version>
+      <version>4.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-analysis</artifactId>
-      <version>4.0_RC2</version>
+      <version>4.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-tree</artifactId>
-      <version>4.0_RC2</version>
+      <version>4.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
-      <version>4.0_RC2</version>
+      <version>4.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
