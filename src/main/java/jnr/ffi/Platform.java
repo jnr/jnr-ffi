@@ -105,6 +105,9 @@ public abstract class Platform {
         /** 32 bit MIPS (used by nestedvm) */
         MIPS32,
 
+        /** 32 bit ARM */
+        ARM,
+
         /**
          * Unknown CPU architecture.  A best effort will be made to infer architecture
          * specific values such as address and long size.
