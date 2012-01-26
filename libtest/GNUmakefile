@@ -119,7 +119,7 @@ ifeq ($(CPU), x86_64)
 endif
 
 # On platforms (linux, solaris) that support both 32bit and 64bit, force building for one or the other
-ifneq ($(or $(findstring linux, $(OS)), $(findstring solaris, $(OS))),)
+ifneq ($(strip $(findstring $(OS), solaris)),)
   # Change the CC/LD instead of CFLAGS/LDFLAGS, incase other things in the flags
   # makes the libffi build choke
   CC += -m$(MODEL)
