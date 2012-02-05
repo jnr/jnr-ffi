@@ -2,22 +2,19 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.PageManager;
 
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import jnr.ffi.util.ref.*;
 
 /**
  *
  */
 public class TransientNativeMemory extends DirectMemoryIO {
-    /** Keeps strong references to the memory bucket until cleanup */
+    /** Keeps strong references to the magazine until cleanup */
     private static final Map<Magazine, Boolean> referenceSet = new ConcurrentHashMap<Magazine, Boolean>();
+
     private static final ThreadLocal<Magazine> currentMagazine = new ThreadLocal<Magazine>();
-    private static final int PAGES_PER_MAGAZINE = 4;
+    private static final int PAGES_PER_MAGAZINE = 2;
 
     private final Sentinel sentinel;
     private final int size;
@@ -26,7 +23,6 @@ public class TransientNativeMemory extends DirectMemoryIO {
         if (size > 256) { /* Only use the transient allocator for small, short lived allocations */
             return new AllocatedDirectMemoryIO(runtime, size, clear);
         }
-
 
         Magazine magazine = currentMagazine.get();
         Sentinel sentinel = magazine != null ? magazine.get() : null;
@@ -97,7 +93,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
     /**
      * Holder for a group of memory allocations.
      */
-    private static final class Magazine extends WeakReference<Sentinel> implements Runnable {
+    private static final class Magazine extends FinalizableWeakReference<Sentinel> {
         private final PageManager pm;
         private final long page;
         private final long end;
@@ -105,7 +101,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
         private long memory;
 
         Magazine(Sentinel sentinel, PageManager pm, long page, int pageCount) {
-            super(sentinel, ReferenceReaper.getInstance().referenceQueue);
+            super(sentinel, NativeFinalizer.getInstance().getFinalizerQueue());
             this.pm = pm;
             this.memory = this.page = page;
             this.pageCount = pageCount;
@@ -122,57 +118,9 @@ public class TransientNativeMemory extends DirectMemoryIO {
             return 0L;
         }
 
-        public final void run() {
-//            System.out.printf("freeing page %x\n", page);
+        public final void finalizeReferent() {
             pm.freePages(page, pageCount);
             referenceSet.remove(this);
         }
-    }
-
-
-    /**
-     * A general purpose reference tracker & reaper utility class.
-     */
-    public static final class ReferenceReaper {
-        public final ReferenceQueue<Sentinel> referenceQueue = new ReferenceQueue<Sentinel>();
-        private final List<Thread> reapers = new LinkedList<Thread>();
-
-        private ReferenceReaper() {
-            for (int i = 0; i < java.lang.Runtime.getRuntime().availableProcessors(); i++) {
-                Thread t = new Thread(reaper, "jnr memory cleaner");
-                t.setDaemon(true);
-                t.setPriority(Thread.MAX_PRIORITY);
-                t.start();
-                reapers.add(t);
-            }
-        }
-
-        private static final class SingletonHolder {
-            private static final ReferenceReaper INSTANCE = new ReferenceReaper();
-        }
-
-        public static ReferenceReaper getInstance() {
-            return SingletonHolder.INSTANCE;
-        }
-
-        private final Runnable reaper = new Runnable() {
-
-            public void run() {
-                for ( ; ; ) {
-                    try {
-                        Reference r = referenceQueue.remove();
-                        try {
-                            if (r instanceof Runnable) {
-                                ((Runnable) r).run();
-                            }
-                        } finally {
-                            r.clear();
-                        }
-                    } catch (InterruptedException ex) {
-                        break;
-                    } catch (Throwable t) { }
-                }
-            }
-        };
     }
 }
