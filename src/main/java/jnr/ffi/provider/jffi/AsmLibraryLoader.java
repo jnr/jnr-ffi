@@ -142,7 +142,11 @@ public class AsmLibraryLoader extends LibraryLoader {
 
                 nativeReturnType = resultConverters[i].nativeType();
                 conversionRequired = true;
+            } else if (NativeLong.class != m.getReturnType() && isLong32(m.getReturnType(), m.getAnnotations())) {
+                nativeReturnType = m.getReturnType() == long.class ? int.class : Integer.class;
+                conversionRequired = true;
             }
+
 
             parameterConverters[i] = new ToNativeConverter[parameterTypes.length];
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
@@ -154,7 +158,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                             new MethodParameterContext(m, pidx));
                     conversionRequired = true;
                 
-                } else if (isLong32(parameterTypes[pidx], parameterAnnotations[pidx])) {
+                } else if (NativeLong.class != parameterTypes[pidx] && isLong32(parameterTypes[pidx], parameterAnnotations[pidx])) {
                     nativeParameterTypes[pidx] = parameterTypes[pidx] == long.class ? int.class : Integer.class;
                     conversionRequired = true;
                 
@@ -270,6 +274,9 @@ public class AsmLibraryLoader extends LibraryLoader {
         } else if (Enum.class.isAssignableFrom(parameterType)) {
             return EnumMapper.getInstance(parameterType.asSubclass(Enum.class));
 
+        } else if (Long.class == parameterType && isLong32(parameterType, m.getParameterAnnotations()[parameterIndex])) {
+            return BoxedLong32Converter.INSTANCE;
+
         } else if (isDelegate(parameterType)) {
 
             return closureManager.getClosureFactory(parameterType);
@@ -286,6 +293,9 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         } else if (Enum.class.isAssignableFrom(returnType)) {
             return EnumMapper.getInstance(returnType.asSubclass(Enum.class));
+
+        } else if (Long.class == returnType&& isLong32(returnType, m.getAnnotations())) {
+            return BoxedLong32Converter.INSTANCE;
 
         } else {
             return null;
@@ -321,7 +331,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         mv.start();
 
         // If there is a result converter, retrieve it and put on the stack
-        if (!returnType.equals(nativeReturnType)) {
+        if (!returnType.equals(nativeReturnType) && long.class != returnType && int.class != nativeReturnType) {
             mv.aload(0);
             mv.getfield(builder.getClassNamePath(), builder.getResultConverterName(resultConverter), ci(FromNativeConverter.class));
         }
@@ -357,7 +367,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         // Invoke the real native method
         mv.invokevirtual(builder.getClassNamePath(), rawFunctionName, sig(nativeReturnType, nativeParameterTypes));
-        if (!returnType.equals(nativeReturnType)) {
+        if (!returnType.equals(nativeReturnType) && long.class != returnType && int.class != nativeReturnType) {
             if (nativeReturnType.isPrimitive()) {
                 boxValue(mv, getBoxedClass(nativeReturnType), nativeReturnType);
             }
@@ -365,6 +375,9 @@ public class AsmLibraryLoader extends LibraryLoader {
             mv.invokeinterface(FromNativeConverter.class, "fromNative",
                     Object.class, Object.class, FromNativeContext.class);
             mv.checkcast(p(returnType));
+        }
+        if (!returnType.equals(nativeReturnType) && long.class == returnType && int.class == nativeReturnType) {
+            mv.i2l();
         }
         emitReturnOp(mv, returnType);
         mv.visitMaxs(10, 10);

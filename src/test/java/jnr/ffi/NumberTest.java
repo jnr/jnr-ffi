@@ -19,6 +19,8 @@
 package jnr.ffi;
 
 import java.util.Random;
+
+import jnr.ffi.annotations.LongLong;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,8 +44,9 @@ public class NumberTest {
         public short add_int16_t(short i1, short i2);
 
         public int add_int32_t(int i1, int i2);
-        public long add_int64_t(long i1, long i2);
+        public @LongLong long add_int64_t(@LongLong long i1, @LongLong long i2);
         public long add_long(long i1, long i2);
+        public Long add_long(Long i1, Long i2);
         public NativeLong add_long(NativeLong i1, NativeLong i2);
         public NativeLong sub_long(NativeLong i1, NativeLong i2);
         public NativeLong mul_long(NativeLong i1, NativeLong i2);
@@ -301,7 +304,7 @@ public class NumberTest {
     }
 
     @Test
-    public void testLongAddition() throws Exception {
+    public void testPrimitiveLongAddition() throws Exception {
         testNativeLong(new NativeLongOp() {
 
             public long j(long i1, long i2) {
@@ -310,6 +313,20 @@ public class NumberTest {
 
             public long n(long i1, long i2) {
                 return testlib.add_long(i1, i2);
+            }
+        });
+    }
+
+    @Test
+    public void testBoxedLongAddition() throws Exception {
+        testNativeLong(new NativeLongOp() {
+
+            public long j(long i1, long i2) {
+                return i1 + i2;
+            }
+
+            public long n(long i1, long i2) {
+                return testlib.add_long(new Long(i1), new Long(i2));
             }
         });
     }
