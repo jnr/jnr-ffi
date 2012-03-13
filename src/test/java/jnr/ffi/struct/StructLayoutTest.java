@@ -330,7 +330,7 @@ public class StructLayoutTest {
     public void unsignedLong() {
         UnsignedLongTest s = new UnsignedLongTest();
         Pointer ptr = Memory.allocate(runtime, s.size());
-        final long MAGIC = (long) Integer.MAX_VALUE + 1;
+        final long MAGIC = (long) Integer.MAX_VALUE;
         s.ul.set(ptr, MAGIC);
         assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue(ptr));
     }

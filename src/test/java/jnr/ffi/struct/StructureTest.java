@@ -320,7 +320,7 @@ public class StructureTest {
     @Test
     public void unsignedLong() {
         UnsignedLongTest s = new UnsignedLongTest();
-        final long MAGIC = (long) Integer.MAX_VALUE + 1;
+        final long MAGIC = (long) Integer.MAX_VALUE;
         s.ul.set(MAGIC);
         assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue());
     }

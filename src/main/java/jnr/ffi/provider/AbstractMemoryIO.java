@@ -47,14 +47,14 @@ abstract public class AbstractMemoryIO extends Pointer {
     }
 
     public long getAddress(long offset) {
-        return getRuntime().addressSize() == 4 ? getInt(offset) : getLong(offset);
+        return getRuntime().addressSize() == 4 ? getInt(offset) : getLongLong(offset);
     }
 
     public void putAddress(long offset, long value) {
         if (getRuntime().addressSize() == 4) {
             putInt(offset, (int) value);
         } else {
-            putLong(offset, value);
+            putLongLong(offset, value);
         }
     }
 
@@ -66,12 +66,32 @@ abstract public class AbstractMemoryIO extends Pointer {
         if (getRuntime().addressSize() == 4) {
             putInt(offset, value.intValue());
         } else {
-            putLong(offset, value.longValue());
+            putLongLong(offset, value.longValue());
         }
     }
 
     public final long getNativeLong(long offset) {
+        return getRuntime().longSize() == 4 ? getInt(offset) : getLongLong(offset);
+    }
+
+    public void putNativeLong(long offset, long value) {
+        if (getRuntime().longSize() == 4) {
+            putInt(offset, (int) value);
+        } else {
+            putLongLong(offset, value);
+        }
+    }
+
+    public long getLong(long offset) {
         return getRuntime().longSize() == 4 ? getInt(offset) : getLong(offset);
+    }
+
+    public void putLong(long offset, long value) {
+        if (getRuntime().longSize() == 4) {
+            putInt(offset, (int) value);
+        } else {
+            putLongLong(offset, value);
+        }
     }
 
     public AbstractMemoryIO slice(long offset) {
@@ -82,13 +102,6 @@ abstract public class AbstractMemoryIO extends Pointer {
         return new BoundedMemoryIO(this, offset, size);
     }
 
-    public void putNativeLong(long offset, long value) {
-        if (getRuntime().longSize() == 4) {
-            putInt(offset, (int) value);
-        } else {
-            putLong(offset, value);
-        }
-    }
 
     public void transferTo(long offset, Pointer other, long otherOffset, long count) {
         Pointer dst = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;

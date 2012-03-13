@@ -221,7 +221,7 @@ abstract public class Pointer {
     abstract public void putInt(long offset, int value);
 
     /**
-     * Writes a {@code long} (64 bit) value at the given offset.
+     * Writes a {@code native long} value at the given offset.
      *
      * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
      * @param value the {@code long} value to be written.

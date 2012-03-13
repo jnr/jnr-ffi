@@ -20,6 +20,7 @@ package jnr.ffi;
 
 import java.nio.ByteBuffer;
 
+import jnr.ffi.annotations.LongLong;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -37,14 +38,14 @@ public class MemoryIOTest {
         byte ptr_ret_int8_t(Pointer p, int offset);
         short ptr_ret_int16_t(Pointer p, int offset);
         int ptr_ret_int32_t(Pointer p, int offset);
-        long ptr_ret_int64_t(Pointer p, int offset);
+        @LongLong long ptr_ret_int64_t(Pointer p, int offset);
         float ptr_ret_float(Pointer p, int offset);
         double ptr_ret_double(Pointer p, int offset);
 
         void ptr_set_int8_t(Pointer p, int offset, byte value);
         void ptr_set_int16_t(Pointer p, int offset, short value);
         void ptr_set_int32_t(Pointer p, int offset, int value);
-        void ptr_set_int64_t(Pointer p, int offset, long value);
+        void ptr_set_int64_t(Pointer p, int offset, @LongLong long value);
         void ptr_set_float(Pointer p, int offset, float value);
         void ptr_set_double(Pointer p, int offset, double value);
     }
@@ -126,16 +127,16 @@ public class MemoryIOTest {
             assertEquals("Incorrect value at offset " + i, i, io.getInt(i));
         }
     }
-    private final void testPutLong(Pointer io, int size) {
+    private final void testPutLongLong(Pointer io, int size) {
         for (int i = 0; i <= size - 8; ++i) {
-            io.putLong(i, i);
+            io.putLongLong(i, i);
             assertEquals("Incorrect value at offset " + i, (long) i, testlib.ptr_ret_int64_t(io, i));
         }
     }
-    private final void testGetLong(Pointer io, int size) {
+    private final void testGetLongLong(Pointer io, int size) {
         for (int i = 0; i <= size - 8; ++i) {
             testlib.ptr_set_int64_t(io, i, i);
-            assertEquals("Incorrect value at offset " + i, (long) i, io.getLong(i));
+            assertEquals("Incorrect value at offset " + i, (long) i, io.getLongLong(i));
         }
     }
     private final void testPutFloat(Pointer io, int size) {
@@ -198,12 +199,12 @@ public class MemoryIOTest {
     @Test public void testHeapMemoryIOPutLong() {
         final int SIZE = 16;
         Pointer memory = heap(SIZE);
-        testPutLong(memory, SIZE);
+        testPutLongLong(memory, SIZE);
     }
 
-    @Test public void testHeapMemoryIOGetLong() {
+    @Test public void testHeapMemoryIOGetLongLong() {
         final int SIZE = 16;
-        testGetLong(heap(SIZE), SIZE);
+        testGetLongLong(heap(SIZE), SIZE);
     }
 
     @Test public void testHeapMemoryIOPutFloat() {
@@ -276,13 +277,13 @@ public class MemoryIOTest {
         final int SIZE = 16;
         testGetInt(direct(SIZE), SIZE);
     }
-    @Test public void testDirectMemoryIOPutLong() {
+    @Test public void testDirectMemoryIOPutLongLong() {
         final int SIZE = 16;
-        testPutLong(direct(SIZE), SIZE);
+        testPutLongLong(direct(SIZE), SIZE);
     }
-    @Test public void testDirectMemoryIOGetLong() {
+    @Test public void testDirectMemoryIOGetLongLong() {
         final int SIZE = 16;
-        testGetLong(direct(SIZE), SIZE);
+        testGetLongLong(direct(SIZE), SIZE);
     }
     @Test public void testDirectMemoryIOPutFloat() {
         final int SIZE = 16;
@@ -328,13 +329,13 @@ public class MemoryIOTest {
         final int SIZE = 16;
         testGetInt(buffer(SIZE), SIZE);
     }
-    @Test public void testBufferIOPutLong() {
+    @Test public void testBufferIOPutLongLong() {
         final int SIZE = 16;
-        testPutLong(buffer(SIZE), SIZE);
+        testPutLongLong(buffer(SIZE), SIZE);
     }
-    @Test public void testBufferIOGetLong() {
+    @Test public void testBufferIOGetLongLong() {
         final int SIZE = 16;
-        testGetLong(buffer(SIZE), SIZE);
+        testGetLongLong(buffer(SIZE), SIZE);
     }
     @Test public void testBufferIOPutFloat() {
         final int SIZE = 16;

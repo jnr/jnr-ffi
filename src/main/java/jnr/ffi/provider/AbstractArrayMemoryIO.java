@@ -117,10 +117,6 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         return io.getInt32(buffer, index(offset));
     }
 
-    public final long getLong(long offset) {
-        return io.getInt64(buffer, index(offset));
-    }
-    
     public final long getLongLong(long offset) {
         return io.getInt64(buffer, index(offset));
     }
@@ -148,10 +144,6 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
 
     public final void putInt(long offset, int value) {
         io.putInt32(buffer, index(offset), value);
-    }
-
-    public final void putLong(long offset, long value) {
-        io.putInt64(buffer, index(offset), value);
     }
     
     public final void putLongLong(long offset, long value) {

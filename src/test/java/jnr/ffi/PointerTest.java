@@ -19,6 +19,8 @@
 package jnr.ffi;
 
 import java.nio.ByteOrder;
+
+import jnr.ffi.annotations.LongLong;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,13 +41,13 @@ public class PointerTest {
         byte ptr_ret_int8_t(Pointer p, int offset);
         short ptr_ret_int16_t(Pointer p, int offset);
         int ptr_ret_int32_t(Pointer p, int offset);
-        long ptr_ret_int64_t(Pointer p, int offset);
+        @LongLong long ptr_ret_int64_t(Pointer p, int offset);
         float ptr_ret_float(Pointer p, int offset);
         double ptr_ret_double(Pointer p, int offset);
         void ptr_set_int8_t(Pointer p, int offset, byte value);
         void ptr_set_int16_t(Pointer p, int offset, short value);
         void ptr_set_int32_t(Pointer p, int offset, int value);
-        void ptr_set_int64_t(Pointer p, int offset, long value);
+        void ptr_set_int64_t(Pointer p, int offset, @LongLong long value);
         void ptr_set_float(Pointer p, int offset, float value);
         void ptr_set_double(Pointer p, int offset, double value);
         
@@ -142,7 +144,7 @@ public class PointerTest {
         } 
     }
     @Test
-    public void testPointerSetLong() {
+    public void testPointerSetLongLong() {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         long MAGIC = 0xFEE1DEADABCDEF12L;
@@ -160,7 +162,7 @@ public class PointerTest {
                 };
         
         for (int i = 0; i < (SIZE - 7); ++i) {
-            p.putLong(i, MAGIC);
+            p.putLongLong(i, MAGIC);
             for (int idx = 0; idx < 8; ++idx) {
                 assertEquals("incorrect byte value at offset= " + i + " idx=" + idx, bytes[idx], p.getByte(i + idx));
             }
@@ -236,13 +238,13 @@ public class PointerTest {
         } 
     }
     @Test
-    public void testPointerGetLong() {
+    public void testPointerGetLongLong() {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         long MAGIC = 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < SIZE - 7; ++i) {
             testlib.ptr_set_int64_t(p, i, MAGIC);
-            assertEquals("Long not set at offset " + i, MAGIC, p.getLong(i));
+            assertEquals("Long not set at offset " + i, MAGIC, p.getLongLong(i));
         } 
     }
     @Test

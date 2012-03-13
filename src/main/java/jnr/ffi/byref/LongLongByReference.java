@@ -88,7 +88,7 @@ public final class LongLongByReference extends AbstractNumberReference<Long> {
      * @param memory the native memory buffer
      */
     public void marshal(Pointer memory, long offset) {
-        memory.putLong(offset, value);
+        memory.putLongLong(offset, value);
     }
 
     /**
@@ -97,7 +97,7 @@ public final class LongLongByReference extends AbstractNumberReference<Long> {
      * @param memory the native memory buffer.
      */
     public void unmarshal(Pointer memory, long offset) {
-        this.value = memory.getLong(offset);
+        this.value = memory.getLongLong(offset);
     }
     
     /**

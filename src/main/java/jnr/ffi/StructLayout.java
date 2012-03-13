@@ -742,7 +742,7 @@ public class StructLayout implements Type {
          * @return a long.
          */
         public final long get(jnr.ffi.Pointer ptr) {
-            return ptr.getLong(offset());
+            return ptr.getLongLong(offset());
         }
 
         /**
@@ -751,11 +751,11 @@ public class StructLayout implements Type {
          * @param value the 64 bit value to set.
          */
         public final void set(jnr.ffi.Pointer ptr, long value) {
-            ptr.putLong(offset(), value);
+            ptr.putLongLong(offset(), value);
         }
 
         public void set(jnr.ffi.Pointer ptr, java.lang.Number value) {
-            ptr.putLong(offset(), value.longValue());
+            ptr.putLongLong(offset(), value.longValue());
         }
 
         /**
@@ -815,7 +815,7 @@ public class StructLayout implements Type {
          * @return a long.
          */
         public final long get(jnr.ffi.Pointer ptr) {
-            return ptr.getLong(offset());
+            return ptr.getLongLong(offset());
         }
 
         /**
@@ -824,11 +824,11 @@ public class StructLayout implements Type {
          * @param value the 64 bit value to set.
          */
         public final void set(jnr.ffi.Pointer ptr, long value) {
-            ptr.putLong(offset(), value);
+            ptr.putLongLong(offset(), value);
         }
 
         public void set(jnr.ffi.Pointer ptr, java.lang.Number value) {
-            ptr.putLong(offset(), value.longValue());
+            ptr.putLongLong(offset(), value.longValue());
         }
 
         /**

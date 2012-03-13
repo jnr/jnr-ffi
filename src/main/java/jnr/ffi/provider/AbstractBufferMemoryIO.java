@@ -63,10 +63,6 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
         return buffer.getInt((int) offset);
     }
 
-    public long getLong(long offset) {
-        return buffer.getLong((int) offset);
-    }
-    
     public long getLongLong(long offset) {
         return buffer.getLong((int) offset);
     }
@@ -89,10 +85,6 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
 
     public void putInt(long offset, int value) {
         buffer.putInt((int) offset, value);
-    }
-
-    public void putLong(long offset, long value) {
-        buffer.putLong((int) offset, value);
     }
     
     public void putLongLong(long offset, long value) {

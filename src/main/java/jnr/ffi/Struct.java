@@ -1142,7 +1142,7 @@ public abstract class Struct {
          * @return a long.
          */
         public final long get() {
-            return getMemory().getLong(offset());
+            return getMemory().getLongLong(offset());
         }
         
         /**
@@ -1151,11 +1151,11 @@ public abstract class Struct {
          * @param value the 64 bit value to set.
          */
         public final void set(long value) {
-            getMemory().putLong(offset(), value);
+            getMemory().putLongLong(offset(), value);
         }
 
         public void set(java.lang.Number value) {
-            getMemory().putLong(offset(), value.longValue());
+            getMemory().putLongLong(offset(), value.longValue());
         }
 
         /**
@@ -1215,7 +1215,7 @@ public abstract class Struct {
          * @return a long.
          */
         public final long get() {
-            return getMemory().getLong(offset());
+            return getMemory().getLongLong(offset());
         }
         
         /**
@@ -1224,11 +1224,11 @@ public abstract class Struct {
          * @param value the 64 bit value to set.
          */
         public final void set(long value) {
-            getMemory().putLong(offset(), value);
+            getMemory().putLongLong(offset(), value);
         }
 
         public void set(java.lang.Number value) {
-            getMemory().putLong(offset(), value.longValue());
+            getMemory().putLongLong(offset(), value.longValue());
         }
 
         /**
@@ -1769,10 +1769,10 @@ public abstract class Struct {
             return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
         public final void set(E value) {
-            getMemory().putLong(offset(), EnumMapper.getInstance(enumClass).intValue(value));
+            getMemory().putLongLong(offset(), EnumMapper.getInstance(enumClass).intValue(value));
         }
         public void set(java.lang.Number value) {
-            getMemory().putLong(offset(), value.longValue());
+            getMemory().putLongLong(offset(), value.longValue());
         }
         @Override
         public final int intValue() {
@@ -1780,7 +1780,7 @@ public abstract class Struct {
         }
         @Override
         public final long longValue() {
-            return getMemory().getLong(offset());
+            return getMemory().getLongLong(offset());
         }
     }
 
