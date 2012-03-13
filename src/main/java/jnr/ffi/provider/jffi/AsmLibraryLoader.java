@@ -277,6 +277,11 @@ public class AsmLibraryLoader extends LibraryLoader {
         } else if (Long.class == parameterType && isLong32(parameterType, m.getParameterAnnotations()[parameterIndex])) {
             return BoxedLong32Converter.INSTANCE;
 
+            /*
+        } else if (NativeLong.class == parameterType && isLong32(parameterType, m.getParameterAnnotations()[parameterIndex])) {
+            return NativeLong32Converter.INSTANCE;
+            */
+
         } else if (isDelegate(parameterType)) {
 
             return closureManager.getClosureFactory(parameterType);
@@ -294,8 +299,13 @@ public class AsmLibraryLoader extends LibraryLoader {
         } else if (Enum.class.isAssignableFrom(returnType)) {
             return EnumMapper.getInstance(returnType.asSubclass(Enum.class));
 
-        } else if (Long.class == returnType&& isLong32(returnType, m.getAnnotations())) {
+        } else if (Long.class == returnType && isLong32(returnType, m.getAnnotations())) {
             return BoxedLong32Converter.INSTANCE;
+
+            /*
+        } else if (NativeLong.class == returnType && isLong32(returnType, m.getAnnotations())) {
+            return NativeLong32Converter.INSTANCE;
+            */
 
         } else {
             return null;
