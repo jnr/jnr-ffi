@@ -156,6 +156,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 
                 } else if (isLong32(parameterTypes[pidx], parameterAnnotations[pidx])) {
                     nativeParameterTypes[pidx] = parameterTypes[pidx] == long.class ? int.class : Integer.class;
+                    conversionRequired = true;
                 
                 } else {
                     nativeParameterTypes[pidx] = parameterTypes[pidx];
