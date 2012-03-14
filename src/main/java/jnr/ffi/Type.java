@@ -32,4 +32,11 @@ public interface Type {
      * @return An integer
      */
     int alignment();
+
+    /**
+     * The native type of this type
+     *
+     * @return the native type of this type
+     */
+    NativeType getNativeType();
 }

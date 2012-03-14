@@ -36,6 +36,11 @@ public class StructLayout implements Type {
         return alignment;
     }
 
+    @Override
+    public NativeType getNativeType() {
+        return NativeType.STRUCT;
+    }
+
     /**
      * Returns a human readable {@link java.lang.String} representation of the structure.
      *

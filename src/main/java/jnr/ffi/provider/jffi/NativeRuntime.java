@@ -21,6 +21,7 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.NativeType;
 import jnr.ffi.ObjectReferenceManager;
 import jnr.ffi.Type;
+import jnr.ffi.TypeAlias;
 import jnr.ffi.provider.AbstractRuntime;
 import jnr.ffi.provider.BadType;
 import jnr.ffi.provider.DefaultObjectReferenceManager;
@@ -59,6 +60,11 @@ public final class NativeRuntime extends AbstractRuntime {
         return typeMap;
     }
 
+    @Override
+    public Type findType(TypeAlias type) {
+        throw new RuntimeException("not implemented yet");
+    }
+
     public final NativeMemoryManager getMemoryManager() {
         return mm;
     }
@@ -85,9 +91,11 @@ public final class NativeRuntime extends AbstractRuntime {
 
     private static final class TypeDelegate implements jnr.ffi.Type {
         private final com.kenai.jffi.Type type;
+        private final NativeType nativeType;
 
-        public TypeDelegate(com.kenai.jffi.Type type) {
+        public TypeDelegate(com.kenai.jffi.Type type, NativeType nativeType) {
             this.type = type;
+            this.nativeType = nativeType;
         }
 
         public int alignment() {
@@ -98,6 +106,10 @@ public final class NativeRuntime extends AbstractRuntime {
             return type.size();
         }
 
+        public NativeType getNativeType() {
+            return nativeType;
+        }
+
         public String toString() {
             return type.toString();
         }
@@ -106,33 +118,33 @@ public final class NativeRuntime extends AbstractRuntime {
     private static final jnr.ffi.Type jafflType(NativeType type) {
         switch (type) {
             case VOID:
-                return new TypeDelegate(com.kenai.jffi.Type.VOID);
+                return new TypeDelegate(com.kenai.jffi.Type.VOID, NativeType.VOID);
             case SCHAR:
-                return new TypeDelegate(com.kenai.jffi.Type.SCHAR);
+                return new TypeDelegate(com.kenai.jffi.Type.SCHAR, NativeType.SCHAR);
             case UCHAR:
-                return new TypeDelegate(com.kenai.jffi.Type.UCHAR);
+                return new TypeDelegate(com.kenai.jffi.Type.UCHAR, NativeType.UCHAR);
             case SSHORT:
-                return new TypeDelegate(com.kenai.jffi.Type.SSHORT);
+                return new TypeDelegate(com.kenai.jffi.Type.SSHORT, NativeType.SSHORT);
             case USHORT:
-                return new TypeDelegate(com.kenai.jffi.Type.USHORT);
+                return new TypeDelegate(com.kenai.jffi.Type.USHORT, NativeType.USHORT);
             case SINT:
-                return new TypeDelegate(com.kenai.jffi.Type.SINT);
+                return new TypeDelegate(com.kenai.jffi.Type.SINT, NativeType.SINT);
             case UINT:
-                return new TypeDelegate(com.kenai.jffi.Type.UINT);
+                return new TypeDelegate(com.kenai.jffi.Type.UINT, NativeType.UINT);
             case SLONG:
-                return new TypeDelegate(com.kenai.jffi.Type.SLONG);
+                return new TypeDelegate(com.kenai.jffi.Type.SLONG, NativeType.SLONG);
             case ULONG:
-                return new TypeDelegate(com.kenai.jffi.Type.ULONG);
+                return new TypeDelegate(com.kenai.jffi.Type.ULONG, NativeType.ULONG);
             case SLONGLONG:
-                return new TypeDelegate(com.kenai.jffi.Type.SINT64);
+                return new TypeDelegate(com.kenai.jffi.Type.SINT64, NativeType.SLONGLONG);
             case ULONGLONG:
-                return new TypeDelegate(com.kenai.jffi.Type.UINT64);
+                return new TypeDelegate(com.kenai.jffi.Type.UINT64, NativeType.ULONGLONG);
             case FLOAT:
-                return new TypeDelegate(com.kenai.jffi.Type.FLOAT);
+                return new TypeDelegate(com.kenai.jffi.Type.FLOAT, NativeType.FLOAT);
             case DOUBLE:
-                return new TypeDelegate(com.kenai.jffi.Type.DOUBLE);
+                return new TypeDelegate(com.kenai.jffi.Type.DOUBLE, NativeType.DOUBLE);
             case ADDRESS:
-                return new TypeDelegate(com.kenai.jffi.Type.POINTER);
+                return new TypeDelegate(com.kenai.jffi.Type.POINTER, NativeType.ADDRESS);
             default:
                 return new BadType(type);
         }

@@ -38,4 +38,8 @@ public final class BadType implements jnr.ffi.Type {
     public final int size() {
         throw new RuntimeException("invalid type: " + nativeType);
     }
+
+    public NativeType getNativeType() {
+        return nativeType;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

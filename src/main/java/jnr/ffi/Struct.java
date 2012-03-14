@@ -34,6 +34,9 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 
+import jnr.ffi.types.*;
+import static jnr.ffi.TypeAlias.*;
+
 /**
  * Representation of C structures in java.
  * 
@@ -643,17 +646,29 @@ public abstract class Struct {
          * Offset from the start of the <tt>Struct</tt> memory this field is located at.
          */
         private final int offset;
+        protected final Type type;
   
         protected NumberField(NativeType type) {
-            Type t = getRuntime().findType(type);
+            Type t = this.type = getRuntime().findType(type);
             this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
         }
 
         protected NumberField(NativeType type, Offset offset) {
-            Type t = getRuntime().findType(type);
+            Type t = this.type = getRuntime().findType(type);
             this.offset = __info.addField(t.size() * 8, t.alignment() * 8, offset);
         }
-        
+
+        protected NumberField(TypeAlias type) {
+            Type t = this.type = getRuntime().findType(type);
+            this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
+        }
+
+        protected NumberField(TypeAlias type, Offset offset) {
+            Type t = this.type = getRuntime().findType(type);
+            this.offset = __info.addField(t.size() * 8, t.alignment() * 8, offset);
+        }
+
+
         public final jnr.ffi.Pointer getMemory() {
             return __info.getMemory();
         }
@@ -742,6 +757,41 @@ public abstract class Struct {
         @Override
         public java.lang.String toString() {
             return java.lang.Integer.toString(intValue(), 10);
+        }
+    }
+
+    public abstract class IntegerAlias extends NumberField {
+        IntegerAlias(TypeAlias type) {
+            super(type);
+        }
+
+        IntegerAlias(TypeAlias type, Offset offset) {
+            super(type, offset);
+        }
+
+        @Override
+        public void set(Number value) {
+            getMemory().putInt(type, offset(), value.longValue());
+        }
+
+        /**
+         * Gets the value for this field.
+         *
+         * @return a long.
+         */
+        public final long get() {
+            return getMemory().getInt(type, offset());
+        }
+
+
+        @Override
+        public int intValue() {
+            return (int) get();
+        }
+
+        @Override
+        public long longValue() {
+            return get();
         }
     }
     
@@ -1938,5 +1988,195 @@ public abstract class Struct {
         public Padding(NativeType type, int length) {
             super(getRuntime().findType(type).size() * 8 * length, getRuntime().findType(type).alignment() * 8);
         }
+    }
+
+    public final class int8_t extends IntegerAlias {
+        public int8_t() { super(TypeAlias.int8_t); }
+        public int8_t(Offset offset) { super(TypeAlias.int8_t, offset); }
+    }
+
+    public final class u_int8_t extends IntegerAlias {
+        public u_int8_t() { super(TypeAlias.u_int8_t); }
+        public u_int8_t(Offset offset) { super(TypeAlias.u_int8_t, offset); }
+    }
+
+    public final class int16_t extends IntegerAlias {
+        public int16_t() { super(TypeAlias.int16_t); }
+        public int16_t(Offset offset) { super(TypeAlias.int16_t, offset); }
+    }
+
+    public final class u_int16_t extends IntegerAlias {
+        public u_int16_t() { super(TypeAlias.u_int16_t); }
+        public u_int16_t(Offset offset) { super(TypeAlias.u_int16_t, offset); }
+    }
+
+    public final class int32_t extends IntegerAlias {
+        public int32_t() { super(TypeAlias.int32_t); }
+        public int32_t(Offset offset) { super(TypeAlias.int32_t, offset); }
+    }
+
+    public final class u_int32_t extends IntegerAlias {
+        public u_int32_t() { super(TypeAlias.u_int32_t); }
+        public u_int32_t(Offset offset) { super(TypeAlias.u_int32_t, offset); }
+    }
+
+    public final class int64_t extends IntegerAlias {
+        public int64_t() { super(TypeAlias.int64_t); }
+        public int64_t(Offset offset) { super(TypeAlias.int64_t, offset); }
+    }
+
+    public final class u_int64_t extends IntegerAlias {
+        public u_int64_t() { super(TypeAlias.u_int64_t); }
+        public u_int64_t(Offset offset) { super(TypeAlias.u_int64_t, offset); }
+    }
+
+    public final class register_t extends IntegerAlias {
+        public register_t() { super(TypeAlias.register_t); }
+        public register_t(Offset offset) { super(TypeAlias.register_t, offset); }
+    }
+
+    public final class intptr_t extends IntegerAlias {
+        public intptr_t() { super(TypeAlias.intptr_t); }
+        public intptr_t(Offset offset) { super(TypeAlias.intptr_t, offset); }
+    }
+
+    public final class uintptr_t extends IntegerAlias {
+        public uintptr_t() { super(TypeAlias.uintptr_t); }
+        public uintptr_t(Offset offset) { super(TypeAlias.uintptr_t, offset); }
+    }
+
+    public final class caddr_t extends IntegerAlias {
+        public caddr_t() { super(TypeAlias.caddr_t); }
+        public caddr_t(Offset offset) { super(TypeAlias.caddr_t, offset); }
+    }
+
+    public final class dev_t extends IntegerAlias {
+        public dev_t() { super(TypeAlias.dev_t); }
+        public dev_t(Offset offset) { super(TypeAlias.dev_t, offset); }
+    }
+
+    public final class blkcnt_t extends IntegerAlias {
+        public blkcnt_t() { super(TypeAlias.blkcnt_t); }
+        public blkcnt_t(Offset offset) { super(TypeAlias.blkcnt_t, offset); }
+    }
+
+    public final class blksize_t extends IntegerAlias {
+        public blksize_t() { super(TypeAlias.blksize_t); }
+        public blksize_t(Offset offset) { super(TypeAlias.blksize_t, offset); }
+    }
+
+    public final class gid_t extends IntegerAlias {
+        public gid_t() { super(TypeAlias.gid_t); }
+        public gid_t(Offset offset) { super(TypeAlias.gid_t, offset); }
+    }
+
+    public final class in_addr_t extends IntegerAlias {
+        public in_addr_t() { super(TypeAlias.in_addr_t); }
+        public in_addr_t(Offset offset) { super(TypeAlias.in_addr_t, offset); }
+    }
+
+    public final class in_port_t extends IntegerAlias {
+        public in_port_t() { super(TypeAlias.in_port_t); }
+        public in_port_t(Offset offset) { super(TypeAlias.in_port_t, offset); }
+    }
+
+    public final class ino_t extends IntegerAlias {
+        public ino_t() { super(TypeAlias.ino_t); }
+        public ino_t(Offset offset) { super(TypeAlias.ino_t, offset); }
+    }
+
+    public final class ino64_t extends IntegerAlias {
+        public ino64_t() { super(TypeAlias.ino64_t); }
+        public ino64_t(Offset offset) { super(TypeAlias.ino64_t, offset); }
+    }
+
+    public final class key_t extends IntegerAlias {
+        public key_t() { super(TypeAlias.key_t); }
+        public key_t(Offset offset) { super(TypeAlias.key_t, offset); }
+    }
+
+    public final class mode_t extends IntegerAlias {
+        public mode_t() { super(TypeAlias.mode_t); }
+        public mode_t(Offset offset) { super(TypeAlias.mode_t, offset); }
+    }
+
+    public final class nlink_t extends IntegerAlias {
+        public nlink_t() { super(TypeAlias.nlink_t); }
+        public nlink_t(Offset offset) { super(TypeAlias.nlink_t, offset); }
+    }
+
+    public final class id_t extends IntegerAlias {
+        public id_t() { super(TypeAlias.id_t); }
+        public id_t(Offset offset) { super(TypeAlias.id_t, offset); }
+    }
+
+    public final class pid_t extends IntegerAlias {
+        public pid_t() { super(TypeAlias.pid_t); }
+        public pid_t(Offset offset) { super(TypeAlias.pid_t, offset); }
+    }
+
+    public final class off_t extends IntegerAlias {
+        public off_t() { super(TypeAlias.off_t); }
+        public off_t(Offset offset) { super(TypeAlias.off_t, offset); }
+    }
+
+    public final class segsz_t extends IntegerAlias {
+        public segsz_t() { super(TypeAlias.segsz_t); }
+        public segsz_t(Offset offset) { super(TypeAlias.segsz_t, offset); }
+    }
+
+    public final class swblk_t extends IntegerAlias {
+        public swblk_t() { super(TypeAlias.swblk_t); }
+        public swblk_t(Offset offset) { super(TypeAlias.swblk_t, offset); }
+    }
+
+    public final class uid_t extends IntegerAlias {
+        public uid_t() { super(TypeAlias.uid_t); }
+        public uid_t(Offset offset) { super(TypeAlias.uid_t, offset); }
+    }
+
+    public final class clock_t extends IntegerAlias {
+        public clock_t() { super(TypeAlias.clock_t); }
+        public clock_t(Offset offset) { super(TypeAlias.clock_t, offset); }
+    }
+
+    public final class size_t extends IntegerAlias {
+        public size_t() { super(TypeAlias.size_t); }
+        public size_t(Offset offset) { super(TypeAlias.size_t, offset); }
+    }
+
+    public final class ssize_t extends IntegerAlias {
+        public ssize_t() { super(TypeAlias.ssize_t); }
+        public ssize_t(Offset offset) { super(TypeAlias.ssize_t, offset); }
+    }
+
+    public final class time_t extends IntegerAlias {
+        public time_t() { super(TypeAlias.time_t); }
+        public time_t(Offset offset) { super(TypeAlias.time_t, offset); }
+    }
+
+    public final class fsblkcnt_t extends IntegerAlias {
+        public fsblkcnt_t() { super(TypeAlias.fsblkcnt_t); }
+        public fsblkcnt_t(Offset offset) { super(TypeAlias.fsblkcnt_t, offset); }
+    }
+
+    public final class fsfilcnt_t extends IntegerAlias {
+        public fsfilcnt_t() { super(TypeAlias.fsfilcnt_t); }
+        public fsfilcnt_t(Offset offset) { super(TypeAlias.fsfilcnt_t, offset); }
+    }
+
+    public final class sa_family_t extends IntegerAlias {
+        public sa_family_t() { super(TypeAlias.sa_family_t); }
+        public sa_family_t(Offset offset) { super(TypeAlias.sa_family_t, offset); }
+    }
+
+    public final class socklen_t extends IntegerAlias {
+        public socklen_t() { super(TypeAlias.socklen_t); }
+        public socklen_t(Offset offset) { super(TypeAlias.socklen_t, offset); }
+    }
+
+    public final class rlim_t extends IntegerAlias {
+        public rlim_t() { super(TypeAlias.rlim_t); }
+        public rlim_t(Offset offset) { super(TypeAlias.rlim_t, offset); }
     }
 }

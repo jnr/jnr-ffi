@@ -39,6 +39,9 @@ public abstract class Runtime {
     /** Looks up the runtime-specific that corresponds to the pseudo-type */
     public abstract Type findType(NativeType type);
 
+    /** Looks up the runtime-specific that corresponds to the pseudo-type */
+    public abstract Type findType(TypeAlias type);
+
     /** 
      * Gets the native memory manager instance for this runtime
      *

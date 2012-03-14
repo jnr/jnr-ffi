@@ -197,6 +197,15 @@ abstract public class Pointer {
     abstract public long getNativeLong(long offset);
 
     /**
+     * Reads an integer value of the given type, at the given offset.
+     *
+     * @param type Type of integer to read.
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be read.
+     * @return the {@code int} value contained in the memory at the offset.
+     */
+    abstract public long getInt(Type type, long offset);
+
+    /**
      * Writes a {@code byte} (8 bit) value at the given offset.
      *
      * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
@@ -265,6 +274,14 @@ abstract public class Pointer {
      * @param value the native {@code long} value to be written.
      */
     abstract public void putNativeLong(long offset, long value);
+
+    /**
+     * Writes an integer of a specific type, at the given offset.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
+     * @param value the {@code int} value to be written.
+     */
+    abstract public void putInt(Type type, long offset, long value);
     
     abstract public long getAddress(long offset);
     abstract public void putAddress(long offset, long value);

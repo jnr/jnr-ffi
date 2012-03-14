@@ -94,6 +94,66 @@ abstract public class AbstractMemoryIO extends Pointer {
         }
     }
 
+    @Override
+    public void putInt(Type type, long offset, long value) {
+        switch (type.getNativeType()) {
+            case SCHAR:
+            case UCHAR:
+                putByte(offset, (byte) value);
+                break;
+
+            case SSHORT:
+            case USHORT:
+                putShort(offset, (short) value);
+                break;
+
+            case SINT:
+            case UINT:
+                putInt(offset, (int) value);
+                break;
+
+            case SLONG:
+            case ULONG:
+                putNativeLong(offset, value);
+                break;
+
+            case SLONGLONG:
+            case ULONGLONG:
+                putLongLong(offset, value);
+                break;
+            default:
+                throw new IllegalArgumentException("unsupported integer type: " + type.getNativeType());
+        }
+    }
+
+    @Override
+    public long getInt(Type type, long offset) {
+        switch (type.getNativeType()) {
+            case SCHAR:
+            case UCHAR:
+                return getByte(offset);
+
+            case SSHORT:
+            case USHORT:
+                return getShort(offset);
+
+            case SINT:
+            case UINT:
+                return getInt(offset);
+
+            case SLONG:
+            case ULONG:
+                return getNativeLong(offset);
+
+            case SLONGLONG:
+            case ULONGLONG:
+                return getLongLong(offset);
+
+            default:
+                throw new IllegalArgumentException("unsupported integer type: " + type.getNativeType());
+        }
+    }
+
     public AbstractMemoryIO slice(long offset) {
         return new ShareMemoryIO(this, offset);
     }

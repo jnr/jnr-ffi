@@ -7,10 +7,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import jnr.ffi.annotations.TypeDefinition;
+import jnr.ffi.TypeAlias;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = { ElementType.PARAMETER, ElementType.METHOD })
-@TypeDefinition(name = "fsblkcnt_t")
+@TypeDefinition(alias = TypeAlias.fsblkcnt_t)
 public @interface fsblkcnt_t {
 
 }

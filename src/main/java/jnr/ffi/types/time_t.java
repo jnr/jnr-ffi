@@ -7,10 +7,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import jnr.ffi.annotations.TypeDefinition;
+import jnr.ffi.TypeAlias;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = { ElementType.PARAMETER, ElementType.METHOD })
-@TypeDefinition(name = "time_t")
+@TypeDefinition(alias = TypeAlias.time_t)
 public @interface time_t {
 
 }

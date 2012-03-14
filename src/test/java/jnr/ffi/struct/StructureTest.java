@@ -22,12 +22,14 @@ import jnr.ffi.*;
 import jnr.ffi.Runtime;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.TstUtil;
+import jnr.ffi.types.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static jnr.ffi.TypeAlias.*;
 
 /**
  *
@@ -349,4 +351,49 @@ public class StructureTest {
         io.putByte(4, (byte) 0x12);
         assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get());
     }
+
+    private class TypeTest extends Struct {
+        class Fixnum extends NumberField {
+            Fixnum(TypeAlias type) {
+                super(NativeType.SINT);
+            }
+
+            @Override
+            public void set(Number value) {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+
+            @Override
+            public int intValue() {
+                return 0;  //To change body of implemented methods use File | Settings | File Templates.
+            }
+        }
+
+        class Fubar extends NumberField {
+            Fubar(Class<?> type) {
+                super(NativeType.SINT);
+            }
+
+            @Override
+            public void set(Number value) {
+                //To change body of implemented methods use File | Settings | File Templates.
+            }
+
+            @Override
+            public int intValue() {
+                return 0;  //To change body of implemented methods use File | Settings | File Templates.
+            }
+        }
+        public final Fixnum i = new Fixnum(ssize_t);
+        public final Fubar fubar = new Fubar(ssize_t.class);
+
+        private TypeTest(Runtime runtime) {
+            super(runtime);
+        }
+    }
+
+    public static interface TestLib2 {
+        @ssize_t long write(int fd, Pointer buf, @size_t long len);
+    }
+
 }
