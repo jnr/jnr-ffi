@@ -41,7 +41,7 @@ public abstract class AbstractRuntime extends Runtime {
         EnumSet<NativeType> nativeTypes = EnumSet.allOf(NativeType.class);
         types = new Type[nativeTypes.size()];
         for (NativeType t : nativeTypes) {
-            types[t.ordinal()] = typeMap.containsKey(t) ? typeMap.get(t) : new BadType(t);
+            types[t.ordinal()] = typeMap.containsKey(t) ? typeMap.get(t) : new BadType(t.toString());
         }
         
         this.addressSize = types[NativeType.ADDRESS.ordinal()].size();

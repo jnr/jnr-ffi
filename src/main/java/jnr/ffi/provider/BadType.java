@@ -25,21 +25,21 @@ import jnr.ffi.NativeType;
  */
 public final class BadType implements jnr.ffi.Type {
 
-    private final NativeType nativeType;
+    private final String typeName;
 
-    public BadType(NativeType type) {
-        this.nativeType = type;
+    public BadType(String typeName) {
+        this.typeName = typeName;
     }
 
     public final int alignment() {
-        throw new RuntimeException("invalid type: " + nativeType);
+        throw new RuntimeException("invalid type: " + typeName);
     }
 
     public final int size() {
-        throw new RuntimeException("invalid type: " + nativeType);
+        throw new RuntimeException("invalid type: " + typeName);
     }
 
     public NativeType getNativeType() {
-        return nativeType;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new RuntimeException("invalid type: " + typeName);
     }
 }

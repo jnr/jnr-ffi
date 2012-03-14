@@ -18,17 +18,18 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.NativeType;
-import jnr.ffi.ObjectReferenceManager;
-import jnr.ffi.Type;
-import jnr.ffi.TypeAlias;
+import jnr.ffi.*;
 import jnr.ffi.provider.AbstractRuntime;
 import jnr.ffi.provider.BadType;
 import jnr.ffi.provider.DefaultObjectReferenceManager;
 
+import java.lang.reflect.Field;
 import java.nio.ByteOrder;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -36,6 +37,7 @@ import java.util.EnumSet;
 public final class NativeRuntime extends AbstractRuntime {
     private final NativeMemoryManager mm = new NativeMemoryManager(this);
     private final NativeClosureManager closureManager = new NativeClosureManager(this);
+    private final Type[] aliases;
 
     public static final NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
@@ -47,6 +49,17 @@ public final class NativeRuntime extends AbstractRuntime {
 
     private NativeRuntime() {
         super(ByteOrder.nativeOrder(), buildTypeMap());
+        NativeType[] nativeAliases = buildNativeTypeAliases();
+        EnumSet<TypeAlias> typeAliasSet = EnumSet.allOf(TypeAlias.class);
+        aliases = new Type[typeAliasSet.size()];
+
+        for (TypeAlias alias : typeAliasSet) {
+            if (nativeAliases.length > alias.ordinal() && nativeAliases[alias.ordinal()] != NativeType.VOID) {
+                aliases[alias.ordinal()] = findType(nativeAliases[alias.ordinal()]);
+            } else {
+                aliases[alias.ordinal()] = new BadType(alias.name());
+            }
+        }
     }
 
     private static EnumMap<NativeType, Type> buildTypeMap() {
@@ -60,9 +73,39 @@ public final class NativeRuntime extends AbstractRuntime {
         return typeMap;
     }
 
+    private static NativeType[] buildNativeTypeAliases() {
+        Platform platform = Platform.getNativePlatform();
+        Package pkg = NativeRuntime.class.getPackage();
+        String cpu = platform.getCPU().name().toLowerCase();
+        String os = platform.getOS().name().toLowerCase();
+        EnumSet<TypeAlias> typeAliases = EnumSet.allOf(TypeAlias.class);
+        NativeType[] aliases = {};
+        Class cls;
+        try {
+            cls = Class.forName(pkg.getName() + ".platform." + cpu + "." + os + ".TypeAliases");
+            Field aliasesField = cls.getField("ALIASES");
+            Map aliasMap = Map.class.cast(aliasesField.get(cls));
+            aliases = new NativeType[typeAliases.size()];
+            for (TypeAlias t : typeAliases) {
+                aliases[t.ordinal()] = (NativeType) aliasMap.get(t);
+                if (aliases[t.ordinal()] == null) {
+                    aliases[t.ordinal()] = NativeType.VOID;
+                }
+            }
+        } catch (ClassNotFoundException cne) {
+            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases: " + cne);
+        } catch (NoSuchFieldException nsfe) {
+            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases: " + nsfe);
+        } catch (IllegalAccessException iae) {
+            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases: " + iae);
+        }
+
+        return aliases;
+    }
+
     @Override
     public Type findType(TypeAlias type) {
-        throw new RuntimeException("not implemented yet");
+        return aliases[type.ordinal()];
     }
 
     public final NativeMemoryManager getMemoryManager() {
@@ -146,7 +189,7 @@ public final class NativeRuntime extends AbstractRuntime {
             case ADDRESS:
                 return new TypeDelegate(com.kenai.jffi.Type.POINTER, NativeType.ADDRESS);
             default:
-                return new BadType(type);
+                return new BadType(type.toString());
         }
     }
 }

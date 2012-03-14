@@ -2030,11 +2030,6 @@ public abstract class Struct {
         public u_int64_t(Offset offset) { super(TypeAlias.u_int64_t, offset); }
     }
 
-    public final class register_t extends IntegerAlias {
-        public register_t() { super(TypeAlias.register_t); }
-        public register_t(Offset offset) { super(TypeAlias.register_t, offset); }
-    }
-
     public final class intptr_t extends IntegerAlias {
         public intptr_t() { super(TypeAlias.intptr_t); }
         public intptr_t(Offset offset) { super(TypeAlias.intptr_t, offset); }
@@ -2118,11 +2113,6 @@ public abstract class Struct {
     public final class off_t extends IntegerAlias {
         public off_t() { super(TypeAlias.off_t); }
         public off_t(Offset offset) { super(TypeAlias.off_t, offset); }
-    }
-
-    public final class segsz_t extends IntegerAlias {
-        public segsz_t() { super(TypeAlias.segsz_t); }
-        public segsz_t(Offset offset) { super(TypeAlias.segsz_t, offset); }
     }
 
     public final class swblk_t extends IntegerAlias {
