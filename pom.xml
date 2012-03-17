@@ -113,6 +113,7 @@
                 <exec dir="${basedir}" executable="make" failonerror="true">
                   <arg line="-f libtest/GNUmakefile" />
                   <arg line="BUILD_DIR=${project.build.directory}" />
+                  <arg line="CPU=${os.arch}" />
                 </exec>
               </tasks>
             </configuration>
