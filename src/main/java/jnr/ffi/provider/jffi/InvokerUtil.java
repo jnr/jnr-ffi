@@ -22,10 +22,14 @@ import jnr.ffi.*;
 import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.SaveError;
+import jnr.ffi.annotations.TypeDefinition;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.Struct;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeConverter;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
@@ -34,12 +38,32 @@ import java.util.Map;
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 
 final class InvokerUtil {
-    
-    static final Type getNativeReturnType(Method method) {
-        return getNativeReturnType(method.getReturnType(), method.getAnnotations());
+
+    static Type getAliasedType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
+        for (Annotation a : annotations) {
+            TypeDefinition typedef = a.annotationType().getAnnotation(TypeDefinition.class);
+            if (typedef != null) {
+                return jffiType(runtime.findType(typedef.alias()));
+            }
+        }
+
+        if (isLong32(type, annotations)) {
+            return Type.SLONG;
+
+        } else if (isLongLong(type, annotations)) {
+            return Type.SLONG_LONG;
+        }
+
+        return null;
     }
-    
-    static final Type getNativeReturnType(Class type, final Annotation[] annotations) {
+
+    static Type getNativeReturnType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
+        Type resultType = getAliasedType(runtime, type, annotations);
+        return resultType != null ? resultType : getNativeReturnType(type, annotations);
+    }
+
+
+    static Type getNativeReturnType(Class type, final Annotation[] annotations) {
         if (Void.class.isAssignableFrom(type) || void.class == type) {
             return Type.VOID;
         
@@ -86,7 +110,11 @@ final class InvokerUtil {
             throw new IllegalArgumentException("Unsupported return type: " + type);
         }
     }
-    
+
+    static Type getNativeParameterType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
+        Type nativeType = getAliasedType(runtime, type, annotations);
+        return nativeType != null ? nativeType : getNativeParameterType(type, annotations);
+    }
 
     static final Type getNativeParameterType(Class type, final Annotation[] annotations) {
         if (Byte.class.isAssignableFrom(type) || byte.class == type) {
@@ -197,5 +225,52 @@ final class InvokerUtil {
     static boolean isLongLong(Class type, Annotation[] annotations) {
         return (long.class == type || Long.class.isAssignableFrom(type))
             && (hasAnnotation(annotations, LongLong.class) || Platform.getPlatform().longSize() == 64);
+    }
+
+    static Type jffiType(jnr.ffi.NativeType jnrType) {
+        switch (jnrType) {
+            case VOID:
+                return Type.VOID;
+            case SCHAR:
+                return Type.SCHAR;
+            case UCHAR:
+                return Type.UCHAR;
+            case SSHORT:
+                return Type.SSHORT;
+            case USHORT:
+                return Type.USHORT;
+            case SINT:
+                return Type.SINT;
+            case UINT:
+                return Type.UINT;
+            case SLONG:
+                return Type.SLONG;
+            case ULONG:
+                return Type.ULONG;
+            case SLONGLONG:
+                return Type.SLONG_LONG;
+            case ULONGLONG:
+                return Type.ULONG_LONG;
+            case FLOAT:
+                return Type.FLOAT;
+            case DOUBLE:
+                return Type.DOUBLE;
+            case ADDRESS:
+                return Type.POINTER;
+            default:
+                throw new IllegalArgumentException("Unsupported parameter type: " + jnrType);
+        }
+    }
+
+    static Type jffiType(jnr.ffi.Type jnrType) {
+        return jffiType(jnrType.getNativeType());
+    }
+
+    static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter resultConverter) {
+        return new ResultType(type, getNativeReturnType(runtime, type, annotations), annotations, resultConverter);
+    }
+
+    static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations, ToNativeConverter toNativeConverter) {
+        return new ParameterType(type, getNativeParameterType(runtime, type, annotations), annotations, toNativeConverter);
     }
 }

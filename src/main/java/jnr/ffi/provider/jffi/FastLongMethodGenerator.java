@@ -16,6 +16,7 @@ import static jnr.ffi.provider.jffi.CodegenUtils.ci;
  *
  */
 public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator {
+    private static final boolean ENABLED = getBooleanProperty("jnr.ffi.fast-long.enabled", true);
     private static final int MAX_PARAMETERS = getMaximumFastLongParameters();
     private static final String[] signatures;
 
@@ -40,8 +41,7 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
     }
 
     @Override
-    String getInvokerMethodName(Class returnType, Annotation[] resultAnnotations, Class[] parameterTypes,
-            Annotation[][] parameterAnnotations, boolean ignoreErrno) {
+    String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes, boolean ignoreErrno) {
         final int parameterCount = parameterTypes.length;
 
         if (parameterCount <= MAX_PARAMETERS && parameterCount <= methodNames.length) {
@@ -70,6 +70,10 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
 
     public boolean isSupported(Signature signature) {
         final int parameterCount = signature.parameterTypes.length;
+
+        if (!ENABLED) {
+            return false;
+        }
 
         if (signature.callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
             return false;

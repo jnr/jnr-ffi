@@ -17,6 +17,7 @@ import static jnr.ffi.provider.jffi.CodegenUtils.ci;
  *
  */
 final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
+    private static final boolean ENABLED = getBooleanProperty("jnr.ffi.fast-int.enabled", true);
     private static final int MAX_FASTINT_PARAMETERS = getMaximumFastIntParameters();
 
     private static final String[] signatures;
@@ -46,9 +47,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     @Override
-    String getInvokerMethodName(Class returnType, Annotation[] resultAnnotations,
-            Class[] parameterTypes, Annotation[][] parameterAnnotations, boolean ignoreErrno) {
-
+    String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes, boolean ignoreErrno) {
         final int parameterCount = parameterTypes.length;
 
         if (ignoreErrno && parameterCount <= MAX_FASTINT_PARAMETERS && parameterCount <= noErrnoMethodNames.length) {
@@ -76,6 +75,10 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     public boolean isSupported(Signature signature) {
         final int parameterCount = signature.parameterTypes.length;
+
+        if (!ENABLED) {
+            return false;
+        }
 
         if (!signature.callingConvention.equals(CallingConvention.DEFAULT) || parameterCount > MAX_FASTINT_PARAMETERS) {
             return false;

@@ -19,6 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
 import jnr.ffi.NativeLong;
 import jnr.ffi.annotations.LongLong;
 
@@ -135,6 +136,35 @@ public final class NumberUtil {
                     mv.iand();
                 }
             }
+        }
+    }
+
+    static void constrain(SkinnyMethodAdapter mv, Class from, Class to, Class constraint) {
+        narrow(mv, from, constraint);
+        widen(mv, constraint, to);
+        if (boolean.class == to) {
+            // Ensure only 0x0 and 0x1 values are used for boolean
+            mv.iconst_1();
+            mv.iand();
+        }
+    }
+
+    public static void convertPrimitive(SkinnyMethodAdapter mv, final Class from, final Class to, final Type jffiType) {
+        if (Type.SCHAR == jffiType || Type.UCHAR == jffiType || Type.SINT8 == jffiType || Type.UINT8 == jffiType) {
+            constrain(mv, from, to, byte.class);
+
+        } else if (Type.SSHORT == jffiType || Type.USHORT == jffiType || Type.SINT16 == jffiType || Type.UINT16 == jffiType) {
+            constrain(mv, from, to, short.class);
+
+        } else if (Type.SINT == jffiType || Type.UINT == jffiType || Type.SINT32 == jffiType || Type.UINT32 == jffiType) {
+            constrain(mv, from, to, int.class);
+
+        } else if ((Type.SLONG == jffiType || Type.ULONG == jffiType) && jffiType.size() == 4) {
+            constrain(mv, from, to, int.class);
+
+        } else {
+            narrow(mv, from, to);
+            widen(mv, from, to);
         }
     }
 

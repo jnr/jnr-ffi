@@ -19,8 +19,8 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.*;
 import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
 import jnr.ffi.*;
 import jnr.ffi.annotations.StdCall;
@@ -119,7 +119,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         StubCompiler compiler = StubCompiler.newCompiler();
 
         final MethodGenerator[] generators = {
-                new X86MethodGenerator(compiler, bufgen),
+                //new X86MethodGenerator(compiler, bufgen),
                 new FastIntMethodGenerator(bufgen),
                 new FastLongMethodGenerator(bufgen),
                 new FastNumericMethodGenerator(bufgen),
@@ -435,6 +435,49 @@ public class AsmLibraryLoader extends LibraryLoader {
         return needBufferInvocation ? bufferInvocationLabel : null;
     }
 
+    static final Label emitDirectCheck(SkinnyMethodAdapter mv, ParameterType[] parameterTypes) {
+
+        // Iterate through any parameters that might require a HeapInvocationBuffer
+        Label bufferInvocationLabel = new Label();
+        boolean needBufferInvocation = false;
+        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
+            Class javaType = parameterTypes[i].javaType;
+            if (Pointer.class.isAssignableFrom(javaType)) {
+                mv.aload(lvar++);
+                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Pointer.class);
+                mv.iffalse(bufferInvocationLabel);
+                needBufferInvocation = true;
+
+            } else if (Struct.class.isAssignableFrom(javaType)) {
+                mv.aload(lvar++);
+                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Struct.class);
+                mv.iffalse(bufferInvocationLabel);
+                needBufferInvocation = true;
+
+            } else if (Buffer.class.isAssignableFrom(javaType)) {
+                mv.aload(lvar++);
+
+
+                if (Platform.getPlatform().getJavaMajorVersion() < 6 && Buffer.class == javaType) {
+                    // Buffer#isDirect() is only available in java 6 or later, so need to use a slower test
+                    // that checks / casts to the appropriate buffer subclass
+                    mv.invokestatic(AsmRuntime.class, "isDirect5", boolean.class, Buffer.class);
+
+                } else {
+                    mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, javaType);
+                }
+                mv.iffalse(bufferInvocationLabel);
+                needBufferInvocation = true;
+
+            } else {
+                lvar += calculateLocalVariableSpace(parameterTypes[i]);
+            }
+        }
+
+        return needBufferInvocation ? bufferInvocationLabel : null;
+    }
+
+
     static final void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
         if (returnType.isPrimitive()) {
             if (long.class == returnType) {
@@ -461,6 +504,32 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
     }
 
+    static void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType, com.kenai.jffi.Type jffiType) {
+        if (returnType.isPrimitive()) {
+            convertPrimitive(mv, nativeIntType, returnType, jffiType);
+
+            if (long.class == returnType) {
+                mv.lreturn();
+
+            } else if (float.class == returnType) {
+                mv.freturn();
+
+            } else if (double.class == returnType) {
+                mv.dreturn();
+
+            } else if (void.class == returnType) {
+                mv.voidreturn();
+
+            } else {
+                mv.ireturn();
+            }
+
+        } else {
+            boxValue(mv, returnType, nativeIntType, jffiType);
+            mv.areturn();
+        }
+    }
+
     static int loadParameter(SkinnyMethodAdapter mv, Class parameterType, int lvar) {
         if (!parameterType.isPrimitive()) {
             mv.aload(lvar++);
@@ -483,17 +552,18 @@ public class AsmLibraryLoader extends LibraryLoader {
         return lvar;
     }
 
-    private static final Function getFunction(long address, Class resultType, final Annotation[] resultAnnotations,
+    private static Function getFunction(long address, Class resultType, final Annotation[] resultAnnotations,
             Class[] parameterTypes, final Annotation[][] parameterAnnotations,
             boolean requiresErrno, CallingConvention convention) {
-        
+        NativeRuntime runtime = NativeRuntime.getInstance();
+
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
-        
+
         for (int i = 0; i < nativeParamTypes.length; ++i) {
-            nativeParamTypes[i] = InvokerUtil.getNativeParameterType(parameterTypes[i], parameterAnnotations[i]);
+            nativeParamTypes[i] = InvokerUtil.getNativeParameterType(runtime, parameterTypes[i], parameterAnnotations[i]);
         }
 
-        return new Function(address, InvokerUtil.getNativeReturnType(resultType, resultAnnotations),
+        return new Function(address, InvokerUtil.getNativeReturnType(runtime, resultType, resultAnnotations),
                 nativeParamTypes, convention, requiresErrno);
 
     }

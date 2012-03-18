@@ -147,6 +147,33 @@ public final class AsmRuntime {
         }
     }
 
+    public static void marshal(InvocationBuffer buffer, Buffer buf, int flags) {
+        if (buf == null) {
+            buffer.putAddress(0L);
+
+        } else if (buf instanceof ByteBuffer) {
+            marshal(buffer, (ByteBuffer) buf, flags);
+
+        } else if (buf instanceof ShortBuffer) {
+            marshal(buffer, (ShortBuffer) buf, flags);
+
+        } else if (buf instanceof IntBuffer) {
+            marshal(buffer, (IntBuffer) buf, flags);
+
+        } else if (buf instanceof LongBuffer) {
+            marshal(buffer, (LongBuffer) buf, flags);
+
+        } else if (buf instanceof FloatBuffer) {
+            marshal(buffer, (FloatBuffer) buf, flags);
+
+        } else if (buf instanceof DoubleBuffer) {
+            marshal(buffer, (DoubleBuffer) buf, flags);
+
+        } else {
+            throw new IllegalArgumentException("cannot marshal unknown Buffer type: " + buf.getClass());
+        }
+    }
+
     public static final void marshal(InvocationBuffer buffer, ByteBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
@@ -502,6 +529,10 @@ public final class AsmRuntime {
 
     public static final HeapInvocationBuffer newHeapInvocationBuffer(Function function) {
         return new HeapInvocationBuffer(function);
+    }
+
+    public static HeapInvocationBuffer newHeapInvocationBuffer(CallContext callContext) {
+        return new HeapInvocationBuffer(callContext);
     }
 
     public static final String stringValue(long ptr) {

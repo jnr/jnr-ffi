@@ -2,6 +2,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
 import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.provider.InvocationSession;
@@ -15,9 +16,7 @@ import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
-import static jnr.ffi.provider.jffi.NumberUtil.isLong32;
-import static jnr.ffi.provider.jffi.NumberUtil.isLong64;
-import static jnr.ffi.provider.jffi.NumberUtil.isPrimitiveInt;
+import static jnr.ffi.provider.jffi.NumberUtil.*;
 
 /**
  *
@@ -26,7 +25,14 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
     public void generate(SkinnyMethodAdapter mv,
                          Signature signature) {
-        generateBufferInvocation(mv, signature.resultType, signature.resultAnnotations, signature.parameterTypes, signature.parameterAnnotations);
+        ResultType resultType = InvokerUtil.getResultType(NativeRuntime.getInstance(),
+                signature.resultType, signature.resultAnnotations, null);
+        ParameterType[] parameterTypes = new ParameterType[signature.parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            parameterTypes[i] = InvokerUtil.getParameterType(NativeRuntime.getInstance(),
+                    signature.parameterTypes[i], signature.parameterAnnotations[i], null);
+        }
+        generateBufferInvocation(mv, resultType, parameterTypes);
     }
 
     public boolean isSupported(Signature signature) {
@@ -34,34 +40,39 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         return true;
     }
 
-    static final void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv,
-            final Class parameterType, final Annotation[] parameterAnnotations) {
-        String paramMethod = null;
+    static void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv, ParameterType parameterType) {
+        String paramMethod;
         Class nativeParamType = int.class;
+        Type to = parameterType.jffiType;
 
-        if (byte.class == parameterType || Byte.class == parameterType) {
+        if (Type.SCHAR == to || Type.UCHAR == to || Type.SINT8 == to || Type.UINT8 == to) {
             paramMethod = "putByte";
 
-        } else if (short.class == parameterType || Short.class == parameterType) {
+        } else if (Type.SSHORT == to || Type.USHORT == to || Type.SINT16 == to || Type.UINT16 == to) {
             paramMethod = "putShort";
 
-        } else if (int.class == parameterType || Integer.class == parameterType
-                || boolean.class == parameterType || Boolean.class == parameterType) {
+        } else if (Type.SINT == to || Type.UINT == to || Type.SINT32 == to || Type.UINT32 == to) {
             paramMethod = "putInt";
 
-        } else if (isLong32(parameterType, parameterAnnotations)) {
-            paramMethod = "putInt";
-            nativeParamType = int.class;
+        } else if (Type.SLONG == to || Type.ULONG == to) {
+            if (to.size() == 4) {
+                paramMethod = "putInt";
+                nativeParamType = int.class;
 
-        } else if (isLong64(parameterType, parameterAnnotations)) {
+            } else {
+                paramMethod = "putLong";
+                nativeParamType = long.class;
+            }
+
+        } else if (Type.SLONG_LONG == to || Type.ULONG_LONG == to || Type.SINT64 == to|| Type.UINT64 == to) {
             paramMethod = "putLong";
             nativeParamType = long.class;
 
-        } else if (float.class == parameterType || Float.class == parameterType) {
+        } else if (Type.FLOAT == to) {
             paramMethod = "putFloat";
             nativeParamType = float.class;
 
-        } else if (double.class == parameterType || Double.class == parameterType) {
+        } else if (Type.DOUBLE == to) {
             paramMethod = "putDouble";
             nativeParamType = double.class;
 
@@ -69,28 +80,40 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
 
-        if (!parameterType.isPrimitive()) {
-            unboxNumber(mv, parameterType, nativeParamType);
+        if (!parameterType.javaType.isPrimitive()) {
+            unboxNumber(mv, parameterType.javaType, nativeParamType, parameterType.jffiType);
+        } else {
+            NumberUtil.narrow(mv, parameterType.javaType, nativeParamType);
         }
 
 
         mv.invokevirtual(HeapInvocationBuffer.class, paramMethod, void.class, nativeParamType);
     }
 
-    static boolean isSessionRequired(Class parameterType, Annotation[] annotations) {
-        return StringBuilder.class.isAssignableFrom(parameterType)
-                || StringBuffer.class.isAssignableFrom(parameterType)
-                || ByReference.class.isAssignableFrom(parameterType)
-                || (parameterType.isArray() && Pointer.class.isAssignableFrom(parameterType.getComponentType()))
-                || (parameterType.isArray() && CharSequence.class.isAssignableFrom(parameterType.getComponentType()))
-                || (parameterType.isArray() && NativeLong.class.isAssignableFrom(parameterType.getComponentType()))
-                || (parameterType.isArray() && isLong32(parameterType.getComponentType(), annotations))
+    static void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv,
+            final Class javaParameterType, final Annotation[] parameterAnnotations) {
+
+        ParameterType parameterType = InvokerUtil.getParameterType(NativeRuntime.getInstance(), javaParameterType, parameterAnnotations, null);
+
+        emitInvocationBufferNumericParameter(mv, parameterType);
+    }
+
+    static boolean isSessionRequired(ParameterType parameterType) {
+        Class javaType = parameterType.javaType;
+        return StringBuilder.class.isAssignableFrom(javaType)
+                || StringBuffer.class.isAssignableFrom(javaType)
+                || ByReference.class.isAssignableFrom(javaType)
+                || (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType()))
+                || (javaType.isArray() && CharSequence.class.isAssignableFrom(javaType.getComponentType()))
+                || (javaType.isArray() && NativeLong.class.isAssignableFrom(javaType.getComponentType()))
+                || (javaType.isArray() && isLong32(javaType.getComponentType(), parameterType.annotations))
                 ;
     }
 
-    static boolean isSessionRequired(Class[] parameterTypes, Annotation[][] annotations) {
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            if (isSessionRequired(parameterTypes[i], annotations[i])) {
+
+    static boolean isSessionRequired(ParameterType[] parameterTypes) {
+        for (ParameterType parameterType : parameterTypes) {
+            if (isSessionRequired(parameterType)) {
                 return true;
             }
         }
@@ -98,20 +121,18 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         return false;
     }
 
-    static final void marshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
+    static void marshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
         mv.invokestatic(p(AsmRuntime.class), "marshal", sig(void.class, ci(InvocationBuffer.class), parameterTypes));
     }
 
-    static final void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
+    static void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
         mv.invokestatic(p(AsmRuntime.class), "marshal",
                 sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
     }
 
-    static final void generateBufferInvocation(SkinnyMethodAdapter mv,
-                                               Class returnType, Annotation[] resultAnnotations,
-                                               Class[] parameterTypes, Annotation[][] parameterAnnotations) {
+    void generateBufferInvocation(SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
-        final boolean sessionRequired = isSessionRequired(parameterTypes, parameterAnnotations);
+        final boolean sessionRequired = isSessionRequired(parameterTypes);
         final int lvarSession = sessionRequired ? calculateLocalVariableSpace(parameterTypes) + 1 : -1;
         if (sessionRequired) {
             mv.newobj(p(InvocationSession.class));
@@ -129,115 +150,128 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.dup(); // dup ref to HeapInvocationBuffer
 
-            if (isSessionRequired(parameterTypes[i], parameterAnnotations[i])) {
+            if (isSessionRequired(parameterTypes[i])) {
                 mv.aload(lvarSession);
             }
 
-            lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i], lvar);
+            lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i].javaType, lvar);
 
-            final int parameterFlags = AsmUtil.getParameterFlags(parameterAnnotations[i]);
+            final int parameterFlags = AsmUtil.getParameterFlags(parameterTypes[i].annotations);
             final int nativeArrayFlags = AsmUtil.getNativeArrayFlags(parameterFlags)
                         | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
+            final Class javaParameterType = parameterTypes[i].javaType;
 
-            if (parameterTypes[i].isArray() && parameterTypes[i].getComponentType().isPrimitive()) {
+            if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                 mv.pushInt(nativeArrayFlags);
 
-                if (isLong32(parameterTypes[i].getComponentType(), parameterAnnotations[i])) {
+                if (isLong32(javaParameterType.getComponentType(), parameterTypes[i].annotations)) {
                     mv.invokestatic(p(AsmRuntime.class), "marshal32",
-                        sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class), parameterTypes[i], int.class));
+                        sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class),
+                                javaParameterType, int.class));
                 } else {
-                    marshal(mv, parameterTypes[i], int.class);
+                    marshal(mv, javaParameterType, int.class);
                 }
 
-            } else if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (Pointer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);
                 marshal(mv, Pointer.class, int.class);
 
-            } else if (Address.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (Address.class.isAssignableFrom(javaParameterType)) {
                 marshal(mv, Address.class);
 
-            } else if (Enum.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (Enum.class.isAssignableFrom(javaParameterType)) {
                 marshal(mv, Enum.class);
 
-            } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (Buffer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);
-                marshal(mv, parameterTypes[i], int.class);
+                marshal(mv, javaParameterType, int.class);
 
-            } else if (ByReference.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (ByReference.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ session, buffer, ref, flags ]
                 sessionmarshal(mv, ByReference.class, int.class);
 
-            } else if (StringBuilder.class.isAssignableFrom(parameterTypes[i]) || StringBuffer.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (StringBuilder.class.isAssignableFrom(javaParameterType) || StringBuffer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 // stack should be: [ session, buffer, ref, flags ]
-                sessionmarshal(mv, parameterTypes[i], int.class, int.class);
+                sessionmarshal(mv, javaParameterType, int.class, int.class);
 
-            } else if (CharSequence.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (CharSequence.class.isAssignableFrom(javaParameterType)) {
                 // stack should be: [ Buffer, array, flags ]
                 marshal(mv, CharSequence.class);
 
-            } else if (parameterTypes[i].isArray() && CharSequence.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
+            } else if (javaParameterType.isArray() && CharSequence.class.isAssignableFrom(javaParameterType.getComponentType())) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 sessionmarshal(mv, CharSequence[].class, int.class, int.class);
 
-            } else if (jnr.ffi.Struct.class.isAssignableFrom(parameterTypes[i])) {
+            } else if (jnr.ffi.Struct.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 marshal(mv, jnr.ffi.Struct.class, int.class, int.class);
 
-            } else if (parameterTypes[i].isArray() && jnr.ffi.Struct.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
+            } else if (javaParameterType.isArray() && jnr.ffi.Struct.class.isAssignableFrom(javaParameterType.getComponentType())) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 marshal(mv, jnr.ffi.Struct[].class, int.class, int.class);
 
-            } else if (parameterTypes[i].isArray() && Pointer.class.isAssignableFrom(parameterTypes[i].getComponentType())) {
+            } else if (javaParameterType.isArray() && Pointer.class.isAssignableFrom(javaParameterType.getComponentType())) {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 sessionmarshal(mv, Pointer[].class, int.class, int.class);
 
-            } else if (parameterTypes[i].isPrimitive() || Number.class.isAssignableFrom(parameterTypes[i])
-                    || Boolean.class == parameterTypes[i]) {
-                emitInvocationBufferNumericParameter(mv, parameterTypes[i], parameterAnnotations[i]);
+            } else if (javaParameterType.isPrimitive() || Number.class.isAssignableFrom(javaParameterType)
+                    || Boolean.class == javaParameterType) {
+                emitInvocationBufferNumericParameter(mv, parameterTypes[i]);
 
             } else {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
             }
         }
 
-        String invokeMethod = null;
-        Class nativeReturnType = null;
+        String invokeMethod ;
+        Class nativeReturnType;
+        Class javaReturnType = resultType.javaType;
 
-        if (isPrimitiveInt(returnType) || void.class == returnType
-                || Byte.class == returnType || Short.class == returnType || Integer.class == returnType) {
+        if (Type.SCHAR == resultType.jffiType || Type.UCHAR == resultType.jffiType
+                || Type.SINT8 == resultType.jffiType || Type.UINT8 == resultType.jffiType
+                || Type.SSHORT == resultType.jffiType || Type.USHORT == resultType.jffiType
+                || Type.SINT16 == resultType.jffiType || Type.UINT16 == resultType.jffiType
+                || Type.SINT == resultType.jffiType || Type.UINT == resultType.jffiType
+                || Type.SINT32 == resultType.jffiType || Type.UINT32 == resultType.jffiType
+                || Type.VOID == resultType.jffiType) {
             invokeMethod = "invokeInt";
             nativeReturnType = int.class;
 
-        } else if (isLong32(returnType, resultAnnotations)) {
+        } else if ((Type.SLONG == resultType.jffiType || Type.ULONG == resultType.jffiType) && resultType.jffiType.size() == 4) {
             invokeMethod = "invokeInt";
             nativeReturnType = int.class;
 
-        } else if (isLong64(returnType, resultAnnotations)) {
+        } else if ((Type.SLONG == resultType.jffiType || Type.ULONG == resultType.jffiType) && resultType.jffiType.size() == 8) {
             invokeMethod = "invokeLong";
             nativeReturnType = long.class;
 
-        } else if (Pointer.class == returnType || Address.class == returnType
-            || jnr.ffi.Struct.class.isAssignableFrom(returnType) || String.class.isAssignableFrom(returnType)) {
+        } else if (Type.SLONG_LONG == resultType.jffiType || Type.ULONG_LONG == resultType.jffiType
+            || Type.SINT64 == resultType.jffiType || Type.UINT64 == resultType.jffiType) {
+            invokeMethod = "invokeLong";
+            nativeReturnType = long.class;
+
+        } else if (Pointer.class == javaReturnType || Address.class == javaReturnType
+            || jnr.ffi.Struct.class.isAssignableFrom(javaReturnType) || String.class.isAssignableFrom(javaReturnType)) {
             invokeMethod = Platform.getPlatform().addressSize() == 32 ? "invokeInt" : "invokeLong";
             nativeReturnType = Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
-        } else if (Float.class == returnType || float.class == returnType) {
+        } else if (Float.class == javaReturnType || float.class == javaReturnType) {
             invokeMethod = "invokeFloat";
             nativeReturnType = float.class;
 
-        } else if (Double.class == returnType || double.class == returnType) {
+        } else if (Double.class == javaReturnType || double.class == javaReturnType) {
             invokeMethod = "invokeDouble";
             nativeReturnType = double.class;
 
         } else {
-            throw new IllegalArgumentException("unsupported return type " + returnType);
+            throw new IllegalArgumentException("unsupported return type " + javaReturnType);
         }
 
         mv.invokevirtual(Invoker.class, invokeMethod,
@@ -248,6 +282,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
         }
 
-        AsmLibraryLoader.emitReturn(mv, returnType, nativeReturnType);
+        AsmLibraryLoader.emitReturn(mv, javaReturnType, nativeReturnType, resultType.jffiType);
     }
 }

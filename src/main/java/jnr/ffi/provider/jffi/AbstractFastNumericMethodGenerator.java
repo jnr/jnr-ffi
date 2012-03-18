@@ -4,7 +4,6 @@ import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 import org.objectweb.asm.Label;
 
-import java.lang.annotation.Annotation;
 import java.nio.Buffer;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
@@ -22,88 +21,107 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         this.bufgen = bufgen;
     }
 
-    public void generate(SkinnyMethodAdapter mv, Signature signature) {
-        // [ stack contains: Invoker, Function ]
+    private void emitNumericParameter(SkinnyMethodAdapter mv, final Class javaType, com.kenai.jffi.Type jffiType) {
+        final Class nativeIntType = getInvokerType();
 
-        //mv = new SkinnyMethodAdapter(AsmUtil.newTraceMethodVisitor(mv));
-        Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, signature.parameterTypes);
+        if (Float.class == javaType || float.class == javaType) {
+            if (!javaType.isPrimitive()) {
+                unboxNumber(mv, javaType, float.class);
+            }
+            mv.invokestatic(Float.class, "floatToRawIntBits", int.class, float.class);
+            widen(mv, int.class, nativeIntType);
+
+        } else if (Double.class == javaType || double.class == javaType) {
+            if (!javaType.isPrimitive()) {
+                unboxNumber(mv, javaType, double.class);
+            }
+            mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
+
+        } else if (javaType.isPrimitive()) {
+            NumberUtil.convertPrimitive(mv, javaType, nativeIntType, jffiType);
+
+        } else if (Number.class.isAssignableFrom(javaType)) {
+            unboxNumber(mv, javaType, nativeIntType, jffiType);
+
+        } else if (Boolean.class.isAssignableFrom(javaType)) {
+            unboxBoolean(mv, javaType, nativeIntType);
+
+        } else if (Pointer.class.isAssignableFrom(javaType)) {
+            unboxPointer(mv, nativeIntType);
+
+        } else if (Struct.class.isAssignableFrom(javaType)) {
+            unboxStruct(mv, nativeIntType);
+
+        } else if (Buffer.class.isAssignableFrom(javaType)) {
+            unboxBuffer(mv, javaType, nativeIntType);
+
+        } else {
+            throw new IllegalArgumentException("unsupported numeric type " + javaType);
+        }
+    }
+
+    public void generate(SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes,
+                         boolean ignoreError) {
+// [ stack contains: Invoker, Function ]
+
+        mv = new SkinnyMethodAdapter(AsmUtil.newTraceMethodVisitor(mv));
+        Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, parameterTypes);
         final Class nativeIntType = getInvokerType();
 
         // Load and un-box parameters
-        for (int i = 0, lvar = 1; i < signature.parameterTypes.length; ++i) {
-            final Class parameterType = signature.parameterTypes[i];
-            lvar = AsmLibraryLoader.loadParameter(mv, parameterType, lvar);
+        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
+            ParameterType parameterType = parameterTypes[i];
 
-            if (Float.class == parameterType || float.class == parameterType) {
-                if (!parameterType.isPrimitive()) {
-                    unboxNumber(mv, parameterType, float.class);
-                }
-                mv.invokestatic(Float.class, "floatToRawIntBits", int.class, float.class);
-                widen(mv, int.class, nativeIntType);
+            lvar = AsmLibraryLoader.loadParameter(mv, parameterType.javaType, lvar);
 
-            } else if (Double.class == parameterType || double.class == parameterType) {
-                if (!parameterType.isPrimitive()) {
-                    unboxNumber(mv, parameterType, double.class);
-                }
-                mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
-
-            } else if (parameterType.isPrimitive()) {
-                // widen to long or narrow to int as needed
-                widen(mv, parameterType, nativeIntType);
-                narrow(mv, parameterType, nativeIntType);
-
-            } else if (Number.class.isAssignableFrom(parameterType)) {
-                unboxNumber(mv, parameterType, nativeIntType);
-
-            } else if (Boolean.class.isAssignableFrom(parameterType)) {
-                unboxBoolean(mv, parameterType, nativeIntType);
-
-            } else if (Pointer.class.isAssignableFrom(parameterType)) {
-                unboxPointer(mv, nativeIntType);
-
-            } else if (Struct.class.isAssignableFrom(parameterType)) {
-                unboxStruct(mv, nativeIntType);
-
-            } else if (Buffer.class.isAssignableFrom(parameterType)) {
-                unboxBuffer(mv, parameterType, nativeIntType);
-
-            } else {
-                throw new IllegalArgumentException("unsupported numeric type " + parameterType);
-            }
-
-
+            emitNumericParameter(mv, parameterType.javaType, parameterType.jffiType);
         }
 
         // stack now contains [ IntInvoker, Function, int/long args ]
         mv.invokevirtual(p(com.kenai.jffi.Invoker.class),
-                getInvokerMethodName(signature.resultType, signature.resultAnnotations, signature.parameterTypes, signature.parameterAnnotations, signature.ignoreError),
-                getInvokerSignature(signature.parameterTypes.length, nativeIntType));
+                getInvokerMethodName(resultType, parameterTypes, ignoreError),
+                getInvokerSignature(parameterTypes.length, nativeIntType));
 
         // Convert the result from long/int to the correct return type
-        if (Float.class == signature.resultType || float.class == signature.resultType) {
+        if (Float.class == resultType.javaType || float.class == resultType.javaType) {
             narrow(mv, nativeIntType, int.class);
             mv.invokestatic(Float.class, "intBitsToFloat", float.class, int.class);
 
-        } else if (Double.class == signature.resultType || double.class == signature.resultType) {
+        } else if (Double.class == resultType.javaType || double.class == resultType.javaType) {
             widen(mv, nativeIntType, long.class);
             mv.invokestatic(Double.class, "longBitsToDouble", double.class, long.class);
 
         }
 
         // emitReturn will box or narrow/widen the return value if needed
-        AsmLibraryLoader.emitReturn(mv, signature.resultType, nativeIntType);
+        AsmLibraryLoader.emitReturn(mv, resultType.javaType, nativeIntType, resultType.jffiType);
 
         if (bufferInvocationLabel != null) {
             // Now emit the alternate path for any parameters that might require it
             mv.label(bufferInvocationLabel);
-            bufgen.generate(mv, signature);
+            bufgen.generateBufferInvocation(mv, resultType, parameterTypes);
         }
     }
 
-    abstract String getInvokerMethodName(Class returnType,
-            Annotation[] resultAnnotations, Class[] parameterTypes, Annotation[][] parameterAnnotations,
-            boolean ignoreErrno);
+    public void generate(SkinnyMethodAdapter mv, Signature signature) {
+        ResultType resultType = InvokerUtil.getResultType(NativeRuntime.getInstance(),
+                signature.resultType, signature.resultAnnotations, null);
+        ParameterType[] parameterTypes = new ParameterType[signature.parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            parameterTypes[i] = InvokerUtil.getParameterType(NativeRuntime.getInstance(),
+                    signature.parameterTypes[i], signature.parameterAnnotations[i], null);
+        }
+
+        generate(mv, resultType, parameterTypes, signature.ignoreError);
+    }
+
+    abstract String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes,
+                                         boolean ignoreErrno);
 
     abstract String getInvokerSignature(int parameterCount, Class nativeIntType);
     abstract Class getInvokerType();
+
+    static boolean getBooleanProperty(String propertyName, boolean defaultValue) {
+        return Boolean.valueOf(System.getProperty(propertyName, Boolean.valueOf(defaultValue).toString()));
+    }
 }

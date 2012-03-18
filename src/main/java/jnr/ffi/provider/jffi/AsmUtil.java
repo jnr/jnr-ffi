@@ -196,6 +196,16 @@ final class AsmUtil {
     }
 
     /**
+     * Calculates the size of a local variable
+     *
+     * @param type The type of parameter
+     * @return The size in parameter units
+     */
+    static int calculateLocalVariableSpace(SigType type) {
+        return long.class == type.javaType || double.class == type.javaType ? 2 : 1;
+    }
+
+    /**
      * Calculates the size of a list of types in the local variable area.
      *
      * @param types The type of parameter
@@ -206,6 +216,22 @@ final class AsmUtil {
 
         for (int i = 0; i < types.length; ++i) {
             size += calculateLocalVariableSpace(types[i]);
+        }
+
+        return size;
+    }
+
+    /**
+     * Calculates the size of a list of types in the local variable area.
+     *
+     * @param types The type of parameter
+     * @return The size in parameter units
+     */
+    static int calculateLocalVariableSpace(SigType... types) {
+        int size = 0;
+
+        for (SigType type : types) {
+            size += calculateLocalVariableSpace(type);
         }
 
         return size;
@@ -241,6 +267,65 @@ final class AsmUtil {
 
     static final void unboxBoolean(final SkinnyMethodAdapter mv, final Class nativeType) {
         unboxBoolean(mv, Boolean.class, nativeType);
+    }
+
+    static final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class unboxedType,
+                                  final Type jffiType) {
+
+        if (Number.class.isAssignableFrom(boxedType)) {
+
+            if (Type.SCHAR == jffiType || Type.UCHAR == jffiType
+                    || Type.SINT8 == jffiType || Type.UINT8 == jffiType) {
+                mv.invokevirtual(p(boxedType), "byteValue", "()B");
+                widen(mv, int.class, unboxedType);
+                narrow(mv, int.class, unboxedType);
+
+            } else if (Type.SSHORT == jffiType || Type.USHORT == jffiType
+                    || Type.SINT16 == jffiType || Type.UINT16 == jffiType) {
+                mv.invokevirtual(p(boxedType), "shortValue", "()S");
+                widen(mv, int.class, unboxedType);
+                narrow(mv, int.class, unboxedType);
+
+            } else if (Type.SINT == jffiType || Type.UINT == jffiType
+                    || Type.SINT32 == jffiType || Type.UINT32 == jffiType
+                    || ((Type.SLONG == jffiType || Type.ULONG == jffiType) && jffiType.size() == 4)) {
+                mv.invokevirtual(p(boxedType), "intValue", "()I");
+                widen(mv, int.class, unboxedType);
+                narrow(mv, int.class, unboxedType);
+
+            } else if (Type.SINT == jffiType || Type.UINT == jffiType
+                    || Type.SINT32 == jffiType || Type.UINT32 == jffiType
+                    || ((Type.SLONG == jffiType || Type.ULONG == jffiType) && jffiType.size() == 4)) {
+                mv.invokevirtual(p(boxedType), "intValue", "()I");
+                widen(mv, int.class, unboxedType);
+                narrow(mv, int.class, unboxedType);
+
+            } else if (Type.SLONG_LONG == jffiType || Type.ULONG_LONG == jffiType
+                    || Type.SINT64 == jffiType || Type.UINT64 == jffiType
+                    || ((Type.SLONG == jffiType || Type.ULONG == jffiType) && jffiType.size() == 8)) {
+
+                mv.invokevirtual(p(boxedType), "longValue", "()J");
+                narrow(mv, int.class, unboxedType);
+
+            } else if (float.class == unboxedType) {
+                mv.invokevirtual(p(boxedType), "floatValue", "()F");
+
+            } else if (double.class == unboxedType) {
+                mv.invokevirtual(p(boxedType), "doubleValue", "()D");
+
+            } else {
+                throw new IllegalArgumentException("unsupported Number subclass: " + boxedType);
+            }
+
+        } else if (Boolean.class.isAssignableFrom(boxedType)) {
+            unboxBoolean(mv, unboxedType);
+
+        } else if (Enum.class.isAssignableFrom(boxedType)) {
+            unboxEnum(mv, unboxedType);
+
+        } else {
+            throw new IllegalArgumentException("unsupported boxed type: " + boxedType);
+        }
     }
 
     static final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeType) {
@@ -308,6 +393,35 @@ final class AsmUtil {
         }
     }
 
+    static final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType, Type jffiType) {
+        if (returnType == nativeReturnType) {
+            return;
+
+        } else if (Boolean.class.isAssignableFrom(returnType)) {
+            narrow(mv, nativeReturnType, boolean.class);
+            mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
+
+        } else if (Pointer.class.isAssignableFrom(returnType)) {
+            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, nativeReturnType);
+
+        } else if (Address.class == returnType) {
+            mv.invokestatic(returnType, "valueOf", returnType, nativeReturnType);
+
+        } else if (Struct.class.isAssignableFrom(returnType)) {
+            boxStruct(mv, returnType, nativeReturnType);
+
+        } else if (Number.class.isAssignableFrom(returnType)) {
+            boxNumber(mv, returnType, nativeReturnType, jffiType);
+
+        } else if (String.class == returnType) {
+            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, nativeReturnType);
+
+        } else {
+            throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);
+        }
+    }
+
+
     static final void boxStruct(SkinnyMethodAdapter mv, Class structClass, Class nativeType) {
         Label nonnull = new Label();
         Label end = new Label();
@@ -359,6 +473,14 @@ final class AsmUtil {
         widen(mv, nativeType, primitiveClass);
         narrow(mv, nativeType, primitiveClass);
 
+        mv.invokestatic(type, "valueOf", type, primitiveClass);
+    }
+
+    static final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativeType, Type jffiType) {
+        Class primitiveClass = getPrimitiveClass(type);
+
+        // Emit widening/narrowing ops if necessary
+        convertPrimitive(mv, nativeType, primitiveClass, jffiType);
         mv.invokestatic(type, "valueOf", type, primitiveClass);
     }
 

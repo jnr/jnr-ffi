@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * This is used internally by jnr-ffi to define type aliases.  e.g. ssize_t => long
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value = { ElementType.TYPE })
+@Target(value = { ElementType.ANNOTATION_TYPE })
 public @interface TypeDefinition {
     TypeAlias alias();
 }

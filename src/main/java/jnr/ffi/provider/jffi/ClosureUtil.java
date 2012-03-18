@@ -32,11 +32,11 @@ class ClosureUtil {
     }
 
     static com.kenai.jffi.Type getNativeResultType(Method m) {
-        return InvokerUtil.getNativeReturnType(m);
+        return InvokerUtil.getNativeReturnType(NativeRuntime.getInstance(), m.getReturnType(), m.getAnnotations());
     }
 
     static com.kenai.jffi.Type getNativeParameterType(Method m, int idx) {
-        return InvokerUtil.getNativeParameterType(m.getParameterTypes()[idx], m.getParameterAnnotations()[idx]);
+        return InvokerUtil.getNativeParameterType(NativeRuntime.getInstance(), m.getParameterTypes()[idx], m.getParameterAnnotations()[idx]);
     }
 
     public static final com.kenai.jffi.CallingConvention getNativeCallingConvention(Method m) {
