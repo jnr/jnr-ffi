@@ -13,4 +13,6 @@ public interface MethodGenerator {
 
     public boolean isSupported(Signature signature);
     public void generate(AsmBuilder builder, String functionName, Function function, Signature signature);
+    public void generate(AsmBuilder builder, String functionName, Function function,
+                         ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError);
 }

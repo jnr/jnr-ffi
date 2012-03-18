@@ -7,6 +7,7 @@ import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 import org.objectweb.asm.Label;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.annotation.Annotation;
 import java.nio.Buffer;
@@ -64,6 +65,11 @@ class X86MethodGenerator implements MethodGenerator {
 
         return isSupportedResult(platform, signature.resultType, signature.resultAnnotations)
             && compiler.canCompile(AsmUtil.unboxedReturnType(signature.resultType), nativeParameterTypes, signature.callingConvention);
+    }
+
+    public void generate(AsmBuilder builder, String functionName, Function function,
+                         ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
+        throw new UnsupportedOperationException("not implemented yet");
     }
 
     public void generate(AsmBuilder builder, String functionName, Function function, Signature signature) {

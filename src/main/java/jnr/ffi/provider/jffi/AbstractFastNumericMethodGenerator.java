@@ -60,7 +60,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         }
     }
 
-    public void generate(SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes,
+    public void generate(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes,
                          boolean ignoreError) {
 // [ stack contains: Invoker, Function ]
 
@@ -99,20 +99,8 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         if (bufferInvocationLabel != null) {
             // Now emit the alternate path for any parameters that might require it
             mv.label(bufferInvocationLabel);
-            bufgen.generateBufferInvocation(mv, resultType, parameterTypes);
+            bufgen.generateBufferInvocation(builder, mv, resultType, parameterTypes);
         }
-    }
-
-    public void generate(SkinnyMethodAdapter mv, Signature signature) {
-        ResultType resultType = InvokerUtil.getResultType(NativeRuntime.getInstance(),
-                signature.resultType, signature.resultAnnotations, null);
-        ParameterType[] parameterTypes = new ParameterType[signature.parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-            parameterTypes[i] = InvokerUtil.getParameterType(NativeRuntime.getInstance(),
-                    signature.parameterTypes[i], signature.parameterAnnotations[i], null);
-        }
-
-        generate(mv, resultType, parameterTypes, signature.ignoreError);
     }
 
     abstract String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes,

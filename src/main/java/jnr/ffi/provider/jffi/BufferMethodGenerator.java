@@ -8,7 +8,6 @@ import jnr.ffi.byref.ByReference;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
 
-import java.lang.annotation.Annotation;
 import java.nio.Buffer;
 
 import static jnr.ffi.provider.jffi.AsmUtil.calculateLocalVariableSpace;
@@ -23,16 +22,9 @@ import static jnr.ffi.provider.jffi.NumberUtil.*;
  */
 final class BufferMethodGenerator extends BaseMethodGenerator {
 
-    public void generate(SkinnyMethodAdapter mv,
-                         Signature signature) {
-        ResultType resultType = InvokerUtil.getResultType(NativeRuntime.getInstance(),
-                signature.resultType, signature.resultAnnotations, null);
-        ParameterType[] parameterTypes = new ParameterType[signature.parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-            parameterTypes[i] = InvokerUtil.getParameterType(NativeRuntime.getInstance(),
-                    signature.parameterTypes[i], signature.parameterAnnotations[i], null);
-        }
-        generateBufferInvocation(mv, resultType, parameterTypes);
+    @Override
+    void generate(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
+        generateBufferInvocation(builder, mv, resultType, parameterTypes);
     }
 
     public boolean isSupported(Signature signature) {
@@ -90,14 +82,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         mv.invokevirtual(HeapInvocationBuffer.class, paramMethod, void.class, nativeParamType);
     }
 
-    static void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv,
-            final Class javaParameterType, final Annotation[] parameterAnnotations) {
-
-        ParameterType parameterType = InvokerUtil.getParameterType(NativeRuntime.getInstance(), javaParameterType, parameterAnnotations, null);
-
-        emitInvocationBufferNumericParameter(mv, parameterType);
-    }
-
     static boolean isSessionRequired(ParameterType parameterType) {
         Class javaType = parameterType.javaType;
         return StringBuilder.class.isAssignableFrom(javaType)
@@ -130,7 +114,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
     }
 
-    void generateBufferInvocation(SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes) {
+    void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
         final boolean sessionRequired = isSessionRequired(parameterTypes);
         final int lvarSession = sessionRequired ? calculateLocalVariableSpace(parameterTypes) + 1 : -1;

@@ -104,7 +104,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
 
-    final static int getMaximumFastIntParameters() {
+    static int getMaximumFastIntParameters() {
         try {
             com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeIIIIIIrI", Function.class,
                     int.class, int.class, int.class, int.class, int.class, int.class);
