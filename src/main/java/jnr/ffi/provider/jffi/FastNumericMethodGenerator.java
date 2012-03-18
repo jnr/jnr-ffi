@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
@@ -41,14 +42,14 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
         super(bufgen);
     }
 
-    public boolean isSupported(Signature signature) {
-        final int parameterCount = signature.parameterTypes.length;
+    public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
+        final int parameterCount = parameterTypes.length;
 
         if (!ENABLED) {
             return false;
         }
 
-        if (signature.callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
+        if (callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
             return false;
         }
         final Platform platform = Platform.getPlatform();
@@ -62,14 +63,15 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
             return false;
         }
 
-        for (int i = 0; i < parameterCount; i++) {
-            if (!isFastNumericParameter(platform, signature.parameterTypes[i], signature.parameterAnnotations[i])) {
+        for (ParameterType parameterType : parameterTypes) {
+            if (!isFastNumericParameter(platform, parameterType)) {
                 return false;
             }
         }
 
-        return isFastNumericResult(platform, signature.resultType, signature.resultAnnotations);
+        return isFastNumericResult(platform, resultType);
     }
+
 
     @Override
     String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes, boolean ignoreErrno) {
@@ -99,34 +101,33 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
         return long.class;
     }
 
-    private static boolean isNumericType(Platform platform, Class type, Annotation[] annotations) {
-        return Boolean.class.isAssignableFrom(type) || boolean.class == type
-            || Byte.class.isAssignableFrom(type) || byte.class == type
-            || Short.class.isAssignableFrom(type) || short.class == type
-            || Integer.class.isAssignableFrom(type) || int.class == type
-            || Long.class == type || long.class == type
-            || NativeLong.class == type
-            || Pointer.class.isAssignableFrom(type)
-            || Struct.class.isAssignableFrom(type)
-            || float.class == type || Float.class == type
-            || double.class == type || Double.class == type
-            ;
+    private static boolean isNumericType(Platform platform, SigType type) {
+        if (FastIntMethodGenerator.isFastIntType(platform, type)) {
+            return true;
+        }
+        Type jffiType = type.jffiType;
+        if (Type.SLONG == jffiType || Type.ULONG == jffiType
+            || Type.SLONG_LONG == jffiType || Type.ULONG_LONG == jffiType
+            || Type.SINT64 == jffiType || Type.UINT64 == jffiType
+            || Type.FLOAT == jffiType || Type.DOUBLE == jffiType) {
+            return true;
+        }
+
+        return false;
     }
 
-    final static boolean isFastNumericResult(Platform platform, Class type, Annotation[] annotations) {
-        return isNumericType(platform, type, annotations)
-            || String.class == type
-            ;
+    static boolean isFastNumericResult(Platform platform, ResultType type) {
+        return isNumericType(platform, type)
+                || Type.VOID == type.jffiType
+                || Type.POINTER == type.jffiType
+                ;
     }
 
-    final static boolean isFastNumericParameter(Platform platform, Class type, Annotation[] annotations) {
-        return isNumericType(platform, type, annotations)
-            || Buffer.class.isAssignableFrom(type)
-            || isDelegate(type)
-            ;
+    static boolean isFastNumericParameter(Platform platform, ParameterType parameterType) {
+        return isNumericType(platform, parameterType) || isDelegate(parameterType.javaType);
     }
 
-    final static int getMaximumParameters() {
+    static int getMaximumParameters() {
         try {
             com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNNNNNNrN", Function.class,
                     long.class, long.class, long.class, long.class, long.class, long.class);

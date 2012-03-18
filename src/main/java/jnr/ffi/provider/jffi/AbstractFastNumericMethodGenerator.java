@@ -2,6 +2,8 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.Label;
 
 import java.nio.Buffer;
@@ -68,13 +70,15 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         Label bufferInvocationLabel = AsmLibraryLoader.emitDirectCheck(mv, parameterTypes);
         final Class nativeIntType = getInvokerType();
 
-        // Load and un-box parameters
+        // Load, convert, and un-box parameters
         for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
             ParameterType parameterType = parameterTypes[i];
 
-            lvar = AsmLibraryLoader.loadParameter(mv, parameterType.javaType, lvar);
-
-            emitNumericParameter(mv, parameterType.javaType, parameterType.jffiType);
+            lvar = loadAndConvertParameter(builder, mv, lvar, parameterType);
+            ToNativeConverter parameterConverter = parameterTypes[i].toNativeConverter;
+            Class javaParameterType = parameterConverter != null
+                    ? parameterConverter.nativeType() : parameterTypes[i].javaType;
+            emitNumericParameter(mv, javaParameterType, parameterType.jffiType);
         }
 
         // stack now contains [ IntInvoker, Function, int/long args ]
@@ -82,19 +86,26 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 getInvokerMethodName(resultType, parameterTypes, ignoreError),
                 getInvokerSignature(parameterTypes.length, nativeIntType));
 
+        FromNativeConverter resultConverter = resultType.fromNativeConverter;
+        Class javaReturnType = resultConverter != null
+                ? resultConverter.nativeType() : resultType.javaType;
+        Class nativeReturnType = nativeIntType;
+
         // Convert the result from long/int to the correct return type
-        if (Float.class == resultType.javaType || float.class == resultType.javaType) {
+        if (Float.class == javaReturnType || float.class == javaReturnType) {
             narrow(mv, nativeIntType, int.class);
             mv.invokestatic(Float.class, "intBitsToFloat", float.class, int.class);
+            nativeReturnType = float.class;
 
-        } else if (Double.class == resultType.javaType || double.class == resultType.javaType) {
+        } else if (Double.class == javaReturnType || double.class == javaReturnType) {
             widen(mv, nativeIntType, long.class);
             mv.invokestatic(Double.class, "longBitsToDouble", double.class, long.class);
+            nativeReturnType = double.class;
 
         }
 
-        // emitReturn will box or narrow/widen the return value if needed
-        AsmLibraryLoader.emitReturn(mv, resultType.javaType, nativeIntType, resultType.jffiType);
+        // box and/or narrow/widen the return value if needed
+        convertAndReturnResult(builder, mv, resultType, nativeReturnType);
 
         if (bufferInvocationLabel != null) {
             // Now emit the alternate path for any parameters that might require it

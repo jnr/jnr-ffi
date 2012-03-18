@@ -3,11 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
-import jnr.ffi.*;
-import jnr.ffi.Struct;
-
-import java.lang.annotation.Annotation;
-import java.nio.Buffer;
+import com.kenai.jffi.Type;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -68,14 +64,14 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         return long.class;
     }
 
-    public boolean isSupported(Signature signature) {
-        final int parameterCount = signature.parameterTypes.length;
+    public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
+        final int parameterCount = parameterTypes.length;
 
         if (!ENABLED) {
             return false;
         }
 
-        if (signature.callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
+        if (callingConvention != CallingConvention.DEFAULT || parameterCount > MAX_PARAMETERS) {
             return false;
         }
         final Platform platform = Platform.getPlatform();
@@ -89,16 +85,16 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         }
 
 
-        for (int i = 0; i < parameterCount; i++) {
-            if (!isFastLongParameter(platform, signature.parameterTypes[i], signature.parameterAnnotations[i])) {
+        for (ParameterType parameterType : parameterTypes) {
+            if (!isFastLongParameter(platform, parameterType)) {
                 return false;
             }
         }
 
-        return isFastLongResult(platform, signature.resultType, signature.resultAnnotations);
+        return isFastLongResult(platform, resultType);
     }
 
-    final static int getMaximumFastLongParameters() {
+    static int getMaximumFastLongParameters() {
         try {
             com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeLLLLLLrL", Function.class,
                     long.class, long.class, long.class, long.class, long.class, long.class);
@@ -108,31 +104,29 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         }
     }
 
-    private static boolean isLongType(Platform platform, Class type, Annotation[] annotations) {
-        return Boolean.class.isAssignableFrom(type) || boolean.class == type
-            || Byte.class.isAssignableFrom(type) || byte.class == type
-            || Short.class.isAssignableFrom(type) || short.class == type
-            || Integer.class.isAssignableFrom(type) || int.class == type
-            || Long.class == type || long.class == type
-            || NativeLong.class == type
-            || Pointer.class.isAssignableFrom(type)
-            || Struct.class.isAssignableFrom(type)
-            || Address.class == type
-            ;
+    private static boolean isLongType(Platform platform, SigType type) {
+        if (FastIntMethodGenerator.isFastIntType(platform, type)) {
+            return true;
+        }
+
+        Type jffiType = type.jffiType;
+        if (Type.SLONG == jffiType || Type.ULONG == jffiType
+            || Type.SLONG_LONG == jffiType || Type.ULONG_LONG == jffiType
+            || Type.SINT64 == jffiType || Type.UINT64 == jffiType) {
+            return true;
+        }
+
+        return false;
     }
 
-    static boolean isFastLongResult(Platform platform, Class type, Annotation[] annotations) {
-        return isLongType(platform, type, annotations)
-            || Void.class.isAssignableFrom(type) || void.class == type
-            || String.class == type
-            ;
-
+    static boolean isFastLongResult(Platform platform, ResultType type) {
+        return isLongType(platform, type)
+                || Type.VOID == type.jffiType
+                || (Type.POINTER == type.jffiType && Type.POINTER.size() == 8)
+                ;
     }
 
-    static boolean isFastLongParameter(Platform platform, Class type, Annotation[] annotations) {
-        return isLongType(platform, type, annotations)
-            || (Buffer.class.isAssignableFrom(type) && platform.addressSize() == 64)
-            || (isDelegate(type) && platform.addressSize() == 64)
-            ;
+    static boolean isFastLongParameter(Platform platform, ParameterType type) {
+        return isLongType(platform, type) || (isDelegate(type.javaType) && Type.POINTER.size() == 8);
     }
 }

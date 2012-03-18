@@ -1,15 +1,21 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
+import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.byref.ByReference;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
 
 import java.nio.Buffer;
 
+import static jnr.ffi.provider.jffi.AsmUtil.boxValue;
 import static jnr.ffi.provider.jffi.AsmUtil.calculateLocalVariableSpace;
 import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -32,7 +38,13 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         return true;
     }
 
-    static void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv, ParameterType parameterType) {
+    public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
+        // Buffer invocation supports everything
+        return true;
+    }
+
+    static void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv, ParameterType parameterType,
+                                                     Class javaParameterType) {
         String paramMethod;
         Class nativeParamType = int.class;
         Type to = parameterType.jffiType;
@@ -73,9 +85,9 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         }
 
         if (!parameterType.javaType.isPrimitive()) {
-            unboxNumber(mv, parameterType.javaType, nativeParamType, parameterType.jffiType);
+            unboxNumber(mv, javaParameterType, nativeParamType, parameterType.jffiType);
         } else {
-            NumberUtil.narrow(mv, parameterType.javaType, nativeParamType);
+            NumberUtil.narrow(mv, javaParameterType, nativeParamType);
         }
 
 
@@ -83,7 +95,9 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     }
 
     static boolean isSessionRequired(ParameterType parameterType) {
-        Class javaType = parameterType.javaType;
+        Class javaType = parameterType.toNativeConverter != null
+            ? parameterType.toNativeConverter.nativeType()
+            : parameterType.javaType;
         return StringBuilder.class.isAssignableFrom(javaType)
                 || StringBuffer.class.isAssignableFrom(javaType)
                 || ByReference.class.isAssignableFrom(javaType)
@@ -137,13 +151,15 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             if (isSessionRequired(parameterTypes[i])) {
                 mv.aload(lvarSession);
             }
-
-            lvar = AsmLibraryLoader.loadParameter(mv, parameterTypes[i].javaType, lvar);
+            lvar = loadAndConvertParameter(builder, mv, lvar, parameterTypes[i]);
 
             final int parameterFlags = AsmUtil.getParameterFlags(parameterTypes[i].annotations);
             final int nativeArrayFlags = AsmUtil.getNativeArrayFlags(parameterFlags)
                         | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
-            final Class javaParameterType = parameterTypes[i].javaType;
+
+            ToNativeConverter parameterConverter = parameterTypes[i].toNativeConverter;
+            final Class javaParameterType = parameterConverter != null
+                    ? parameterConverter.nativeType() : parameterTypes[i].javaType;
 
             if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                 mv.pushInt(nativeArrayFlags);
@@ -162,9 +178,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
             } else if (Address.class.isAssignableFrom(javaParameterType)) {
                 marshal(mv, Address.class);
-
-            } else if (Enum.class.isAssignableFrom(javaParameterType)) {
-                marshal(mv, Enum.class);
 
             } else if (Buffer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);
@@ -207,7 +220,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
             } else if (javaParameterType.isPrimitive() || Number.class.isAssignableFrom(javaParameterType)
                     || Boolean.class == javaParameterType) {
-                emitInvocationBufferNumericParameter(mv, parameterTypes[i]);
+                emitInvocationBufferNumericParameter(mv, parameterTypes[i], javaParameterType);
 
             } else {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
@@ -216,7 +229,9 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
         String invokeMethod ;
         Class nativeReturnType;
-        Class javaReturnType = resultType.javaType;
+        FromNativeConverter resultConverter = resultType.fromNativeConverter;
+        Class javaReturnType = resultConverter != null
+                ? resultConverter.nativeType() : resultType.javaType;
 
         if (Type.SCHAR == resultType.jffiType || Type.UCHAR == resultType.jffiType
                 || Type.SINT8 == resultType.jffiType || Type.UINT8 == resultType.jffiType
@@ -266,6 +281,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
         }
 
-        AsmLibraryLoader.emitReturn(mv, javaReturnType, nativeReturnType, resultType.jffiType);
+        convertAndReturnResult(builder, mv, resultType, nativeReturnType);
     }
 }

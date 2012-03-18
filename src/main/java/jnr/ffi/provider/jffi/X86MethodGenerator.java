@@ -30,6 +30,10 @@ class X86MethodGenerator implements MethodGenerator {
         this.bufgen = bufgen;
     }
 
+    public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
+        return false;
+    }
+
     public boolean isSupported(Signature signature) {
         if (!Boolean.valueOf(System.getProperty("jnr.ffi.compile.x86asm", "true"))) {
             return false;

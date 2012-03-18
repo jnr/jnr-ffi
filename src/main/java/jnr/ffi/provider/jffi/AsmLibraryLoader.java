@@ -125,46 +125,26 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new FastNumericMethodGenerator(bufgen),
                 bufgen
         };
+        NativeRuntime runtime = NativeRuntime.getInstance();
 
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
-            final Class returnType = m.getReturnType();
-            final Class[] parameterTypes = m.getParameterTypes();
-            Class nativeReturnType = returnType;
-            Class[] nativeParameterTypes = new Class[parameterTypes.length];
+            final Class javaReturnType = m.getReturnType();
+            final Class[] javaParameterTypes = m.getParameterTypes();
             final Annotation[] resultAnnotations = m.getAnnotations();
             final Annotation[][] parameterAnnotations = m.getParameterAnnotations();
 
-            boolean conversionRequired = false;
-
             resultConverters[i] = getResultConverter(m, typeMapper);
-            if (resultConverters[i] != null) {
+            ResultType resultType = InvokerUtil.getResultType(runtime, m.getReturnType(),
+                    resultAnnotations, resultConverters[i]);
 
-                nativeReturnType = resultConverters[i].nativeType();
-                conversionRequired = true;
-            } else if (NativeLong.class != m.getReturnType() && isLong32(m.getReturnType(), m.getAnnotations())) {
-                nativeReturnType = m.getReturnType() == long.class ? int.class : Integer.class;
-                conversionRequired = true;
-            }
+            parameterConverters[i] = new ToNativeConverter[javaParameterTypes.length];
+            ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
-
-            parameterConverters[i] = new ToNativeConverter[parameterTypes.length];
-            for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
-                ToNativeConverter converter = getParameterConverter(m, pidx, typeMapper);
-                if (converter != null) {
-                    nativeParameterTypes[pidx] = converter.nativeType();
-                    
-                    parameterConverters[i][pidx] = new ParameterConverter(converter,
-                            new MethodParameterContext(m, pidx));
-                    conversionRequired = true;
-                
-                } else if (NativeLong.class != parameterTypes[pidx] && isLong32(parameterTypes[pidx], parameterAnnotations[pidx])) {
-                    nativeParameterTypes[pidx] = parameterTypes[pidx] == long.class ? int.class : Integer.class;
-                    conversionRequired = true;
-                
-                } else {
-                    nativeParameterTypes[pidx] = parameterTypes[pidx];
-                }
+            for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
+                parameterConverters[i][pidx] = getParameterConverter(m, pidx, typeMapper);
+                parameterTypes[pidx] = InvokerUtil.getParameterType(runtime, javaParameterTypes[pidx],
+                        parameterAnnotations[pidx], parameterConverters[i][pidx]);
             }
 
             // Stash the name of the function in a static field
@@ -174,13 +154,13 @@ public class AsmLibraryLoader extends LibraryLoader {
             // Allow individual methods to set the calling convention to stdcall
             CallingConvention callingConvention = m.getAnnotation(StdCall.class) != null
                     ? CallingConvention.STDCALL : libraryCallingConvention;
+            boolean saveErrno = InvokerUtil.requiresErrno(m);
             try {
                 functions[i] = getFunction(library.findSymbolAddress(functionName),
-                    nativeReturnType, resultAnnotations, nativeParameterTypes, parameterAnnotations, InvokerUtil.requiresErrno(m),
-                    callingConvention);
+                    resultType, parameterTypes, saveErrno, callingConvention);
             } catch (SymbolNotFoundError ex) {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "error_" + i, ci(String.class), null, ex.getMessage());
-                generateFunctionNotFound(cv, className, i, functionName, returnType, parameterTypes);
+                generateFunctionNotFound(cv, className, i, functionName, javaReturnType, javaParameterTypes);
                 continue;
             }
 
@@ -189,19 +169,11 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
 
-            Signature signature = new Signature(nativeReturnType, nativeParameterTypes, resultAnnotations, parameterAnnotations,
-                    callingConvention, !InvokerUtil.requiresErrno(m));
-            String rawMethodName = m.getName() + (conversionRequired ? "$raw" + nextMethodID.incrementAndGet() : "");
             for (MethodGenerator g : generators) {
-                if (g.isSupported(signature)) {
-                    g.generate(builder, rawMethodName, functions[i], signature);
+                if (g.isSupported(resultType, parameterTypes, callingConvention)) {
+                    g.generate(builder, m.getName(), functions[i], resultType, parameterTypes, !saveErrno);
                     break;
                 }
-            }
-
-            if (conversionRequired) {
-                generateConversionMethod(builder, m.getName(), rawMethodName, i, returnType, parameterTypes, nativeReturnType,
-                        nativeParameterTypes, resultConverters[i], parameterConverters[i]);
             }
 
             // The Function[] array is passed in as the second param, so generate
@@ -274,17 +246,9 @@ public class AsmLibraryLoader extends LibraryLoader {
         } else if (Enum.class.isAssignableFrom(parameterType)) {
             return EnumMapper.getInstance(parameterType.asSubclass(Enum.class));
 
-        } else if (Long.class == parameterType && isLong32(parameterType, m.getParameterAnnotations()[parameterIndex])) {
-            return BoxedLong32Converter.INSTANCE;
-
-            /*
-        } else if (NativeLong.class == parameterType && isLong32(parameterType, m.getParameterAnnotations()[parameterIndex])) {
-            return NativeLong32Converter.INSTANCE;
-            */
-
         } else if (isDelegate(parameterType)) {
-
             return closureManager.getClosureFactory(parameterType);
+
         } else {
             return null;
         }
@@ -298,14 +262,6 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         } else if (Enum.class.isAssignableFrom(returnType)) {
             return EnumMapper.getInstance(returnType.asSubclass(Enum.class));
-
-        } else if (Long.class == returnType && isLong32(returnType, m.getAnnotations())) {
-            return BoxedLong32Converter.INSTANCE;
-
-            /*
-        } else if (NativeLong.class == returnType && isLong32(returnType, m.getAnnotations())) {
-            return NativeLong32Converter.INSTANCE;
-            */
 
         } else {
             return null;
@@ -331,68 +287,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         mv.visitEnd();
     }
 
-    private final void generateConversionMethod(AsmBuilder builder, String functionName, String rawFunctionName, int idx,
-            Class returnType, Class[] parameterTypes, Class nativeReturnType, Class[] nativeParameterTypes,
-            FromNativeConverter resultConverter, ToNativeConverter[] parameterConverters) {
-
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL,
-                functionName,
-                sig(returnType, parameterTypes), null, null));
-        mv.start();
-
-        // If there is a result converter, retrieve it and put on the stack
-        if (!returnType.equals(nativeReturnType) && long.class != returnType && int.class != nativeReturnType) {
-            mv.aload(0);
-            mv.getfield(builder.getClassNamePath(), builder.getResultConverterName(resultConverter), ci(FromNativeConverter.class));
-        }
-
-        
-        mv.aload(0);
-
-        // Load and convert the parameters
-        int lvar = 1;
-        for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
-            final boolean convertParameter = !parameterTypes[pidx].equals(nativeParameterTypes[pidx]);
-            final boolean convertLong = long.class == parameterTypes[pidx] && int.class == nativeParameterTypes[pidx];
-
-            if (convertParameter && !convertLong) {
-                mv.aload(0);
-                mv.getfield(builder.getClassNamePath(), builder.    getParameterConverterName(parameterConverters[pidx]), ci(ToNativeConverter.class));
-            }
-
-            lvar = loadParameter(mv, parameterTypes[pidx], lvar);
-
-            if (convertParameter && convertLong) {
-                mv.l2i();
-            } else if (convertParameter) {
-                if (parameterTypes[pidx].isPrimitive()) {
-                    boxValue(mv, getBoxedClass(parameterTypes[pidx]), parameterTypes[pidx]);
-                }
-                mv.aconst_null();
-                mv.invokeinterface(ToNativeConverter.class, "toNative",
-                        Object.class, Object.class, ToNativeContext.class);
-                mv.checkcast(p(nativeParameterTypes[pidx]));
-            }
-        }
-
-        // Invoke the real native method
-        mv.invokevirtual(builder.getClassNamePath(), rawFunctionName, sig(nativeReturnType, nativeParameterTypes));
-        if (!returnType.equals(nativeReturnType) && long.class != returnType && int.class != nativeReturnType) {
-            if (nativeReturnType.isPrimitive()) {
-                boxValue(mv, getBoxedClass(nativeReturnType), nativeReturnType);
-            }
-            mv.aconst_null();
-            mv.invokeinterface(FromNativeConverter.class, "fromNative",
-                    Object.class, Object.class, FromNativeContext.class);
-            mv.checkcast(p(returnType));
-        }
-        if (!returnType.equals(nativeReturnType) && long.class == returnType && int.class == nativeReturnType) {
-            mv.i2l();
-        }
-        emitReturnOp(mv, returnType);
-        mv.visitMaxs(10, 10);
-        mv.visitEnd();
-    }
 
     static final Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes) {
 
@@ -552,18 +446,15 @@ public class AsmLibraryLoader extends LibraryLoader {
         return lvar;
     }
 
-    private static Function getFunction(long address, Class resultType, final Annotation[] resultAnnotations,
-            Class[] parameterTypes, final Annotation[][] parameterAnnotations,
-            boolean requiresErrno, CallingConvention convention) {
-        NativeRuntime runtime = NativeRuntime.getInstance();
-
+    private static Function getFunction(long address, ResultType resultType, ParameterType[] parameterTypes,
+                                        boolean requiresErrno, CallingConvention convention) {
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
 
         for (int i = 0; i < nativeParamTypes.length; ++i) {
-            nativeParamTypes[i] = InvokerUtil.getNativeParameterType(runtime, parameterTypes[i], parameterAnnotations[i]);
+            nativeParamTypes[i] = parameterTypes[i].jffiType;
         }
 
-        return new Function(address, InvokerUtil.getNativeReturnType(runtime, resultType, resultAnnotations),
+        return new Function(address, resultType.jffiType,
                 nativeParamTypes, convention, requiresErrno);
 
     }

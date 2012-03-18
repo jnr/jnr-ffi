@@ -266,11 +266,11 @@ final class InvokerUtil {
         return jffiType(jnrType.getNativeType());
     }
 
-    static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter resultConverter) {
-        return new ResultType(type, getNativeReturnType(runtime, type, annotations), annotations, resultConverter);
+    static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter fromNativeConverter) {
+        return new ResultType(type, getNativeReturnType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations), annotations, fromNativeConverter);
     }
 
     static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations, ToNativeConverter toNativeConverter) {
-        return new ParameterType(type, getNativeParameterType(runtime, type, annotations), annotations, toNativeConverter);
+        return new ParameterType(type, getNativeParameterType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations), annotations, toNativeConverter);
     }
 }

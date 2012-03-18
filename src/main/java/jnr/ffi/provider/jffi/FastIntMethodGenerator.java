@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
 import jnr.ffi.Address;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
@@ -73,14 +74,14 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
         return int.class;
     }
 
-    public boolean isSupported(Signature signature) {
-        final int parameterCount = signature.parameterTypes.length;
+    public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
+        final int parameterCount = parameterTypes.length;
 
         if (!ENABLED) {
             return false;
         }
 
-        if (!signature.callingConvention.equals(CallingConvention.DEFAULT) || parameterCount > MAX_FASTINT_PARAMETERS) {
+        if (!callingConvention.equals(CallingConvention.DEFAULT) || parameterCount > MAX_FASTINT_PARAMETERS) {
             return false;
         }
 
@@ -94,13 +95,13 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
             return false;
         }
 
-        for (int i = 0; i < parameterCount; i++) {
-            if (!isFastIntParameter(platform, signature.parameterTypes[i], signature.parameterAnnotations[i])) {
+        for (ParameterType parameterType : parameterTypes) {
+            if (!isFastIntParameter(platform, parameterType)) {
                 return false;
             }
         }
 
-        return isFastIntResult(platform, signature.resultType, signature.resultAnnotations);
+        return isFastIntResult(platform, resultType);
     }
 
 
@@ -122,33 +123,40 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
         }
     }
 
+    static boolean isFastIntType(Platform platform, SigType type) {
+        if (Type.SCHAR == type.jffiType || Type.SINT8 == type.jffiType
+                || Type.UCHAR == type.jffiType || Type.UINT8 == type.jffiType
+                || Type.SSHORT == type.jffiType || Type.SINT16 == type.jffiType
+                || Type.USHORT == type.jffiType || Type.UINT16 == type.jffiType
+                || Type.SINT == type.jffiType || Type.SINT32 == type.jffiType
+                || Type.UINT == type.jffiType || Type.UINT32 == type.jffiType
+                || ((Type.SLONG == type.jffiType || Type.ULONG == type.jffiType) && type.jffiType.size() == 4)) {
+            return true;
+        }
 
-    private static boolean isFastIntType(Platform platform, Class type, Annotation[] annotations) {
-        return Boolean.class.isAssignableFrom(type) || boolean.class == type
-                || Byte.class.isAssignableFrom(type) || byte.class == type
-                || Short.class.isAssignableFrom(type) || short.class == type
-                || Integer.class.isAssignableFrom(type) || int.class == type
-                || NumberUtil.isLong32(platform, type, annotations)
-                || (Address.class == type && platform.addressSize() == 32)
-                || (Pointer.class.isAssignableFrom(type) && platform.addressSize() == 32)
-                || (Struct.class.isAssignableFrom(type) && platform.addressSize() == 32)
-                || (Buffer.class.isAssignableFrom(type) && platform.addressSize() == 32)
+        if (Type.POINTER == type.jffiType && Type.POINTER.size() == 4) {
+            Class javaType = type.javaType;
+            if (isDelegate(javaType)) {
+                return true;
+            }
+            return  false && (Address.class == javaType
+                    || Pointer.class.isAssignableFrom(javaType)
+                    || Struct.class.isAssignableFrom(javaType)
+                    || Buffer.class.isAssignableFrom(javaType));
+        }
 
-//                || ((float.class == type || Float.class == type) && platform.getCPU() == Platform.CPU.I386)
+        return false;
+    }
+
+    static boolean isFastIntResult(Platform platform, ResultType parameterType) {
+        return isFastIntType(platform, parameterType)
+                || Type.VOID == parameterType.jffiType
+                || (Type.POINTER == parameterType.jffiType && Type.POINTER.size() == 4)
                 ;
     }
 
 
-    static boolean isFastIntResult(Platform platform, Class type, Annotation[] annotations) {
-        return isFastIntType(platform, type, annotations)
-            || Void.class.isAssignableFrom(type) || void.class == type
-            || (platform.addressSize() == 32 && String.class.isAssignableFrom(type))
-            ;
-    }
-
-    static boolean isFastIntParameter(Platform platform, Class type, Annotation[] annotations) {
-        return isFastIntType(platform, type, annotations)
-            || (isDelegate(type) && platform.addressSize() == 32)
-            ;
+    static boolean isFastIntParameter(Platform platform, ParameterType parameterType) {
+        return isFastIntType(platform, parameterType);
     }
 }
