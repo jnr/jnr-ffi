@@ -28,9 +28,7 @@ LIBNAME = $(PREFIX)test.$(LIBEXT)
 
 export MACOSX_DEPLOYMENT_TARGET=10.5
 
-ifeq ($(OS),linux)
-CCACHE := $(shell /usr/bin/which ccache)
-endif
+CCACHE := $(strip $(realpath $(shell which ccache 2> /dev/null)))
 
 TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)
 TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(TEST_SRCS))
