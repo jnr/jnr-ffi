@@ -56,7 +56,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         }
     }
 
-    public void generate(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes,
+    public void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes,
                          boolean ignoreError) {
 // [ stack contains: Invoker, Function ]
         AsmLocalVariableAllocator localVariableAllocator = new AsmLocalVariableAllocator(parameterTypes);
@@ -67,12 +67,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         AsmLocalVariable[] pointers = new AsmLocalVariable[parameterTypes.length];
         AsmLocalVariable[] strategies = new AsmLocalVariable[parameterTypes.length];
         int pointerCount = 0;
-
-        // First, convert function to callcontext+long
-        mv.dup();
-        mv.invokevirtual(Function.class, "getCallContext", CallContext.class);
-        mv.swap();
-        mv.invokevirtual(Function.class, "getFunctionAddress", long.class);
 
         // Load, convert, and un-box parameters
         for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {

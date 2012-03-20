@@ -29,8 +29,8 @@ import static jnr.ffi.provider.jffi.NumberUtil.*;
 final class BufferMethodGenerator extends BaseMethodGenerator {
 
     @Override
-    void generate(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
-        generateBufferInvocation(builder, mv, resultType, parameterTypes);
+    void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
+        generateBufferInvocation(builder, mv, function, resultType, parameterTypes);
     }
 
     public boolean isSupported(Signature signature) {
@@ -128,7 +128,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
     }
 
-    void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes) {
+    void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
         final boolean sessionRequired = isSessionRequired(parameterTypes);
         final int lvarSession = sessionRequired ? calculateLocalVariableSpace(parameterTypes) + 1 : -1;
@@ -139,8 +139,9 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             mv.astore(lvarSession);
         }
 
-        // [ stack contains: Invoker, Function, Function ]
-        mv.dup();
+        // [ stack contains: Invoker, CallContext, long ]
+        mv.aload(0);
+        mv.getfield(builder.getClassNamePath(), builder.getFunctionFieldName(function), ci(Function.class));
         mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, Function.class);
         // [ stack contains: Invoker, Function, HeapInvocationBuffer ]
 
@@ -274,7 +275,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         }
 
         mv.invokevirtual(Invoker.class, invokeMethod,
-                nativeReturnType, Function.class, HeapInvocationBuffer.class);
+                nativeReturnType, CallContext.class, long.class, HeapInvocationBuffer.class);
 
         if (sessionRequired) {
             mv.aload(lvarSession);

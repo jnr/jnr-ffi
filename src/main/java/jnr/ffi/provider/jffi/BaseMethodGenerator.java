@@ -1,5 +1,6 @@
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import jnr.ffi.mapper.FromNativeContext;
@@ -42,7 +43,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                     signature.parameterTypes[i], signature.parameterAnnotations[i], null);
         }
 
-        generate(builder, mv, resultType, parameterTypes, signature.ignoreError);
+        generate(builder, mv, function, resultType, parameterTypes, signature.ignoreError);
 
         mv.visitMaxs(100, calculateLocalVariableSpace(signature.parameterTypes) + 10);
         mv.visitEnd();
@@ -63,12 +64,15 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         // Retrieve the static 'ffi' Invoker instance
         mv.getstatic(p(AbstractAsmLibraryInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
 
-        // retrieve this.function
+        // retrieve the call context and function address
         mv.aload(0);
-        mv.getfield(builder.getClassNamePath(), builder.getFunctionFieldName(function), ci(Function.class));
+        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(function), ci(CallContext.class));
+
+        mv.aload(0);
+        mv.getfield(builder.getClassNamePath(), builder.getFunctionAddressFieldName(function), ci(long.class));
 
 
-        generate(builder, mv, resultType, parameterTypes, ignoreError);
+        generate(builder, mv, function, resultType, parameterTypes, ignoreError);
 
         mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
         mv.visitEnd();
@@ -86,7 +90,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         return isSupported(resultType, parameterTypes, signature.callingConvention);
     }
 
-    abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, ParameterType[] parameterTypes,
+    abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes,
                            boolean ignoreError);
 
     int loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, int lvar,
