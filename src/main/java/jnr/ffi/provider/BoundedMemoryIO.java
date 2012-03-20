@@ -47,6 +47,25 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         return this.size;
     }
 
+    @Override
+    public final boolean hasArray() {
+        return io.hasArray();
+    }
+
+    @Override
+    public final Object array() {
+        return io.array();
+    }
+
+    @Override
+    public final int arrayOffset() {
+        return io.arrayOffset() + (int) base;
+    }
+
+    @Override
+    public final int arrayLength() {
+        return (int) size;
+    }
 
     @Override
     public void checkBounds(long offset, long length) {

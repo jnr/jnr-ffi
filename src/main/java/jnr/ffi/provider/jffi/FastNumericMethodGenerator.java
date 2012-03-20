@@ -1,15 +1,10 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Function;
-import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
-import jnr.ffi.NativeLong;
+import com.kenai.jffi.*;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 
-import java.lang.annotation.Annotation;
-import java.nio.Buffer;
+import java.nio.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -23,14 +18,14 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
     private static final String[] signatures;
 
     private static final String[] methodNames = {
-        "invokeVrN", "invokeNrN", "invokeNNrN", "invokeNNNrN", "invokeNNNNrN", "invokeNNNNNrN", "invokeNNNNNNrN"
+        "invokeN0", "invokeN1", "invokeN2", "invokeN3", "invokeN4", "invokeN5", "invokeN6"
     };
 
     static {
         signatures = new String[MAX_PARAMETERS + 1];
         for (int i = 0; i <= MAX_PARAMETERS; i++) {
             StringBuilder sb = new StringBuilder();
-            sb.append('(').append(ci(Function.class));
+            sb.append('(').append(ci(CallContext.class)).append(ci(long.class));
             for (int n = 0; n < i; n++) {
                 sb.append('J');
             }
@@ -63,8 +58,19 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
             return false;
         }
 
+        int objectCount = 0;
         for (ParameterType parameterType : parameterTypes) {
             if (!isFastNumericParameter(platform, parameterType)) {
+                return false;
+            }
+
+            if (isSupportedPointerParameterType(parameterType.effectiveJavaType())) {
+                objectCount++;
+            }
+        }
+
+        if (objectCount > 0) {
+            if (parameterTypes.length > 4 || objectCount > 3) {
                 return false;
             }
         }
@@ -106,14 +112,10 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
             return true;
         }
         Type jffiType = type.jffiType;
-        if (Type.SLONG == jffiType || Type.ULONG == jffiType
+        return Type.SLONG == jffiType || Type.ULONG == jffiType
             || Type.SLONG_LONG == jffiType || Type.ULONG_LONG == jffiType
             || Type.SINT64 == jffiType || Type.UINT64 == jffiType
-            || Type.FLOAT == jffiType || Type.DOUBLE == jffiType) {
-            return true;
-        }
-
-        return false;
+            || Type.FLOAT == jffiType || Type.DOUBLE == jffiType;
     }
 
     static boolean isFastNumericResult(Platform platform, ResultType type) {
@@ -124,8 +126,34 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     static boolean isFastNumericParameter(Platform platform, ParameterType parameterType) {
-        return isNumericType(platform, parameterType) || isDelegate(parameterType.javaType);
+        if (isNumericType(platform, parameterType) || isDelegate(parameterType.javaType)) {
+            return true;
+
+        } else {
+            return Type.POINTER == parameterType.jffiType && isSupportedPointerParameterType(parameterType.effectiveJavaType());
+        }
     }
+
+    private static boolean isSupportedPointerParameterType(Class javaParameterType) {
+        return Pointer.class.isAssignableFrom(javaParameterType)
+                || String.class == javaParameterType || CharSequence.class == javaParameterType
+                || Struct.class.isAssignableFrom(javaParameterType)
+                || ByteBuffer.class.isAssignableFrom(javaParameterType)
+                || ShortBuffer.class.isAssignableFrom(javaParameterType)
+                || IntBuffer.class.isAssignableFrom(javaParameterType)
+                || (LongBuffer.class.isAssignableFrom(javaParameterType) && Type.SLONG.size() == 8)
+                || FloatBuffer.class.isAssignableFrom(javaParameterType)
+                || DoubleBuffer.class.isAssignableFrom(javaParameterType)
+                || byte[].class == javaParameterType
+                || short[].class == javaParameterType
+                || int[].class == javaParameterType
+                || (long[].class == javaParameterType && Type.SLONG.size() == 8)
+                || float[].class == javaParameterType
+                || double[].class == javaParameterType
+                || boolean[].class == javaParameterType
+                ;
+    }
+
 
     static int getMaximumParameters() {
         try {

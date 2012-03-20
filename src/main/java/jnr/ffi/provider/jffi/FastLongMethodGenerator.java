@@ -1,9 +1,6 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Function;
-import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
+import com.kenai.jffi.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -17,14 +14,14 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
     private static final String[] signatures;
 
     private static final String[] methodNames = {
-        "invokeVrL", "invokeLrL", "invokeLLrL", "invokeLLLrL", "invokeLLLLrL", "invokeLLLLLrL", "invokeLLLLLLrL"
+        "invokeL0", "invokeL1", "invokeL2", "invokeL3", "invokeL4", "invokeL5", "invokeL6"
     };
 
     static {
         signatures = new String[MAX_PARAMETERS + 1];
         for (int i = 0; i <= MAX_PARAMETERS; i++) {
             StringBuilder sb = new StringBuilder();
-            sb.append('(').append(ci(Function.class));
+            sb.append('(').append(ci(CallContext.class)).append(ci(long.class));
             for (int n = 0; n < i; n++) {
                 sb.append('J');
             }

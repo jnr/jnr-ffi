@@ -1,15 +1,10 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Function;
-import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
-import jnr.ffi.Address;
+import com.kenai.jffi.*;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 
-import java.lang.annotation.Annotation;
-import java.nio.Buffer;
+import java.nio.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -24,18 +19,18 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     private static final String[] signatures;
 
     private static final String[] methodNames = {
-        "invokeVrI", "invokeIrI", "invokeIIrI", "invokeIIIrI", "invokeIIIIrI", "invokeIIIIIrI", "invokeIIIIIIrI"
+        "invokeI0", "invokeI1", "invokeI2", "invokeI3", "invokeI4", "invokeI5", "invokeI6"
     };
 
     private static final String[] noErrnoMethodNames = {
-        "invokeNoErrnoVrI", "invokeNoErrnoIrI", "invokeNoErrnoIIrI", "invokeNoErrnoIIIrI"
+        "invokeI0NoErrno", "invokeI1NoErrno", "invokeI2NoErrno", "invokeI3NoErrno"
     };
 
     static {
         signatures = new String[MAX_FASTINT_PARAMETERS + 1];
         for (int i = 0; i <= MAX_FASTINT_PARAMETERS; i++) {
             StringBuilder sb = new StringBuilder();
-            sb.append('(').append(ci(Function.class));
+            sb.append('(').append(ci(CallContext.class)).append(ci(long.class));
             for (int n = 0; n < i; n++) {
                 sb.append('I');
             }
@@ -95,8 +90,19 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
             return false;
         }
 
+        int objectCount = 0;
         for (ParameterType parameterType : parameterTypes) {
             if (!isFastIntParameter(platform, parameterType)) {
+                return false;
+            }
+
+            if (isSupportedPointerParameterType(parameterType.effectiveJavaType())) {
+                objectCount++;
+            }
+        }
+
+        if (objectCount > 0) {
+            if (parameterTypes.length > 4 || objectCount > 3) {
                 return false;
             }
         }
@@ -134,29 +140,25 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
             return true;
         }
 
-        if (Type.POINTER == type.jffiType && Type.POINTER.size() == 4) {
-            Class javaType = type.javaType;
-            if (isDelegate(javaType)) {
-                return true;
-            }
-            return  false && (Address.class == javaType
-                    || Pointer.class.isAssignableFrom(javaType)
-                    || Struct.class.isAssignableFrom(javaType)
-                    || Buffer.class.isAssignableFrom(javaType));
-        }
-
-        return false;
+        return Type.POINTER == type.jffiType && Type.POINTER.size() == 4 && isDelegate(type.javaType);
     }
 
-    static boolean isFastIntResult(Platform platform, ResultType parameterType) {
-        return isFastIntType(platform, parameterType)
-                || Type.VOID == parameterType.jffiType
-                || (Type.POINTER == parameterType.jffiType && Type.POINTER.size() == 4)
+    private static boolean isSupportedPointerParameterType(Class javaParameterType) {
+        return Pointer.class.isAssignableFrom(javaParameterType)
+                || Struct.class.isAssignableFrom(javaParameterType);
+    }
+
+    static boolean isFastIntResult(Platform platform, ResultType resultType) {
+        return isFastIntType(platform, resultType)
+                || Type.VOID == resultType.jffiType
+                || (Type.POINTER == resultType.jffiType && Type.POINTER.size() == 4)
                 ;
     }
 
 
     static boolean isFastIntParameter(Platform platform, ParameterType parameterType) {
-        return isFastIntType(platform, parameterType);
+        return isFastIntType(platform, parameterType)
+            || (Type.POINTER == parameterType.jffiType && Type.POINTER.size() == 4
+                && isSupportedPointerParameterType(parameterType.effectiveJavaType()));
     }
 }

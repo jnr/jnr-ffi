@@ -18,6 +18,7 @@
 
 package jnr.ffi.provider;
 
+import com.kenai.jffi.MemoryIO;
 import jnr.ffi.Runtime;
 import jnr.ffi.util.BufferUtil;
 import java.nio.ByteBuffer;
@@ -41,7 +42,12 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
 
     @Override
     public long address() {
-        return 0;
+        if (buffer.isDirect()) {
+            long address = MemoryIO.getInstance().getDirectBufferAddress(buffer);
+            return address != 0L ? address + buffer.position() : 0L;
+        }
+
+        return 0L;
     }
 
     public long size() {
@@ -51,6 +57,27 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
     public final ByteBuffer getByteBuffer() {
         return buffer;
     }
+
+    @Override
+    public int arrayLength() {
+        return getByteBuffer().remaining();
+    }
+
+    @Override
+    public int arrayOffset() {
+        return getByteBuffer().arrayOffset();
+    }
+
+    @Override
+    public Object array() {
+        return getByteBuffer().array();
+    }
+
+    @Override
+    public boolean hasArray() {
+        return getByteBuffer().hasArray();
+    }
+
     public byte getByte(long offset) {
         return buffer.get((int) offset);
     }

@@ -93,7 +93,8 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         // Create the constructor to set the 'library' & functions fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
-                sig(void.class, NativeLibrary.class, Function[].class, FromNativeConverter[].class, ToNativeConverter[].class),
+                sig(void.class, NativeLibrary.class, Function[].class,
+                        FromNativeConverter[].class, ToNativeConverter[].class, ObjectParameterInfo[].class),
                 null, null));
         init.start();
         // Invokes the super class constructor as super(Library)
@@ -104,7 +105,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         init.invokespecial(p(AbstractAsmLibraryInterface.class), "<init>", sig(void.class, NativeLibrary.class));
         
         final Method[] methods = interfaceClass.getMethods();
-        Function[] functions = new Function[methods.length];
+//        Function[] functions = new Function[methods.length];
         FromNativeConverter[] resultConverters = new FromNativeConverter[methods.length];
         ToNativeConverter[][] parameterConverters = new ToNativeConverter[methods.length][0];
         
@@ -155,8 +156,9 @@ public class AsmLibraryLoader extends LibraryLoader {
             CallingConvention callingConvention = m.getAnnotation(StdCall.class) != null
                     ? CallingConvention.STDCALL : libraryCallingConvention;
             boolean saveErrno = InvokerUtil.requiresErrno(m);
+            Function function;
             try {
-                functions[i] = getFunction(library.findSymbolAddress(functionName),
+                function = getFunction(library.findSymbolAddress(functionName),
                     resultType, parameterTypes, saveErrno, callingConvention);
             } catch (SymbolNotFoundError ex) {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "error_" + i, ci(String.class), null, ex.getMessage());
@@ -164,25 +166,41 @@ public class AsmLibraryLoader extends LibraryLoader {
                 continue;
             }
 
-            String functionFieldName = "function_" + i;
-            builder.addFunctionField(functions[i], functionFieldName);
-
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, functionFieldName, ci(Function.class), null, null);
-
             for (MethodGenerator g : generators) {
                 if (g.isSupported(resultType, parameterTypes, callingConvention)) {
-                    g.generate(builder, m.getName(), functions[i], resultType, parameterTypes, !saveErrno);
+                    g.generate(builder, m.getName(), function, resultType, parameterTypes, !saveErrno);
                     break;
                 }
             }
+        }
 
-            // The Function[] array is passed in as the second param, so generate
-            // the constructor code to store each function in a field
-            init.aload(0);
+        Function[] functions = builder.getFunctionArray();
+        for (int i = 0; i < functions.length; i++) {
+            Function function = functions[i];
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, builder.getFunctionFieldName(function), ci(Function.class), null, null);
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, builder.getCallContextFieldName(function), ci(CallContext.class), null, null);
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, builder.getFunctionAddressFieldName(function), ci(long.class), null, null);
+
             init.aload(2);
             init.pushInt(i);
             init.aaload();
-            init.putfield(className, functionFieldName, ci(Function.class));
+            init.dup();
+            init.dup();
+
+            init.aload(0);
+            init.swap();
+            init.putfield(className, builder.getFunctionFieldName(function), ci(Function.class));
+
+
+            init.aload(0);
+            init.swap();
+            init.invokevirtual(Function.class, "getCallContext", CallContext.class);
+            init.putfield(className, builder.getCallContextFieldName(function), ci(CallContext.class));
+
+            init.aload(0);
+            init.swap();
+            init.invokevirtual(Function.class, "getFunctionAddress", long.class);
+            init.putfield(className, builder.getFunctionAddressFieldName(function), ci(long.class));
         }
 
         FromNativeConverter[] fromNativeConverters = builder.getFromNativeConverterArray();
@@ -208,6 +226,17 @@ public class AsmLibraryLoader extends LibraryLoader {
             init.putfield(className, fieldName, ci(ToNativeConverter.class));
         }
 
+        ObjectParameterInfo[] objectParameterInfo = builder.getObjectParameterInfoArray();
+        for (int i = 0; i < objectParameterInfo.length; i++) {
+            String fieldName = builder.getObjectParameterInfoName(objectParameterInfo[i]);
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(ObjectParameterInfo.class), null, null);
+            init.aload(0);
+            init.aload(5);
+            init.pushInt(i);
+            init.aaload();
+            init.putfield(className, fieldName, ci(ObjectParameterInfo.class));
+        }
+
 
         init.voidreturn();
         init.visitMaxs(10, 10);
@@ -224,8 +253,8 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), bytes);
             Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class,
-                    FromNativeConverter[].class, ToNativeConverter[].class);
-            T result = cons.newInstance(library, functions, fromNativeConverters, toNativeConverters);
+                    FromNativeConverter[].class, ToNativeConverter[].class, ObjectParameterInfo[].class);
+            T result = cons.newInstance(library, functions, fromNativeConverters, toNativeConverters, objectParameterInfo);
 
             // Attach any native method stubs - we have to delay this until the
             // implementation class is loaded for it to work.

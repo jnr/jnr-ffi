@@ -60,9 +60,19 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
         getMethodVisitor().visitVarInsn(ALOAD, arg0);
     }
 
+    public void aload(AsmLocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(ALOAD, arg0.idx);
+    }
+
     public void aload(int... args) {
         for (int arg : args) {
             getMethodVisitor().visitVarInsn(ALOAD, arg);
+        }
+    }
+
+    public void aload(AsmLocalVariable... args) {
+        for (AsmLocalVariable arg : args) {
+            getMethodVisitor().visitVarInsn(ALOAD, arg.idx);
         }
     }
     
@@ -70,9 +80,19 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
         getMethodVisitor().visitVarInsn(ILOAD, arg0);
     }
 
+    public void iload(AsmLocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(ILOAD, arg0.idx);
+    }
+
     public void iload(int... args) {
         for (int arg : args) {
             getMethodVisitor().visitVarInsn(ILOAD, arg);
+        }
+    }
+
+    public void iload(AsmLocalVariable... args) {
+        for (AsmLocalVariable arg : args) {
+            getMethodVisitor().visitVarInsn(ILOAD, arg.idx);
         }
     }
     
@@ -83,6 +103,12 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     public void lload(int... args) {
         for (int arg : args) {
             getMethodVisitor().visitVarInsn(LLOAD, arg);
+        }
+    }
+
+    public void lload(AsmLocalVariable... args) {
+        for (AsmLocalVariable arg : args) {
+            getMethodVisitor().visitVarInsn(LLOAD, arg.idx);
         }
     }
     
@@ -109,13 +135,25 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     public void astore(int arg0) {
         getMethodVisitor().visitVarInsn(ASTORE, arg0);
     }
+
+    public void astore(AsmLocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(ASTORE, arg0.idx);
+    }
     
     public void istore(int arg0) {
         getMethodVisitor().visitVarInsn(ISTORE, arg0);
     }
+
+    public void istore(AsmLocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(ISTORE, arg0.idx);
+    }
     
     public void lstore(int arg0) {
         getMethodVisitor().visitVarInsn(LSTORE, arg0);
+    }
+
+    public void lstore(AsmLocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(LSTORE, arg0.idx);
     }
     
     public void fstore(int arg0) {
@@ -826,6 +864,10 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     
     public void iinc(int arg0, int arg1) {
         getMethodVisitor().visitIincInsn(arg0, arg1);
+    }
+
+    public void iinc(AsmLocalVariable arg0, int arg1) {
+        getMethodVisitor().visitIincInsn(arg0.idx, arg1);
     }
     
     public void monitorenter() {

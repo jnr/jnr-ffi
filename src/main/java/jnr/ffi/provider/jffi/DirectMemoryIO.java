@@ -55,6 +55,26 @@ class DirectMemoryIO extends AbstractMemoryIO {
         return Long.MAX_VALUE;
     }
 
+    @Override
+    public boolean hasArray() {
+        return false;
+    }
+
+    @Override
+    public Object array() {
+        return null;
+    }
+
+    @Override
+    public int arrayOffset() {
+        return 0;
+    }
+
+    @Override
+    public int arrayLength() {
+        return 0;
+    }
+
     public String toString() {
         return String.format(getClass().getName() + "[address=%x]", address);
     }

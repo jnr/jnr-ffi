@@ -16,4 +16,8 @@ class ResultType extends SigType {
         super(javaType, jffiType, annotations);
         this.fromNativeConverter = fromNativeConverter;
     }
+
+    Class effectiveJavaType() {
+        return fromNativeConverter != null ? fromNativeConverter.nativeType() : javaType;
+    }
 }

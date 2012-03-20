@@ -48,7 +48,25 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
         return ptr.size() - base;
     }
 
+    @Override
+    public final boolean hasArray() {
+        return ptr.hasArray();
+    }
 
+    @Override
+    public final Object array() {
+        return ptr.array();
+    }
+
+    @Override
+    public final int arrayOffset() {
+        return ptr.arrayOffset() + (int) base;
+    }
+
+    @Override
+    public final int arrayLength() {
+        return ptr.arrayLength() - (int) base;
+    }
 
     public final Pointer getDelegatedMemoryIO() {
         return ptr;

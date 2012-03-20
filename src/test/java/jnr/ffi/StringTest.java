@@ -34,6 +34,7 @@ public class StringTest {
     public StringTest() {
     }
     public static interface TestLib {
+        boolean string_equals(String s1, String s2);
         boolean string_equals(CharSequence s1, byte[] s2);        
         void string_set(StringBuffer dst, CharSequence src);
         void string_set(StringBuilder dst, CharSequence src);
@@ -98,5 +99,10 @@ public class StringTest {
         buffer.append(ORIG);
         testlib.string_concat(buffer, MAGIC);
         assertEquals("StringBuilder was not set", ORIG + MAGIC, buffer.toString());        
+    }
+
+    @Test public void testStringParams() {
+        assertTrue("strings should be equal", testlib.string_equals("test", "test"));
+        assertFalse("strings should not be equal", testlib.string_equals("test", "deadbeef"));
     }
 }

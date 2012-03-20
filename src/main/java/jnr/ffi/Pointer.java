@@ -118,6 +118,14 @@ abstract public class Pointer {
      */
     abstract public long size();
 
+    abstract public boolean hasArray();
+
+    abstract public Object array();
+
+    abstract public int arrayOffset();
+
+    abstract public int arrayLength();
+
     /**
      * Gets the {@link Runtime} this {@code Pointer} instance belongs to.
      *

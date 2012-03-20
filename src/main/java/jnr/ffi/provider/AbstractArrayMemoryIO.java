@@ -61,6 +61,21 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
         return length;
     }
 
+    @Override
+    public final int arrayLength() {
+        return length;
+    }
+
+    @Override
+    public final int arrayOffset() {
+        return offset;
+    }
+
+    @Override
+    public final boolean hasArray() {
+        return true;
+    }
+
     public final boolean isDirect() {
         return false;
     }
