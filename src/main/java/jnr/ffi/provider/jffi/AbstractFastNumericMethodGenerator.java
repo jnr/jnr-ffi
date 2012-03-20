@@ -210,22 +210,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                             ci(ObjectParameterInfo.class));
                 }
             }
-            String methodName = "invokeN" + parameterTypes.length;
-            StringBuilder sb = new StringBuilder();
-            sb.append('(').append(ci(CallContext.class)).append(ci(long.class));
-            for (int i = 0; i < parameterTypes.length; i++) {
-                sb.append('J');
-            }
-            sb.append('I'); // objCount
-            for (int n = 0; n < pointerCount; n++) {
-                sb.append(ci(Object.class));
-                sb.append(ci(ObjectParameterStrategy.class));
-                sb.append(ci(ObjectParameterInfo.class));
-            }
-            sb.append(")J");
-            String methodSignature = sb.toString();
-
-            mv.invokevirtual(p(com.kenai.jffi.Invoker.class), methodName, methodSignature);
+            mv.invokevirtual(p(com.kenai.jffi.Invoker.class),
+                    AbstractFastNumericMethodGenerator.getObjectParameterMethodName(parameterTypes.length),
+                    AbstractFastNumericMethodGenerator.getObjectParameterMethodSignature(parameterTypes.length, pointerCount));
             if (int.class == nativeIntType) mv.l2i();
 
             mv.go_to(convertResult);
@@ -240,7 +227,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         byte[].class, short[].class, char[].class, int[].class, long[].class, float[].class, double[].class, boolean[].class
     )));
 
-    private static void emitPointerParameterStrategyLookup(SkinnyMethodAdapter mv, Class javaParameterType, Annotation[] annotations) {
+    static void emitPointerParameterStrategyLookup(SkinnyMethodAdapter mv, Class javaParameterType, Annotation[] annotations) {
         boolean converted = false;
         for (Class c : pointerTypes) {
             if (c.isAssignableFrom(javaParameterType)) {
@@ -266,28 +253,24 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         }
     }
 
-    private static boolean getBufferStrategy(SkinnyMethodAdapter mv, Class javaType) {
-        Class[] bufferTypes = { ByteBuffer.class, ShortBuffer.class, IntBuffer.class, LongBuffer.class, FloatBuffer.class, DoubleBuffer.class};
-        for (Class bufferType : bufferTypes) {
-            if (bufferType.isAssignableFrom(javaType)) {
-                mv.invokestatic(AsmRuntime.class, "pointerParameterStrategy", PointerParameterStrategy.class, bufferType);
-                return true;
-            }
-        }
-
-        return false;
+    static String getObjectParameterMethodName(int parameterCount) {
+        return "invokeN" + parameterCount;
     }
 
-    private static boolean getArrayStrategy(SkinnyMethodAdapter mv, Class javaType) {
-        Class[] bufferTypes = { byte[].class, short[].class, int[].class, long[].class, float[].class, double[].class};
-        for (Class bufferType : bufferTypes) {
-            if (bufferType.isAssignableFrom(javaType)) {
-                mv.invokestatic(AsmRuntime.class, "pointerParameterStrategy", PointerParameterStrategy.class, bufferType);
-                return true;
-            }
+    static String getObjectParameterMethodSignature(int parameterCount, int pointerCount) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('(').append(ci(CallContext.class)).append(ci(long.class));
+        for (int i = 0; i < parameterCount; i++) {
+            sb.append('J');
         }
-
-        return false;
+        sb.append('I'); // objCount
+        for (int n = 0; n < pointerCount; n++) {
+            sb.append(ci(Object.class));
+            sb.append(ci(ObjectParameterStrategy.class));
+            sb.append(ci(ObjectParameterInfo.class));
+        }
+        sb.append(")J");
+        return sb.toString();
     }
 
     abstract String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes,

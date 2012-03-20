@@ -105,7 +105,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         init.invokespecial(p(AbstractAsmLibraryInterface.class), "<init>", sig(void.class, NativeLibrary.class));
         
         final Method[] methods = interfaceClass.getMethods();
-//        Function[] functions = new Function[methods.length];
         FromNativeConverter[] resultConverters = new FromNativeConverter[methods.length];
         ToNativeConverter[][] parameterConverters = new ToNativeConverter[methods.length][0];
         
@@ -120,7 +119,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         StubCompiler compiler = StubCompiler.newCompiler();
 
         final MethodGenerator[] generators = {
-                //new X86MethodGenerator(compiler, bufgen),
+                new X86MethodGenerator(compiler, bufgen),
                 new FastIntMethodGenerator(bufgen),
                 new FastLongMethodGenerator(bufgen),
                 new FastNumericMethodGenerator(bufgen),
@@ -472,6 +471,27 @@ public class AsmLibraryLoader extends LibraryLoader {
             mv.iload(lvar++);
         }
         
+        return lvar;
+    }
+
+    static int loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, int lvar,
+                                ParameterType parameterType) {
+        ToNativeConverter parameterConverter = parameterType.toNativeConverter;
+        if (parameterConverter != null) {
+            mv.aload(0);
+            mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterConverter), ci(ToNativeConverter.class));
+        }
+        lvar = AsmLibraryLoader.loadParameter(mv, parameterType.javaType, lvar);
+        if (parameterConverter != null) {
+            if (parameterType.javaType.isPrimitive()) {
+                boxValue(mv, getBoxedClass(parameterType.javaType), parameterType.javaType, parameterType.jffiType);
+            }
+            mv.aconst_null();
+            mv.invokeinterface(ToNativeConverter.class, "toNative",
+                    Object.class, Object.class, ToNativeContext.class);
+            mv.checkcast(p(parameterConverter.nativeType()));
+        }
+
         return lvar;
     }
 

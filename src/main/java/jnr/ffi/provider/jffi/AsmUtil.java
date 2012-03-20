@@ -96,7 +96,7 @@ final class AsmUtil {
         if (Pointer.class.isAssignableFrom(type)
             || Struct.class.isAssignableFrom(type)
             || String.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
+            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
         }
         
         return unboxedType(type);
@@ -104,7 +104,7 @@ final class AsmUtil {
 
     public static final Class unboxedParameterType(Class type) {
         if (Buffer.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
+            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
         } else {
             return unboxedType(type);
@@ -285,13 +285,6 @@ final class AsmUtil {
             } else if (Type.SSHORT == jffiType || Type.USHORT == jffiType
                     || Type.SINT16 == jffiType || Type.UINT16 == jffiType) {
                 mv.invokevirtual(p(boxedType), "shortValue", "()S");
-                widen(mv, int.class, unboxedType);
-                narrow(mv, int.class, unboxedType);
-
-            } else if (Type.SINT == jffiType || Type.UINT == jffiType
-                    || Type.SINT32 == jffiType || Type.UINT32 == jffiType
-                    || ((Type.SLONG == jffiType || Type.ULONG == jffiType) && jffiType.size() == 4)) {
-                mv.invokevirtual(p(boxedType), "intValue", "()I");
                 widen(mv, int.class, unboxedType);
                 narrow(mv, int.class, unboxedType);
 

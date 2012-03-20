@@ -23,18 +23,6 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 abstract class BaseMethodGenerator implements MethodGenerator {
 
     public void generate(AsmBuilder builder, String functionName, Function function, Signature signature) {
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL,
-                functionName,
-                sig(signature.resultType, signature.parameterTypes), null, null));
-        mv.start();
-
-        // Retrieve the static 'ffi' Invoker instance
-        mv.getstatic(p(AbstractAsmLibraryInterface.class), "ffi", ci(com.kenai.jffi.Invoker.class));
-
-        // retrieve this.function
-        mv.aload(0);
-        mv.getfield(builder.getClassNamePath(), builder.getFunctionFieldName(function), ci(Function.class));
-
         ResultType resultType = InvokerUtil.getResultType(NativeRuntime.getInstance(),
                 signature.resultType, signature.resultAnnotations, null);
         ParameterType[] parameterTypes = new ParameterType[signature.parameterTypes.length];
@@ -43,10 +31,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                     signature.parameterTypes[i], signature.parameterAnnotations[i], null);
         }
 
-        generate(builder, mv, function, resultType, parameterTypes, signature.ignoreError);
-
-        mv.visitMaxs(100, calculateLocalVariableSpace(signature.parameterTypes) + 10);
-        mv.visitEnd();
+        generate(builder, functionName, function, resultType, parameterTypes, signature.ignoreError);
     }
 
     public void generate(AsmBuilder builder, String functionName, Function function,
@@ -78,22 +63,10 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         mv.visitEnd();
     }
 
-    public boolean isSupported(Signature signature) {
-        ResultType resultType = InvokerUtil.getResultType(NativeRuntime.getInstance(),
-                signature.resultType, signature.resultAnnotations, null);
-        ParameterType[] parameterTypes = new ParameterType[signature.parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-            parameterTypes[i] = InvokerUtil.getParameterType(NativeRuntime.getInstance(),
-                    signature.parameterTypes[i], signature.parameterAnnotations[i], null);
-        }
-
-        return isSupported(resultType, parameterTypes, signature.callingConvention);
-    }
-
     abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes,
                            boolean ignoreError);
 
-    int loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, int lvar,
+    static int loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, int lvar,
                                 ParameterType parameterType) {
         ToNativeConverter parameterConverter = parameterType.toNativeConverter;
         if (parameterConverter != null) {
@@ -114,7 +87,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         return lvar;
     }
 
-    void convertAndReturnResult(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, Class nativeReturnType) {
+    static void convertAndReturnResult(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, Class nativeReturnType) {
         // If there is a result converter, retrieve it and put on the stack
         FromNativeConverter resultConverter = resultType.fromNativeConverter;
         if (resultConverter != null) {

@@ -14,11 +14,7 @@ class ParameterType extends SigType {
     final ToNativeConverter toNativeConverter;
 
     ParameterType(Class javaType, com.kenai.jffi.Type jffiType, Annotation[] annotations, ToNativeConverter toNativeConverter) {
-        super(javaType, jffiType, annotations);
+        super(javaType, jffiType, annotations, toNativeConverter != null ? toNativeConverter.nativeType() : javaType);
         this.toNativeConverter = toNativeConverter;
-    }
-
-    Class effectiveJavaType() {
-        return toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
     }
 }
