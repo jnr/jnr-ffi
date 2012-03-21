@@ -338,7 +338,7 @@ class X86MethodGenerator implements MethodGenerator {
     final static boolean isSupportedParameter(ParameterType parameterType) {
         return isSupportedType(parameterType)
                 || isSupportedObjectParameterType(parameterType)
-                || isDelegate(parameterType.javaType)
+                || isDelegate(parameterType)
                 ;
     }
 }

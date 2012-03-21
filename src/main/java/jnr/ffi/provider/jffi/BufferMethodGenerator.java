@@ -16,9 +16,7 @@ import jnr.ffi.provider.ParameterFlags;
 
 import java.nio.Buffer;
 
-import static jnr.ffi.provider.jffi.AsmUtil.boxValue;
-import static jnr.ffi.provider.jffi.AsmUtil.calculateLocalVariableSpace;
-import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
+import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
@@ -103,7 +101,8 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
 
-        if (!parameterType.javaType.isPrimitive()) {
+
+        if (!parameterType.getDeclaredType().isPrimitive()) {
             unboxNumber(mv, javaParameterType, nativeParamType, parameterType.nativeType);
         } else {
             convertPrimitive(mv, javaParameterType, nativeParamType, parameterType.nativeType);
@@ -116,7 +115,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     static boolean isSessionRequired(ParameterType parameterType) {
         Class javaType = parameterType.toNativeConverter != null
             ? parameterType.toNativeConverter.nativeType()
-            : parameterType.javaType;
+            : parameterType.getDeclaredType();
         return StringBuilder.class.isAssignableFrom(javaType)
                 || StringBuffer.class.isAssignableFrom(javaType)
                 || ByReference.class.isAssignableFrom(javaType)
@@ -179,7 +178,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
             ToNativeConverter parameterConverter = parameterTypes[i].toNativeConverter;
             final Class javaParameterType = parameterConverter != null
-                    ? parameterConverter.nativeType() : parameterTypes[i].javaType;
+                    ? parameterConverter.nativeType() : parameterTypes[i].getDeclaredType();
 
             if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                 mv.pushInt(nativeArrayFlags);
@@ -251,7 +250,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         Class nativeReturnType;
         FromNativeConverter resultConverter = resultType.fromNativeConverter;
         Class javaReturnType = resultConverter != null
-                ? resultConverter.nativeType() : resultType.javaType;
+                ? resultConverter.nativeType() : resultType.getDeclaredType();
 
         if (NativeType.SCHAR == resultType.nativeType || NativeType.UCHAR == resultType.nativeType
             || NativeType.SSHORT== resultType.nativeType || NativeType.USHORT == resultType.nativeType

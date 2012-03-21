@@ -367,7 +367,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         Label bufferInvocationLabel = new Label();
         boolean needBufferInvocation = false;
         for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-            Class javaType = parameterTypes[i].javaType;
+            Class javaType = parameterTypes[i].getDeclaredType();
             if (Pointer.class.isAssignableFrom(javaType)) {
                 mv.aload(lvar++);
                 mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Pointer.class);
@@ -486,10 +486,10 @@ public class AsmLibraryLoader extends LibraryLoader {
             mv.aload(0);
             mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterConverter), ci(ToNativeConverter.class));
         }
-        lvar = AsmLibraryLoader.loadParameter(mv, parameterType.javaType, lvar);
+        lvar = AsmLibraryLoader.loadParameter(mv, parameterType.getDeclaredType(), lvar);
         if (parameterConverter != null) {
-            if (parameterType.javaType.isPrimitive()) {
-                boxValue(mv, getBoxedClass(parameterType.javaType), parameterType.javaType, parameterType.nativeType);
+            if (parameterType.getDeclaredType().isPrimitive()) {
+                boxValue(mv, getBoxedClass(parameterType.getDeclaredType()), parameterType.getDeclaredType(), parameterType.nativeType);
             }
             mv.aconst_null();
             mv.invokeinterface(ToNativeConverter.class, "toNative",

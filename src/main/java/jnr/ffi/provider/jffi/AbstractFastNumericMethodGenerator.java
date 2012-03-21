@@ -79,7 +79,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
             Class javaParameterType = parameterTypes[i].effectiveJavaType();
 
-            if (Pointer.class.isAssignableFrom(javaParameterType) && isDelegate(parameterTypes[i].javaType)) {
+            if (Pointer.class.isAssignableFrom(javaParameterType) && isDelegate(parameterTypes[i])) {
                 // delegates are always direct, so handle without the strategy processing
                 unboxPointer(mv, nativeIntType);
 

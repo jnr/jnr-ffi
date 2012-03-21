@@ -121,6 +121,6 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
     }
 
     static boolean isFastLongParameter(Platform platform, ParameterType type) {
-        return isFastLongType(platform, type) || (isDelegate(type.javaType) && type.size() == 8);
+        return isFastLongType(platform, type) || (isDelegate(type) && type.size() == 8);
     }
 }

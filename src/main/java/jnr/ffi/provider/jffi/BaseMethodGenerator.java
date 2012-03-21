@@ -38,12 +38,12 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                          ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
         Class[] javaParameterTypes = new Class[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
-            javaParameterTypes[i] = parameterTypes[i].javaType;
+            javaParameterTypes[i] = parameterTypes[i].getDeclaredType();
         }
 
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL,
                 functionName,
-                sig(resultType.javaType, javaParameterTypes), null, null));
+                sig(resultType.getDeclaredType(), javaParameterTypes), null, null));
         mv.start();
 
         // Retrieve the static 'ffi' Invoker instance
@@ -73,10 +73,10 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             mv.aload(0);
             mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterConverter), ci(ToNativeConverter.class));
         }
-        lvar = AsmLibraryLoader.loadParameter(mv, parameterType.javaType, lvar);
+        lvar = AsmLibraryLoader.loadParameter(mv, parameterType.getDeclaredType(), lvar);
         if (parameterConverter != null) {
-            if (parameterType.javaType.isPrimitive()) {
-                boxValue(mv, getBoxedClass(parameterType.javaType), parameterType.javaType, parameterType.nativeType);
+            if (parameterType.getDeclaredType().isPrimitive()) {
+                boxValue(mv, getBoxedClass(parameterType.getDeclaredType()), parameterType.getDeclaredType(), parameterType.nativeType);
             }
             mv.aconst_null();
             mv.invokeinterface(ToNativeConverter.class, "toNative",
@@ -99,11 +99,11 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             mv.aconst_null();
             mv.invokeinterface(FromNativeConverter.class, "fromNative",
                     Object.class, Object.class, FromNativeContext.class);
-            mv.checkcast(p(resultType.javaType));
+            mv.checkcast(p(resultType.getDeclaredType()));
             mv.areturn();
 
         } else {
-            AsmLibraryLoader.emitReturn(mv, resultType.javaType, nativeReturnType, resultType.nativeType);
+            AsmLibraryLoader.emitReturn(mv, resultType.getDeclaredType(), nativeReturnType, resultType.nativeType);
         }
     }
 }

@@ -11,7 +11,7 @@ import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
  *
  */
 abstract class SigType {
-    final Class javaType, convertedType;
+    private final Class javaType, convertedType;
     final NativeType nativeType;
     final Annotation[] annotations;
 

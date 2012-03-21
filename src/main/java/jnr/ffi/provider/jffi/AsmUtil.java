@@ -35,6 +35,8 @@ import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import sun.text.normalizer.UCharacter;
+
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 
@@ -199,7 +201,7 @@ final class AsmUtil {
      * @return The size in parameter units
      */
     static int calculateLocalVariableSpace(SigType type) {
-        return long.class == type.javaType || double.class == type.javaType ? 2 : 1;
+        return calculateLocalVariableSpace(type.getDeclaredType());
     }
 
     /**
@@ -275,13 +277,20 @@ final class AsmUtil {
                 case SCHAR:
                 case UCHAR:
                     mv.invokevirtual(p(boxedType), "byteValue", "()B");
+                    if (nativeType == NativeType.UCHAR) {
+                        mv.pushInt(0xff);
+                        mv.iand();
+                    }
                     widen(mv, int.class, unboxedType);
-                    narrow(mv, int.class, unboxedType);
                     break;
 
                 case SSHORT:
                 case USHORT:
                     mv.invokevirtual(p(boxedType), "shortValue", "()S");
+                    if (nativeType == NativeType.USHORT) {
+                        mv.pushInt(0xffff);
+                        mv.iand();
+                    }
                     widen(mv, int.class, unboxedType);
                     narrow(mv, int.class, unboxedType);
                     break;
@@ -506,6 +515,11 @@ final class AsmUtil {
         return false;
     }
 
+    static boolean isDelegate(SigType type) {
+        return isDelegate(type.getDeclaredType());
+    }
+
+
     static final Type getNativeParameterType(Method method, int paramIndex, TypeMapper mapper) {
         Class type = method.getParameterTypes()[paramIndex];
         ToNativeConverter converter = mapper.getToNativeConverter(type);
@@ -533,5 +547,44 @@ final class AsmUtil {
 
     static final int getNativeArrayFlags(Annotation[] annotations) {
         return getNativeArrayFlags(getParameterFlags(annotations));
+    }
+
+    static Class getNativeClass(NativeType nativeType) {
+        switch (nativeType) {
+            case SCHAR:
+            case UCHAR:
+                return byte.class;
+
+            case SSHORT:
+            case USHORT:
+                return short.class;
+
+            case SINT:
+            case UINT:
+                return int.class;
+
+            case SLONG:
+            case ULONG:
+                return sizeof(nativeType) == 4 ? int.class : long.class;
+
+            case SLONGLONG:
+            case ULONGLONG:
+                return long.class;
+
+            case FLOAT:
+                return float.class;
+
+            case DOUBLE:
+                return double.class;
+
+            case ADDRESS:
+                return sizeof(nativeType) == 4 ? int.class : long.class;
+
+            case VOID:
+                return void.class;
+
+            default:
+                throw new IllegalArgumentException("unsupported native type: " + nativeType);
+        }
     }
 }
