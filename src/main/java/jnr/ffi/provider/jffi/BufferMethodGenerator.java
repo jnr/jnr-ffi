@@ -120,12 +120,12 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     }
 
     static void marshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
-        mv.invokestatic(p(AsmRuntime.class), "marshal", sig(void.class, ci(InvocationBuffer.class), parameterTypes));
+        mv.invokestatic(p(AsmRuntime.class), "marshal", sig(void.class, ci(HeapInvocationBuffer.class), parameterTypes));
     }
 
     static void sessionmarshal(SkinnyMethodAdapter mv, Class... parameterTypes) {
         mv.invokestatic(p(AsmRuntime.class), "marshal",
-                sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
+                sig(void.class, ci(HeapInvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
     }
 
     void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes) {
@@ -139,10 +139,10 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             mv.astore(lvarSession);
         }
 
-        // [ stack contains: Invoker, CallContext, long ]
+        // Create a new InvocationBuffer
         mv.aload(0);
-        mv.getfield(builder.getClassNamePath(), builder.getFunctionFieldName(function), ci(Function.class));
-        mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, Function.class);
+        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(function), ci(CallContext.class));
+        mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, CallContext.class);
         // [ stack contains: Invoker, Function, HeapInvocationBuffer ]
 
         int lvar = 1;
@@ -167,7 +167,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
                 if (isLong32(javaParameterType.getComponentType(), parameterTypes[i].annotations)) {
                     mv.invokestatic(p(AsmRuntime.class), "marshal32",
-                        sig(void.class, ci(InvocationBuffer.class) + ci(InvocationSession.class),
+                        sig(void.class, ci(HeapInvocationBuffer.class) + ci(InvocationSession.class),
                                 javaParameterType, int.class));
                 } else {
                     marshal(mv, javaParameterType, int.class);

@@ -22,10 +22,6 @@ public abstract class AbstractAsmLibraryInterface implements LoadedLibrary {
         this.library = library;
     }
 
-    protected static final HeapInvocationBuffer newInvocationBuffer(Function f) {
-        return new HeapInvocationBuffer(f);
-    }
-
     public final jnr.ffi.Runtime getRuntime() {
         return runtime;
     }
