@@ -49,11 +49,9 @@ import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static org.objectweb.asm.Opcodes.*;
 
 public class AsmLibraryLoader extends LibraryLoader {
-    public final static boolean DEBUG = false || Boolean.getBoolean("jnr.ffi.compile.dump");
+    public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
-    private final AtomicLong nextIvarID = new AtomicLong(0);
-    private final AtomicLong nextMethodID = new AtomicLong(0);
     private final NativeClosureManager closureManager = NativeRuntime.getInstance().getClosureManager();
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
@@ -82,8 +80,9 @@ public class AsmLibraryLoader extends LibraryLoader {
     }
 
     private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+        boolean debug = DEBUG && interfaceClass.getAnnotation(NoTrace.class) == null;
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = DEBUG ? AsmUtil.newCheckClassAdapter(cw) : cw;
+        ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
         AsmBuilder builder = new AsmBuilder(className, cv);
@@ -119,7 +118,8 @@ public class AsmLibraryLoader extends LibraryLoader {
         StubCompiler compiler = StubCompiler.newCompiler();
 
         final MethodGenerator[] generators = {
-                new X86MethodGenerator(compiler, bufgen),
+                interfaceClass.getAnnotation(NoX86.class) == null
+                    ? new X86MethodGenerator(compiler, bufgen) : new NotImplMethodGenerator(),
                 new FastIntMethodGenerator(bufgen),
                 new FastLongMethodGenerator(bufgen),
                 new FastNumericMethodGenerator(bufgen),
@@ -245,7 +245,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         try {
             byte[] bytes = cw.toByteArray();
-            if (DEBUG) {
+            if (debug) {
                 ClassVisitor trace = AsmUtil.newTraceClassVisitor(new PrintWriter(System.err));
                 new ClassReader(bytes).accept(trace, 0);
             }
@@ -257,6 +257,8 @@ public class AsmLibraryLoader extends LibraryLoader {
 
             // Attach any native method stubs - we have to delay this until the
             // implementation class is loaded for it to work.
+            System.err.flush();
+            System.out.flush();
             compiler.attach(implClass);
 
             return result;

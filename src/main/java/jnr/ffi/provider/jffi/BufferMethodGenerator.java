@@ -87,7 +87,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         if (!parameterType.javaType.isPrimitive()) {
             unboxNumber(mv, javaParameterType, nativeParamType, parameterType.jffiType);
         } else {
-            NumberUtil.narrow(mv, javaParameterType, nativeParamType);
+            convertPrimitive(mv, javaParameterType, nativeParamType, parameterType.jffiType);
         }
 
 

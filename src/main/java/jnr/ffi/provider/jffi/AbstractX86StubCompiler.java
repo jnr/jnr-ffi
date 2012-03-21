@@ -22,7 +22,10 @@ import com.kenai.jffi.MemoryIO;
 import com.kenai.jffi.NativeMethod;
 import com.kenai.jffi.NativeMethods;
 import com.kenai.jffi.PageManager;
+import jnr.ffi.Platform;
 import jnr.x86asm.Assembler;
+
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -38,6 +41,8 @@ import java.util.logging.Logger;
  * Base class for most X86_32/X86_64 stub compilers
  */
 abstract class AbstractX86StubCompiler extends StubCompiler {
+    public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
+
     private static final class StaticDataHolder {
         // Keep a reference from the loaded class to the pages holding the code for that class.
         static final Map<Class, PageHolder> PAGES
@@ -109,6 +114,13 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         // Now relocate/copy all the assembler stubs into the real code area
         List<NativeMethod> methods = new ArrayList<NativeMethod>(stubs.size());
         long fn = code;
+        PrintStream dbg = System.err;
+        System.out.flush(); System.err.flush();
+//        if (DEBUG && X86Disassembler.isAvailable()) {
+//            dbg.println();
+//            dbg.println("JNI stubs for " + clazz.getName() + ":");
+//        }
+
         for (Stub stub : stubs) {
             Assembler asm = stub.assembler;
             // align the start of all functions on a 8 byte boundary
@@ -116,7 +128,21 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
             ByteBuffer buf = MemoryIO.getInstance().newDirectByteBuffer(fn, asm.codeSize()).order(ByteOrder.LITTLE_ENDIAN);
             stub.assembler.relocCode(buf, fn);
 
+            if (DEBUG && X86Disassembler.isAvailable()) {
+
+                dbg.println(clazz.getName() + "." + stub.name + " " + stub.signature);
+                X86Disassembler disassembler = X86Disassembler.create();
+                disassembler.setMode(Platform.getNativePlatform().getCPU() == Platform.CPU.I386
+                        ? X86Disassembler.Mode.I386 : X86Disassembler.Mode.X86_64);
+                disassembler.setSyntax(X86Disassembler.Syntax.INTEL);
+                disassembler.setInputBuffer(new DirectMemoryIO(NativeRuntime.getInstance(), fn), asm.codeSize());
+                while (disassembler.disassemble()) {
+                    dbg.println("\t" + disassembler.insn());
+                }
+                dbg.println();
+            }
             methods.add(new NativeMethod(fn, stub.name, stub.signature));
+
             fn += asm.codeSize();
         }
 

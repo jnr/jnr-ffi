@@ -61,7 +61,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 // [ stack contains: Invoker, Function ]
         AsmLocalVariableAllocator localVariableAllocator = new AsmLocalVariableAllocator(parameterTypes);
 
-        mv = new SkinnyMethodAdapter(AsmUtil.newTraceMethodVisitor(mv));
         final Class nativeIntType = getInvokerType();
         final AsmLocalVariable objCount = localVariableAllocator.allocate(int.class);
         AsmLocalVariable[] pointers = new AsmLocalVariable[parameterTypes.length];
