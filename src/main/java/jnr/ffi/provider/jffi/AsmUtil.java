@@ -299,7 +299,14 @@ final class AsmUtil {
                 case UINT:
                     mv.invokevirtual(p(boxedType), "intValue", "()I");
                     widen(mv, int.class, unboxedType);
-                    narrow(mv, int.class, unboxedType);
+                    if (long.class == unboxedType && nativeType == NativeType.UINT) {
+                        mv.pushInt(0xffffffff);
+                        mv.i2l();
+                        mv.land();
+                    } else {
+                        narrow(mv, int.class, unboxedType);
+                    }
+
                     break;
 
                 case SLONG:

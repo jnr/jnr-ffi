@@ -25,6 +25,8 @@ import jnr.ffi.NativeType;
 import jnr.ffi.annotations.LongLong;
 
 import java.lang.annotation.Annotation;
+import java.util.EnumMap;
+import java.util.EnumSet;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -172,21 +174,33 @@ public final class NumberUtil {
     public static void convertPrimitive(SkinnyMethodAdapter mv, final Class from, final Class to, final NativeType nativeType) {
         switch (nativeType) {
             case SCHAR:
+                constrain(mv, from, to, byte.class);
+                break;
+
             case UCHAR:
                 constrain(mv, from, to, byte.class);
                 break;
 
             case SSHORT:
+                constrain(mv, from, to, short.class);
+                break;
+
             case USHORT:
                 constrain(mv, from, to, short.class);
                 break;
 
             case SINT:
+                constrain(mv, from, to, int.class);
+                break;
+
             case UINT:
                 constrain(mv, from, to, int.class);
                 break;
 
             case SLONG:
+                constrain(mv, from, to, sizeof(nativeType) == 4 ? int.class : long.class);
+                break;
+
             case ULONG:
                 constrain(mv, from, to, sizeof(nativeType) == 4 ? int.class : long.class);
                 break;
@@ -205,69 +219,43 @@ public final class NumberUtil {
     static int sizeof(NativeType nativeType) {
         switch (nativeType) {
             case SCHAR:
+                return com.kenai.jffi.Type.SCHAR.size();
+
             case UCHAR:
-                return 1;
+                return com.kenai.jffi.Type.UCHAR.size();
 
             case SSHORT:
+                return com.kenai.jffi.Type.SSHORT.size();
+
             case USHORT:
-                return 2;
+                return com.kenai.jffi.Type.USHORT.size();
 
             case SINT:
+                return com.kenai.jffi.Type.SINT.size();
+
             case UINT:
-                return 4;
+                return com.kenai.jffi.Type.UINT.size();
 
             case SLONG:
+                return com.kenai.jffi.Type.SLONG.size();
+
             case ULONG:
-                return Platform.getPlatform().longSize() / 8;
+                return com.kenai.jffi.Type.ULONG.size();
 
             case SLONGLONG:
+                return com.kenai.jffi.Type.SLONG_LONG.size();
+
             case ULONGLONG:
-                return 8;
+                return com.kenai.jffi.Type.ULONG_LONG.size();
 
             case FLOAT:
-                return 4;
+                return com.kenai.jffi.Type.FLOAT.size();
 
             case DOUBLE:
-                return 8;
+                return com.kenai.jffi.Type.DOUBLE.size();
 
             case ADDRESS:
-                return Platform.getPlatform().addressSize() / 8;
-
-            default:
-                throw new UnsupportedOperationException("cannot determine size of " + nativeType);
-        }
-    }
-
-    static int sizeof(com.kenai.jffi.NativeType nativeType) {
-        switch (nativeType) {
-            case SCHAR:
-            case UCHAR:
-                return 1;
-
-            case SSHORT:
-            case USHORT:
-                return 2;
-
-            case SINT:
-            case UINT:
-                return 4;
-
-            case SLONG:
-            case ULONG:
-                return Platform.getPlatform().longSize() / 8;
-
-            case SINT64:
-            case UINT64:
-                return 8;
-
-            case FLOAT:
-                return 4;
-
-            case DOUBLE:
-                return 8;
-
-            case POINTER:
-                return Platform.getPlatform().addressSize() / 8;
+                return com.kenai.jffi.Type.POINTER.size();
 
             default:
                 throw new UnsupportedOperationException("cannot determine size of " + nativeType);
