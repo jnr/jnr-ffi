@@ -10,7 +10,7 @@ final class DirectPointerParameterStrategy extends AbstractDirectPointerParamete
     static final PointerParameterStrategy INSTANCE = new DirectPointerParameterStrategy();
 
     @Override
-    public long getAddress(Object o) {
+    public long address(Object o) {
         return ((Pointer) o).address();
     }
 }

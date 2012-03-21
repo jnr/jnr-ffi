@@ -19,7 +19,7 @@ final class HeapStructParameterStrategy extends PointerParameterStrategy {
     }
 
     @Override
-    public long getAddress(Object o) {
+    public long address(Object o) {
         return 0;
     }
 

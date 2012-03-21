@@ -19,7 +19,7 @@ final class DirectBufferParameterStrategy extends PointerParameterStrategy {
     }
 
     @Override
-    public long getAddress(Object o) {
+    public long address(Object o) {
         Buffer buffer = (Buffer) o;
         return MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << shift);
     }

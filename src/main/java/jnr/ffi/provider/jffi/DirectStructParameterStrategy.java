@@ -11,7 +11,7 @@ final class DirectStructParameterStrategy extends AbstractDirectPointerParameter
 
 
     @Override
-    public long getAddress(Object o) {
+    public long address(Object o) {
         return Struct.getMemory((Struct) o, ParameterFlags.DIRECT).address();
     }
 }

@@ -32,7 +32,7 @@ class X86MethodGenerator implements MethodGenerator {
     }
 
     public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
-        if (!Boolean.valueOf(System.getProperty("jnr.ffi.compile.x86asm", "true"))) {
+        if (!Boolean.valueOf(System.getProperty("jnr.ffi.x86asm.enabled", "true"))) {
             return false;
         }
 

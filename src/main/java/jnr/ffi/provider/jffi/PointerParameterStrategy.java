@@ -19,4 +19,11 @@ abstract public class PointerParameterStrategy extends ObjectParameterStrategy {
         super(type, parameterType);
         objectCount = type == HEAP ? 1 : 0;
     }
+
+
+    public long getAddress(Object o) {
+        return address(o);
+    }
+
+    public abstract long address(Object o);
 }

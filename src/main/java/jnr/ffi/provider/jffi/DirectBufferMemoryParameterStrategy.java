@@ -10,7 +10,7 @@ final class DirectBufferMemoryParameterStrategy extends AbstractDirectPointerPar
     static final PointerParameterStrategy INSTANCE = new DirectBufferMemoryParameterStrategy();
 
     @Override
-    public long getAddress(Object o) {
+    public long address(Object o) {
         AbstractBufferMemoryIO bufferMemoryIO = (AbstractBufferMemoryIO) o;
         return AsmRuntime.longValue(bufferMemoryIO.getByteBuffer());
     }

@@ -59,7 +59,7 @@ abstract class PrimitiveArrayParameterStrategy extends PointerParameterStrategy 
     }
 
     @Override
-    public final long getAddress(Object o) {
+    public final long address(Object o) {
         return 0;
     }
 

@@ -133,7 +133,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     // Get the native address (will return zero for heap objects)
                     mv.aload(strategies[i]);
                     mv.aload(pointers[i]);
-                    mv.invokevirtual(ObjectParameterStrategy.class, "getAddress", long.class, Object.class);
+                    mv.invokevirtual(PointerParameterStrategy.class, "address", long.class, Object.class);
                     narrow(mv, long.class, nativeIntType);
                 }
 
