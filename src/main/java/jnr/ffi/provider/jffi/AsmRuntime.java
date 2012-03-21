@@ -33,7 +33,6 @@ import jnr.ffi.util.EnumMapper;
 
 import java.nio.*;
 import java.nio.charset.Charset;
-import java.util.EnumSet;
 
 /**
  * Utility methods that are used at runtime by generated code.
@@ -720,6 +719,15 @@ public final class AsmRuntime {
     }
 
     public static PointerParameterStrategy pointerParameterStrategy(Pointer pointer) {
+        if (pointer instanceof DirectMemoryIO) {
+            return DirectMemoryParameterStrategy.INSTANCE;
+
+        } else {
+            return otherPointerParameterStrategy(pointer);
+        }
+    }
+
+    private static PointerParameterStrategy otherPointerParameterStrategy(Pointer pointer) {
         if (pointer == null) {
             return NullPointerParameterStrategy.INSTANCE;
 
@@ -729,9 +737,6 @@ public final class AsmRuntime {
 
         } else if (pointer.hasArray()) {
             return ArrayMemoryParameterStrategy.INSTANCE;
-
-        } else if (pointer instanceof DelegatingMemoryIO) {
-            return pointerParameterStrategy(((DelegatingMemoryIO) pointer).getDelegatedMemoryIO());
 
         } else {
             throw new RuntimeException("cannot convert " + pointer.getClass() + " to native");
