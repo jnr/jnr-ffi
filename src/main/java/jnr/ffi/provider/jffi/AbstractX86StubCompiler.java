@@ -116,10 +116,6 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         long fn = code;
         PrintStream dbg = System.err;
         System.out.flush(); System.err.flush();
-//        if (DEBUG && X86Disassembler.isAvailable()) {
-//            dbg.println();
-//            dbg.println("JNI stubs for " + clazz.getName() + ":");
-//        }
 
         for (Stub stub : stubs) {
             Assembler asm = stub.assembler;
