@@ -178,7 +178,7 @@ class X86MethodGenerator implements MethodGenerator {
                 // Get the native address (will return zero for heap objects)
                 mv.aload(strategies[i]);
                 mv.aload(pointers[i]);
-                mv.invokevirtual(ObjectParameterStrategy.class, "getAddress", long.class, Object.class);
+                mv.invokevirtual(PointerParameterStrategy.class, "address", long.class, Object.class);
                 narrow(mv, long.class, nativeParameterType);
 
             } else if (!javaParameterType.isPrimitive()) {
