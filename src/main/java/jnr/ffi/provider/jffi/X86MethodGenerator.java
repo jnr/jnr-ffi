@@ -1,8 +1,11 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import jnr.ffi.NativeLong;
-import jnr.ffi.Pointer;
+import com.kenai.jffi.CallingConvention;
+import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
+import jnr.ffi.*;
+import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
 import org.objectweb.asm.Label;
 
@@ -13,9 +16,8 @@ import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
-import static jnr.ffi.provider.jffi.NumberUtil.convertPrimitive;
-import static jnr.ffi.provider.jffi.NumberUtil.narrow;
-import static jnr.ffi.provider.jffi.NumberUtil.widen;
+import static jnr.ffi.provider.jffi.NumberUtil.*;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
@@ -270,7 +272,7 @@ class X86MethodGenerator implements MethodGenerator {
                 mv.pop2();
 
             } else {
-                convertPrimitive(mv, long.class, nativeReturnType, resultType.jffiType);
+                convertPrimitive(mv, long.class, nativeReturnType, resultType.nativeType);
             }
 
             // Jump to the main conversion/boxing code above
@@ -287,8 +289,8 @@ class X86MethodGenerator implements MethodGenerator {
     private static Class nativeParameterType(ParameterType parameterType) {
         Class javaType = parameterType.effectiveJavaType();
 
-        if (Type.SLONG == parameterType.jffiType || Type.ULONG == parameterType.jffiType) {
-            return parameterType.jffiType.size() == 4 ? int.class : long.class;
+        if (parameterType.nativeType == NativeType.SLONG || parameterType.nativeType == NativeType.ULONG) {
+            return parameterType.size()  == 4 ? int.class : long.class;
 
         } else {
             return AsmUtil.unboxedParameterType(javaType);
@@ -298,8 +300,8 @@ class X86MethodGenerator implements MethodGenerator {
     private static Class nativeResultType(ResultType resultType) {
         Class javaType = resultType.effectiveJavaType();
 
-        if (Type.SLONG == resultType.jffiType || Type.ULONG == resultType.jffiType) {
-            return resultType.jffiType.size() == 4 ? int.class : long.class;
+        if (resultType.nativeType == NativeType.SLONG || resultType.nativeType == NativeType.ULONG) {
+            return resultType.size()  == 4 ? int.class : long.class;
 
         } else {
             return AsmUtil.unboxedParameterType(javaType);
@@ -329,7 +331,7 @@ class X86MethodGenerator implements MethodGenerator {
 
     static boolean isSupportedResult(ResultType resultType) {
         return isSupportedType(resultType) || void.class == resultType.effectiveJavaType()
-                || Type.POINTER == resultType.jffiType
+                || resultType.nativeType == NativeType.ADDRESS
                 ;
     }
 

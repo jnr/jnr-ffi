@@ -5,6 +5,7 @@ import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import jnr.ffi.*;
+import jnr.ffi.NativeType;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
@@ -47,47 +48,65 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                                                      Class javaParameterType) {
         String paramMethod;
         Class nativeParamType = int.class;
-        Type to = parameterType.jffiType;
 
-        if (Type.SCHAR == to || Type.UCHAR == to || Type.SINT8 == to || Type.UINT8 == to) {
-            paramMethod = "putByte";
 
-        } else if (Type.SSHORT == to || Type.USHORT == to || Type.SINT16 == to || Type.UINT16 == to) {
-            paramMethod = "putShort";
+        switch (parameterType.nativeType) {
+            case SCHAR:
+            case UCHAR:
+                paramMethod = "putByte";
+                break;
 
-        } else if (Type.SINT == to || Type.UINT == to || Type.SINT32 == to || Type.UINT32 == to) {
-            paramMethod = "putInt";
+            case SSHORT:
+            case USHORT:
+                paramMethod = "putShort";
+                break;
 
-        } else if (Type.SLONG == to || Type.ULONG == to) {
-            if (to.size() == 4) {
+            case SINT:
+            case UINT:
                 paramMethod = "putInt";
-                nativeParamType = int.class;
+                break;
 
-            } else {
+            case SLONG:
+            case ULONG:
+                if (sizeof(parameterType) == 4) {
+                    paramMethod = "putInt";
+                    nativeParamType = int.class;
+
+                } else {
+                    paramMethod = "putLong";
+                    nativeParamType = long.class;
+                }
+                break;
+
+            case SLONGLONG:
+            case ULONGLONG:
                 paramMethod = "putLong";
                 nativeParamType = long.class;
-            }
+                break;
 
-        } else if (Type.SLONG_LONG == to || Type.ULONG_LONG == to || Type.SINT64 == to|| Type.UINT64 == to) {
-            paramMethod = "putLong";
-            nativeParamType = long.class;
+            case FLOAT:
+                paramMethod = "putFloat";
+                nativeParamType = float.class;
+                break;
 
-        } else if (Type.FLOAT == to) {
-            paramMethod = "putFloat";
-            nativeParamType = float.class;
+            case DOUBLE:
+                paramMethod = "putDouble";
+                nativeParamType = double.class;
+                break;
 
-        } else if (Type.DOUBLE == to) {
-            paramMethod = "putDouble";
-            nativeParamType = double.class;
+            case ADDRESS:
+                paramMethod = "putAddress";
+                nativeParamType = long.class;
+                break;
 
-        } else {
-            throw new IllegalArgumentException("unsupported parameter type " + parameterType);
+            default:
+                throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
 
         if (!parameterType.javaType.isPrimitive()) {
-            unboxNumber(mv, javaParameterType, nativeParamType, parameterType.jffiType);
+            unboxNumber(mv, javaParameterType, nativeParamType, parameterType.nativeType);
         } else {
-            convertPrimitive(mv, javaParameterType, nativeParamType, parameterType.jffiType);
+            convertPrimitive(mv, javaParameterType, nativeParamType, parameterType.nativeType);
         }
 
 
@@ -234,26 +253,22 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         Class javaReturnType = resultConverter != null
                 ? resultConverter.nativeType() : resultType.javaType;
 
-        if (Type.SCHAR == resultType.jffiType || Type.UCHAR == resultType.jffiType
-                || Type.SINT8 == resultType.jffiType || Type.UINT8 == resultType.jffiType
-                || Type.SSHORT == resultType.jffiType || Type.USHORT == resultType.jffiType
-                || Type.SINT16 == resultType.jffiType || Type.UINT16 == resultType.jffiType
-                || Type.SINT == resultType.jffiType || Type.UINT == resultType.jffiType
-                || Type.SINT32 == resultType.jffiType || Type.UINT32 == resultType.jffiType
-                || Type.VOID == resultType.jffiType) {
+        if (NativeType.SCHAR == resultType.nativeType || NativeType.UCHAR == resultType.nativeType
+            || NativeType.SSHORT== resultType.nativeType || NativeType.USHORT == resultType.nativeType
+            || NativeType.SINT == resultType.nativeType || NativeType.UINT == resultType.nativeType
+            || NativeType.VOID == resultType.nativeType) {
             invokeMethod = "invokeInt";
             nativeReturnType = int.class;
 
-        } else if ((Type.SLONG == resultType.jffiType || Type.ULONG == resultType.jffiType) && resultType.jffiType.size() == 4) {
+        } else if ((NativeType.SLONG == resultType.nativeType || NativeType.ULONG == resultType.nativeType) && sizeof(resultType) == 4) {
             invokeMethod = "invokeInt";
             nativeReturnType = int.class;
 
-        } else if ((Type.SLONG == resultType.jffiType || Type.ULONG == resultType.jffiType) && resultType.jffiType.size() == 8) {
+        } else if ((NativeType.SLONG == resultType.nativeType || NativeType.ULONG == resultType.nativeType) && sizeof(resultType) == 8) {
             invokeMethod = "invokeLong";
             nativeReturnType = long.class;
 
-        } else if (Type.SLONG_LONG == resultType.jffiType || Type.ULONG_LONG == resultType.jffiType
-            || Type.SINT64 == resultType.jffiType || Type.UINT64 == resultType.jffiType) {
+        } else if (NativeType.SLONGLONG == resultType.nativeType || NativeType.ULONGLONG == resultType.nativeType) {
             invokeMethod = "invokeLong";
             nativeReturnType = long.class;
 

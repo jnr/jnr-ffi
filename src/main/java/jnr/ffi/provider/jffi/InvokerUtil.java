@@ -57,6 +57,24 @@ final class InvokerUtil {
         return null;
     }
 
+    static NativeType getAliasedNativeType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
+        for (Annotation a : annotations) {
+            TypeDefinition typedef = a.annotationType().getAnnotation(TypeDefinition.class);
+            if (typedef != null) {
+                return nativeType(runtime.findType(typedef.alias()));
+            }
+        }
+
+        if (isLong32(type, annotations)) {
+            return NativeType.SLONG;
+
+        } else if (isLongLong(type, annotations)) {
+            return NativeType.SLONGLONG;
+        }
+
+        return null;
+    }
+
     static Type getNativeReturnType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
         Type resultType = getAliasedType(runtime, type, annotations);
         return resultType != null ? resultType : getNativeReturnType(type, annotations);
@@ -258,12 +276,16 @@ final class InvokerUtil {
             case ADDRESS:
                 return Type.POINTER;
             default:
-                throw new IllegalArgumentException("Unsupported parameter type: " + jnrType);
+                throw new IllegalArgumentException("unsupported parameter type: " + jnrType);
         }
     }
 
     static Type jffiType(jnr.ffi.Type jnrType) {
         return jffiType(jnrType.getNativeType());
+    }
+
+    static NativeType nativeType(jnr.ffi.Type jnrType) {
+        return jnrType.getNativeType();
     }
 
     static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter fromNativeConverter) {

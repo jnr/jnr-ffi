@@ -1,9 +1,15 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
+import com.kenai.jffi.CallingConvention;
+import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
+import jnr.ffi.NativeType;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.FastIntMethodGenerator.isFastIntType;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 /**
  *
@@ -101,29 +107,20 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         }
     }
 
-    private static boolean isLongType(Platform platform, SigType type) {
-        if (FastIntMethodGenerator.isFastIntType(platform, type)) {
-            return true;
-        }
-
-        Type jffiType = type.jffiType;
-        if (Type.SLONG == jffiType || Type.ULONG == jffiType
-            || Type.SLONG_LONG == jffiType || Type.ULONG_LONG == jffiType
-            || Type.SINT64 == jffiType || Type.UINT64 == jffiType) {
-            return true;
-        }
-
-        return false;
+    private static boolean isFastLongType(Platform platform, SigType type) {
+        return isFastIntType(platform, type)
+            || type.nativeType == NativeType.SLONG || type.nativeType == NativeType.ULONG
+            || type.nativeType == NativeType.SLONGLONG || type.nativeType == NativeType.ULONGLONG;
     }
 
-    static boolean isFastLongResult(Platform platform, ResultType type) {
-        return isLongType(platform, type)
-                || Type.VOID == type.jffiType
-                || (Type.POINTER == type.jffiType && Type.POINTER.size() == 8)
+    static boolean isFastLongResult(Platform platform, ResultType resultType) {
+        return isFastLongType(platform, resultType)
+                || resultType.nativeType == NativeType.VOID
+                || (resultType.nativeType == NativeType.ADDRESS && resultType.size() == 8)
                 ;
     }
 
     static boolean isFastLongParameter(Platform platform, ParameterType type) {
-        return isLongType(platform, type) || (isDelegate(type.javaType) && Type.POINTER.size() == 8);
+        return isFastLongType(platform, type) || (isDelegate(type.javaType) && type.size() == 8);
     }
 }

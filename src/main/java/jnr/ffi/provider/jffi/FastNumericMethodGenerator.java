@@ -1,13 +1,18 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import jnr.ffi.Pointer;
+import com.kenai.jffi.CallingConvention;
+import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
+import jnr.ffi.*;
+import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
 
 import java.nio.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.FastIntMethodGenerator.isFastIntType;
 
 /**
  *
@@ -108,30 +113,23 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     private static boolean isNumericType(Platform platform, SigType type) {
-        if (FastIntMethodGenerator.isFastIntType(platform, type)) {
-            return true;
-        }
-        Type jffiType = type.jffiType;
-        return Type.SLONG == jffiType || Type.ULONG == jffiType
-            || Type.SLONG_LONG == jffiType || Type.ULONG_LONG == jffiType
-            || Type.SINT64 == jffiType || Type.UINT64 == jffiType
-            || Type.FLOAT == jffiType || Type.DOUBLE == jffiType;
+        return isFastIntType(platform, type)
+                || type.nativeType == NativeType.SLONG || type.nativeType == NativeType.ULONG
+                || type.nativeType == NativeType.SLONGLONG || type.nativeType == NativeType.ULONGLONG
+                || type.nativeType == NativeType.FLOAT || type.nativeType == NativeType.DOUBLE
+                ;
     }
 
     static boolean isFastNumericResult(Platform platform, ResultType type) {
         return isNumericType(platform, type)
-                || Type.VOID == type.jffiType
-                || Type.POINTER == type.jffiType
+                || NativeType.VOID == type.nativeType
+                || NativeType.ADDRESS == type.nativeType
                 ;
     }
 
     static boolean isFastNumericParameter(Platform platform, ParameterType parameterType) {
-        if (isNumericType(platform, parameterType) || isDelegate(parameterType.javaType)) {
-            return true;
-
-        } else {
-            return Type.POINTER == parameterType.jffiType && isSupportedPointerParameterType(parameterType.effectiveJavaType());
-        }
+        return isNumericType(platform, parameterType) || isDelegate(parameterType.getDeclaredType())
+            || (parameterType.nativeType == NativeType.ADDRESS && isSupportedPointerParameterType(parameterType.effectiveJavaType()));
     }
 
     private static boolean isSupportedPointerParameterType(Class javaParameterType) {
@@ -157,7 +155,7 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     static int getMaximumParameters() {
         try {
-            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeNNNNNNrN", Function.class,
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeN6", Function.class,
                     long.class, long.class, long.class, long.class, long.class, long.class);
             return 6;
         } catch (Throwable t) {

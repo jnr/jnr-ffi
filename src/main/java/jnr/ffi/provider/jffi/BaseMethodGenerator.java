@@ -76,7 +76,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         lvar = AsmLibraryLoader.loadParameter(mv, parameterType.javaType, lvar);
         if (parameterConverter != null) {
             if (parameterType.javaType.isPrimitive()) {
-                boxValue(mv, getBoxedClass(parameterType.javaType), parameterType.javaType, parameterType.jffiType);
+                boxValue(mv, getBoxedClass(parameterType.javaType), parameterType.javaType, parameterType.nativeType);
             }
             mv.aconst_null();
             mv.invokeinterface(ToNativeConverter.class, "toNative",
@@ -91,7 +91,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         // If there is a result converter, retrieve it and put on the stack
         FromNativeConverter resultConverter = resultType.fromNativeConverter;
         if (resultConverter != null) {
-            boxValue(mv, resultConverter.nativeType(), nativeReturnType, resultType.jffiType);
+            boxValue(mv, resultConverter.nativeType(), nativeReturnType, resultType.nativeType);
 
             mv.aload(0);
             mv.getfield(builder.getClassNamePath(), builder.getResultConverterName(resultConverter), ci(FromNativeConverter.class));
@@ -103,7 +103,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             mv.areturn();
 
         } else {
-            AsmLibraryLoader.emitReturn(mv, resultType.javaType, nativeReturnType, resultType.jffiType);
+            AsmLibraryLoader.emitReturn(mv, resultType.javaType, nativeReturnType, resultType.nativeType);
         }
     }
 }

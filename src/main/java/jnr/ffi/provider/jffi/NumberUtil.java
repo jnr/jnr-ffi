@@ -21,6 +21,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import jnr.ffi.NativeLong;
+import jnr.ffi.NativeType;
 import jnr.ffi.annotations.LongLong;
 
 import java.lang.annotation.Annotation;
@@ -165,6 +166,111 @@ public final class NumberUtil {
         } else {
             narrow(mv, from, to);
             widen(mv, from, to);
+        }
+    }
+
+    public static void convertPrimitive(SkinnyMethodAdapter mv, final Class from, final Class to, final NativeType nativeType) {
+        switch (nativeType) {
+            case SCHAR:
+            case UCHAR:
+                constrain(mv, from, to, byte.class);
+                break;
+
+            case SSHORT:
+            case USHORT:
+                constrain(mv, from, to, short.class);
+                break;
+
+            case SINT:
+            case UINT:
+                constrain(mv, from, to, int.class);
+                break;
+
+            case SLONG:
+            case ULONG:
+                constrain(mv, from, to, sizeof(nativeType) == 4 ? int.class : long.class);
+                break;
+
+            default:
+                narrow(mv, from, to);
+                widen(mv, from, to);
+                break;
+        }
+    }
+
+    static int sizeof(SigType type) {
+        return sizeof(type.nativeType);
+    }
+
+    static int sizeof(NativeType nativeType) {
+        switch (nativeType) {
+            case SCHAR:
+            case UCHAR:
+                return 1;
+
+            case SSHORT:
+            case USHORT:
+                return 2;
+
+            case SINT:
+            case UINT:
+                return 4;
+
+            case SLONG:
+            case ULONG:
+                return Platform.getPlatform().longSize() / 8;
+
+            case SLONGLONG:
+            case ULONGLONG:
+                return 8;
+
+            case FLOAT:
+                return 4;
+
+            case DOUBLE:
+                return 8;
+
+            case ADDRESS:
+                return Platform.getPlatform().addressSize() / 8;
+
+            default:
+                throw new UnsupportedOperationException("cannot determine size of " + nativeType);
+        }
+    }
+
+    static int sizeof(com.kenai.jffi.NativeType nativeType) {
+        switch (nativeType) {
+            case SCHAR:
+            case UCHAR:
+                return 1;
+
+            case SSHORT:
+            case USHORT:
+                return 2;
+
+            case SINT:
+            case UINT:
+                return 4;
+
+            case SLONG:
+            case ULONG:
+                return Platform.getPlatform().longSize() / 8;
+
+            case SINT64:
+            case UINT64:
+                return 8;
+
+            case FLOAT:
+                return 4;
+
+            case DOUBLE:
+                return 8;
+
+            case POINTER:
+                return Platform.getPlatform().addressSize() / 8;
+
+            default:
+                throw new UnsupportedOperationException("cannot determine size of " + nativeType);
         }
     }
 

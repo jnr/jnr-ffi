@@ -1,9 +1,14 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
+import com.kenai.jffi.CallContext;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.ObjectParameterInfo;
+import com.kenai.jffi.ObjectParameterStrategy;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
+import jnr.ffi.NativeType;
 import jnr.ffi.provider.ParameterFlags;
+
 import org.objectweb.asm.Label;
 
 import java.lang.annotation.Annotation;
@@ -14,6 +19,7 @@ import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.NumberUtil.narrow;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static jnr.ffi.provider.jffi.NumberUtil.widen;
 
 /**
@@ -26,7 +32,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         this.bufgen = bufgen;
     }
 
-    private void emitNumericParameter(SkinnyMethodAdapter mv, final Class javaType, com.kenai.jffi.Type jffiType) {
+    private void emitNumericParameter(SkinnyMethodAdapter mv, final Class javaType, NativeType nativeType) {
         final Class nativeIntType = getInvokerType();
 
         if (Float.class == javaType || float.class == javaType) {
@@ -43,10 +49,10 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
 
         } else if (javaType.isPrimitive()) {
-            NumberUtil.convertPrimitive(mv, javaType, nativeIntType, jffiType);
+            NumberUtil.convertPrimitive(mv, javaType, nativeIntType, nativeType);
 
         } else if (Number.class.isAssignableFrom(javaType)) {
-            unboxNumber(mv, javaType, nativeIntType, jffiType);
+            unboxNumber(mv, javaType, nativeIntType, nativeType);
 
         } else if (Boolean.class.isAssignableFrom(javaType)) {
             unboxBoolean(mv, javaType, nativeIntType);
@@ -84,13 +90,13 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     || ByteBuffer.class.isAssignableFrom(javaParameterType)
                     || ShortBuffer.class.isAssignableFrom(javaParameterType)
                     || IntBuffer.class.isAssignableFrom(javaParameterType)
-                    || (LongBuffer.class.isAssignableFrom(javaParameterType) && Type.SLONG.size() == 8)
+                    || (LongBuffer.class.isAssignableFrom(javaParameterType) && sizeof(NativeType.SLONG) == 8)
                     || FloatBuffer.class.isAssignableFrom(javaParameterType)
                     || DoubleBuffer.class.isAssignableFrom(javaParameterType)
                     || byte[].class == javaParameterType
                     || short[].class == javaParameterType
                     || int[].class == javaParameterType
-                    || (long[].class == javaParameterType && Type.SLONG.size() == 8)
+                    || (long[].class == javaParameterType && sizeof(NativeType.SLONG) == 8)
                     || float[].class == javaParameterType
                     || double[].class == javaParameterType
                     ) {
@@ -137,7 +143,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 }
 
             } else {
-                emitNumericParameter(mv, javaParameterType, parameterTypes[i].jffiType);
+                emitNumericParameter(mv, javaParameterType, parameterTypes[i].nativeType);
             }
             lvar = nextParameterIndex;
         }

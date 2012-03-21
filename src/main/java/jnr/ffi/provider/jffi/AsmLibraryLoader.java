@@ -23,6 +23,7 @@ import com.kenai.jffi.*;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
 import jnr.ffi.*;
+import jnr.ffi.NativeType;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
@@ -45,6 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.InvokerUtil.jffiType;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static org.objectweb.asm.Opcodes.*;
 
@@ -428,9 +430,10 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
     }
 
-    static void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType, com.kenai.jffi.Type jffiType) {
+
+    static void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType, NativeType nativeType) {
         if (returnType.isPrimitive()) {
-            convertPrimitive(mv, nativeIntType, returnType, jffiType);
+            convertPrimitive(mv, nativeIntType, returnType, nativeType);
 
             if (long.class == returnType) {
                 mv.lreturn();
@@ -449,7 +452,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
         } else {
-            boxValue(mv, returnType, nativeIntType, jffiType);
+            boxValue(mv, returnType, nativeIntType, nativeType);
             mv.areturn();
         }
     }
@@ -486,7 +489,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         lvar = AsmLibraryLoader.loadParameter(mv, parameterType.javaType, lvar);
         if (parameterConverter != null) {
             if (parameterType.javaType.isPrimitive()) {
-                boxValue(mv, getBoxedClass(parameterType.javaType), parameterType.javaType, parameterType.jffiType);
+                boxValue(mv, getBoxedClass(parameterType.javaType), parameterType.javaType, parameterType.nativeType);
             }
             mv.aconst_null();
             mv.invokeinterface(ToNativeConverter.class, "toNative",
@@ -502,10 +505,10 @@ public class AsmLibraryLoader extends LibraryLoader {
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
 
         for (int i = 0; i < nativeParamTypes.length; ++i) {
-            nativeParamTypes[i] = parameterTypes[i].jffiType;
+            nativeParamTypes[i] = jffiType(parameterTypes[i].nativeType);
         }
 
-        return new Function(address, resultType.jffiType,
+        return new Function(address, jffiType(resultType.nativeType),
                 nativeParamTypes, convention, requiresErrno);
 
     }

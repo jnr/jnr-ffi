@@ -1,13 +1,18 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import jnr.ffi.Pointer;
+import com.kenai.jffi.CallingConvention;
+import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
+import jnr.ffi.*;
+import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
 
 import java.nio.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 /**
  *
@@ -130,17 +135,23 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     static boolean isFastIntType(Platform platform, SigType type) {
-        if (Type.SCHAR == type.jffiType || Type.SINT8 == type.jffiType
-                || Type.UCHAR == type.jffiType || Type.UINT8 == type.jffiType
-                || Type.SSHORT == type.jffiType || Type.SINT16 == type.jffiType
-                || Type.USHORT == type.jffiType || Type.UINT16 == type.jffiType
-                || Type.SINT == type.jffiType || Type.SINT32 == type.jffiType
-                || Type.UINT == type.jffiType || Type.UINT32 == type.jffiType
-                || ((Type.SLONG == type.jffiType || Type.ULONG == type.jffiType) && type.jffiType.size() == 4)) {
-            return true;
-        }
+        switch (type.nativeType) {
+            case SCHAR:
+            case UCHAR:
+            case SSHORT:
+            case USHORT:
+            case SINT:
+            case UINT:
+            case SLONG:
+            case ULONG:
+                return sizeof(type.nativeType) <= 4;
 
-        return Type.POINTER == type.jffiType && Type.POINTER.size() == 4 && isDelegate(type.javaType);
+            case ADDRESS:
+                return sizeof(type.nativeType) <= 4 && isDelegate(type.getDeclaredType());
+
+            default:
+                return false;
+        }
     }
 
     private static boolean isSupportedPointerParameterType(Class javaParameterType) {
@@ -150,15 +161,15 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     static boolean isFastIntResult(Platform platform, ResultType resultType) {
         return isFastIntType(platform, resultType)
-                || Type.VOID == resultType.jffiType
-                || (Type.POINTER == resultType.jffiType && Type.POINTER.size() == 4)
+                || resultType.nativeType == NativeType.VOID
+                || (resultType.nativeType == NativeType.ADDRESS && sizeof(resultType)== 4)
                 ;
     }
 
 
     static boolean isFastIntParameter(Platform platform, ParameterType parameterType) {
         return isFastIntType(platform, parameterType)
-            || (Type.POINTER == parameterType.jffiType && Type.POINTER.size() == 4
-                && isSupportedPointerParameterType(parameterType.effectiveJavaType()));
+            || (parameterType.nativeType == NativeType.ADDRESS && sizeof(parameterType)== 4)
+                && isSupportedPointerParameterType(parameterType.effectiveJavaType());
     }
 }
