@@ -18,6 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.MemoryIO;
 import jnr.ffi.Pointer;
 import jnr.ffi.provider.AbstractBufferMemoryIO;
 import java.nio.ByteBuffer;
@@ -38,5 +39,16 @@ public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
     
     public void putPointer(long offset, Pointer value) {
         putAddress(offset, value.address());
+    }
+
+
+    @Override
+    public long address() {
+        if (buffer.isDirect()) {
+            long address = MemoryIO.getInstance().getDirectBufferAddress(buffer);
+            return address != 0L ? address + buffer.position() : 0L;
+        }
+
+        return 0L;
     }
 }

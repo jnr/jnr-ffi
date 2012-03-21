@@ -40,16 +40,6 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
         return buffer.isDirect();
     }
 
-    @Override
-    public long address() {
-        if (buffer.isDirect()) {
-            long address = MemoryIO.getInstance().getDirectBufferAddress(buffer);
-            return address != 0L ? address + buffer.position() : 0L;
-        }
-
-        return 0L;
-    }
-
     public long size() {
         return buffer.remaining();
     }
