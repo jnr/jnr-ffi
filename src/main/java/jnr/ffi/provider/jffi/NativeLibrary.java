@@ -93,11 +93,11 @@ public class NativeLibrary {
         for (String libraryName : libraryNames) {
             com.kenai.jffi.Library lib;
             
-            lib = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.LOCAL);
+            lib = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.GLOBAL);
             if (lib == null) {
                 String path;
                 if (libraryName != null && (path = locateLibrary(libraryName)) != null && !libraryName.equals(path)) {
-                    lib = com.kenai.jffi.Library.getCachedInstance(path, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.LOCAL);
+                    lib = com.kenai.jffi.Library.getCachedInstance(path, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.GLOBAL);
                 }
             }
             if (lib == null) {
