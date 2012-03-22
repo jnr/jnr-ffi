@@ -3,13 +3,11 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
 import org.objectweb.asm.Label;
 
-import java.nio.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
@@ -121,11 +119,11 @@ class X86MethodGenerator implements MethodGenerator {
         mv.start();
 
 
-        AsmLocalVariableAllocator localVariableAllocator = new AsmLocalVariableAllocator(parameterTypes);
-        final AsmLocalVariable objCount = localVariableAllocator.allocate(int.class);
-        AsmLocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
-        AsmLocalVariable[] pointers = new AsmLocalVariable[parameterTypes.length];
-        AsmLocalVariable[] strategies = new AsmLocalVariable[parameterTypes.length];
+        LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
+        final LocalVariable objCount = localVariableAllocator.allocate(int.class);
+        LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
+        LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
+        LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         for (int i = 0; i < parameterTypes.length; ++i) {
@@ -211,7 +209,7 @@ class X86MethodGenerator implements MethodGenerator {
             mv.label(hasObjects);
 
             // Store all the native args
-            AsmLocalVariable[] tmp = new AsmLocalVariable[parameterTypes.length];
+            LocalVariable[] tmp = new LocalVariable[parameterTypes.length];
             for (int i = parameterTypes.length - 1; i >= 0; i--) {
                 tmp[i] = localVariableAllocator.allocate(long.class);
                 if (float.class == nativeParameterTypes[i]) {

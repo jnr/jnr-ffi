@@ -65,13 +65,13 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
     public void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes,
                          boolean ignoreError) {
 // [ stack contains: Invoker, Function ]
-        AsmLocalVariableAllocator localVariableAllocator = new AsmLocalVariableAllocator(parameterTypes);
+        LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
 
         final Class nativeIntType = getInvokerType();
-        final AsmLocalVariable objCount = localVariableAllocator.allocate(int.class);
-        AsmLocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
-        AsmLocalVariable[] pointers = new AsmLocalVariable[parameterTypes.length];
-        AsmLocalVariable[] strategies = new AsmLocalVariable[parameterTypes.length];
+        final LocalVariable objCount = localVariableAllocator.allocate(int.class);
+        LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
+        LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
+        LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         // Load, convert, and un-box parameters
@@ -187,7 +187,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             mv.label(hasObjects);
             if (int.class == nativeIntType) {
                 // For int invoker, need to convert all the int args to long
-                AsmLocalVariable[] tmp = new AsmLocalVariable[parameterTypes.length];
+                LocalVariable[] tmp = new LocalVariable[parameterTypes.length];
                 for (int i = parameterTypes.length - 1; i > 0; i--) {
                     tmp[i] = localVariableAllocator.allocate(int.class);
                     mv.istore(tmp[i]);

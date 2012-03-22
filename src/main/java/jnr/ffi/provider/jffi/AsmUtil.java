@@ -35,7 +35,6 @@ import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
-import sun.text.normalizer.UCharacter;
 
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
@@ -596,18 +595,18 @@ final class AsmUtil {
         }
     }
 
-    static AsmLocalVariable[] getParameterVariables(ParameterType[] parameterTypes) {
-        AsmLocalVariable[] lvars = new AsmLocalVariable[parameterTypes.length];
+    static LocalVariable[] getParameterVariables(ParameterType[] parameterTypes) {
+        LocalVariable[] lvars = new LocalVariable[parameterTypes.length];
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; i++) {
-            lvars[i] = new AsmLocalVariable(lvar);
+            lvars[i] = new LocalVariable(lvar);
             lvar += calculateLocalVariableSpace(parameterTypes[i]);
         }
 
         return lvars;
     }
 
-    static void loadParameter(SkinnyMethodAdapter mv, Class parameterType, AsmLocalVariable parameter) {
+    static void loadParameter(SkinnyMethodAdapter mv, Class parameterType, LocalVariable parameter) {
         if (!parameterType.isPrimitive()) {
             mv.aload(parameter);
 

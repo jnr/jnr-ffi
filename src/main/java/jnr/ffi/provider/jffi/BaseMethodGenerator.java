@@ -65,7 +65,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
     abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes,
                            boolean ignoreError);
 
-    static void loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, AsmLocalVariable parameter,
+    static void loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariable parameter,
                                        ParameterType parameterType) {
         ToNativeConverter parameterConverter = parameterType.toNativeConverter;
         if (parameterConverter != null) {

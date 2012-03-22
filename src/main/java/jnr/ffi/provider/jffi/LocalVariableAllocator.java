@@ -3,15 +3,15 @@ package jnr.ffi.provider.jffi;
 /**
  *
  */
-class AsmLocalVariableAllocator {
+class LocalVariableAllocator {
     private int idx;
 
-    AsmLocalVariableAllocator(ParameterType[] parameterTypes) {
+    LocalVariableAllocator(ParameterType[] parameterTypes) {
         this.idx = AsmUtil.calculateLocalVariableSpace(parameterTypes);
     }
 
-    AsmLocalVariable allocate(Class type) {
+    LocalVariable allocate(Class type) {
         this.idx += AsmUtil.calculateLocalVariableSpace(type);
-        return new AsmLocalVariable(idx);
+        return new LocalVariable(idx);
     }
 }

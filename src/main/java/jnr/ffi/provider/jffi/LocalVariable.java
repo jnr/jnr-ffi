@@ -3,10 +3,10 @@ package jnr.ffi.provider.jffi;
 /**
  *
  */
-public class AsmLocalVariable {
+class LocalVariable {
     final int idx;
 
-    public AsmLocalVariable(int idx) {
+    public LocalVariable(int idx) {
         this.idx = idx;
     }
 }

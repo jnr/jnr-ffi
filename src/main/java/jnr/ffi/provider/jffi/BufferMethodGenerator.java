@@ -3,13 +3,10 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
@@ -163,7 +160,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, CallContext.class);
         // [ stack contains: Invoker, Function, HeapInvocationBuffer ]
 
-        AsmLocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
+        LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.dup(); // dup ref to HeapInvocationBuffer
 
