@@ -131,7 +131,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
                 disassembler.setMode(Platform.getNativePlatform().getCPU() == Platform.CPU.I386
                         ? X86Disassembler.Mode.I386 : X86Disassembler.Mode.X86_64);
                 disassembler.setSyntax(X86Disassembler.Syntax.INTEL);
-                disassembler.setInputBuffer(new DirectMemoryIO(NativeRuntime.getInstance(), fn), asm.codeSize());
+                disassembler.setInputBuffer(MemoryUtil.newPointer(fn), asm.codeSize());
                 while (disassembler.disassemble()) {
                     dbg.println("\t" + disassembler.insn());
                 }
