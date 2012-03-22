@@ -26,6 +26,10 @@ typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed int int32_t;
 typedef signed long long int64_t;
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
 #endif
 typedef char Signed8;
 typedef short Signed16;
@@ -35,6 +39,7 @@ typedef float Float32;
 typedef double Float64;
 typedef long SignedLong;
 typedef void* pointer;
+typedef unsigned long ulong;
 
 #define ADD(T) T add_##T(T arg1, T arg2) { return arg1 + arg2; }
 #define SUB(T) T sub_##T(T arg1, T arg2) { return arg1 - arg2; }
@@ -47,9 +52,14 @@ TEST(int8_t);
 TEST(int16_t);
 TEST(int32_t);
 TEST(int64_t);
+TEST(uint8_t);
+TEST(uint16_t);
+TEST(uint32_t);
+TEST(uint64_t);
 TEST(float);
 TEST(double);
 TEST(long);
+TEST(ulong);
 TEST(Signed8);
 TEST(Signed16);
 TEST(Signed32);

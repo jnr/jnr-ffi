@@ -21,6 +21,7 @@ package jnr.ffi;
 import java.util.Random;
 
 import jnr.ffi.annotations.LongLong;
+import jnr.ffi.types.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -59,6 +60,8 @@ public class NumberTest {
         public double sub_double(double f1, double f2);
         public double mul_double(double f1, double f2);
         public double div_double(double f1, double f2);
+        public @int32_t long ret_int32_t(@int32_t long l);
+        public @u_int32_t long ret_uint32_t(@u_int32_t long l);
     }
     static TestLib testlib;
 
@@ -329,5 +332,13 @@ public class NumberTest {
                 return testlib.add_long(new Long(i1), new Long(i2));
             }
         });
+    }
+
+    @Test public void testSignExtension() throws Exception {
+        assertEquals("upper 32 bits not set to 1", 0xffffffffdeadbeefL, testlib.ret_int32_t(0x1eefdeadbeefL));
+    }
+
+    @Test public void testZeroExtension() throws Exception {
+        assertEquals("upper 32 bits not set to zero", 0xdeadbeefL, testlib.ret_uint32_t(0xfee1deadbeefL));
     }
 }

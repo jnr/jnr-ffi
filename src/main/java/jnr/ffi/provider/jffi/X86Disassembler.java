@@ -32,7 +32,7 @@ class X86Disassembler {
     }
 
     static UDis86 loadUDis86() {
-        List<String> libraryPaths = Arrays.asList("/opt/local/lib", "/usr/local/lib", "/usr/lib");
+        List<String> libraryPaths = Arrays.asList("/usr/local/lib", "/opt/local/lib", "/usr/lib");
         String path = Platform.getNativePlatform().locateLibrary("udis86", libraryPaths);
         NativeLibrary library = new NativeLibrary(path != null ? path : "udis86");
         Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();

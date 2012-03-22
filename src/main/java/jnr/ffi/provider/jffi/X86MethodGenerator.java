@@ -52,8 +52,7 @@ class X86MethodGenerator implements MethodGenerator {
         }
 
         int objectCount = 0;
-        Class[] nativeParameterTypes = new Class[parameterTypes.length];
-        for (int i = 0; i < nativeParameterTypes.length; ++i) {
+        for (int i = 0; i < parameterTypes.length; ++i) {
             if (!isSupportedParameter(parameterTypes[i])) {
                 return false;
             }
@@ -61,8 +60,6 @@ class X86MethodGenerator implements MethodGenerator {
             if (isSupportedObjectParameterType(parameterTypes[i])) {
                 objectCount++;
             }
-
-            nativeParameterTypes[i] = nativeParameterType(parameterTypes[i]);
         }
 
         if (objectCount > 0) {
@@ -72,7 +69,7 @@ class X86MethodGenerator implements MethodGenerator {
         }
 
         return isSupportedResult(resultType)
-                && compiler.canCompile(nativeResultType(resultType), nativeParameterTypes, callingConvention);
+                && compiler.canCompile(resultType, parameterTypes, callingConvention);
     }
 
     public void generate(AsmBuilder builder, String functionName, Function function,
@@ -95,7 +92,7 @@ class X86MethodGenerator implements MethodGenerator {
         builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL | ACC_NATIVE | (wrapperNeeded ? ACC_STATIC : 0),
                 stubName, sig(nativeReturnType, nativeParameterTypes), null, null);
 
-        compiler.compile(function, stubName, nativeReturnType, nativeParameterTypes,
+        compiler.compile(function, stubName, resultType, parameterTypes, nativeReturnType, nativeParameterTypes,
                 CallingConvention.DEFAULT, !ignoreError);
 
         // If unboxing of parameters is required, generate a wrapper
@@ -285,15 +282,12 @@ class X86MethodGenerator implements MethodGenerator {
         compiler.attach(clazz);
     }
 
-    private static Class nativeParameterType(ParameterType parameterType) {
+    static Class nativeParameterType(ParameterType parameterType) {
         Class javaType = parameterType.effectiveJavaType();
-
-        if (parameterType.nativeType == NativeType.SLONG || parameterType.nativeType == NativeType.ULONG) {
-            return parameterType.size()  == 4 ? int.class : long.class;
-
-        } else {
-            return AsmUtil.unboxedParameterType(javaType);
+        if (javaType.isPrimitive()) {
+            return javaType;
         }
+        return AsmUtil.unboxedParameterType(javaType);
     }
 
     private static Class nativeResultType(ResultType resultType) {

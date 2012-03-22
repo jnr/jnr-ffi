@@ -21,8 +21,15 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.Internals;
+
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static jnr.x86asm.Asm.*;
+
+import jnr.ffi.NativeType;
 import jnr.x86asm.Assembler;
+import jnr.x86asm.Mem;
+import jnr.x86asm.Register;
+
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 
 /**
@@ -30,12 +37,27 @@ import static jnr.ffi.provider.jffi.CodegenUtils.*;
  */
 final class X86_32StubCompiler extends AbstractX86StubCompiler {
 
-    @Override
-    boolean canCompile(Class returnType, Class[] parameterTypes, CallingConvention convention) {
-        if (returnType != byte.class && returnType != short.class && returnType != int.class
-                && returnType != long.class && returnType != float.class && returnType != double.class
-                && returnType != void.class) {
-            return false;
+    boolean canCompile(ResultType returnType, ParameterType[] parameterTypes, CallingConvention convention) {
+
+        switch (returnType.nativeType) {
+            case VOID:
+            case SCHAR:
+            case UCHAR:
+            case SSHORT:
+            case USHORT:
+            case SINT:
+            case UINT:
+            case SLONG:
+            case ULONG:
+            case SLONGLONG:
+            case ULONGLONG:
+            case FLOAT:
+            case DOUBLE:
+            case ADDRESS:
+                break;
+
+            default:
+                return false;
         }
 
         // There is only one calling convention; SYSV, so abort if someone tries to use stdcall
@@ -46,47 +68,49 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
         int fCount = 0;
         int iCount = 0;
 
-        for (Class t : parameterTypes) {
-            if (t == byte.class || t == short.class || t == int.class || t == long.class) {
-                ++iCount;
-            } else if (t == float.class || t == double.class) {
-                ++fCount;
-            } else {
-                // Fail on anything else
-                return false;
+        for (ParameterType t : parameterTypes) {
+            switch (t.nativeType) {
+                case SCHAR:
+                case UCHAR:
+                case SSHORT:
+                case USHORT:
+                case SINT:
+                case UINT:
+                case SLONG:
+                case ULONG:
+                case SLONGLONG:
+                case ULONGLONG:
+                case ADDRESS:
+                    ++iCount;
+                    break;
+
+                case FLOAT:
+                case DOUBLE:
+                    ++fCount;
+                    break;
+
+                default:
+                    // Fail on anything else
+                    return false;
             }
         }
 
+        // We can only safely compile methods with up to 6 integer and 8 floating point parameters
         return true;
     }
 
+
     @Override
-    void compile(Function function, String name, Class returnType, Class[] parameterTypes, CallingConvention convention, boolean saveErrno) {
+    void compile(Function function, String name, ResultType resultType, ParameterType[] parameterTypes, Class resultClass, Class[] parameterClasses, CallingConvention convention, boolean saveErrno) {
 
         int psize = 0;
-        for (Class t : parameterTypes) {
-            if (t == byte.class || t == short.class || t == int.class || t == float.class) {
-                psize += 4;
-            } else if (t == long.class || t == double.class) {
-                psize += 8;
-            } else {
-                throw new IllegalArgumentException("invalid parameter type" + t);
-            }
+        for (ParameterType t : parameterTypes) {
+            psize += parameterSize(t);
         }
 
-        int rsize = 0;
-        if (double.class == returnType || float.class == returnType) {
-            rsize = 16;
-        } else if (long.class == returnType) {
-            rsize = 8;
-        } else if (byte.class == returnType || short.class == returnType || int.class == returnType) {
-            rsize = 4;
-        } else if (void.class == returnType) {
-            rsize = 0;
-        } else {
-            throw new IllegalArgumentException("invalid return type " + returnType);
-        }
-        
+        int rsize = resultSize(resultType);
+
+
         //
         // JNI functions all look like:
         // foo(JNIEnv* env, jobject self, arg...)
@@ -101,11 +125,48 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
 
         a.sub(esp, imm(stackadj));
 
-        // memcpy the parameters from the orig stack to the new location
-        for (int i = 0; i < psize; i += 4)  {
-            a.mov(eax, dword_ptr(esp, stackadj + 4 + 8 + i));
-            a.mov(dword_ptr(esp, i), eax);
+        // copy and convert the parameters from the orig stack to the new location
+        for (int i = 0, srcoff = 0, dstoff = 0; i < parameterTypes.length; i++)  {
+            int srcParameterSize = parameterSize(parameterClasses[i]);
+            int dstParameterSize = parameterSize(parameterTypes[i]);
+            int disp = stackadj + 4 + 8 + srcoff;
+
+            switch (parameterTypes[i].nativeType) {
+                case SCHAR:
+                case SSHORT:
+                    a.movsx(eax, ptr(esp, disp, parameterTypes[i].nativeType));
+                    break;
+
+                case UCHAR:
+                case USHORT:
+                    a.movzx(eax, ptr(esp, disp, parameterTypes[i].nativeType));
+                    break;
+
+                default:
+                    a.mov(eax, dword_ptr(esp, disp));
+                    break;
+            }
+            a.mov(dword_ptr(esp, dstoff), eax);
+
+            if (dstParameterSize > 4) {
+                if (parameterTypes[i].nativeType == NativeType.SLONGLONG && long.class != parameterClasses[i]) {
+                    // sign extend from int.class -> long long
+                    a.sar(eax, imm(31));
+
+                } else if (parameterTypes[i].nativeType == NativeType.ULONGLONG && long.class != parameterClasses[i]) {
+                    // zero extend from int.class -> unsigned long long
+                    a.mov(dword_ptr(esp, dstoff + 4), imm(0));
+
+                } else {
+                    a.mov(eax, dword_ptr(esp, disp + 4));
+                }
+                a.mov(dword_ptr(esp, dstoff + 4), eax);
+            }
+
+            dstoff += dstParameterSize;
+            srcoff += srcParameterSize;
         }
+
 
         // Call to the actual native function
         a.mov(eax, imm(function.getFunctionAddress()));
@@ -113,17 +174,27 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
         
         if (saveErrno) {
             int save = 0;
-            if (float.class == returnType) {
-                a.fstp(dword_ptr(esp, save));
-            } else if (double.class == returnType) {
-                a.fstp(qword_ptr(esp, save));
-            } else if (long.class == returnType) {
-                a.mov(dword_ptr(esp, save), eax);
-                a.mov(dword_ptr(esp, save + 4), edx);
-            } else if (void.class == returnType) {
-                // Do nothing for void values
-            } else {
-                a.mov(dword_ptr(esp, save), eax);
+            switch (resultType.nativeType) {
+                case FLOAT:
+                    a.fstp(dword_ptr(esp, save));
+                    break;
+
+                case DOUBLE:
+                    a.fstp(qword_ptr(esp, save));
+                    break;
+
+                case SLONGLONG:
+                case ULONGLONG:
+                    a.mov(dword_ptr(esp, save), eax);
+                    a.mov(dword_ptr(esp, save + 4), edx);
+                    break;
+
+                case VOID:
+                    // No need to save for void values
+                    break;
+
+                default:
+                    a.mov(dword_ptr(esp, save), eax);
             }
 
             // Save the errno in a thread-local variable
@@ -131,29 +202,154 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
             a.call(eax);
 
             // Retrieve return value and put it back in the appropriate return register
-            if (float.class == returnType) {
-                a.fld(dword_ptr(esp, save));
+            switch (resultType.nativeType) {
+                case FLOAT:
+                    a.fld(dword_ptr(esp, save));
+                    break;
 
-            } else if (double.class == returnType) {
-                a.fld(qword_ptr(esp, save));
+                case DOUBLE:
+                    a.fld(qword_ptr(esp, save));
+                    break;
 
-            } else if (long.class == returnType) {
-                a.mov(eax, dword_ptr(esp, save));
-                a.mov(edx, dword_ptr(esp, save + 4));
+                case SLONGLONG:
+                case ULONGLONG:
+                    a.mov(eax, dword_ptr(esp, save));
+                    a.mov(edx, dword_ptr(esp, save + 4));
+                    break;
 
-            } else if (void.class == returnType) {
-                // Do nothing for void values
+                case VOID:
+                    // No need to save for void values
+                    break;
 
-            } else {
-                a.mov(eax, dword_ptr(esp, save));
+                default:
+                    a.mov(eax, dword_ptr(esp, save));
             }
+
         }
 
+        switch (resultType.nativeType) {
+            case SCHAR:
+                a.movsx(eax, al);
+                break;
+
+            case UCHAR:
+                a.movzx(eax, al);
+                break;
+
+            case SSHORT:
+                a.movsx(eax, ax);
+                break;
+
+            case USHORT:
+                a.movzx(eax, ax);
+                break;
+        }
+
+        if (long.class == resultClass) {
+            switch (resultType.nativeType) {
+                case SCHAR:
+                case SSHORT:
+                case SINT:
+                case SLONG:
+                    // sign extend eax to edx:eax
+                    a.mov(edx, eax);
+                    a.sar(edx, imm(31));
+                    break;
+
+                case UCHAR:
+                case USHORT:
+                case UINT:
+                case ULONG:
+                case ADDRESS:
+                    a.mov(edx, imm(0));
+                    break;
+            }
+
+        }
         // Restore esp to the original position and return
         a.add(esp, imm(stackadj));
         a.ret();
 
-        stubs.add(new Stub(name, sig(returnType, parameterTypes), a));
+        stubs.add(new Stub(name, sig(resultClass, parameterClasses), a));
+    }
+
+    static int parameterSize(ParameterType parameterType) {
+        switch (parameterType.nativeType) {
+            case SCHAR:
+            case UCHAR:
+            case SSHORT:
+            case USHORT:
+            case SINT:
+            case UINT:
+            case SLONG:
+            case ULONG:
+            case ADDRESS:
+            case FLOAT:
+                return 4;
+
+            case SLONGLONG:
+            case ULONGLONG:
+            case DOUBLE:
+                return 8;
+
+            default:
+                throw new IllegalArgumentException("invalid parameter type" + parameterType);
+        }
+    }
+
+    static int parameterSize(Class t) {
+        if (byte.class == t || short.class == t || char.class == t | int.class == t || float.class == t) {
+            return 4;
+
+        } else if (long.class == t || double.class == t) {
+            return 8;
+        }
+        throw new IllegalArgumentException("invalid parameter type" + t);
+    }
+
+
+    static int resultSize(ResultType resultType) {
+        switch (resultType.nativeType) {
+            case SCHAR:
+            case UCHAR:
+            case SSHORT:
+            case USHORT:
+            case SINT:
+            case UINT:
+            case SLONG:
+            case ULONG:
+            case ADDRESS:
+                return 4;
+
+            case SLONGLONG:
+            case ULONGLONG:
+                return 8;
+
+            case FLOAT:
+            case DOUBLE:
+                return 16;
+
+            case VOID:
+                return 0;
+
+            default:
+                throw new IllegalArgumentException("invalid return type " + resultType);
+        }
+    }
+
+    static Mem ptr(Register base, long disp, NativeType nativeType) {
+        switch (nativeType) {
+            case SCHAR:
+            case UCHAR:
+                return byte_ptr(base, disp);
+
+            case SSHORT:
+            case USHORT:
+                return word_ptr(base, disp);
+
+            default:
+                return dword_ptr(base, disp);
+        }
     }
 
 }

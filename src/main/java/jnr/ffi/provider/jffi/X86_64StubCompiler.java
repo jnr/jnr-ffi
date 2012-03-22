@@ -23,6 +23,9 @@ import com.kenai.jffi.Function;
 import com.kenai.jffi.Internals;
 import static jnr.x86asm.Asm.*;
 import jnr.x86asm.Assembler;
+import jnr.x86asm.REG;
+import jnr.x86asm.Register;
+
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 
 /**
@@ -31,59 +34,81 @@ import static jnr.ffi.provider.jffi.CodegenUtils.*;
 final class X86_64StubCompiler extends AbstractX86StubCompiler {
     
 
-    @Override
-    final boolean canCompile(Class returnType, Class[] parameterTypes, CallingConvention convention) {
-        
-        if (returnType != byte.class && returnType != short.class && returnType != int.class
-                && returnType != long.class && returnType != float.class && returnType != double.class
-                && returnType != void.class) {
-            return false;
-        }
+    boolean canCompile(ResultType returnType, ParameterType[] parameterTypes, CallingConvention convention) {
 
         // There is only one calling convention; SYSV, so abort if someone tries to use stdcall
         if (convention != CallingConvention.DEFAULT) {
             return false;
         }
 
+        switch (returnType.nativeType) {
+            case VOID:
+            case SCHAR:
+            case UCHAR:
+            case SSHORT:
+            case USHORT:
+            case SINT:
+            case UINT:
+            case SLONG:
+            case ULONG:
+            case SLONGLONG:
+            case ULONGLONG:
+            case FLOAT:
+            case DOUBLE:
+            case ADDRESS:
+                break;
+
+            default:
+                return false;
+        }
+
+
         int fCount = 0;
         int iCount = 0;
 
-        for (Class t : parameterTypes) {
-            if (t == byte.class || t == short.class || t == int.class || t == long.class) {
-                ++iCount;
-            } else if (t == float.class || t == double.class) {
-                ++fCount;
-            } else {
-                // Fail on anything else
-                return false;
+        for (ParameterType t : parameterTypes) {
+            switch (t.nativeType) {
+                case SCHAR:
+                case UCHAR:
+                case SSHORT:
+                case USHORT:
+                case SINT:
+                case UINT:
+                case SLONG:
+                case ULONG:
+                case SLONGLONG:
+                case ULONGLONG:
+                case ADDRESS:
+                    ++iCount;
+                    break;
+
+                case FLOAT:
+                case DOUBLE:
+                    ++fCount;
+                    break;
+
+                default:
+                    // Fail on anything else
+                    return false;
             }
         }
 
         // We can only safely compile methods with up to 6 integer and 8 floating point parameters
-        if (iCount > 6 || fCount > 8) {
-            return false;
-        }
-        
-        return true;
+        return iCount <= 6 && fCount <= 8;
     }
 
-    @Override
-    final void compile(Function function, String name, Class returnType, Class[] parameterTypes,
-            CallingConvention convention, boolean saveErrno) {
-        
-        int fCount = 0;
-        int iCount = 0;
 
-        for (Class t : parameterTypes) {
-            if (t == byte.class || t == short.class || t == int.class || t == long.class) {
-                ++iCount;
-            } else if (t == float.class || t == double.class) {
-                ++fCount;
-            } else {
-                throw new IllegalArgumentException("invalid parameter type " + t);
-            }
-        }
-        
+    static final Register[] srcRegisters8 = { dl, cl, r8b, r9b };
+    static final Register[] srcRegisters16 = { dx, cx, r8w, r9w };
+    static final Register[] srcRegisters32 = { edx, ecx, Register.gpr(REG.REG_R8D), Register.gpr(REG.REG_R9D) };
+    static final Register[] srcRegisters64 = { rdx, rcx, r8, r9 };
+    static final Register[] dstRegisters32 = { edi, esi, edx, ecx, Register.gpr(REG.REG_R8D), Register.gpr(REG.REG_R9D) };
+    static final Register[] dstRegisters64 = { rdi, rsi, rdx, rcx, r8, r9 };
+
+    @Override
+    final void compile(Function function, String name, ResultType resultType, ParameterType[] parameterTypes,
+                       Class resultClass, Class[] parameterClasses, CallingConvention convention, boolean saveErrno) {
+
         Assembler a = new Assembler(X86_64);
         
         //
@@ -93,33 +118,83 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         // So we need to shuffle all the integer args up to over-write the
         // env and self arguments
         //
-        if (iCount > 0) {
-            a.mov(rdi, rdx);
-        }
-        if (iCount > 1) {
-            a.mov(rsi, rcx);
-        }
-        if (iCount > 2) {
-            a.mov(rdx, r8);
-        }
-        if (iCount > 3) {
-            a.mov(rcx, r9);
+
+        int iCount = iCount(parameterTypes);
+        for (int i = 0; i < Math.min(iCount, 4); i++) {
+            switch (parameterTypes[i].nativeType) {
+                case SCHAR:
+                    a.movsx(dstRegisters64[i], srcRegisters8[i]);
+                    break;
+
+                case UCHAR:
+                    a.movzx(dstRegisters64[i], srcRegisters8[i]);
+                    break;
+
+                case SSHORT:
+                    a.movsx(dstRegisters64[i], srcRegisters16[i]);
+                    break;
+
+                case USHORT:
+                    a.movzx(dstRegisters64[i], srcRegisters16[i]);
+                    break;
+
+                case SINT:
+                    a.movsxd(dstRegisters64[i], srcRegisters32[i]);
+                    break;
+
+                case UINT:
+                    // mov with a 32bit dst reg zero extends to 64bit
+                    a.mov(dstRegisters32[i], srcRegisters32[i]);
+                    break;
+
+                default:
+                    a.mov(dstRegisters64[i], srcRegisters64[i]);
+                    break;
+            }
         }
 
-        // For args 5 & 6 of the function, they would have been pushed on the stack
-        if (iCount > 4) {
-            a.mov(r8, qword_ptr(rsp, 8));
-        }
-
-        if (iCount > 5) {
-            a.mov(r9, qword_ptr(rsp, 16));
-        }
         if (iCount > 6) {
             throw new IllegalArgumentException("integer argument count > 6");
         }
 
+        // For args 5 & 6 of the function, they would have been pushed on the stack
+        for (int i = 4; i < iCount; i++) {
+            int disp = 8 + ((4 - i) * 8);
+            switch (parameterTypes[i].nativeType) {
+                case SCHAR:
+                    a.movsx(dstRegisters64[i], byte_ptr(rsp, disp));
+                    break;
+
+                case UCHAR:
+                    a.movzx(dstRegisters64[i], byte_ptr(rsp, disp));
+                    break;
+
+                case SSHORT:
+                    a.movsx(dstRegisters64[i], word_ptr(rsp, disp));
+                    break;
+
+                case USHORT:
+                    a.movzx(dstRegisters64[i], word_ptr(rsp, disp));
+                    break;
+
+                case SINT:
+                    a.movsxd(dstRegisters64[i], dword_ptr(rsp, disp));
+                    break;
+
+                case UINT:
+                    // mov with a 32bit dst reg zero extends to 64bit
+                    a.mov(dstRegisters32[i], dword_ptr(rsp, disp));
+                    break;
+
+                default:
+                    a.mov(dstRegisters64[i], qword_ptr(rsp, disp));
+                    break;
+            }
+        }
+
         // All the integer registers are loaded; there nothing to do for the floating
         // registers, as the first 8 args are already in xmm0..xmm7, so just sanity check
+        int fCount = fCount(parameterTypes);
         if (fCount > 8) {
             throw new IllegalArgumentException("float argument count > 8");
         }
@@ -127,7 +202,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         // Need to align the stack to 16 bytes for function call.
         // It already has 8 bytes pushed (the return address), so making space
         // to save the return value from the function neatly aligns it to 16 bytes
-        int space = returnType == float.class || returnType == double.class
+        int space = resultClass == float.class || resultClass == double.class
                     ? 24 : 8;
         a.sub(rsp, imm(space));
 
@@ -137,13 +212,13 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
 
         if (saveErrno) {
             // Save the return on the stack
-            if (returnType == void.class) {
+            if (resultClass == void.class) {
                 // No need to save/reload return value registers
 
-            } else if (returnType == float.class) {
+            } else if (resultClass == float.class) {
                 a.movss(dword_ptr(rsp, 0), xmm0);
 
-            } else if (returnType == double.class) {
+            } else if (resultClass == double.class) {
                 a.movsd(qword_ptr(rsp, 0), xmm0);
 
             } else {
@@ -155,13 +230,13 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             a.call(rax);
 
             // Retrieve return value and put it back in the appropriate return register
-            if (returnType == void.class) {
+            if (resultClass == void.class) {
                 // No need to save/reload return value registers
 
-            } else if (returnType == float.class) {
+            } else if (resultClass == float.class) {
                 a.movss(xmm0, dword_ptr(rsp, 0));
 
-            } else if (returnType == double.class) {
+            } else if (resultClass == double.class) {
                 a.movsd(xmm0, qword_ptr(rsp, 0));
 
             } else {
@@ -169,10 +244,75 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             }
         }
 
+        switch (resultType.nativeType) {
+            case SCHAR:
+                a.movsx(rax, al);
+                break;
+
+            case UCHAR:
+                a.movzx(rax, al);
+                break;
+
+            case SSHORT:
+                a.movsx(rax, ax);
+                break;
+
+            case USHORT:
+                a.movzx(rax, ax);
+                break;
+
+            case SINT:
+                a.movsxd(rax, eax);
+                break;
+
+            case UINT:
+                a.mov(eax, eax);
+                break;
+        }
+
         // Restore rsp to original position
         a.add(rsp, imm(space));
         a.ret();
 
-        stubs.add(new Stub(name, sig(returnType, parameterTypes), a));
+        stubs.add(new Stub(name, sig(resultClass, parameterClasses), a));
+    }
+
+    static int fCount(ParameterType[] parameterTypes) {
+        int fCount = 0;
+
+        for (ParameterType t : parameterTypes) {
+            switch (t.nativeType) {
+                case FLOAT:
+                case DOUBLE:
+                    ++fCount;
+                    break;
+            }
+        }
+
+        return fCount;
+    }
+
+    static int iCount(ParameterType[] parameterTypes) {
+        int iCount = 0;
+
+        for (ParameterType t : parameterTypes) {
+            switch (t.nativeType) {
+                case SCHAR:
+                case UCHAR:
+                case SSHORT:
+                case USHORT:
+                case SINT:
+                case UINT:
+                case SLONG:
+                case ULONG:
+                case SLONGLONG:
+                case ULONGLONG:
+                case ADDRESS:
+                    ++iCount;
+                    break;
+            }
+        }
+
+        return iCount;
     }
 }
