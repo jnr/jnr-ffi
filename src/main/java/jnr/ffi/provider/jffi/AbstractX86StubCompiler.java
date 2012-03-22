@@ -123,6 +123,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
             fn = align(fn, 8);
             ByteBuffer buf = MemoryIO.getInstance().newDirectByteBuffer(fn, asm.codeSize()).order(ByteOrder.LITTLE_ENDIAN);
             stub.assembler.relocCode(buf, fn);
+            buf.flip();
 
             if (DEBUG && X86Disassembler.isAvailable()) {
 
@@ -131,7 +132,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
                 disassembler.setMode(Platform.getNativePlatform().getCPU() == Platform.CPU.I386
                         ? X86Disassembler.Mode.I386 : X86Disassembler.Mode.X86_64);
                 disassembler.setSyntax(X86Disassembler.Syntax.INTEL);
-                disassembler.setInputBuffer(MemoryUtil.newPointer(fn), asm.codeSize());
+                disassembler.setInputBuffer(MemoryUtil.newPointer(fn), buf.limit());
                 while (disassembler.disassemble()) {
                     dbg.println("\t" + disassembler.insn());
                 }
