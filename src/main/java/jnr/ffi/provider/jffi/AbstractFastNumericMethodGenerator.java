@@ -69,13 +69,14 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
         final Class nativeIntType = getInvokerType();
         final AsmLocalVariable objCount = localVariableAllocator.allocate(int.class);
+        AsmLocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         AsmLocalVariable[] pointers = new AsmLocalVariable[parameterTypes.length];
         AsmLocalVariable[] strategies = new AsmLocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         // Load, convert, and un-box parameters
-        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-            int nextParameterIndex = loadAndConvertParameter(builder, mv, lvar, parameterTypes[i]);
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
 
             Class javaParameterType = parameterTypes[i].effectiveJavaType();
 
@@ -116,7 +117,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     mv.aload(pointers[i]);
                 } else {
                     // avoid the save/load of an extra local var if no parameter conversion took place
-                    pointers[i] = new AsmLocalVariable(lvar);
+                    pointers[i] = parameters[i];
                 }
 
                 emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations);
@@ -145,7 +146,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             } else {
                 emitNumericParameter(mv, javaParameterType, parameterTypes[i].nativeType);
             }
-            lvar = nextParameterIndex;
         }
 
         // stack now contains [ IntInvoker, Function, int/long args ]

@@ -13,6 +13,7 @@ import java.nio.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
@@ -122,15 +123,16 @@ class X86MethodGenerator implements MethodGenerator {
 
         AsmLocalVariableAllocator localVariableAllocator = new AsmLocalVariableAllocator(parameterTypes);
         final AsmLocalVariable objCount = localVariableAllocator.allocate(int.class);
+        AsmLocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         AsmLocalVariable[] pointers = new AsmLocalVariable[parameterTypes.length];
         AsmLocalVariable[] strategies = new AsmLocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
-        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
+        for (int i = 0; i < parameterTypes.length; ++i) {
             Class javaParameterType = parameterTypes[i].effectiveJavaType();
             Class nativeParameterType = nativeParameterTypes[i];
 
-            int nextParameterIndex = AsmLibraryLoader.loadAndConvertParameter(builder, mv, lvar, parameterTypes[i]);
+            loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
 
             if (Number.class.isAssignableFrom(javaParameterType)) {
                 unboxNumber(mv, javaParameterType, nativeParameterType);
@@ -164,7 +166,7 @@ class X86MethodGenerator implements MethodGenerator {
                     mv.aload(pointers[i]);
                 } else {
                     // avoid the save/load of an extra local var if no parameter conversion took place
-                    pointers[i] = new AsmLocalVariable(lvar);
+                    pointers[i] = parameters[i];
                 }
 
                 AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations);
@@ -186,7 +188,6 @@ class X86MethodGenerator implements MethodGenerator {
             } else if (!javaParameterType.isPrimitive()) {
                 throw new IllegalArgumentException("unsupported type " + javaParameterType);
             }
-            lvar = nextParameterIndex;
         }
         Label hasObjects = new Label();
         Label convertResult = new Label();

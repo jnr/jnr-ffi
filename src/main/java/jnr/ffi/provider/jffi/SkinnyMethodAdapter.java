@@ -116,12 +116,20 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
         getMethodVisitor().visitVarInsn(FLOAD, arg0);
     }
 
+    public void fload(AsmLocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(FLOAD, arg0.idx);
+    }
+
     public void fload(int... args) {
         for (int arg : args) {
             getMethodVisitor().visitVarInsn(FLOAD, arg);
         }
     }
     
+    public void dload(AsmLocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(DLOAD, arg0.idx);
+    }
+
     public void dload(int arg0) {
         getMethodVisitor().visitVarInsn(DLOAD, arg0);
     }

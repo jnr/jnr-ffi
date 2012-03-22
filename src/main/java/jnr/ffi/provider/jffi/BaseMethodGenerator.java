@@ -1,7 +1,6 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
@@ -66,14 +65,14 @@ abstract class BaseMethodGenerator implements MethodGenerator {
     abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes,
                            boolean ignoreError);
 
-    static int loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, int lvar,
-                                ParameterType parameterType) {
+    static void loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, AsmLocalVariable parameter,
+                                       ParameterType parameterType) {
         ToNativeConverter parameterConverter = parameterType.toNativeConverter;
         if (parameterConverter != null) {
             mv.aload(0);
             mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterConverter), ci(ToNativeConverter.class));
         }
-        lvar = AsmLibraryLoader.loadParameter(mv, parameterType.getDeclaredType(), lvar);
+        AsmUtil.loadParameter(mv, parameterType.getDeclaredType(), parameter);
         if (parameterConverter != null) {
             if (parameterType.getDeclaredType().isPrimitive()) {
                 boxValue(mv, getBoxedClass(parameterType.getDeclaredType()), parameterType.getDeclaredType(), parameterType.nativeType);
@@ -83,8 +82,6 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                     Object.class, Object.class, ToNativeContext.class);
             mv.checkcast(p(parameterConverter.nativeType()));
         }
-
-        return lvar;
     }
 
     static void convertAndReturnResult(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, Class nativeReturnType) {
@@ -103,7 +100,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             mv.areturn();
 
         } else {
-            AsmLibraryLoader.emitReturn(mv, resultType.getDeclaredType(), nativeReturnType, resultType.nativeType);
+            AsmUtil.emitReturn(mv, resultType.getDeclaredType(), nativeReturnType, resultType.nativeType);
         }
     }
 }
