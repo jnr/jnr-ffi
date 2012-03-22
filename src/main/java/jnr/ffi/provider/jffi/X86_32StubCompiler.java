@@ -169,8 +169,7 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
 
 
         // Call to the actual native function
-        a.mov(eax, imm(function.getFunctionAddress()));
-        a.call(eax);
+        a.call(imm(function.getFunctionAddress() & 0xffffffffL));
         
         if (saveErrno) {
             int save = 0;
@@ -198,8 +197,7 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
             }
 
             // Save the errno in a thread-local variable
-            a.mov(eax, imm(errnoFunctionAddress));
-            a.call(eax);
+            a.call(imm(errnoFunctionAddress & 0xffffffffL));
 
             // Retrieve return value and put it back in the appropriate return register
             switch (resultType.nativeType) {
