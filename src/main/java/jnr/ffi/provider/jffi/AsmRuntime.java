@@ -683,18 +683,6 @@ public final class AsmRuntime {
         return s != null ? Struct.getMemory(s).address() : 0L;
     }
 
-    public static final Enum enumValue(int value, Class<? extends Enum> enumClass) {
-        return EnumMapper.getInstance(enumClass).valueOf(value);
-    }
-
-    public static final int intValue(Enum e) {
-        return EnumMapper.getInstance(e.getClass()).intValue(e);
-    }
-
-    public static final long longValue(Enum e) {
-        return EnumMapper.getInstance(e.getClass()).intValue(e);
-    }
-
     public static PointerParameterStrategy pointerParameterStrategy(Pointer pointer) {
         if (pointer instanceof DirectMemoryIO) {
             return DirectMemoryParameterStrategy.INSTANCE;
