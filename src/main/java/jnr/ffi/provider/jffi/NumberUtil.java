@@ -117,6 +117,34 @@ public final class NumberUtil {
         }
     }
 
+    public static void widen(SkinnyMethodAdapter mv, Class from, Class to, NativeType nativeType) {
+        if (isPrimitiveInt(from)) {
+            if (nativeType == NativeType.UCHAR) {
+                mv.pushInt(0xff);
+                mv.iand();
+
+            } else if (nativeType == NativeType.USHORT) {
+                mv.pushInt(0xffff);
+                mv.iand();
+            }
+
+            if (long.class == to) {
+                mv.i2l();
+                switch (nativeType) {
+                    case UINT:
+                    case ULONG:
+                    case ADDRESS:
+                        if (sizeof(nativeType) < 8) {
+                            // strip off bits 32:63
+                            mv.ldc(0xffffffffL);
+                            mv.land();
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
     public static final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
         if (!from.equals(to)) {
             if (byte.class == to || short.class == to || char.class == to || int.class == to || boolean.class == to) {
@@ -142,9 +170,9 @@ public final class NumberUtil {
         }
     }
 
-    static void constrain(SkinnyMethodAdapter mv, Class from, Class to, Class constraint) {
+    static void constrain(SkinnyMethodAdapter mv, Class from, Class to, Class constraint, NativeType nativeType) {
         narrow(mv, from, constraint);
-        widen(mv, constraint, to);
+        widen(mv, constraint, to, nativeType);
         if (boolean.class == to) {
             // Ensure only 0x0 and 0x1 values are used for boolean
             mv.iconst_1();
@@ -152,62 +180,40 @@ public final class NumberUtil {
         }
     }
 
-    public static void convertPrimitive(SkinnyMethodAdapter mv, final Class from, final Class to, final Type jffiType) {
-        if (Type.SCHAR == jffiType || Type.UCHAR == jffiType || Type.SINT8 == jffiType || Type.UINT8 == jffiType) {
-            constrain(mv, from, to, byte.class);
-
-        } else if (Type.SSHORT == jffiType || Type.USHORT == jffiType || Type.SINT16 == jffiType || Type.UINT16 == jffiType) {
-            constrain(mv, from, to, short.class);
-
-        } else if (Type.SINT == jffiType || Type.UINT == jffiType || Type.SINT32 == jffiType || Type.UINT32 == jffiType) {
-            constrain(mv, from, to, int.class);
-
-        } else if ((Type.SLONG == jffiType || Type.ULONG == jffiType) && jffiType.size() == 4) {
-            constrain(mv, from, to, int.class);
-
-        } else {
-            narrow(mv, from, to);
-            widen(mv, from, to);
-        }
-    }
-
     public static void convertPrimitive(SkinnyMethodAdapter mv, final Class from, final Class to, final NativeType nativeType) {
         switch (nativeType) {
             case SCHAR:
-                constrain(mv, from, to, byte.class);
+                constrain(mv, from, to, byte.class, nativeType);
                 break;
 
             case UCHAR:
-                constrain(mv, from, to, byte.class);
+                constrain(mv, from, to, int.class, nativeType);
                 break;
 
             case SSHORT:
-                constrain(mv, from, to, short.class);
+                constrain(mv, from, to, short.class, nativeType);
                 break;
 
             case USHORT:
-                constrain(mv, from, to, short.class);
+                constrain(mv, from, to, int.class, nativeType);
                 break;
 
             case SINT:
-                constrain(mv, from, to, int.class);
+            case UINT:
+                constrain(mv, from, to, int.class, nativeType);
                 break;
 
-            case UINT:
-                constrain(mv, from, to, int.class);
-                break;
 
             case SLONG:
-                constrain(mv, from, to, sizeof(nativeType) == 4 ? int.class : long.class);
+            case ULONG:
+            case ADDRESS:
+                constrain(mv, from, to, sizeof(nativeType) == 4 ? int.class : long.class, nativeType);
                 break;
 
-            case ULONG:
-                constrain(mv, from, to, sizeof(nativeType) == 4 ? int.class : long.class);
-                break;
 
             default:
                 narrow(mv, from, to);
-                widen(mv, from, to);
+                widen(mv, from, to, nativeType);
                 break;
         }
     }

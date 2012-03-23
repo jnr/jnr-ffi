@@ -496,13 +496,6 @@ final class AsmUtil {
         mv.invokestatic(type, "valueOf", type, primitiveClass);
     }
 
-    static final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativeType, Type jffiType) {
-        Class primitiveClass = getPrimitiveClass(type);
-
-        // Emit widening/narrowing ops if necessary
-        convertPrimitive(mv, nativeType, primitiveClass, jffiType);
-        mv.invokestatic(type, "valueOf", type, primitiveClass);
-    }
 
     static final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativePrimitiveType, NativeType nativeType) {
         Class primitiveClass = getPrimitiveClass(type);

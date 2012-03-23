@@ -22,6 +22,7 @@ public class TypeDefinitionTest {
         public @int8_t Long add_int8_t(@int8_t Long i1, @int8_t Integer i2);
         public int add_uint8_t(@u_int8_t int i1, @u_int8_t int i2);
         public int ret_uint8_t(@u_int8_t int i1);
+        public @u_int32_t long ret_uint32_t(@u_int32_t long i1);
     }
 
     static TestLib testlib;
