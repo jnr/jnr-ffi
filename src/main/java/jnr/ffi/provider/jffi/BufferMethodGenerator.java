@@ -26,8 +26,8 @@ import static jnr.ffi.provider.jffi.NumberUtil.*;
 final class BufferMethodGenerator extends BaseMethodGenerator {
 
     @Override
-    void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
-        generateBufferInvocation(builder, mv, function, resultType, parameterTypes);
+    void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
+        generateBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes);
     }
 
     public boolean isSupported(Signature signature) {
@@ -144,10 +144,9 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 sig(void.class, ci(HeapInvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
     }
 
-    void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes) {
+    void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
         final boolean sessionRequired = isSessionRequired(parameterTypes);
-        LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
         LocalVariable session = localVariableAllocator.allocate(InvocationSession.class);
 
         if (sessionRequired) {
@@ -208,11 +207,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             } else if (Buffer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);
                 marshal(mv, javaParameterType, int.class);
-
-            } else if (ByReference.class.isAssignableFrom(javaParameterType)) {
-                mv.pushInt(nativeArrayFlags);
-                // stack should be: [ session, buffer, ref, flags ]
-                sessionmarshal(mv, ByReference.class, int.class);
 
             } else if (StringBuilder.class.isAssignableFrom(javaParameterType) || StringBuffer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(parameterFlags);

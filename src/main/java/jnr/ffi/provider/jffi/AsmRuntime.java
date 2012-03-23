@@ -310,29 +310,6 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, InvocationSession session, ByReference parameter, int flags) {
-        if (parameter == null) {
-            buffer.putAddress(0L);
-        } else {
-            final ByReference ref = (ByReference) parameter;
-            int size = ref.nativeSize(NativeRuntime.getInstance());
-            final ArrayMemoryIO memory = new ArrayMemoryIO(size);
-            
-            if (com.kenai.jffi.ArrayFlags.isIn(flags)) {
-                ref.marshal(memory, 0);
-            }
-
-            buffer.putArray(memory.array(), memory.offset(), size, flags);
-            if (com.kenai.jffi.ArrayFlags.isOut(flags)) {
-                session.addPostInvoke(new InvocationSession.PostInvoke() {
-                    public void postInvoke() {
-                        ref.unmarshal(memory, 0);
-                    }
-                });
-            }
-        }
-    }
-
     public static final void marshal(HeapInvocationBuffer buffer, InvocationSession session, StringBuilder parameter, int inout, int nflags) {
         if (parameter == null) {
             buffer.putAddress(0L);

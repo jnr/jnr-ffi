@@ -61,10 +61,6 @@ class X86MethodGenerator implements MethodGenerator {
                 return false;
             }
 
-            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
-                return false;
-            }
-
             if (isSupportedObjectParameterType(parameterTypes[i])) {
                 objectCount++;
             }
@@ -215,8 +211,6 @@ class X86MethodGenerator implements MethodGenerator {
         // invoke the compiled stub
         mv.invokestatic(builder.getClassNamePath(), nativeMethodName, sig(nativeReturnType, nativeParameterTypes));
 
-        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
-
         // If boxing is neccessary, perform conversions
         Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());
         convertPrimitive(mv, nativeReturnType, unboxedResultType);
@@ -224,6 +218,8 @@ class X86MethodGenerator implements MethodGenerator {
         if (pointerCount > 0) {
             mv.label(convertResult);
         }
+
+        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
 
         convertAndReturnResult(builder, mv, resultType, unboxedResultType);
 
@@ -300,7 +296,7 @@ class X86MethodGenerator implements MethodGenerator {
             // Jump to the main conversion/boxing code above
             mv.go_to(convertResult);
         }
-        mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
+        mv.visitMaxs(100, localVariableAllocator.getSpaceUsed());
         mv.visitEnd();
     }
 

@@ -52,14 +52,15 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         mv.aload(0);
         mv.getfield(builder.getClassNamePath(), builder.getFunctionAddressFieldName(function), ci(long.class));
 
+        LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
 
-        generate(builder, mv, function, resultType, parameterTypes, ignoreError);
+        generate(builder, mv, localVariableAllocator, function, resultType, parameterTypes, ignoreError);
 
-        mv.visitMaxs(100, calculateLocalVariableSpace(parameterTypes) + 10);
+        mv.visitMaxs(100, localVariableAllocator.getSpaceUsed());
         mv.visitEnd();
     }
 
-    abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes,
+    abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes,
                            boolean ignoreError);
 
     static void loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariable parameter,
