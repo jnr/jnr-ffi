@@ -1,9 +1,7 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.ArrayFlags;
-import com.kenai.jffi.ObjectParameterInfo;
+import jnr.ffi.NativeType;
 import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.provider.ParameterFlags;
 
 import java.lang.annotation.Annotation;
 
@@ -13,8 +11,8 @@ import java.lang.annotation.Annotation;
 class ParameterType extends SigType {
     final ToNativeConverter toNativeConverter;
 
-    ParameterType(Class javaType, com.kenai.jffi.Type jffiType, Annotation[] annotations, ToNativeConverter toNativeConverter) {
-        super(javaType, jffiType, annotations, toNativeConverter != null ? toNativeConverter.nativeType() : javaType);
+    ParameterType(Class javaType, NativeType nativeType, Annotation[] annotations, ToNativeConverter toNativeConverter) {
+        super(javaType, nativeType, annotations, toNativeConverter != null ? toNativeConverter.nativeType() : javaType);
         this.toNativeConverter = toNativeConverter;
     }
 }

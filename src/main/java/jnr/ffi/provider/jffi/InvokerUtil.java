@@ -18,15 +18,14 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.Platform;
+import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.SaveError;
 import jnr.ffi.annotations.TypeDefinition;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.Struct;
-import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
 
@@ -286,10 +285,58 @@ final class InvokerUtil {
     }
 
     static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter fromNativeConverter) {
-        return new ResultType(type, getNativeReturnType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations), annotations, fromNativeConverter);
+        return new ResultType(type, getNativeType(getNativeReturnType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations)), annotations, fromNativeConverter);
     }
 
     static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations, ToNativeConverter toNativeConverter) {
-        return new ParameterType(type, getNativeParameterType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations), annotations, toNativeConverter);
+        return new ParameterType(type, getNativeType(getNativeParameterType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations)), annotations, toNativeConverter);
+    }
+
+    static NativeType getNativeType(Type type) {
+        if (Type.SCHAR == type || Type.SINT8 == type) {
+            return NativeType.SCHAR;
+
+        } else if (Type.UCHAR == type || Type.UINT8 == type) {
+            return NativeType.UCHAR;
+        }
+        else if (Type.SSHORT == type || Type.SINT16 == type) {
+            return NativeType.SSHORT;
+
+        } else if (Type.USHORT == type || Type.UINT16 == type) {
+            return NativeType.USHORT;
+
+        } else if (Type.SINT == type || Type.SINT32 == type) {
+            return NativeType.SINT;
+
+        } else if (Type.UINT == type || Type.UINT32 == type) {
+            return NativeType.UINT;
+
+        } else if (Type.SLONG == type) {
+            return NativeType.SLONG;
+
+        } else if (Type.ULONG == type) {
+            return NativeType.ULONG;
+
+        } else if (Type.SLONG_LONG == type || Type.SINT64 == type) {
+            return NativeType.SLONGLONG;
+
+        } else if (Type.ULONG_LONG == type || Type.UINT64 == type) {
+            return NativeType.ULONGLONG;
+
+        } else if (Type.FLOAT == type) {
+            return NativeType.FLOAT;
+
+        } else if (Type.DOUBLE == type) {
+            return NativeType.DOUBLE;
+
+        } else if (Type.VOID == type) {
+            return NativeType.VOID;
+
+        } else if (Type.POINTER == type) {
+            return NativeType.ADDRESS;
+
+        } else {
+            throw new IllegalArgumentException("unknown type: " + type);
+        }
     }
 }
