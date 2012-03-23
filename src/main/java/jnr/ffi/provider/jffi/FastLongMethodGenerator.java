@@ -5,6 +5,7 @@ import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import jnr.ffi.NativeType;
+import jnr.ffi.mapper.PostInvocation;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;

@@ -6,10 +6,7 @@ import com.kenai.jffi.Platform;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeContext;
-import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.*;
 import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,6 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.convertAndReturnResult;
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
@@ -60,6 +58,10 @@ class X86MethodGenerator implements MethodGenerator {
         int objectCount = 0;
         for (int i = 0; i < parameterTypes.length; ++i) {
             if (!isSupportedParameter(parameterTypes[i])) {
+                return false;
+            }
+
+            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
                 return false;
             }
 
@@ -136,6 +138,7 @@ class X86MethodGenerator implements MethodGenerator {
         LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
         LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
+        LocalVariable[] converted = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         for (int i = 0; i < parameterTypes.length; ++i) {
@@ -143,6 +146,10 @@ class X86MethodGenerator implements MethodGenerator {
             Class nativeParameterClass = nativeParameterTypes[i];
 
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
+            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
+                mv.dup();
+                mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
+            }
 
             if (Number.class.isAssignableFrom(javaParameterClass)) {
                 unboxNumber(mv, javaParameterClass, nativeParameterClass);
@@ -207,6 +214,8 @@ class X86MethodGenerator implements MethodGenerator {
 
         // invoke the compiled stub
         mv.invokestatic(builder.getClassNamePath(), nativeMethodName, sig(nativeReturnType, nativeParameterTypes));
+
+        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
 
         // If boxing is neccessary, perform conversions
         Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());

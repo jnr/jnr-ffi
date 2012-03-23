@@ -7,6 +7,8 @@ import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
+import jnr.ffi.byref.ByReference;
+import jnr.ffi.mapper.PostInvocation;
 
 import java.nio.*;
 
@@ -155,7 +157,7 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     static int getMaximumParameters() {
         try {
-            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeN6", Function.class,
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeN6", CallContext.class, long.class,
                     long.class, long.class, long.class, long.class, long.class, long.class);
             return 6;
         } catch (Throwable t) {

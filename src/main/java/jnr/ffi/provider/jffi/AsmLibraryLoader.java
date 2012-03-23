@@ -30,6 +30,7 @@ import jnr.ffi.mapper.*;
 import jnr.ffi.provider.IdentityFunctionMapper;
 import jnr.ffi.provider.NullTypeMapper;
 import jnr.ffi.Struct;
+import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.EnumMapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -280,6 +281,9 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         } else if (isDelegate(parameterType)) {
             return closureManager.getClosureFactory(parameterType);
+
+        } else if (ByReference.class.isAssignableFrom(parameterType)) {
+            return new ByReferenceParameterConverter(ParameterFlags.parse(m.getParameterAnnotations()[parameterIndex]));
 
         } else {
             return null;

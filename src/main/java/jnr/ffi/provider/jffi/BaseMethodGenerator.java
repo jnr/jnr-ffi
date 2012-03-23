@@ -2,10 +2,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeContext;
-import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.boxValue;
 import static jnr.ffi.provider.jffi.AsmUtil.calculateLocalVariableSpace;
@@ -101,6 +98,23 @@ abstract class BaseMethodGenerator implements MethodGenerator {
 
         } else {
             AsmUtil.emitReturn(mv, resultType.getDeclaredType(), nativeResultClass);
+        }
+    }
+
+    static void emitPostInvoke(AsmBuilder builder, SkinnyMethodAdapter mv, ParameterType[] parameterTypes,
+                               LocalVariable[] parameters, LocalVariable[] converted) {
+        for (int i = 0; i < converted.length; ++i) {
+            if (converted[i] != null) {
+                mv.aload(0);
+                mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterTypes[i].toNativeConverter),
+                        ci(ToNativeConverter.class));
+                mv.checkcast(PostInvocation.class);
+                mv.aload(parameters[i]);
+                mv.aload(converted[i]);
+                mv.aconst_null();
+                mv.invokeinterface(PostInvocation.class, "postInvoke", void.class,
+                        Object.class, Object.class, ToNativeContext.class);
+            }
         }
     }
 }

@@ -7,6 +7,8 @@ import com.kenai.jffi.ObjectParameterStrategy;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 import jnr.ffi.NativeType;
+import jnr.ffi.mapper.PostInvocation;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
 
 import org.objectweb.asm.Label;
@@ -70,11 +72,16 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
         LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
+        LocalVariable[] converted = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         // Load, convert, and un-box parameters
         for (int i = 0; i < parameterTypes.length; ++i) {
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
+            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
+                mv.dup();
+                mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
+            }
 
             Class javaParameterType = parameterTypes[i].effectiveJavaType();
 
@@ -158,6 +165,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 getInvokerSignature(parameterTypes.length, nativeIntType));
 
         if (pointerCount > 0) mv.label(convertResult);
+
+        // Update any converted parameters that require it
+        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
 
         Class javaReturnType = resultType.effectiveJavaType();
         Class nativeReturnType = nativeIntType;

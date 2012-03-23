@@ -7,6 +7,7 @@ import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
+import jnr.ffi.mapper.PostInvocation;
 
 import java.nio.*;
 

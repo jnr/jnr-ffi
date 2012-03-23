@@ -7,6 +7,7 @@ import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.PostInvocation;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
@@ -146,12 +147,14 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, Function function, ResultType resultType, ParameterType[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
         final boolean sessionRequired = isSessionRequired(parameterTypes);
-        final int lvarSession = sessionRequired ? calculateLocalVariableSpace(parameterTypes) + 1 : -1;
+        LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
+        LocalVariable session = localVariableAllocator.allocate(InvocationSession.class);
+
         if (sessionRequired) {
             mv.newobj(p(InvocationSession.class));
             mv.dup();
             mv.invokespecial(InvocationSession.class, "<init>", void.class);
-            mv.astore(lvarSession);
+            mv.astore(session);
         }
 
         // Create a new InvocationBuffer
@@ -161,13 +164,20 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         // [ stack contains: Invoker, Function, HeapInvocationBuffer ]
 
         LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
+        LocalVariable[] converted = new LocalVariable[parameterTypes.length];
+
+
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.dup(); // dup ref to HeapInvocationBuffer
 
             if (isSessionRequired(parameterTypes[i])) {
-                mv.aload(lvarSession);
+                mv.aload(session);
             }
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
+            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
+                mv.dup();
+                mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
+            }
 
             final int parameterFlags = AsmUtil.getParameterFlags(parameterTypes[i].annotations);
             final int nativeArrayFlags = AsmUtil.getNativeArrayFlags(parameterFlags)
@@ -288,8 +298,10 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         mv.invokevirtual(Invoker.class, invokeMethod,
                 nativeReturnType, CallContext.class, long.class, HeapInvocationBuffer.class);
 
+        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
+
         if (sessionRequired) {
-            mv.aload(lvarSession);
+            mv.aload(session);
             mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
         }
 
