@@ -100,7 +100,7 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
 
     static int getMaximumFastLongParameters() {
         try {
-            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeLLLLLLrL", Function.class,
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeL6", CallContext.class, long.class,
                     long.class, long.class, long.class, long.class, long.class, long.class);
             return 6;
         } catch (Throwable t) {
