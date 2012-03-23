@@ -18,9 +18,7 @@ import java.util.*;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.NumberUtil.narrow;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
-import static jnr.ffi.provider.jffi.NumberUtil.widen;
+import static jnr.ffi.provider.jffi.NumberUtil.*;
 
 /**
  *
@@ -178,7 +176,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         }
 
         // box and/or narrow/widen the return value if needed
-        convertAndReturnResult(builder, mv, resultType, nativeReturnType);
+        Class unboxedResultType = unboxedReturnType(javaReturnType);
+        convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
+        convertAndReturnResult(builder, mv, resultType, unboxedResultType);
 
         /* --  method returns above - below is an alternative path -- */
 

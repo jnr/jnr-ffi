@@ -21,6 +21,9 @@ package jnr.ffi;
 import java.nio.ByteOrder;
 
 import jnr.ffi.annotations.LongLong;
+import jnr.ffi.types.int32_t;
+import jnr.ffi.types.int8_t;
+import jnr.ffi.types.size_t;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -44,14 +47,15 @@ public class PointerTest {
         @LongLong long ptr_ret_int64_t(Pointer p, int offset);
         float ptr_ret_float(Pointer p, int offset);
         double ptr_ret_double(Pointer p, int offset);
-        void ptr_set_int8_t(Pointer p, int offset, byte value);
+        void ptr_set_int8_t(Pointer p, int offset, @int8_t byte value);
         void ptr_set_int16_t(Pointer p, int offset, short value);
-        void ptr_set_int32_t(Pointer p, int offset, int value);
+        void ptr_set_int32_t(Pointer p, int offset, @int32_t int value);
+        void ptr_set_int32_t(Pointer p, int offset, @int32_t long value);
         void ptr_set_int64_t(Pointer p, int offset, @LongLong long value);
         void ptr_set_float(Pointer p, int offset, float value);
         void ptr_set_double(Pointer p, int offset, double value);
-        
-        Pointer ptr_malloc(int size);
+
+        Pointer ptr_malloc(@size_t int size);
         void ptr_free(Pointer ptr);
     }
     static TestLib testlib;

@@ -135,6 +135,9 @@ final class AsmUtil {
         } else if (Pointer.class.isAssignableFrom(boxedType) || Struct.class.isAssignableFrom(boxedType)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
+        } else if (Address.class == boxedType) {
+            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
+
         } else if (String.class == boxedType) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
@@ -276,54 +279,33 @@ final class AsmUtil {
                 case SCHAR:
                 case UCHAR:
                     mv.invokevirtual(p(boxedType), "byteValue", "()B");
-                    if (nativeType == NativeType.UCHAR) {
-                        mv.pushInt(0xff);
-                        mv.iand();
-                    }
-                    widen(mv, int.class, unboxedType);
+                    convertPrimitive(mv, byte.class, unboxedType, nativeType);
                     break;
 
                 case SSHORT:
                 case USHORT:
                     mv.invokevirtual(p(boxedType), "shortValue", "()S");
-                    if (nativeType == NativeType.USHORT) {
-                        mv.pushInt(0xffff);
-                        mv.iand();
-                    }
-                    widen(mv, int.class, unboxedType);
-                    narrow(mv, int.class, unboxedType);
+                    convertPrimitive(mv, short.class, unboxedType, nativeType);
                     break;
 
                 case SINT:
                 case UINT:
-                    mv.invokevirtual(p(boxedType), "intValue", "()I");
-                    widen(mv, int.class, unboxedType);
-                    if (long.class == unboxedType && nativeType == NativeType.UINT) {
-                        mv.pushInt(0xffffffff);
-                        mv.i2l();
-                        mv.land();
-                    } else {
-                        narrow(mv, int.class, unboxedType);
-                    }
-
-                    break;
-
                 case SLONG:
                 case ULONG:
+                case ADDRESS:
                     if (sizeof(nativeType) == 4) {
                         mv.invokevirtual(p(boxedType), "intValue", "()I");
-                        widen(mv, int.class, unboxedType);
-                        narrow(mv, int.class, unboxedType);
+                        convertPrimitive(mv, int.class, unboxedType, nativeType);
                     } else {
                         mv.invokevirtual(p(boxedType), "longValue", "()J");
-                        narrow(mv, int.class, unboxedType);
+                        convertPrimitive(mv, long.class, unboxedType, nativeType);
                     }
                     break;
 
                 case SLONGLONG:
                 case ULONGLONG:
                     mv.invokevirtual(p(boxedType), "longValue", "()J");
-                    narrow(mv, int.class, unboxedType);
+                    narrow(mv, long.class, unboxedType);
                     break;
 
                 case FLOAT:
@@ -385,59 +367,31 @@ final class AsmUtil {
         }
     }
 
-    static final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType) {
-        if (returnType == nativeReturnType) {
+    static final void boxValue(SkinnyMethodAdapter mv, Class boxedType, Class unboxedType) {
+        if (boxedType == unboxedType) {
             return;
 
-        } else if (Boolean.class.isAssignableFrom(returnType)) {
-            narrow(mv, nativeReturnType, boolean.class);
+        } else if (Boolean.class.isAssignableFrom(boxedType)) {
+            narrow(mv, unboxedType, boolean.class);
             mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
 
-        } else if (Pointer.class.isAssignableFrom(returnType)) {
-            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, nativeReturnType);
+        } else if (Pointer.class.isAssignableFrom(boxedType)) {
+            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, unboxedType);
 
-        } else if (Address.class == returnType) {
-            mv.invokestatic(returnType, "valueOf", returnType, nativeReturnType);
+        } else if (Address.class == boxedType || NativeLong.class.isAssignableFrom(boxedType)) {
+            mv.invokestatic(boxedType, "valueOf", boxedType, unboxedType);
 
-        } else if (Struct.class.isAssignableFrom(returnType)) {
-            boxStruct(mv, returnType, nativeReturnType);
+        } else if (Struct.class.isAssignableFrom(boxedType)) {
+            boxStruct(mv, boxedType, unboxedType);
 
-        } else if (Number.class.isAssignableFrom(returnType)) {
-            boxNumber(mv, returnType, nativeReturnType);
+        } else if (Number.class.isAssignableFrom(boxedType) && boxedType(unboxedType) == boxedType) {
+            mv.invokestatic(boxedType, "valueOf", boxedType, unboxedType);
 
-        } else if (String.class == returnType) {
-            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, nativeReturnType);
-
-        } else {
-            throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);
-        }
-    }
-
-    static final void boxValue(SkinnyMethodAdapter mv, Class returnType, Class nativeReturnType, NativeType nativeType) {
-        if (returnType == nativeReturnType) {
-            return;
-
-        } else if (Boolean.class.isAssignableFrom(returnType)) {
-            narrow(mv, nativeReturnType, boolean.class);
-            mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
-
-        } else if (Pointer.class.isAssignableFrom(returnType)) {
-            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, nativeReturnType);
-
-        } else if (Address.class == returnType) {
-            mv.invokestatic(returnType, "valueOf", returnType, nativeReturnType);
-
-        } else if (Struct.class.isAssignableFrom(returnType)) {
-            boxStruct(mv, returnType, nativeReturnType);
-
-        } else if (Number.class.isAssignableFrom(returnType)) {
-            boxNumber(mv, returnType, nativeReturnType, nativeType);
-
-        } else if (String.class == returnType) {
-            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, nativeReturnType);
+        } else if (String.class == boxedType) {
+            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, unboxedType);
 
         } else {
-            throw new IllegalArgumentException("cannot box value of type " + nativeReturnType + " to " + returnType);
+            throw new IllegalArgumentException("cannot box value of type " + unboxedType + " to " + boxedType);
         }
     }
 
@@ -486,25 +440,6 @@ final class AsmUtil {
         mv.label(end);
     }
 
-    static final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativeType) {
-        Class primitiveClass = getPrimitiveClass(type);
-
-        // Emit widening/narrowing ops if necessary
-        widen(mv, nativeType, primitiveClass);
-        narrow(mv, nativeType, primitiveClass);
-
-        mv.invokestatic(type, "valueOf", type, primitiveClass);
-    }
-
-
-    static final void boxNumber(SkinnyMethodAdapter mv, Class type, Class nativePrimitiveType, NativeType nativeType) {
-        Class primitiveClass = getPrimitiveClass(type);
-
-        // Emit widening/narrowing ops if necessary
-        convertPrimitive(mv, nativePrimitiveType, primitiveClass, nativeType);
-        mv.invokestatic(type, "valueOf", type, primitiveClass);
-    }
-
     static boolean isDelegate(Class klass) {
         for (Method m : klass.getMethods()) {
             if (m.isAnnotationPresent(Delegate.class)) {
@@ -519,18 +454,6 @@ final class AsmUtil {
         return isDelegate(type.getDeclaredType());
     }
 
-
-    static final Type getNativeParameterType(Method method, int paramIndex, TypeMapper mapper) {
-        Class type = method.getParameterTypes()[paramIndex];
-        ToNativeConverter converter = mapper.getToNativeConverter(type);
-
-        return InvokerUtil.getNativeParameterType(converter != null ? converter.nativeType() : type,
-                method.getParameterAnnotations()[paramIndex]);
-    }
-
-    static final int getParameterFlags(Method method, int paramIndex) {
-        return getParameterFlags(method.getParameterAnnotations()[paramIndex]);
-    }
 
     static final int getParameterFlags(Annotation[] annotations) {
         return ParameterFlags.parse(annotations);
@@ -701,9 +624,8 @@ final class AsmUtil {
         return needBufferInvocation ? bufferInvocationLabel : null;
     }
 
-    static void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType, NativeType nativeType) {
+    static void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
         if (returnType.isPrimitive()) {
-            convertPrimitive(mv, nativeIntType, returnType, nativeType);
 
             if (long.class == returnType) {
                 mv.lreturn();
@@ -722,7 +644,7 @@ final class AsmUtil {
             }
 
         } else {
-            boxValue(mv, returnType, nativeIntType, nativeType);
+            boxValue(mv, returnType, nativeIntType);
             mv.areturn();
         }
     }

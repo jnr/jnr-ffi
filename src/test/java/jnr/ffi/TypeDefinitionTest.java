@@ -19,10 +19,13 @@ public class TypeDefinitionTest {
     }
     public static interface TestLib {
         public @int8_t int add_int8_t(@int8_t int i1, @int8_t int i2);
+        public @int8_t int add_int8_t(@int8_t Integer i1, @int8_t int i2);
         public @int8_t Long add_int8_t(@int8_t Long i1, @int8_t Integer i2);
         public int add_uint8_t(@u_int8_t int i1, @u_int8_t int i2);
         public int ret_uint8_t(@u_int8_t int i1);
         public @u_int32_t long ret_uint32_t(@u_int32_t long i1);
+        public @u_int32_t short ret_uint32_t(@u_int32_t byte i1);
+        public void ret_long(@size_t int i1);
     }
 
     static TestLib testlib;
@@ -38,7 +41,6 @@ public class TypeDefinitionTest {
     }
 
     @Test public void doNothing() {
-        testlib.add_int8_t(1, 2);
     }
 
     @Test public void returnUnsigned8() {

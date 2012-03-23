@@ -19,14 +19,11 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Platform;
-import com.kenai.jffi.Type;
 import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.annotations.LongLong;
 
 import java.lang.annotation.Annotation;
-import java.util.EnumMap;
-import java.util.EnumSet;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -97,7 +94,7 @@ public final class NumberUtil {
             return double.class;
         
         } else if (NativeLong.class == c) {
-            return long.class;
+            return Platform.getPlatform().longSize() == 4 ? int.class : long.class;
 
         } else if (c.isPrimitive()) {
             return c;
@@ -114,6 +111,11 @@ public final class NumberUtil {
     public static final void widen(SkinnyMethodAdapter mv, Class from, Class to) {
         if (long.class == to && long.class != from && isPrimitiveInt(from)) {
             mv.i2l();
+
+        } else if (boolean.class == to && boolean.class != from && isPrimitiveInt(from)) {
+            // Ensure only 0x0 and 0x1 values are used for boolean
+            mv.iconst_1();
+            mv.iand();
         }
     }
 
@@ -145,6 +147,7 @@ public final class NumberUtil {
         }
     }
 
+
     public static final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
         if (!from.equals(to)) {
             if (byte.class == to || short.class == to || char.class == to || int.class == to || boolean.class == to) {
@@ -170,56 +173,96 @@ public final class NumberUtil {
         }
     }
 
-    static void constrain(SkinnyMethodAdapter mv, Class from, Class to, Class constraint, NativeType nativeType) {
-        narrow(mv, from, constraint);
-        widen(mv, constraint, to, nativeType);
-        if (boolean.class == to) {
-            // Ensure only 0x0 and 0x1 values are used for boolean
-            mv.iconst_1();
-            mv.iand();
-        }
+
+    public static void convertPrimitive(SkinnyMethodAdapter mv, final Class from, final Class to) {
+        narrow(mv, from, to);
+        widen(mv, from, to);
     }
 
+
     public static void convertPrimitive(SkinnyMethodAdapter mv, final Class from, final Class to, final NativeType nativeType) {
+        if (boolean.class == to) {
+            narrow(mv, from, to);
+            return;
+        }
+
         switch (nativeType) {
             case SCHAR:
-                constrain(mv, from, to, byte.class, nativeType);
-                break;
-
-            case UCHAR:
-                constrain(mv, from, to, int.class, nativeType);
+                narrow(mv, from, byte.class);
+                widen(mv, byte.class, to);
                 break;
 
             case SSHORT:
-                constrain(mv, from, to, short.class, nativeType);
-                break;
-
-            case USHORT:
-                constrain(mv, from, to, int.class, nativeType);
+                narrow(mv, from, short.class);
+                widen(mv, short.class, to);
                 break;
 
             case SINT:
-            case UINT:
-                constrain(mv, from, to, int.class, nativeType);
+                narrow(mv, from, int.class);
+                widen(mv, int.class, to);
                 break;
 
+            case UCHAR:
+                narrow(mv, from, int.class);
+                mv.pushInt(0xff);
+                mv.iand();
+                widen(mv, int.class, to);
+                break;
 
-            case SLONG:
+            case USHORT:
+                narrow(mv, from, int.class);
+                mv.pushInt(0xffff);
+                mv.iand();
+                widen(mv, int.class, to);
+                break;
+
+            case UINT:
             case ULONG:
             case ADDRESS:
-                constrain(mv, from, to, sizeof(nativeType) == 4 ? int.class : long.class, nativeType);
+                if (sizeof(nativeType) <= 4) {
+                    narrow(mv, from, int.class);
+                    if (long.class == to) {
+                        mv.i2l();
+                        // strip off bits 32:63
+                        mv.ldc(0xffffffffL);
+                        mv.land();
+                    }
+                } else {
+                    widen(mv, from, to);
+                }
                 break;
 
+
+            case FLOAT:
+            case DOUBLE:
+                break;
 
             default:
                 narrow(mv, from, to);
-                widen(mv, from, to, nativeType);
+                widen(mv, from, to);
                 break;
         }
     }
 
     static int sizeof(SigType type) {
         return sizeof(type.nativeType);
+    }
+
+    static int sizeof(Class type) {
+        if (byte.class == type || boolean.class == type) {
+            return 1;
+
+        } else if (short.class == type || char.class == type) {
+            return 2;
+
+        } else if (int.class == type || float.class == type) {
+            return 4;
+
+        } else if (long.class == type || double.class == type) {
+            return 8;
+        } else {
+            throw new UnsupportedOperationException("cannot determine size of " + type);
+        }
     }
 
     static int sizeof(NativeType nativeType) {

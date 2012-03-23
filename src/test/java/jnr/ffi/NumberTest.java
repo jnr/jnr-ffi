@@ -43,6 +43,7 @@ public class NumberTest {
         public byte add_int8_t(byte i1, byte i2);
 
         public short add_int16_t(short i1, short i2);
+        public short add_int16_t(Short i1, short i2);
 
         public int add_int32_t(int i1, int i2);
         public @LongLong long add_int64_t(@LongLong long i1, @LongLong long i2);

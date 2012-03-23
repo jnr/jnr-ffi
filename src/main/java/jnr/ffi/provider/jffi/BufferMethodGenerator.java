@@ -99,7 +99,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         }
 
 
-        if (!parameterType.getDeclaredType().isPrimitive()) {
+        if (!javaParameterType.isPrimitive()) {
             unboxNumber(mv, javaParameterType, nativeParamType, parameterType.nativeType);
         } else {
             convertPrimitive(mv, javaParameterType, nativeParamType, parameterType.nativeType);
@@ -293,6 +293,9 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
         }
 
-        convertAndReturnResult(builder, mv, resultType, nativeReturnType);
+        // box and/or narrow/widen the return value if needed
+        Class unboxedResultType = unboxedReturnType(javaReturnType);
+        convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
+        convertAndReturnResult(builder, mv, resultType, unboxedResultType);
     }
 }

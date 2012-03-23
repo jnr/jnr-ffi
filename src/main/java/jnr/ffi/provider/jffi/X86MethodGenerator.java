@@ -6,11 +6,17 @@ import com.kenai.jffi.Platform;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.convertAndReturnResult;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
@@ -77,15 +83,23 @@ class X86MethodGenerator implements MethodGenerator {
 
         Class[] nativeParameterTypes = new Class[parameterTypes.length];
         boolean wrapperNeeded = false;
-        for (int i = 0; i < parameterTypes.length; ++i) {
 
-            nativeParameterTypes[i] = nativeParameterType(parameterTypes[i]);
-            wrapperNeeded |= nativeParameterTypes[i] != parameterTypes[i].effectiveJavaType();
-            wrapperNeeded |= isSupportedObjectParameterType(parameterTypes[i]);
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            if (!parameterTypes[i].effectiveJavaType().isPrimitive()) {
+                nativeParameterTypes[i] = getNativeClass(parameterTypes[i].nativeType);
+                wrapperNeeded = true;
+            } else {
+                nativeParameterTypes[i] = parameterTypes[i].effectiveJavaType();
+            }
         }
 
-        Class nativeReturnType = nativeResultType(resultType);
-        wrapperNeeded |= nativeReturnType != resultType.effectiveJavaType();
+        Class nativeReturnType;
+        if (resultType.effectiveJavaType().isPrimitive()) {
+            nativeReturnType = resultType.effectiveJavaType();
+        } else {
+            nativeReturnType = getNativeClass(resultType.nativeType);
+            wrapperNeeded = true;
+        }
 
         String stubName = functionName + (wrapperNeeded ? "$jni$" + nextMethodID.incrementAndGet() : "");
 
@@ -97,18 +111,19 @@ class X86MethodGenerator implements MethodGenerator {
 
         // If unboxing of parameters is required, generate a wrapper
         if (wrapperNeeded) {
-            generateWrapper(builder, functionName, function, resultType, parameterTypes, ignoreError,
+            generateWrapper(builder, functionName, function, resultType, parameterTypes,
                     stubName, nativeReturnType, nativeParameterTypes);
         }
     }
 
     private static void generateWrapper(AsmBuilder builder, String functionName, Function function,
-                                        ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError,
+                                        ResultType resultType, ParameterType[] parameterTypes,
                                         String nativeMethodName, Class nativeReturnType, Class[] nativeParameterTypes) {
         Class[] javaParameterTypes = new Class[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             javaParameterTypes[i] = parameterTypes[i].getDeclaredType();
         }
+
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(
                 ACC_PUBLIC | ACC_FINAL,
                 functionName, sig(resultType.getDeclaredType(), javaParameterTypes), null, null));
@@ -124,26 +139,23 @@ class X86MethodGenerator implements MethodGenerator {
         int pointerCount = 0;
 
         for (int i = 0; i < parameterTypes.length; ++i) {
-            Class javaParameterType = parameterTypes[i].effectiveJavaType();
-            Class nativeParameterType = nativeParameterTypes[i];
+            Class javaParameterClass = parameterTypes[i].effectiveJavaType();
+            Class nativeParameterClass = nativeParameterTypes[i];
 
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
 
-            if (Number.class.isAssignableFrom(javaParameterType)) {
-                unboxNumber(mv, javaParameterType, nativeParameterType);
+            if (Number.class.isAssignableFrom(javaParameterClass)) {
+                unboxNumber(mv, javaParameterClass, nativeParameterClass);
 
-            } else if (Boolean.class.isAssignableFrom(javaParameterType)) {
-                unboxBoolean(mv, javaParameterType, nativeParameterType);
+            } else if (Boolean.class.isAssignableFrom(javaParameterClass)) {
+                unboxBoolean(mv, javaParameterClass, nativeParameterClass);
 
-            } else if (Pointer.class.isAssignableFrom(javaParameterType) && isDelegate(parameterTypes[i].getDeclaredType())) {
+            } else if (Pointer.class.isAssignableFrom(javaParameterClass) && isDelegate(parameterTypes[i].getDeclaredType())) {
                 // delegates are always direct, so handle without the strategy processing
-                unboxPointer(mv, nativeParameterType);
+                unboxPointer(mv, nativeParameterClass);
 
-            } else if (long.class == javaParameterType) {
-                narrow(mv, long.class, nativeParameterType);
-
-            } else if (Pointer.class.isAssignableFrom(javaParameterType)
-                    || Struct.class.isAssignableFrom(javaParameterType)
+            } else if (Pointer.class.isAssignableFrom(javaParameterClass)
+                    || Struct.class.isAssignableFrom(javaParameterClass)
                     ) {
 
                 // Initialize the objectCount local var
@@ -164,7 +176,7 @@ class X86MethodGenerator implements MethodGenerator {
                     pointers[i] = parameters[i];
                 }
 
-                AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations);
+                emitPointerParameterStrategyLookup(mv, javaParameterClass, parameterTypes[i].annotations);
 
                 mv.astore(strategies[i]);
                 mv.aload(strategies[i]);
@@ -178,10 +190,10 @@ class X86MethodGenerator implements MethodGenerator {
                 mv.aload(strategies[i]);
                 mv.aload(pointers[i]);
                 mv.invokevirtual(PointerParameterStrategy.class, "address", long.class, Object.class);
-                narrow(mv, long.class, nativeParameterType);
+                narrow(mv, long.class, nativeParameterClass);
 
-            } else if (!javaParameterType.isPrimitive()) {
-                throw new IllegalArgumentException("unsupported type " + javaParameterType);
+            } else if (!javaParameterClass.isPrimitive()) {
+                throw new IllegalArgumentException("unsupported type " + javaParameterClass);
             }
         }
         Label hasObjects = new Label();
@@ -196,10 +208,17 @@ class X86MethodGenerator implements MethodGenerator {
         // invoke the compiled stub
         mv.invokestatic(builder.getClassNamePath(), nativeMethodName, sig(nativeReturnType, nativeParameterTypes));
 
-        if (pointerCount > 0) mv.label(convertResult);
-        BaseMethodGenerator.convertAndReturnResult(builder, mv, resultType, nativeReturnType);
+        // If boxing is neccessary, perform conversions
+        Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());
+        convertPrimitive(mv, nativeReturnType, unboxedResultType);
 
-        /* --  method returns above - below is the object path -- */
+        if (pointerCount > 0) {
+            mv.label(convertResult);
+        }
+
+        convertAndReturnResult(builder, mv, resultType, unboxedResultType);
+
+        /* --  method returns above - below is the object path, which will jump back above to return -- */
 
         // Now implement heap object support
         if (pointerCount > 0) {
@@ -215,8 +234,9 @@ class X86MethodGenerator implements MethodGenerator {
 
                 } else if (double.class == nativeParameterTypes[i]) {
                     mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
+
                 } else {
-                    widen(mv, nativeParameterTypes[i], long.class);
+                    convertPrimitive(mv, nativeParameterTypes[i], long.class, parameterTypes[i].nativeType);
                 }
                 mv.lstore(tmp[i]);
             }
@@ -232,9 +252,7 @@ class X86MethodGenerator implements MethodGenerator {
             mv.getfield(builder.getClassNamePath(), builder.getFunctionAddressFieldName(function), ci(long.class));
 
             // Now reload the args back onto the parameter stack
-            for (int i = 0; i < parameterTypes.length; i++) {
-                mv.lload(tmp[i]);
-            }
+            mv.lload(tmp);
 
             mv.iload(objCount);
             // Need to load all the converters onto the stack
@@ -267,9 +285,8 @@ class X86MethodGenerator implements MethodGenerator {
             } else if (void.class == nativeReturnType) {
                 mv.pop2();
 
-            } else {
-                convertPrimitive(mv, long.class, nativeReturnType, resultType.nativeType);
             }
+            convertPrimitive(mv, long.class, unboxedResultType, resultType.nativeType);
 
             // Jump to the main conversion/boxing code above
             mv.go_to(convertResult);
@@ -282,24 +299,6 @@ class X86MethodGenerator implements MethodGenerator {
         compiler.attach(clazz);
     }
 
-    static Class nativeParameterType(ParameterType parameterType) {
-        Class javaType = parameterType.effectiveJavaType();
-        if (javaType.isPrimitive()) {
-            return javaType;
-        }
-        return AsmUtil.unboxedParameterType(javaType);
-    }
-
-    private static Class nativeResultType(ResultType resultType) {
-        Class javaType = resultType.effectiveJavaType();
-
-        if (resultType.nativeType == NativeType.SLONG || resultType.nativeType == NativeType.ULONG) {
-            return resultType.size()  == 4 ? int.class : long.class;
-
-        } else {
-            return AsmUtil.unboxedParameterType(javaType);
-        }
-    }
 
     private static boolean isSupportedObjectParameterType(ParameterType type) {
         return Pointer.class.isAssignableFrom(type.effectiveJavaType())
@@ -333,5 +332,36 @@ class X86MethodGenerator implements MethodGenerator {
                 || isSupportedObjectParameterType(parameterType)
                 || isDelegate(parameterType)
                 ;
+    }
+
+    static Class getNativeClass(NativeType nativeType) {
+        switch (nativeType) {
+            case SCHAR:
+            case UCHAR:
+            case SSHORT:
+            case USHORT:
+            case SINT:
+            case UINT:
+            case SLONG:
+            case ULONG:
+            case ADDRESS:
+            case SLONGLONG:
+            case ULONGLONG:
+                // Since the asm code does any sign/zero extension, we can pass everything down as int/long
+                // which potentially saves some java conversion ops
+                return sizeof(nativeType) <= 4 ? int.class : long.class;
+
+            case FLOAT:
+                return float.class;
+
+            case DOUBLE:
+                return float.class;
+
+            case VOID:
+                return void.class;
+
+            default:
+                throw new IllegalArgumentException("unsupported native type: " + nativeType);
+        }
     }
 }
