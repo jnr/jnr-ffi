@@ -108,10 +108,7 @@ final class InvokerUtil {
         
         } else if (Double.class.isAssignableFrom(type) || double.class == type) {
             return Type.DOUBLE;
-        
-        } else if (Enum.class.isAssignableFrom(type)) {
-            return Type.SINT32;
-        
+
         } else if (Pointer.class.isAssignableFrom(type)) {
             return Type.POINTER;
         

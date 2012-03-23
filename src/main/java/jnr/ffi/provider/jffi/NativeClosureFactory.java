@@ -20,7 +20,6 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallContextCache;
-import com.kenai.jffi.ClosureManager;
 import com.kenai.jffi.ClosurePool;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
@@ -316,16 +315,19 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
 
         // Remove from chained list
         synchronized (closures) {
-            retry: for (NativeClosurePointer prev = ptr; ptr != null; ptr = ptr.next) {
-                if (ptr.getNativeClosure() == cl) {
-                    if (prev != null) {
-                        prev.next = ptr.next;
-                        break;
+            remove: while ((ptr = closures.get(key)) != null) {
+                for (NativeClosurePointer prev = ptr; ptr != null; prev = ptr, ptr = ptr.next) {
+                    if (ptr.getNativeClosure() == cl) {
+                        if (prev != ptr) {
+                            // if not first element in list, just remove this one
+                            prev.next = ptr.next;
+                            break remove;
 
-                    } else if (ptr.next != null && !closures.replace(key, ptr, ptr.next)) {
-                        continue retry;
+                            // else replace the map entry with this ptr
+                        } else if (ptr.next != null && !closures.replace(key, ptr, ptr.next)) {
+                            continue remove;
+                        }
                     }
-
                 }
             }
         }

@@ -141,9 +141,6 @@ final class AsmUtil {
         } else if (String.class == boxedType) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
-        } else if (Enum.class.isAssignableFrom(boxedType)) {
-            return int.class;
-        
         } else {
             return boxedType;
         }
@@ -247,15 +244,6 @@ final class AsmUtil {
         unboxPointerOrStruct(mv, Pointer.class, nativeType);
     }
 
-    static final void unboxStruct(final SkinnyMethodAdapter mv, final Class nativeType) {
-        unboxPointerOrStruct(mv, Struct.class, nativeType);
-    }
-
-    static final void unboxBuffer(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
-        mv.invokestatic(p(AsmRuntime.class), "longValue", sig(long.class, type));
-        narrow(mv, long.class, nativeType);
-    }
-
     static final void unboxEnum(final SkinnyMethodAdapter mv, final Class nativeType) {
         mv.invokestatic(p(AsmRuntime.class), long.class == nativeType ? "longValue" : "intValue",
                 sig(nativeType, Enum.class));
@@ -321,9 +309,6 @@ final class AsmUtil {
         } else if (Boolean.class.isAssignableFrom(boxedType)) {
             unboxBoolean(mv, unboxedType);
 
-        } else if (Enum.class.isAssignableFrom(boxedType)) {
-            unboxEnum(mv, unboxedType);
-
         } else {
             throw new IllegalArgumentException("unsupported boxed type: " + boxedType);
         }
@@ -358,9 +343,6 @@ final class AsmUtil {
 
         } else if (Boolean.class.isAssignableFrom(boxedType)) {
             unboxBoolean(mv, nativeType);
-
-        } else if (Enum.class.isAssignableFrom(boxedType)) {
-            unboxEnum(mv, nativeType);
 
         } else {
             throw new IllegalArgumentException("unsupported boxed type: " + boxedType);
