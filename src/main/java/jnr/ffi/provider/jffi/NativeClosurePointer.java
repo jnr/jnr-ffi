@@ -18,8 +18,6 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
-import jnr.ffi.*;
 import jnr.ffi.provider.InAccessibleMemoryIO;
 
 /**

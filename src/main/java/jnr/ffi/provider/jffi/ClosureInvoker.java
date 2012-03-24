@@ -3,23 +3,21 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import java.io.PrintWriter;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
-import static jnr.ffi.provider.jffi.ClosureUtil.getParameterType;
-import static jnr.ffi.provider.jffi.ClosureUtil.getResultType;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static org.objectweb.asm.Opcodes.*;
 

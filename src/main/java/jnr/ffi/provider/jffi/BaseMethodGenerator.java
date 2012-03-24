@@ -5,9 +5,7 @@ import com.kenai.jffi.Function;
 import jnr.ffi.mapper.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.ci;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.getBoxedClass;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;

@@ -18,9 +18,9 @@
 
 package jnr.ffi.provider;
 
-import com.kenai.jffi.MemoryIO;
 import jnr.ffi.Runtime;
 import jnr.ffi.util.BufferUtil;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 

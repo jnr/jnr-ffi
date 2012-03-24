@@ -19,6 +19,7 @@
 package jnr.ffi.provider;
 
 import jnr.ffi.Pointer;
+
 import java.nio.ByteBuffer;
 
 /**

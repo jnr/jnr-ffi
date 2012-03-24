@@ -1,6 +1,5 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.ObjectParameterStrategy;
 import jnr.ffi.Pointer;
 
 /**

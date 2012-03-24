@@ -1,7 +1,5 @@
 package jnr.ffi.provider;
 
-import jnr.ffi.*;
-
 /**
  *
  */

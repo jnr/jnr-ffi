@@ -19,6 +19,7 @@
 package jnr.ffi;
 
 import jnr.ffi.provider.MemoryManager;
+
 import java.nio.ByteOrder;
 
 /**

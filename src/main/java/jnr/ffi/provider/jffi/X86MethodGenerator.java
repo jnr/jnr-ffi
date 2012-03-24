@@ -1,26 +1,20 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Platform;
-import jnr.ffi.*;
+import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.PostInvocation;
 import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
-import static jnr.ffi.provider.jffi.BaseMethodGenerator.convertAndReturnResult;
-import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
-import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static org.objectweb.asm.Opcodes.*;
 
 /**

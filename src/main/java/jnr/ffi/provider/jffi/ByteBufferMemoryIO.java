@@ -21,6 +21,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.MemoryIO;
 import jnr.ffi.Pointer;
 import jnr.ffi.provider.AbstractBufferMemoryIO;
+
 import java.nio.ByteBuffer;
 
 public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {

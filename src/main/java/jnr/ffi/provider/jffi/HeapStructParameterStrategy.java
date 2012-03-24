@@ -1,12 +1,8 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.ObjectParameterStrategy;
 import com.kenai.jffi.ObjectParameterType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.provider.AbstractArrayMemoryIO;
-import jnr.ffi.provider.DelegatingMemoryIO;
-import jnr.ffi.provider.ParameterFlags;
 
 /**
  *

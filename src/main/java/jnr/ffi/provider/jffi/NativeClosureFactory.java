@@ -19,38 +19,24 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
-import com.kenai.jffi.CallContextCache;
 import com.kenai.jffi.ClosurePool;
-import jnr.ffi.CallingConvention;
-import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.Delegate;
-import jnr.ffi.mapper.*;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
 
-import java.io.PrintWriter;
-import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AsmUtil.boxValue;
-import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
-import static jnr.ffi.provider.jffi.ClosureUtil.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.ClosureUtil.getParameterType;
+import static jnr.ffi.provider.jffi.ClosureUtil.getResultType;
 import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeCallingConvention;
-import static jnr.ffi.provider.jffi.NumberUtil.*;
-import static org.objectweb.asm.Opcodes.*;
 
 /**
  *

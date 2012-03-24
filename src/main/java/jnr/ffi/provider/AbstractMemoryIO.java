@@ -18,8 +18,11 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.*;
+import jnr.ffi.Address;
+import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import jnr.ffi.Type;
+
 import java.nio.ByteBuffer;
 
 /**

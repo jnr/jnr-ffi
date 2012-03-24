@@ -18,11 +18,9 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
-import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
-import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.EnumMapper;
 
 import java.lang.annotation.Annotation;

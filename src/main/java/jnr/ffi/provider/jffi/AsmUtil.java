@@ -18,26 +18,24 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.Type;
-import jnr.ffi.*;
 import com.kenai.jffi.Platform;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.nio.*;
-
+import jnr.ffi.*;
 import jnr.ffi.annotations.Delegate;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.nio.Buffer;
+
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
 
 final class AsmUtil {
     private AsmUtil() {}

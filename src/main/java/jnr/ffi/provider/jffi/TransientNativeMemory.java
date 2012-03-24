@@ -1,10 +1,10 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.PageManager;
+import jnr.ffi.util.ref.FinalizableWeakReference;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import jnr.ffi.util.ref.*;
 
 /**
  *

@@ -21,6 +21,7 @@ package jnr.ffi.provider;
 import jnr.ffi.NativeType;
 import jnr.ffi.Runtime;
 import jnr.ffi.Type;
+
 import java.nio.ByteOrder;
 import java.util.EnumMap;
 import java.util.EnumSet;

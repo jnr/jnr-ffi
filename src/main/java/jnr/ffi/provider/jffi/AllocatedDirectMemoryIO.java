@@ -19,6 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Runtime;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class AllocatedDirectMemoryIO extends DirectMemoryIO {

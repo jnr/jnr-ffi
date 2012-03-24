@@ -19,15 +19,10 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import com.kenai.jffi.Platform;
-import jnr.ffi.*;
+import jnr.ffi.Address;
+import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.byref.ByReference;
-import jnr.ffi.provider.AbstractArrayMemoryIO;
-import jnr.ffi.provider.AbstractBufferMemoryIO;
-import jnr.ffi.provider.DelegatingMemoryIO;
-import jnr.ffi.provider.InvocationSession;
+import jnr.ffi.provider.*;
 import jnr.ffi.util.BufferUtil;
 import jnr.ffi.util.EnumMapper;
 

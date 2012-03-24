@@ -34,9 +34,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 
-import jnr.ffi.types.*;
-import static jnr.ffi.TypeAlias.*;
-
 /**
  * Representation of C structures in java.
  * 

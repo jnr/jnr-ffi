@@ -18,9 +18,6 @@
 
 package jnr.ffi;
 
-import java.nio.ByteBuffer;
-
-
 /**
  * A utility for allocating memory that can be passed to native functions.
  */

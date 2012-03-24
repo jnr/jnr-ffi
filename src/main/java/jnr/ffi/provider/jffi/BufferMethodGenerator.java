@@ -1,10 +1,10 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Platform;
-import jnr.ffi.*;
+import jnr.ffi.Address;
+import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.PostInvocation;
@@ -14,10 +14,9 @@ import jnr.ffi.provider.ParameterFlags;
 
 import java.nio.Buffer;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.ci;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
+import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 
 /**

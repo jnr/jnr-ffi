@@ -4,18 +4,19 @@ import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.ObjectParameterInfo;
 import com.kenai.jffi.ObjectParameterStrategy;
+import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.NativeType;
 import jnr.ffi.mapper.PostInvocation;
-import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
-
 import org.objectweb.asm.Label;
 
 import java.lang.annotation.Annotation;
 import java.nio.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;

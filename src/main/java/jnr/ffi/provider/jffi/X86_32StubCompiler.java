@@ -20,17 +20,13 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
-import com.kenai.jffi.Internals;
-
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
-import static jnr.x86asm.Asm.*;
-
 import jnr.ffi.NativeType;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.Mem;
 import jnr.x86asm.Register;
 
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.x86asm.Asm.*;
 
 /**
  * Stub compiler for i386 unix

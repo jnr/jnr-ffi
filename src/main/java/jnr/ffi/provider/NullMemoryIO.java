@@ -18,9 +18,7 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-import java.nio.charset.Charset;
 
 public final class NullMemoryIO extends InAccessibleMemoryIO {
     private static final String msg = "attempted access to a NULL memory address";

@@ -19,7 +19,6 @@
 package jnr.ffi.byref;
 
 import jnr.ffi.Pointer;
-import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 
 /**

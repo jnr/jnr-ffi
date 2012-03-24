@@ -1,8 +1,6 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.ObjectParameterStrategy;
 import com.kenai.jffi.ObjectParameterType;
-import jnr.ffi.provider.AbstractBufferMemoryIO;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;

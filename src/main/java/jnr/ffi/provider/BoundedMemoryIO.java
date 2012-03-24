@@ -20,6 +20,7 @@ package jnr.ffi.provider;
 
 import jnr.ffi.Address;
 import jnr.ffi.Pointer;
+
 import java.nio.charset.Charset;
 
 

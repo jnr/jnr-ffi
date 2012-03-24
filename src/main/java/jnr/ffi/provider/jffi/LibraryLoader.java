@@ -19,6 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.LibraryOption;
+
 import java.util.Map;
 
 public abstract class LibraryLoader {
