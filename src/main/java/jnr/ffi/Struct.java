@@ -771,6 +771,10 @@ public abstract class Struct {
             getMemory().putInt(type, offset(), value.longValue());
         }
 
+        public void set(long value) {
+            getMemory().putInt(type, offset(), value);
+        }
+
         /**
          * Gets the value for this field.
          *
