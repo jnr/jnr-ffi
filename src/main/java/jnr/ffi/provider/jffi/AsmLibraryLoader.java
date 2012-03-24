@@ -19,43 +19,41 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
+import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Platform;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.ObjectParameterInfo;
 import jnr.ffi.*;
-import jnr.ffi.NativeType;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.IdentityFunctionMapper;
 import jnr.ffi.provider.NullTypeMapper;
-import jnr.ffi.Struct;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.EnumMapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
 
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.nio.*;
+import java.nio.Buffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
+import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.InvokerUtil.jffiType;
-import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static org.objectweb.asm.Opcodes.*;
 
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
-    private final NativeClosureManager closureManager = NativeRuntime.getInstance().getClosureManager();
+
+    private final NativeRuntime runtime = NativeRuntime.getInstance();
+
 
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
@@ -83,12 +81,14 @@ public class AsmLibraryLoader extends LibraryLoader {
     }
 
     private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+
         boolean debug = DEBUG && interfaceClass.getAnnotation(NoTrace.class) == null;
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
         AsmBuilder builder = new AsmBuilder(className, cv);
+
 
         cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractAsmLibraryInterface.class),
                 new String[] { p(interfaceClass) });
@@ -115,6 +115,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         TypeMapper typeMapper = libraryOptions.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
+        NativeClosureManager closureManager = new NativeClosureManager(runtime, typeMapper);
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         BufferMethodGenerator bufgen = new BufferMethodGenerator();
@@ -128,7 +129,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new FastNumericMethodGenerator(bufgen),
                 bufgen
         };
-        NativeRuntime runtime = NativeRuntime.getInstance();
+
 
         for (int i = 0; i < methods.length; ++i) {
             Method m = methods[i];
@@ -145,7 +146,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
             for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
-                parameterConverters[i][pidx] = getParameterConverter(m, pidx, typeMapper);
+                parameterConverters[i][pidx] = getParameterConverter(m, pidx, typeMapper, closureManager);
                 parameterTypes[pidx] = InvokerUtil.getParameterType(runtime, javaParameterTypes[pidx],
                         parameterAnnotations[pidx], parameterConverters[i][pidx]);
             }
@@ -207,7 +208,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         FromNativeConverter[] fromNativeConverters = builder.getFromNativeConverterArray();
         for (int i = 0; i < fromNativeConverters.length; i++) {
-            String fieldName = builder.getResultConverterName(fromNativeConverters[i]);
+            String fieldName = builder.getFromNativeConverterName(fromNativeConverters[i]);
             cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(FromNativeConverter.class), null, null);
             init.aload(0);
             init.aload(3);
@@ -219,7 +220,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         ToNativeConverter[] toNativeConverters = builder.getToNativeConverterArray();
         for (int i = 0; i < toNativeConverters.length; i++) {
-            String fieldName = builder.getParameterConverterName(toNativeConverters[i]);
+            String fieldName = builder.getToNativeConverterName(toNativeConverters[i]);
             cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(ToNativeConverter.class), null, null);
             init.aload(0);
             init.aload(4);
@@ -270,7 +271,8 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
     }
 
-    private final ToNativeConverter getParameterConverter(Method m, int parameterIndex, TypeMapper typeMapper) {
+    private final ToNativeConverter getParameterConverter(Method m, int parameterIndex,
+                                                          TypeMapper typeMapper, NativeClosureManager closureManager) {
         Class parameterType = m.getParameterTypes()[parameterIndex];
         ToNativeConverter conv = typeMapper.getToNativeConverter(parameterType);
         if (conv != null) {
@@ -326,15 +328,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private static Function getFunction(long address, ResultType resultType, ParameterType[] parameterTypes,
                                         boolean requiresErrno, CallingConvention convention) {
-        com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
-
-        for (int i = 0; i < nativeParamTypes.length; ++i) {
-            nativeParamTypes[i] = jffiType(parameterTypes[i].nativeType);
-        }
-
-        return new Function(address, jffiType(resultType.nativeType),
-                nativeParamTypes, convention, requiresErrno);
-
+        return new Function(address, InvokerUtil.getCallContext(resultType, parameterTypes, convention, requiresErrno));
     }
 
     private static boolean isReturnTypeSupported(Class type) {

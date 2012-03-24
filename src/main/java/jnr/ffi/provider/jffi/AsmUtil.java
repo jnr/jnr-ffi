@@ -350,7 +350,7 @@ final class AsmUtil {
     }
 
     static final void boxValue(SkinnyMethodAdapter mv, Class boxedType, Class unboxedType) {
-        if (boxedType == unboxedType) {
+        if (boxedType == unboxedType || boxedType.isPrimitive()) {
             return;
 
         } else if (Boolean.class.isAssignableFrom(boxedType)) {
@@ -497,14 +497,14 @@ final class AsmUtil {
         LocalVariable[] lvars = new LocalVariable[parameterTypes.length];
         int lvar = 1;
         for (int i = 0; i < parameterTypes.length; i++) {
-            lvars[i] = new LocalVariable(lvar);
+            lvars[i] = new LocalVariable(parameterTypes[i].getDeclaredType(), lvar);
             lvar += calculateLocalVariableSpace(parameterTypes[i]);
         }
 
         return lvars;
     }
 
-    static void loadParameter(SkinnyMethodAdapter mv, Class parameterType, LocalVariable parameter) {
+    static void load(SkinnyMethodAdapter mv, Class parameterType, LocalVariable parameter) {
         if (!parameterType.isPrimitive()) {
             mv.aload(parameter);
 
@@ -521,6 +521,25 @@ final class AsmUtil {
             mv.iload(parameter);
         }
 
+    }
+
+
+    static void store(SkinnyMethodAdapter mv, Class type, LocalVariable var) {
+        if (!type.isPrimitive()) {
+            mv.astore(var);
+
+        } else if (long.class == type) {
+            mv.lstore(var);
+
+        } else if (double.class == type) {
+            mv.dstore(var);
+
+        } else if (float.class == type) {
+            mv.fstore(var);
+
+        } else {
+            mv.istore(var);
+        }
     }
 
     static final Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes) {

@@ -20,6 +20,8 @@ package jnr.ffi;
 
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
+import jnr.ffi.types.u_int16_t;
+import jnr.ffi.types.u_int32_t;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -95,6 +97,22 @@ public class DelegateTest {
             @Delegate public void call(int a1);
         }
         void testClosureIrV(CallableIrV closure, int a1);
+
+        public interface CallableIrVBoxed {
+            @Delegate public void call(@u_int32_t Long a1);
+        }
+        void testClosureIrV(CallableIrVBoxed closure, @u_int32_t long a1);
+
+        public interface CallableErV {
+            @Delegate public void call(@u_int32_t EnumTest.TestEnum a1);
+        }
+        void testClosureIrV(CallableErV closure, @u_int32_t EnumTest.TestEnum a1);
+
+        public static interface CallableVrE {
+            @Delegate public EnumTest.TestEnum call();
+        }
+        int testClosureVrI(CallableVrE closure);
+
 //        void testClosureBrV(Callable closure, byte a1);
 //        void testClosureSrV(Callable closure, short a1);
 
@@ -273,6 +291,56 @@ public class DelegateTest {
         lib.testClosureIrV(closure, MAGIC);
         assertTrue("Callable not called", called[0]);
         assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+    }
+
+    @Test
+    public void closureIrVBoxed() {
+        final boolean[] called = { false };
+        final int[] val = { 0 };
+        final int MAGIC = 0xdeadbeef;
+        TestLib.CallableIrVBoxed closure = new TestLib.CallableIrVBoxed() {
+
+            public void call(Long a1) {
+                called[0] = true;
+                val[0] = a1.intValue();
+            }
+        };
+        lib.testClosureIrV(closure, MAGIC);
+        assertTrue("Callable not called", called[0]);
+        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+    }
+
+    @Test
+    public void closureErV() {
+        final boolean[] called = { false };
+        final EnumTest.TestEnum[] val = { null };
+        final EnumTest.TestEnum MAGIC = EnumTest.TestEnum.C;
+        TestLib.CallableErV closure = new TestLib.CallableErV() {
+
+            public void call(EnumTest.TestEnum a1) {
+                called[0] = true;
+                val[0] = a1;
+            }
+        };
+        lib.testClosureIrV(closure, MAGIC);
+        assertTrue("Callable not called", called[0]);
+        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+    }
+
+    @Test
+    public void closureVrE() {
+        final boolean[] called = { false };
+        final EnumTest.TestEnum MAGIC = EnumTest.TestEnum.C;
+        TestLib.CallableVrE closure = new TestLib.CallableVrE() {
+
+            public EnumTest.TestEnum call() {
+                called[0] = true;
+                return MAGIC;
+            }
+        };
+        int retVal = lib.testClosureVrI(closure);
+        assertTrue("Callable not called", called[0]);
+        assertEquals("Incorrect return value from closure", MAGIC.intValue(), retVal);
     }
 
     @Test

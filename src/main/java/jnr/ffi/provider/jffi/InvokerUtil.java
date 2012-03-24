@@ -18,13 +18,14 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.*;
+import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import jnr.ffi.*;
-import jnr.ffi.annotations.IgnoreError;
-import jnr.ffi.annotations.LongLong;
-import jnr.ffi.annotations.SaveError;
-import jnr.ffi.annotations.TypeDefinition;
+import jnr.ffi.NativeType;
+import jnr.ffi.Struct;
+import jnr.ffi.annotations.*;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
@@ -37,24 +38,6 @@ import java.util.Map;
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 
 final class InvokerUtil {
-
-    static Type getAliasedType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
-        for (Annotation a : annotations) {
-            TypeDefinition typedef = a.annotationType().getAnnotation(TypeDefinition.class);
-            if (typedef != null) {
-                return jffiType(runtime.findType(typedef.alias()));
-            }
-        }
-
-        if (isLong32(type, annotations)) {
-            return Type.SLONG;
-
-        } else if (isLongLong(type, annotations)) {
-            return Type.SLONG_LONG;
-        }
-
-        return null;
-    }
 
     static NativeType getAliasedNativeType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
         for (Annotation a : annotations) {
@@ -74,118 +57,6 @@ final class InvokerUtil {
         return null;
     }
 
-    static Type getNativeReturnType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
-        Type resultType = getAliasedType(runtime, type, annotations);
-        return resultType != null ? resultType : getNativeReturnType(type, annotations);
-    }
-
-
-    static Type getNativeReturnType(Class type, final Annotation[] annotations) {
-        if (Void.class.isAssignableFrom(type) || void.class == type) {
-            return Type.VOID;
-        
-        } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
-            return Type.SINT32;
-        
-        } else if (Byte.class.isAssignableFrom(type) || byte.class == type) {
-            return Type.SINT8;
-        
-        } else if (Short.class.isAssignableFrom(type) || short.class == type) {
-            return Type.SINT16;
-        
-        } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
-            return Type.SINT32;
-        
-        } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return isLongLong(type, annotations) ? Type.SLONG_LONG : Type.SLONG;
-        
-        } else if (NativeLong.class.isAssignableFrom(type)) {
-            return Type.SLONG;
-        
-        } else if (Float.class.isAssignableFrom(type) || float.class == type) {
-            return Type.FLOAT;
-        
-        } else if (Double.class.isAssignableFrom(type) || double.class == type) {
-            return Type.DOUBLE;
-
-        } else if (Pointer.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (Address.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (Struct.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (String.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else {
-            throw new IllegalArgumentException("Unsupported return type: " + type);
-        }
-    }
-
-    static Type getNativeParameterType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
-        Type nativeType = getAliasedType(runtime, type, annotations);
-        return nativeType != null ? nativeType : getNativeParameterType(type, annotations);
-    }
-
-    static final Type getNativeParameterType(Class type, final Annotation[] annotations) {
-        if (Byte.class.isAssignableFrom(type) || byte.class == type) {
-            return Type.SINT8;
-        
-        } else if (Short.class.isAssignableFrom(type) || short.class == type) {
-            return Type.SINT16;
-        
-        } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
-            return Type.SINT32;
-        
-        } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return isLongLong(type, annotations) ? Type.SLONG_LONG : Type.SLONG;
-        
-        } else if (NativeLong.class.isAssignableFrom(type)) {
-            return Type.SLONG;
-        
-        } else if (Float.class.isAssignableFrom(type) || float.class == type) {
-            return Type.FLOAT;
-        
-        } else if (Double.class.isAssignableFrom(type) || double.class == type) {
-            return Type.DOUBLE;
-        
-        } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
-            return Type.SINT32;
-        
-        } else if (Enum.class.isAssignableFrom(type)) {
-            return Type.SINT32;
-        
-        } else if (Pointer.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (Address.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (Struct.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (Buffer.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (CharSequence.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (ByReference.class.isAssignableFrom(type)) {
-            return Type.POINTER;
-        
-        } else if (type.isArray()) {
-            return Type.POINTER;
-
-        } else if (isDelegate(type)) {
-            return Type.POINTER;
-        
-        } else {
-            throw new IllegalArgumentException("Unsupported parameter type: " + type);
-        }
-    }
 
     public static final boolean requiresErrno(Method method) {
         boolean saveError = true;
@@ -199,7 +70,7 @@ final class InvokerUtil {
         return saveError;
     }
 
-    public static final com.kenai.jffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
+    public static com.kenai.jffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
         Object convention = libraryOptions.get(LibraryOption.CallingConvention);
 
         // If someone passed in the jffi calling convention, just use it.
@@ -276,67 +147,119 @@ final class InvokerUtil {
         }
     }
 
-    static Type jffiType(jnr.ffi.Type jnrType) {
-        return jffiType(jnrType.getNativeType());
-    }
-
     static NativeType nativeType(jnr.ffi.Type jnrType) {
         return jnrType.getNativeType();
     }
 
     static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter fromNativeConverter) {
-        return new ResultType(type, getNativeType(getNativeReturnType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations)), annotations, fromNativeConverter);
+        NativeType nativeType = getMethodResultNativeType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations);
+        return new ResultType(type, nativeType, annotations, fromNativeConverter);
     }
 
     static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations, ToNativeConverter toNativeConverter) {
-        return new ParameterType(type, getNativeType(getNativeParameterType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations)), annotations, toNativeConverter);
+        NativeType nativeType = getMethodParameterNativeType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations);
+        return new ParameterType(type, nativeType, annotations, toNativeConverter);
     }
 
-    static NativeType getNativeType(Type type) {
-        if (Type.SCHAR == type || Type.SINT8 == type) {
-            return NativeType.SCHAR;
+    static CallContext getCallContext(SigType resultType, SigType[] parameterTypes, com.kenai.jffi.CallingConvention convention, boolean requiresErrno) {
+        com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
 
-        } else if (Type.UCHAR == type || Type.UINT8 == type) {
-            return NativeType.UCHAR;
+        for (int i = 0; i < nativeParamTypes.length; ++i) {
+            nativeParamTypes[i] = jffiType(parameterTypes[i].nativeType);
         }
-        else if (Type.SSHORT == type || Type.SINT16 == type) {
-            return NativeType.SSHORT;
 
-        } else if (Type.USHORT == type || Type.UINT16 == type) {
-            return NativeType.USHORT;
+        return CallContextCache.getInstance().getCallContext(jffiType(resultType.nativeType),
+                nativeParamTypes, convention, requiresErrno);
+    }
 
-        } else if (Type.SINT == type || Type.SINT32 == type) {
-            return NativeType.SINT;
+    static CallContext getCallContext(NativeType resultType, NativeType[] parameterTypes, com.kenai.jffi.CallingConvention convention, boolean requiresErrno) {
+        com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
 
-        } else if (Type.UINT == type || Type.UINT32 == type) {
-            return NativeType.UINT;
+        for (int i = 0; i < nativeParamTypes.length; ++i) {
+            nativeParamTypes[i] = jffiType(parameterTypes[i]);
+        }
 
-        } else if (Type.SLONG == type) {
-            return NativeType.SLONG;
+        return CallContextCache.getInstance().getCallContext(jffiType(resultType),
+                nativeParamTypes, convention, requiresErrno);
+    }
 
-        } else if (Type.ULONG == type) {
-            return NativeType.ULONG;
+    public static com.kenai.jffi.CallingConvention getNativeCallingConvention(Method m) {
+        if (m.getAnnotation(StdCall.class) != null || m.getDeclaringClass().getAnnotation(StdCall.class) != null) {
+            return CallingConvention.STDCALL;
+        }
 
-        } else if (Type.SLONG_LONG == type || Type.SINT64 == type) {
-            return NativeType.SLONGLONG;
+        return CallingConvention.DEFAULT;
+    }
 
-        } else if (Type.ULONG_LONG == type || Type.UINT64 == type) {
-            return NativeType.ULONGLONG;
+    static NativeType getNativeType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
+        NativeType aliasedType = getAliasedNativeType(runtime, type, annotations);
+        if (aliasedType != null) {
+            return aliasedType;
 
-        } else if (Type.FLOAT == type) {
-            return NativeType.FLOAT;
-
-        } else if (Type.DOUBLE == type) {
-            return NativeType.DOUBLE;
-
-        } else if (Type.VOID == type) {
+        } else if (Void.class.isAssignableFrom(type) || void.class == type) {
             return NativeType.VOID;
 
-        } else if (Type.POINTER == type) {
+        } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
+            return NativeType.SINT;
+
+        } else if (Byte.class.isAssignableFrom(type) || byte.class == type) {
+            return NativeType.SCHAR;
+
+        } else if (Short.class.isAssignableFrom(type) || short.class == type) {
+            return NativeType.SSHORT;
+
+        } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
+            return NativeType.SINT;
+
+        } else if (Long.class.isAssignableFrom(type) || long.class == type) {
+            return isLongLong(type, annotations) ? NativeType.SLONGLONG : NativeType.SLONG;
+
+        } else if (NativeLong.class.isAssignableFrom(type)) {
+            return NativeType.SLONG;
+
+        } else if (Float.class.isAssignableFrom(type) || float.class == type) {
+            return NativeType.FLOAT;
+
+        } else if (Double.class.isAssignableFrom(type) || double.class == type) {
+            return NativeType.DOUBLE;
+
+        } else if (Pointer.class.isAssignableFrom(type)) {
+            return NativeType.ADDRESS;
+
+        } else if (Address.class.isAssignableFrom(type)) {
+            return NativeType.ADDRESS;
+
+        } else if (Struct.class.isAssignableFrom(type)) {
+            return NativeType.ADDRESS;
+
+        } else if (String.class.isAssignableFrom(type)) {
+            return NativeType.ADDRESS;
+
+        } else if (Buffer.class.isAssignableFrom(type)) {
+            return NativeType.ADDRESS;
+
+        } else if (CharSequence.class.isAssignableFrom(type)) {
+            return NativeType.ADDRESS;
+
+        } else if (ByReference.class.isAssignableFrom(type)) {
+            return NativeType.ADDRESS;
+
+        } else if (type.isArray()) {
+            return NativeType.ADDRESS;
+
+        } else if (isDelegate(type)) {
             return NativeType.ADDRESS;
 
         } else {
-            throw new IllegalArgumentException("unknown type: " + type);
+            throw new IllegalArgumentException("unsupported type: " + type);
         }
+    }
+
+    static NativeType getMethodParameterNativeType(NativeRuntime runtime, Class parameterClass, Annotation[] annotations) {
+        return getNativeType(runtime, parameterClass, annotations);
+    }
+
+    static NativeType getMethodResultNativeType(NativeRuntime runtime, Class parameterClass, Annotation[] annotations) {
+        return getNativeType(runtime, parameterClass, annotations);
     }
 }

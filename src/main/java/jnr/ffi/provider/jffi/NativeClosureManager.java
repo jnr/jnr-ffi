@@ -18,6 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
+import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.ClosureManager;
 
 import java.util.HashMap;
@@ -29,9 +30,11 @@ import java.util.Map;
 final class NativeClosureManager implements ClosureManager {
     private volatile Map<Class<? extends Object>, NativeClosureFactory> factories = new HashMap<Class<? extends Object>, NativeClosureFactory>();
     private final NativeRuntime runtime;
+    private final TypeMapper typeMapper;
 
-    NativeClosureManager(NativeRuntime runtime) {
+    NativeClosureManager(NativeRuntime runtime, TypeMapper typeMapper) {
         this.runtime = runtime;
+        this.typeMapper = typeMapper;
     }
 
     public <T extends Object> T newClosure(Class<? extends T> closureClass, T instance) {
@@ -48,7 +51,7 @@ final class NativeClosureManager implements ClosureManager {
             return factory;
         }
 
-        factory = NativeClosureFactory.newClosureFactory(runtime, closureClass);
+        factory = NativeClosureFactory.newClosureFactory(runtime, closureClass, typeMapper);
         factories.put(closureClass, factory);
 
         return factory;

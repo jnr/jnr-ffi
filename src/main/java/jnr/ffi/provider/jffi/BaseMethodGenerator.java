@@ -4,8 +4,7 @@ import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
 import jnr.ffi.mapper.*;
 
-import static jnr.ffi.provider.jffi.AsmUtil.boxValue;
-import static jnr.ffi.provider.jffi.AsmUtil.calculateLocalVariableSpace;
+import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
@@ -68,9 +67,9 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         ToNativeConverter parameterConverter = parameterType.toNativeConverter;
         if (parameterConverter != null) {
             mv.aload(0);
-            mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterConverter), ci(ToNativeConverter.class));
+            mv.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(parameterConverter), ci(ToNativeConverter.class));
         }
-        AsmUtil.loadParameter(mv, parameterType.getDeclaredType(), parameter);
+        AsmUtil.load(mv, parameterType.getDeclaredType(), parameter);
         if (parameterConverter != null) {
             if (parameterType.getDeclaredType().isPrimitive()) {
                 boxValue(mv, getBoxedClass(parameterType.getDeclaredType()), parameterType.getDeclaredType());
@@ -89,13 +88,23 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             boxValue(mv, resultConverter.nativeType(), nativeResultClass);
 
             mv.aload(0);
-            mv.getfield(builder.getClassNamePath(), builder.getResultConverterName(resultConverter), ci(FromNativeConverter.class));
+            mv.getfield(builder.getClassNamePath(), builder.getFromNativeConverterName(resultConverter), ci(FromNativeConverter.class));
             mv.swap();
             mv.aconst_null();
             mv.invokeinterface(FromNativeConverter.class, "fromNative",
                     Object.class, Object.class, FromNativeContext.class);
-            mv.checkcast(p(resultType.getDeclaredType()));
-            mv.areturn();
+
+            if (resultType.getDeclaredType().isPrimitive()) {
+                // The actual return type is a primitive, but there was a converter for it - extract the primitive value
+                Class boxedType = getBoxedClass(resultType.getDeclaredType());
+                mv.checkcast(p(boxedType));
+                unboxNumber(mv, boxedType, resultType.getDeclaredType(), resultType.nativeType);
+                emitReturnOp(mv, resultType.getDeclaredType());
+
+            } else {
+                mv.checkcast(p(resultType.getDeclaredType()));
+                mv.areturn();
+            }
 
         } else {
             AsmUtil.emitReturn(mv, resultType.getDeclaredType(), nativeResultClass);
@@ -107,7 +116,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         for (int i = 0; i < converted.length; ++i) {
             if (converted[i] != null) {
                 mv.aload(0);
-                mv.getfield(builder.getClassNamePath(), builder.getParameterConverterName(parameterTypes[i].toNativeConverter),
+                mv.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(parameterTypes[i].toNativeConverter),
                         ci(ToNativeConverter.class));
                 mv.checkcast(PostInvocation.class);
                 mv.aload(parameters[i]);

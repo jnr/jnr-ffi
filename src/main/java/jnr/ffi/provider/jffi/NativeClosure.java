@@ -25,13 +25,13 @@ import java.lang.ref.WeakReference;
 /**
  *
  */
-public abstract class NativeClosure extends WeakReference<Object> implements com.kenai.jffi.Closure {
-    protected final NativeRuntime runtime;
+public final class NativeClosure extends WeakReference<Object> implements com.kenai.jffi.Closure {
+    private final ClosureInvoker invoker;
     private final Integer key;
 
-    public NativeClosure(NativeRuntime runtime, Object callable, ReferenceQueue<Object> queue, Integer key) {
+    public NativeClosure(ClosureInvoker invoker, Object callable, ReferenceQueue<Object> queue, Integer key) {
         super(callable, queue);
-        this.runtime = runtime;
+        this.invoker = invoker;
         this.key = key;
     }
 
@@ -41,14 +41,10 @@ public abstract class NativeClosure extends WeakReference<Object> implements com
             buffer.setLongReturn(0L);
             return;
         }
-        invoke(buffer, callable);
+        invoker.invoke(buffer, callable);
     }
 
     public Integer getKey() {
         return key;
     }
-
-    abstract protected void invoke(com.kenai.jffi.Closure.Buffer buffer, Object callable);
-
-
 }

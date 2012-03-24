@@ -19,6 +19,8 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.*;
+import jnr.ffi.mapper.DefaultTypeMapper;
+import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.AbstractRuntime;
 import jnr.ffi.provider.BadType;
 import jnr.ffi.provider.DefaultObjectReferenceManager;
@@ -35,8 +37,10 @@ import java.util.logging.Logger;
  *
  */
 public final class NativeRuntime extends AbstractRuntime {
+    private static final TypeMapper DEFAULT_TYPEMAPPER = new DefaultTypeMapper();
+
     private final NativeMemoryManager mm = new NativeMemoryManager(this);
-    private final NativeClosureManager closureManager = new NativeClosureManager(this);
+    private final NativeClosureManager closureManager = new NativeClosureManager(this, DEFAULT_TYPEMAPPER);
     private final Type[] aliases;
 
     public static final NativeRuntime getInstance() {

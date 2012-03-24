@@ -167,9 +167,17 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     public void fstore(int arg0) {
         getMethodVisitor().visitVarInsn(FSTORE, arg0);
     }
+
+    public void fstore(LocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(FSTORE, arg0.idx);
+    }
     
     public void dstore(int arg0) {
         getMethodVisitor().visitVarInsn(DSTORE, arg0);
+    }
+
+    public void dstore(LocalVariable arg0) {
+        getMethodVisitor().visitVarInsn(DSTORE, arg0.idx);
     }
     
     public void ldc(Object arg0) {

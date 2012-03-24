@@ -70,7 +70,7 @@ class AsmBuilder {
     }
 
 
-    String getResultConverterName(FromNativeConverter converter) {
+    String getFromNativeConverterName(FromNativeConverter converter) {
         String name = fromNativeConverterNames.get(converter);
         if (name == null) {
             int idx = fromNativeConverters.size();
@@ -82,7 +82,7 @@ class AsmBuilder {
         return name;
     }
 
-    String getParameterConverterName(ToNativeConverter converter) {
+    String getToNativeConverterName(ToNativeConverter converter) {
         String name = toNativeConverterNames.get(converter);
         if (name == null) {
             int idx = toNativeConverters.size();

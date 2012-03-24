@@ -17,34 +17,81 @@
  */
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.annotations.StdCall;
+import jnr.ffi.NativeType;
+import jnr.ffi.byref.ByReference;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.util.EnumMapper;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Map;
+
+import static jnr.ffi.provider.jffi.InvokerUtil.jffiType;
 
 /**
  *
  */
-class ClosureUtil {
+final class ClosureUtil {
     private ClosureUtil() {
     }
 
-    static com.kenai.jffi.Type getNativeResultType(Method m) {
-        return InvokerUtil.getNativeReturnType(NativeRuntime.getInstance(), m.getReturnType(), m.getAnnotations());
+    static ToNativeType getResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
+        Annotation[] annotations = m.getAnnotations();
+        ToNativeConverter converter = getToNativeConverter(m.getReturnType(), annotations, typeMapper);
+        Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
+        NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
+        return new ToNativeType(m.getReturnType(), nativeType, annotations, converter);
     }
 
-    static com.kenai.jffi.Type getNativeParameterType(Method m, int idx) {
-        return InvokerUtil.getNativeParameterType(NativeRuntime.getInstance(), m.getParameterTypes()[idx], m.getParameterAnnotations()[idx]);
+    static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
+        Annotation[] annotations = m.getParameterAnnotations()[idx];
+        Class declaredJavaClass = m.getParameterTypes()[idx];
+        FromNativeConverter converter = getFromNativeConverter(declaredJavaClass, annotations, typeMapper);
+        Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
+        NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
+        return new FromNativeType(declaredJavaClass, nativeType, annotations, converter);
     }
 
-    public static final com.kenai.jffi.CallingConvention getNativeCallingConvention(Method m) {
-        if (m.getAnnotation(StdCall.class) != null || m.getDeclaringClass().getAnnotation(StdCall.class) != null) {
-            return CallingConvention.STDCALL;
+    static com.kenai.jffi.Type getNativeResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
+        ToNativeConverter converter = getToNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper);
+        Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
+        return jffiType(InvokerUtil.getNativeType(runtime, m.getReturnType(), m.getAnnotations()));
+    }
+
+    static com.kenai.jffi.Type getNativeParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
+        FromNativeConverter converter = getFromNativeConverter(m.getParameterTypes()[idx], m.getParameterAnnotations()[idx], typeMapper);
+        Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
+        return jffiType(InvokerUtil.getNativeType(runtime, m.getParameterTypes()[idx], m.getParameterAnnotations()[idx]));
+    }
+
+    @SuppressWarnings("unchecked")
+    static FromNativeConverter getFromNativeConverter(Class javaClass, Annotation[] annotations, TypeMapper typeMapper) {
+        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaClass);
+        if (conv != null) {
+            return conv;
+
+        } else if (Enum.class.isAssignableFrom(javaClass)) {
+            return EnumMapper.getInstance(javaClass.asSubclass(Enum.class));
+
+        } else {
+            return null;
         }
+    }
 
-        return CallingConvention.DEFAULT;
+    @SuppressWarnings("unchecked")
+    static ToNativeConverter getToNativeConverter(Class javaClass, Annotation[] annotations, TypeMapper typeMapper) {
+        ToNativeConverter conv = typeMapper.getToNativeConverter(javaClass);
+        if (conv != null) {
+            return conv;
+
+        } else if (Enum.class.isAssignableFrom(javaClass)) {
+            return EnumMapper.getInstance(javaClass.asSubclass(Enum.class));
+
+        } else {
+            return null;
+        }
     }
 
 }
