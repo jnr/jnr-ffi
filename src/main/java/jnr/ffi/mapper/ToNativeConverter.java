@@ -21,4 +21,11 @@ package jnr.ffi.mapper;
 public interface ToNativeConverter<J, N> {
     public N toNative(J value, ToNativeContext context);
     public Class<N> nativeType();
+
+    /**
+     * Used to reload a parameter converted to a native type via a custom {@link jnr.ffi.mapper.ToNativeConverter}
+     */
+    public static interface PostInvocation<J,N> {
+        public void postInvoke(J j, N n, ToNativeContext context);
+    }
 }

@@ -3,7 +3,6 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.Memory;
 import jnr.ffi.Pointer;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.PostInvocation;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
@@ -11,7 +10,7 @@ import jnr.ffi.provider.ParameterFlags;
 /**
  *
  */
-public final class ByReferenceParameterConverter implements ToNativeConverter<ByReference, Pointer>, PostInvocation<ByReference, Pointer> {
+public final class ByReferenceParameterConverter implements ToNativeConverter<ByReference, Pointer>, ToNativeConverter.PostInvocation<ByReference, Pointer> {
     final NativeRuntime runtime = NativeRuntime.getInstance();
     private final int flags;
 

@@ -5,7 +5,7 @@ import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.mapper.PostInvocation;
+import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -136,7 +136,7 @@ class X86MethodGenerator implements MethodGenerator {
             Class nativeParameterClass = nativeParameterTypes[i];
 
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
-            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
+            if (parameterTypes[i].toNativeConverter instanceof ToNativeConverter.PostInvocation) {
                 mv.dup();
                 mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
             }

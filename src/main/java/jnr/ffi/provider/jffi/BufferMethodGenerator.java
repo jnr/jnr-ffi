@@ -7,7 +7,6 @@ import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.PostInvocation;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
@@ -172,7 +171,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.aload(session);
             }
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
-            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
+            if (parameterTypes[i].toNativeConverter instanceof ToNativeConverter.PostInvocation) {
                 mv.dup();
                 mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
             }

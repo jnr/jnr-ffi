@@ -7,7 +7,7 @@ import com.kenai.jffi.ObjectParameterStrategy;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.mapper.PostInvocation;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.Label;
 
@@ -77,7 +77,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         // Load, convert, and un-box parameters
         for (int i = 0; i < parameterTypes.length; ++i) {
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
-            if (parameterTypes[i].toNativeConverter instanceof PostInvocation) {
+            if (parameterTypes[i].toNativeConverter instanceof ToNativeConverter.PostInvocation) {
                 mv.dup();
                 mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
             }

@@ -116,11 +116,11 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                 mv.aload(0);
                 mv.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(parameterTypes[i].toNativeConverter),
                         ci(ToNativeConverter.class));
-                mv.checkcast(PostInvocation.class);
+                mv.checkcast(ToNativeConverter.PostInvocation.class);
                 mv.aload(parameters[i]);
                 mv.aload(converted[i]);
                 mv.aconst_null();
-                mv.invokeinterface(PostInvocation.class, "postInvoke", void.class,
+                mv.invokeinterface(ToNativeConverter.PostInvocation.class, "postInvoke", void.class,
                         Object.class, Object.class, ToNativeContext.class);
             }
         }
