@@ -18,25 +18,25 @@
 
 package jnr.ffi;
 
-public interface Type {
+public abstract class Type {
     /**
      * The size in bytes of this type.
      *
      * @return An integer
      */
-    int size();
+    public abstract int size();
 
     /**
      * The native alignment of this type, in bytes
      *
      * @return An integer
      */
-    int alignment();
+    public abstract int alignment();
 
     /**
      * The native type of this type
      *
      * @return the native type of this type
      */
-    NativeType getNativeType();
+    public abstract NativeType getNativeType();
 }

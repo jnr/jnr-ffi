@@ -136,7 +136,7 @@ public final class NativeRuntime extends AbstractRuntime {
         com.kenai.jffi.LastError.getInstance().set(error);
     }
 
-    private static final class TypeDelegate implements jnr.ffi.Type {
+    private static final class TypeDelegate extends jnr.ffi.Type {
         private final com.kenai.jffi.Type type;
         private final NativeType nativeType;
 

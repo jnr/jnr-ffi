@@ -25,7 +25,7 @@ public interface ToNativeConverter<J, N> {
     /**
      * Used to reload a parameter converted to a native type via a custom {@link jnr.ffi.mapper.ToNativeConverter}
      */
-    public static interface PostInvocation<J,N> {
+    public static interface PostInvocation<J,N> extends ToNativeConverter<J, N> {
         public void postInvoke(J j, N n, ToNativeContext context);
     }
 }

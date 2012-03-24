@@ -7,7 +7,7 @@ import static jnr.ffi.Struct.Offset;
 /**
  *
  */
-public class StructLayout implements Type {
+public class StructLayout extends Type {
     private final Runtime runtime;
     private final boolean isUnion = false;
     private boolean resetIndex = false;
@@ -36,7 +36,6 @@ public class StructLayout implements Type {
         return alignment;
     }
 
-    @Override
     public NativeType getNativeType() {
         return NativeType.STRUCT;
     }

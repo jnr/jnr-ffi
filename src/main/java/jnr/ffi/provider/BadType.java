@@ -23,7 +23,7 @@ import jnr.ffi.NativeType;
 /**
  *
  */
-public final class BadType implements jnr.ffi.Type {
+public final class BadType extends jnr.ffi.Type {
 
     private final String typeName;
 
