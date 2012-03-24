@@ -98,18 +98,18 @@ public class StructLayout extends Type {
     /**
      * Interface all Struct members must implement.
      */
-    protected interface Field {
+    protected abstract class Field {
         /**
          * Gets the <tt>StructLayout</tt> this <tt>Field</tt> belongs to.
          *
          * @return a <tt>Struct</tt>.
          */
-        StructLayout enclosing();
+        public abstract StructLayout enclosing();
 
         /**
          * Gets the offset within the structure for this field.
          */
-        long offset();
+        public abstract long offset();
     }
 
     /**
@@ -162,7 +162,7 @@ public class StructLayout extends Type {
 /**
      * Base implementation of Member
      */
-    protected abstract class AbstractField implements Field {
+    protected abstract class AbstractField extends Field {
         private final int offset;
 
         protected AbstractField(int size, int align, Offset offset) {

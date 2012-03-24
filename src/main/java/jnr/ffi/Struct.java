@@ -240,25 +240,25 @@ public abstract class Struct {
     /**
      * Interface all Struct members must implement.
      */
-    protected interface Member {
+    protected abstract class Member {
         /**
          * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
          * 
          * @return a <tt>Struct</tt>.
          */
-        Struct struct();
+        abstract Struct struct();
 
         /**
          * Gets the memory object used to store this {@code Member}
          * 
          * @return a {@code Pointer}
          */
-        jnr.ffi.Pointer getMemory();
+        abstract jnr.ffi.Pointer getMemory();
         
         /**
          * Gets the offset within the structure for this field.
          */
-        long offset();
+        abstract long offset();
     }
 
     /**
@@ -521,7 +521,7 @@ public abstract class Struct {
     /**
      * Base implementation of Member
      */
-    protected abstract class AbstractMember implements Member {
+    protected abstract class AbstractMember extends Member {
         private final int offset;
         protected AbstractMember(int size) {
             this(size, size);
@@ -638,7 +638,7 @@ public abstract class Struct {
     /**
      * Base class for all Number structure fields.
      */
-    public abstract class NumberField implements Member {
+    public abstract class NumberField extends Member {
         /**
          * Offset from the start of the <tt>Struct</tt> memory this field is located at.
          */
