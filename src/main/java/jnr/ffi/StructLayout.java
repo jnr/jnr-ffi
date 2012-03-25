@@ -1,6 +1,9 @@
 package jnr.ffi;
 
+import jnr.ffi.util.EnumMapper;
+
 import java.lang.reflect.Constructor;
+import java.nio.charset.Charset;
 
 import static jnr.ffi.Struct.Offset;
 
@@ -8,6 +11,9 @@ import static jnr.ffi.Struct.Offset;
  *
  */
 public class StructLayout extends Type {
+    static final Charset ASCII = Charset.forName("ASCII");
+    static final Charset UTF8 = Charset.forName("UTF-8");
+
     private final Runtime runtime;
     private final boolean isUnion = false;
     private boolean resetIndex = false;
@@ -34,6 +40,10 @@ public class StructLayout extends Type {
 
     public final int alignment() {
         return alignment;
+    }
+
+    public final int offset() {
+        return offset;
     }
 
     public NativeType getNativeType() {
@@ -67,49 +77,56 @@ public class StructLayout extends Type {
         return (offset + alignment - 1) & ~(alignment - 1);
     }
 
-    protected final int addField(int fieldSize, int fieldAlign, int offset) {
-        this.size = Math.max(this.size, offset + fieldSize);
-        this.alignment = Math.max(this.alignment, fieldAlign);
+
+    protected final int addField(int size, int align) {
+        final int off = resetIndex ? 0 : align(this.size, align);
+        this.size = Math.max(this.size, off + size);
+        this.alignment = Math.max(this.alignment, align);
         this.paddedSize = align(this.size, this.alignment);
-
-        return offset;
+        return off;
     }
 
-    protected final int addField(int fieldSize, int fieldAlign, Offset offset) {
-        return addField(fieldSize, fieldAlign, offset.intValue());
+    protected final int addField(int size, int align, Offset offset) {
+        this.size = Math.max(this.size, offset.intValue() + size);
+        this.alignment = Math.max(this.alignment, align);
+        this.paddedSize = align(this.size, this.alignment);
+        return offset.intValue();
     }
 
-    protected final int addField(int fieldSize, int fieldAlign) {
-        return addField(fieldSize, fieldAlign, resetIndex ? 0 : align(this.size, fieldAlign));
-    }
 
     protected final int addField(Type t) {
         return addField(t.size(), t.alignment());
     }
 
-    protected final int addField(Type t, int offset) {
-        return addField(t.size(), t.alignment(), offset);
-    }
-
     protected final int addField(Type t, Offset offset) {
-        return addField(t, offset.intValue());
+        return addField(t.size(), t.alignment(), offset);
     }
 
     /**
      * Interface all Struct members must implement.
      */
     protected abstract class Field {
+        private final int offset;
+
+        protected Field(int offset) {
+            this.offset = offset;
+        }
+
         /**
-         * Gets the <tt>StructLayout</tt> this <tt>Field</tt> belongs to.
+         * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
          *
          * @return a <tt>Struct</tt>.
          */
-        public abstract StructLayout enclosing();
+        public final StructLayout enclosing() {
+            return StructLayout.this;
+        }
 
         /**
          * Gets the offset within the structure for this field.
          */
-        public abstract long offset();
+        public final long offset() {
+            return offset + StructLayout.this.offset;
+        }
     }
 
     /**
@@ -151,10 +168,10 @@ public class StructLayout extends Type {
     }
 
     protected final <T extends StructLayout> T inner(T structLayout) {
-        structLayout.offset = align(this.size, structLayout.alignment);
         structLayout.enclosing = this;
+        structLayout.offset = align(this.size, structLayout.alignment);
         this.size = structLayout.offset + structLayout.size;
-        this.paddedSize = align(this.size, structLayout.alignment());
+        this.paddedSize = align(this.size, this.alignment());
 
         return structLayout;
     }
@@ -163,37 +180,27 @@ public class StructLayout extends Type {
      * Base implementation of Member
      */
     protected abstract class AbstractField extends Field {
-        private final int offset;
-
         protected AbstractField(int size, int align, Offset offset) {
-            this.offset = addField(size, align, offset.intValue());
+            super(addField(size, align, offset));
         }
         protected AbstractField(int size, int align) {
-            this.offset = addField(size, align);
+            super(addField(size, align));
         }
 
         protected AbstractField(NativeType type) {
-            this.offset = addField(getRuntime().findType(type));
+            super(addField(getRuntime().findType(type)));
+        }
+
+        protected AbstractField(Type type) {
+            super(addField(type));
         }
 
         protected AbstractField(NativeType type, Offset offset) {
-            this.offset = addField(getRuntime().findType(type), offset);
+            super(addField(getRuntime().findType(type), offset));
         }
 
-        /**
-         * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
-         *
-         * @return a <tt>Struct</tt>.
-         */
-        public final StructLayout enclosing() {
-            return StructLayout.this;
-        }
-
-        /**
-         * Gets the offset within the structure for this field.
-         */
-        public final long offset() {
-            return offset + StructLayout.this.offset;
+        protected AbstractField(Type type, Offset offset) {
+            super(addField(type, offset));
         }
     }
 
@@ -269,14 +276,27 @@ public class StructLayout extends Type {
     /**
      * Base class for all Number structure fields.
      */
-    protected abstract class NumberField extends AbstractField {
-        protected NumberField(NativeType type) {
-            super(type);
+    protected abstract class NumberField extends Field {
+        protected final Type type;
+
+        protected NumberField(NativeType nativeType) {
+            this(getRuntime().findType(nativeType));
         }
 
-        protected NumberField(NativeType type, Offset offset) {
-            super(type, offset);
+        protected NumberField(Type type) {
+            super(addField(type));
+            this.type = type;
         }
+
+        protected NumberField(NativeType nativeType, Offset offset) {
+            this(getRuntime().findType(nativeType), offset);
+        }
+
+        protected NumberField(Type type, Offset offset) {
+            super(addField(type, offset));
+            this.type = type;
+        }
+
 
         /**
          * Sets the field to a new value.
@@ -348,16 +368,12 @@ public class StructLayout extends Type {
     }
 
     public abstract class IntegerAlias extends NumberField {
-        protected final Type type;
-
         IntegerAlias(TypeAlias type) {
-            super(getRuntime().findType(type).getNativeType());
-            this.type = getRuntime().findType(type);
+            super(getRuntime().findType(type));
         }
 
         IntegerAlias(TypeAlias type, Offset offset) {
-            super(getRuntime().findType(type).getNativeType(), offset);
-            this.type = getRuntime().findType(type);
+            super(getRuntime().findType(type), offset);
         }
 
         @Override
@@ -1009,7 +1025,7 @@ public class StructLayout extends Type {
          */
         public final long get(jnr.ffi.Pointer ptr) {
             long value = ptr.getNativeLong(offset());
-            final long mask = getRuntime().findType(NativeType.SLONG).size() == 32 ? 0xffffffffL : 0xffffffffffffffffL;
+            final long mask = getRuntime().findType(NativeType.SLONG).size() == 4 ? 0xffffffffL : 0xffffffffffffffffL;
             return value < 0
                     ? (long) ((value & mask) + mask + 1)
                     : value;
@@ -1178,7 +1194,7 @@ public class StructLayout extends Type {
          * @return the size of the Pointer
          */
         public final int size() {
-            return getRuntime().findType(NativeType.ADDRESS).size() * 8;
+            return getRuntime().findType(NativeType.ADDRESS).size();
         }
 
         /**
@@ -1224,6 +1240,290 @@ public class StructLayout extends Type {
     }
 
     /**
+     * Base for all the Enum fields.
+     *
+     * @param <E> the type of {@link java.lang.Enum}
+     */
+    protected abstract class EnumField<E extends java.lang.Enum<E>> extends NumberField {
+        protected final Class<E> enumClass;
+        protected final EnumMapper enumMapper;
+
+        /**
+         * Constructs a new Enum field.
+         *
+         * @param type the native type of the enum.
+         * @param enumClass the Enum class.
+         */
+        public EnumField(NativeType type, Class<E> enumClass) {
+            super(type);
+            this.enumClass = enumClass;
+            this.enumMapper = EnumMapper.getInstance(enumClass);
+        }
+
+        /**
+         * Gets a java Enum value representing the native integer value.
+         *
+         * @return a java Enum value.
+         */
+        public E get(jnr.ffi.Pointer ptr) {
+            return enumClass.cast(enumMapper.valueOf(intValue(ptr)));
+        }
+
+        /**
+         * Returns a string representation of this field.
+         *
+         * @return a string representation of this field.
+         */
+        @Override
+        public final java.lang.String toString(jnr.ffi.Pointer ptr) {
+            return get(ptr).toString();
+        }
+    }
+    
+    /**
+     * An 8 bit enum field.
+     *
+     * @param <E> the {@link java.lang.Enum} to translate to/from.
+     */
+    public class Enum8<E extends java.lang.Enum<E>> extends EnumField<E> {
+        /**
+         * Creates a new 8 bit enum field.
+         *
+         * @param enumClass the class of the {@link java.lang.Enum}.
+         */
+        public Enum8(Class<E> enumClass) {
+            super(NativeType.SCHAR, enumClass);
+        }
+
+        /**
+         * Sets the native integer value using a java Enum value.
+         *
+         * @param value the java <tt>Enum</tt> value.
+         */
+        public final void set(jnr.ffi.Pointer ptr, E value) {
+            ptr.putByte(offset(), (byte) enumMapper.intValue(value));
+        }
+
+        public void set(jnr.ffi.Pointer ptr, java.lang.Number value) {
+            ptr.putByte(offset(), value.byteValue());
+        }
+        /**
+         * Returns an integer representation of this enum field.
+         *
+         * @return an integer value for this enum field.
+         */
+        @Override
+        public final int intValue(jnr.ffi.Pointer ptr) {
+            return ptr.getByte(offset());
+        }
+    }
+
+    public class Enum16<E extends java.lang.Enum<E>> extends EnumField<E> {
+        public Enum16(Class<E> enumClass) {
+            super(NativeType.SSHORT, enumClass);
+        }
+
+        public void set(jnr.ffi.Pointer ptr, E value) {
+            ptr.putShort(offset(), (short) enumMapper.intValue(value));
+        }
+
+        public void set(jnr.ffi.Pointer ptr, java.lang.Number value) {
+            ptr.putShort(offset(), value.shortValue());
+        }
+
+        @Override
+        public final int intValue(jnr.ffi.Pointer ptr) {
+            return ptr.getShort(offset());
+        }
+    }
+
+    public class Enum32<E extends java.lang.Enum<E>> extends EnumField<E> {
+        public Enum32(Class<E> enumClass) {
+            super(NativeType.SINT, enumClass);
+        }
+
+        public void set(jnr.ffi.Pointer ptr, E value) {
+            ptr.putInt(offset(), enumMapper.intValue(value));
+        }
+
+        public void set(jnr.ffi.Pointer ptr, java.lang.Number value) {
+            ptr.putInt(offset(), value.intValue());
+        }
+
+        @Override
+        public final int intValue(jnr.ffi.Pointer ptr) {
+            return ptr.getInt(offset());
+        }
+    }
+
+    public class Enum64<E extends java.lang.Enum<E>> extends EnumField<E> {
+        public Enum64(Class<E> enumClass) {
+            super(NativeType.SLONGLONG, enumClass);
+        }
+
+        public final void set(jnr.ffi.Pointer ptr, E value) {
+            ptr.putLongLong(offset(), enumMapper.intValue(value));
+        }
+
+        public void set(jnr.ffi.Pointer ptr, java.lang.Number value) {
+            ptr.putLongLong(offset(), value.longValue());
+        }
+
+        @Override
+        public final int intValue(jnr.ffi.Pointer ptr) {
+            return (int) longValue(ptr);
+        }
+
+        @Override
+        public final long longValue(jnr.ffi.Pointer ptr) {
+            return ptr.getLongLong(offset());
+        }
+    }
+
+    public class EnumLong<E extends java.lang.Enum<E>> extends EnumField<E> {
+        public EnumLong(Class<E> enumClass) {
+            super(NativeType.SLONG, enumClass);
+        }
+
+        public final void set(jnr.ffi.Pointer ptr, E value) {
+            ptr.putNativeLong(offset(), enumMapper.intValue(value));
+        }
+
+        public void set(jnr.ffi.Pointer ptr, java.lang.Number value) {
+            ptr.putNativeLong(offset(), value.longValue());
+        }
+
+        @Override
+        public final int intValue(jnr.ffi.Pointer ptr) {
+            return (int) longValue(ptr);
+        }
+
+        @Override
+        public final long longValue(jnr.ffi.Pointer ptr) {
+            return ptr.getNativeLong(offset());
+        }
+    }
+
+    public class Enum<T extends java.lang.Enum<T>> extends Enum32<T> {
+        public Enum(Class<T> enumClass) {
+            super(enumClass);
+        }
+    }
+
+
+    abstract public class String extends AbstractField {
+        protected final Charset charset;
+        protected final int length;
+
+        protected String(int size, int align, int length, Charset cs) {
+            super(size, align);
+            this.length = length;
+            this.charset = cs;
+        }
+
+        protected String(int size, int align, Offset offset, int length, Charset cs) {
+            super(size, align, offset);
+            this.length = length;
+            this.charset = cs;
+        }
+
+        public final int length() {
+            return length;
+        }
+
+        protected abstract jnr.ffi.Pointer getStringMemory(jnr.ffi.Pointer ptr);
+        public abstract java.lang.String get(jnr.ffi.Pointer ptr);
+        public abstract void set(jnr.ffi.Pointer ptr, java.lang.String value);
+
+        public final java.lang.String toString(jnr.ffi.Pointer ptr) {
+            return get(ptr);
+        }
+    }
+
+    public class UTFString extends String {
+        public UTFString(int length, Charset cs) {
+            super(length, 1, length, cs); // FIXME: This won't work for non-ASCII
+
+        }
+        protected jnr.ffi.Pointer getStringMemory(jnr.ffi.Pointer ptr) {
+            return ptr.slice(offset(), length());
+        }
+
+        public final java.lang.String get(jnr.ffi.Pointer ptr) {
+            return getStringMemory(ptr).getString(0, length, charset);
+        }
+
+        public final void set(jnr.ffi.Pointer ptr, java.lang.String value) {
+            getStringMemory(ptr).putString(0, value, length, charset);
+        }
+    }
+
+    public class UTF8String extends UTFString {
+        public UTF8String(int size) {
+            super(size, UTF8);
+        }
+    }
+
+    public class AsciiString extends UTFString {
+        public AsciiString(int size) {
+            super(size, ASCII);
+        }
+    }
+
+    public class UTFStringRef extends String {
+        private jnr.ffi.Pointer valueHolder;
+
+        public UTFStringRef(int length, Charset cs) {
+            super(getRuntime().findType(NativeType.ADDRESS).size(), getRuntime().findType(NativeType.ADDRESS).alignment(),
+                    length, cs);
+        }
+
+        public UTFStringRef(Charset cs) {
+            this(Integer.MAX_VALUE, cs);
+        }
+
+        protected jnr.ffi.Pointer getStringMemory(jnr.ffi.Pointer ptr) {
+            return ptr.getPointer(offset(), length());
+        }
+
+        public final java.lang.String get(jnr.ffi.Pointer ptr) {
+            jnr.ffi.Pointer memory = getStringMemory(ptr);
+            return memory != null ? memory.getString(0, length, charset) : null;
+        }
+
+        public final void set(jnr.ffi.Pointer ptr, java.lang.String value) {
+            if (value != null) {
+                valueHolder = getRuntime().getMemoryManager().allocateDirect(length() * 4);
+                valueHolder.putString(0, value, length() * 4, charset);
+                ptr.putPointer(offset(), valueHolder);
+
+            } else {
+                this.valueHolder = null;
+                ptr.putAddress(offset(), 0);
+            }
+        }
+    }
+
+    public class UTF8StringRef extends UTFStringRef {
+        public UTF8StringRef(int size) {
+            super(size, UTF8);
+        }
+        public UTF8StringRef() {
+            super(Integer.MAX_VALUE, UTF8);
+        }
+    }
+
+    public class AsciiStringRef extends UTFStringRef {
+        public AsciiStringRef(int size) {
+            super(size, ASCII);
+        }
+        public AsciiStringRef() {
+            super(Integer.MAX_VALUE, ASCII);
+        }
+    }
+
+
+    /**
      * Specialized padding fields for structs.  Use this instead of arrays of other
      * members for more efficient struct construction.
      */
@@ -1231,6 +1531,7 @@ public class StructLayout extends Type {
         public Padding(Type type, int length) {
             super(type.size() * length, type.alignment());
         }
+
         public Padding(NativeType type, int length) {
             this(getRuntime().findType(type), length);
         }
