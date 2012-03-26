@@ -1,9 +1,6 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallContext;
-import com.kenai.jffi.Function;
-import com.kenai.jffi.ObjectParameterInfo;
-import com.kenai.jffi.ObjectParameterStrategy;
+import com.kenai.jffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
@@ -112,8 +109,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     mv.istore(objCount);
                 }
 
-                strategies[i] = localVariableAllocator.allocate(ObjectParameterStrategy.class);
-
                 if (parameterTypes[i].toNativeConverter != null) {
                     // Save the current pointer parameter (result of type conversion above)
                     pointers[i] = localVariableAllocator.allocate(Object.class);
@@ -126,6 +121,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
                 emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations);
 
+                strategies[i] = localVariableAllocator.allocate(ObjectParameterStrategy.class);
                 mv.astore(strategies[i]);
                 mv.aload(strategies[i]);
 
@@ -192,7 +188,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         /* --  method returns above - below is an alternative path -- */
 
         // Now implement heap object support
-        if (pointerCount > 0) {
+        if (pointerCount > 0 && pointerCount <= 3) {
             mv.label(hasObjects);
             if (int.class == nativeIntType) {
                 // For int invoker, need to convert all the int args to long
@@ -230,6 +226,78 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             if (int.class == nativeIntType) mv.l2i();
 
             mv.go_to(convertResult);
+
+        } else if (pointerCount > 0) {
+            // Emit InvocationBuffer fallback
+            mv.label(hasObjects);
+            emitBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes, nativeIntType,
+                    objCount, pointers, strategies);
+            mv.go_to(convertResult);
+        }
+    }
+
+    private void emitBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes, Class nativeIntType, LocalVariable objCount, LocalVariable[] pointers, LocalVariable[] strategies) {
+        // Save the converted parameters
+        LocalVariable[] saved = new LocalVariable[parameterTypes.length];
+        for (int i = parameterTypes.length - 1; i >= 0; i--) {
+            if (strategies[i] == null) {
+                saved[i] = localVariableAllocator.allocate(nativeIntType);
+                store(mv, nativeIntType, saved[i]);
+            } else {
+                // No need to save the address arg, since it will be re-fetched via the strategy
+                if (long.class == nativeIntType) mv.pop2(); else mv.pop();
+            }
+        }
+
+        // Create a new InvocationBuffer
+        mv.aload(0);
+        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(function), ci(CallContext.class));
+        mv.iload(objCount);
+        mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, CallContext.class, int.class);
+
+        // Now add each of the parameters to the invocation buffer
+        for (int i = 0; i < parameterTypes.length; i++) {
+            mv.dup();
+
+            if (strategies[i] != null) {
+                mv.aload(pointers[i]);
+                mv.aload(strategies[i]);
+                mv.pushInt(AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
+                mv.invokevirtual(HeapInvocationBuffer.class, "putObject", void.class, Object.class, ObjectParameterStrategy.class, int.class);
+
+            } else {
+                load(mv, nativeIntType, saved[i]);
+                switch (parameterTypes[i].nativeType) {
+                    case SCHAR:
+                    case UCHAR:
+                        narrow(mv, nativeIntType, int.class);
+                        mv.invokevirtual(HeapInvocationBuffer.class, "putByte", void.class, int.class);
+                        break;
+
+                    case SSHORT:
+                    case USHORT:
+                        narrow(mv, nativeIntType, int.class);
+                        mv.invokevirtual(HeapInvocationBuffer.class, "putShort", void.class, int.class);
+                        break;
+
+                    default:
+                        if (sizeof(parameterTypes[i].nativeType) < 8) {
+                            narrow(mv, nativeIntType, int.class);
+                            mv.invokevirtual(HeapInvocationBuffer.class, "putInt", void.class, int.class);
+                        } else {
+                            mv.invokevirtual(HeapInvocationBuffer.class, "putLong", void.class, long.class);
+                        }
+                }
+            }
+
+        }
+
+
+        if (resultType.nativeType == NativeType.VOID || sizeof(resultType.nativeType) < 8) {
+            mv.invokevirtual(Invoker.class, "invokeInt", int.class, CallContext.class, long.class, HeapInvocationBuffer.class);
+            widen(mv, int.class, nativeIntType);
+        } else {
+            mv.invokevirtual(Invoker.class, "invokeLong", long.class, CallContext.class, long.class, HeapInvocationBuffer.class);
         }
     }
 

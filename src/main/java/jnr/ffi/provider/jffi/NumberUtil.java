@@ -306,6 +306,9 @@ public final class NumberUtil {
             case ADDRESS:
                 return com.kenai.jffi.Type.POINTER.size();
 
+            case VOID:
+                return 0;
+
             default:
                 throw new UnsupportedOperationException("cannot determine size of " + nativeType);
         }

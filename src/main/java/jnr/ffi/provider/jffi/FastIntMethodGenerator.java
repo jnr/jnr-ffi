@@ -93,19 +93,8 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
             return false;
         }
 
-        int objectCount = 0;
         for (ParameterType parameterType : parameterTypes) {
             if (!isFastIntParameter(platform, parameterType)) {
-                return false;
-            }
-
-            if (isSupportedPointerParameterType(parameterType.effectiveJavaType())) {
-                objectCount++;
-            }
-        }
-
-        if (objectCount > 0) {
-            if (parameterTypes.length > 4 || objectCount > 3) {
                 return false;
             }
         }

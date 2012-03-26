@@ -507,6 +507,10 @@ public final class AsmRuntime {
         return new HeapInvocationBuffer(callContext);
     }
 
+    public static HeapInvocationBuffer newHeapInvocationBuffer(CallContext callContext, int objCount) {
+        return new HeapInvocationBuffer(callContext, objCount);
+    }
+
     public static final String stringValue(long ptr) {
         if (ptr == 0) {
             return null;
