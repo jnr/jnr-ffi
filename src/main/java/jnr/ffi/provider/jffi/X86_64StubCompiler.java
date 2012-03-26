@@ -206,7 +206,8 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         a.sub(rsp, imm(space));
 
         // Call to the actual native function
-        a.call(imm(function.getFunctionAddress()));
+        a.mov(rax, imm(function.getFunctionAddress()));
+        a.call(rax);
 
         if (saveErrno) {
             // Save the return on the stack
@@ -224,7 +225,8 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             }
 
             // Save the errno in a thread-local variable
-            a.call(imm(errnoFunctionAddress));
+            a.mov(rax, imm(errnoFunctionAddress));
+            a.call(rax);
 
             // Retrieve return value and put it back in the appropriate return register
             if (resultClass == void.class) {

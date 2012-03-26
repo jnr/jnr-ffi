@@ -116,9 +116,10 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
             Assembler asm = stub.assembler;
             // align the start of all functions on a 8 byte boundary
             fn = align(fn, 8);
-            ByteBuffer buf = MemoryIO.getInstance().newDirectByteBuffer(fn, asm.codeSize()).order(ByteOrder.LITTLE_ENDIAN);
+            ByteBuffer buf = ByteBuffer.allocate(asm.codeSize()).order(ByteOrder.LITTLE_ENDIAN);
             stub.assembler.relocCode(buf, fn);
             buf.flip();
+            MemoryIO.getInstance().putByteArray(fn, buf.array(), buf.arrayOffset(), buf.limit());
 
             if (DEBUG && X86Disassembler.isAvailable()) {
 
@@ -129,7 +130,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
                 disassembler.setSyntax(X86Disassembler.Syntax.INTEL);
                 disassembler.setInputBuffer(MemoryUtil.newPointer(fn), buf.limit());
                 while (disassembler.disassemble()) {
-                    dbg.println("\t" + disassembler.insn());
+                    dbg.printf("%8x: %s\t\n", disassembler.offset(), disassembler.insn());
                 }
                 dbg.println();
             }

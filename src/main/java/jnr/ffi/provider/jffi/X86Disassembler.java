@@ -93,6 +93,14 @@ class X86Disassembler {
         return udis86.ud_insn_asm(this);
     }
 
+    public long offset() {
+        return udis86.ud_insn_off(this);
+    }
+
+    public String hex() {
+        return udis86.ud_insn_hex(this);
+    }
+
     @NoX86
     @NoTrace
     public static interface UDis86 {
