@@ -841,4 +841,31 @@ public final class AsmRuntime {
         return array != null ? PrimitiveArrayParameterStrategy.BOOLEAN : NullPointerParameterStrategy.INSTANCE;
     }
 
+    public static void checkAllStrategiesAreHeap(ObjectParameterStrategy s1) {
+        if (s1.isDirect()) {
+            throw new RuntimeException("pointer 1 is direct");
+        }
+    }
+
+    public static void checkAllStrategiesAreHeap(ObjectParameterStrategy s1, ObjectParameterStrategy s2) {
+        if (s1.isDirect()) {
+            throw new RuntimeException("pointer 1 is direct");
+        }
+        if (s2.isDirect()) {
+            throw new RuntimeException("pointer 2 is direct");
+        }
+    }
+
+    public static void checkAllStrategiesAreHeap(ObjectParameterStrategy s1, ObjectParameterStrategy s2, ObjectParameterStrategy s3) {
+        if (s1.isDirect()) {
+            throw new RuntimeException("pointer 1 is direct");
+        }
+        if (s2.isDirect()) {
+            throw new RuntimeException("pointer 2 is direct");
+        }
+        if (s3.isDirect()) {
+            throw new RuntimeException("pointer 3 is direct");
+        }
+    }
+
 }

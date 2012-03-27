@@ -582,7 +582,11 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     public void if_icmpgt(Label arg0) {
         getMethodVisitor().visitJumpInsn(IF_ICMPGT, arg0);
     }
-    
+
+    public void if_icmpge(Label arg0) {
+        getMethodVisitor().visitJumpInsn(IF_ICMPGE, arg0);
+    }
+
     public void if_icmplt(Label arg0) {
         getMethodVisitor().visitJumpInsn(IF_ICMPLT, arg0);
     }

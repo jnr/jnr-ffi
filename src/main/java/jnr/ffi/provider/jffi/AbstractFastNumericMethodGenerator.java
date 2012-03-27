@@ -69,6 +69,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
         LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
         LocalVariable[] converted = new LocalVariable[parameterTypes.length];
+        ObjectParameterInfo[] objectParameterInfo = new ObjectParameterInfo[parameterTypes.length];
         int pointerCount = 0;
 
         // Load, convert, and un-box parameters
@@ -130,6 +131,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 mv.iadd();
                 mv.istore(objCount);
 
+                objectParameterInfo[i] = ObjectParameterInfo.create(i, AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
 
                 if (CharSequence.class.isAssignableFrom(javaParameterType)
                     || javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
@@ -188,8 +190,17 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         /* --  method returns above - below is an alternative path -- */
 
         // Now implement heap object support
-        if (pointerCount > 0 && pointerCount <= 3) {
+        if (pointerCount > 0) {
+            final int MAX_OBJECT_COUNT = 3;
             mv.label(hasObjects);
+            Label bufferInvocation = new Label();
+
+            if (pointerCount > MAX_OBJECT_COUNT) {
+                mv.iload(objCount);
+                mv.pushInt(MAX_OBJECT_COUNT);
+                mv.if_icmpgt(bufferInvocation);
+            }
+
             if (int.class == nativeIntType) {
                 // For int invoker, need to convert all the int args to long
                 LocalVariable[] tmp = new LocalVariable[parameterTypes.length];
@@ -205,34 +216,136 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 }
             }
 
-            mv.iload(objCount);
-            // Need to load all the converters onto the stack
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (pointers[i] != null) {
-                    mv.aload(pointers[i]);
-                    mv.aload(strategies[i]);
-                    mv.aload(0);
+            if (pointerCount <= MAX_OBJECT_COUNT) {
+                mv.iload(objCount);
+                // Need to load all the converters onto the stack
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    if (pointers[i] != null) {
+                        mv.aload(pointers[i]);
+                        mv.aload(strategies[i]);
+                        mv.aload(0);
 
-                    ObjectParameterInfo info = ObjectParameterInfo.create(i,
-                            AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
+                        ObjectParameterInfo info = ObjectParameterInfo.create(i,
+                                AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
 
-                    mv.getfield(builder.getClassNamePath(), builder.getObjectParameterInfoName(info),
-                            ci(ObjectParameterInfo.class));
+                        mv.getfield(builder.getClassNamePath(), builder.getObjectParameterInfoName(info),
+                                ci(ObjectParameterInfo.class));
+                    }
                 }
+                mv.invokevirtual(p(com.kenai.jffi.Invoker.class),
+                        getObjectParameterMethodName(parameterTypes.length),
+                        getObjectParameterMethodSignature(parameterTypes.length, pointerCount));
+                narrow(mv, long.class, nativeIntType);
+
+            } else {
+
+                emitMultiplePointerInvoke(builder, mv, localVariableAllocator, parameterTypes, nativeIntType, objCount, pointers, strategies, objectParameterInfo, pointerCount, convertResult, MAX_OBJECT_COUNT);
+                mv.label(bufferInvocation);
+                emitBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes, nativeIntType,
+                        objCount, pointers, strategies);
             }
-            mv.invokevirtual(p(com.kenai.jffi.Invoker.class),
-                    AbstractFastNumericMethodGenerator.getObjectParameterMethodName(parameterTypes.length),
-                    AbstractFastNumericMethodGenerator.getObjectParameterMethodSignature(parameterTypes.length, pointerCount));
-            if (int.class == nativeIntType) mv.l2i();
-
             mv.go_to(convertResult);
+        }
+    }
 
-        } else if (pointerCount > 0) {
-            // Emit InvocationBuffer fallback
-            mv.label(hasObjects);
-            emitBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes, nativeIntType,
-                    objCount, pointers, strategies);
+    private void emitMultiplePointerInvoke(AsmBuilder builder, SkinnyMethodAdapter mv,
+                                           LocalVariableAllocator localVariableAllocator, ParameterType[] parameterTypes,
+                                           Class nativeIntType, LocalVariable objCount,
+                                           LocalVariable[] pointers, LocalVariable[] strategies,
+                                           ObjectParameterInfo[] objectParameterInfo, int pointerCount,
+                                           Label convertResult, int MAX_OBJECT_COUNT) {
+        int[] pointerIndexes = new int[pointerCount];
+        for (int i = 0, j = 0; i < parameterTypes.length; i++) {
+            if (strategies[i] != null) {
+                pointerIndexes[j++] = i;
+            }
+        }
+
+        int maxPointerCount = Math.min(MAX_OBJECT_COUNT, pointerCount);
+        LocalVariable[] s = new LocalVariable[maxPointerCount];
+        LocalVariable[] p = new LocalVariable[maxPointerCount];
+        LocalVariable[] o = new LocalVariable[maxPointerCount];
+
+        for (int i = 0; i < maxPointerCount; i++) {
+            s[i] = strategies[pointerIndexes[i]];
+            p[i] = pointers[pointerIndexes[i]];
+            o[i] = localVariableAllocator.allocate(Object.class); mv.aconst_null(); mv.astore(o[i]);
+        }
+
+
+        Label[] prev = null, next = new Label[pointerIndexes.length];
+        Label done = new Label();
+        for (int i = 0; i < maxPointerCount; i++) {
+            for (int pointerIndex = i; pointerIndex < pointerIndexes.length; pointerIndex++) {
+                Label testNextPointer = new Label();
+
+                if (prev != null && prev[pointerIndex] != null) mv.label(prev[pointerIndex]);
+                if (i > 0) {
+                    mv.iload(objCount);
+                    mv.pushInt(i + 1);
+                    mv.if_icmplt(done);
+                }
+
+                int parameterIndex = pointerIndexes[pointerIndex];
+
+                mv.aload(strategies[parameterIndex]);
+                mv.invokevirtual(ObjectParameterStrategy.class, "isDirect", boolean.class);
+                mv.iftrue(testNextPointer);
+
+                if (!p[i].equals(pointers[parameterIndex])) {
+                    mv.aload(pointers[parameterIndex]);
+                    mv.astore(p[i]);
+                }
+
+                if (!s[i].equals(strategies[parameterIndex])) {
+                    mv.aload(strategies[parameterIndex]);
+                    mv.astore(s[i]);
+                }
+
+                // Store the object info for this pointer param
+                mv.aload(0);
+                mv.getfield(builder.getClassNamePath(),
+                        builder.getObjectParameterInfoName(objectParameterInfo[parameterIndex]),
+                        ci(ObjectParameterInfo.class));
+
+                mv.astore(o[i]);
+
+                if ((i < maxPointerCount - 1 && pointerIndex < pointerIndexes.length - 1)) {
+                    next[pointerIndex + 1] = new Label();
+                    mv.go_to(next[pointerIndex + 1]);
+
+                } else {
+                    mv.go_to(done);
+                }
+                mv.label(testNextPointer);
+            }
+            prev = next;
+            next = new Label[pointerIndexes.length];
+        }
+        mv.label(done);
+
+        // Now load the extra args onto the stack
+        mv.iload(objCount);
+
+        for (int i = 0; i < maxPointerCount; i++) {
+            Label moreObjects = new Label();
+            mv.aload(p[i]);
+            mv.aload(s[i]);
+            mv.aload(o[i]);
+
+            boolean isLast = (i >= maxPointerCount - 1);
+            if (!isLast) {
+                mv.iload(objCount);
+                mv.pushInt(i + 1);
+                mv.if_icmpgt(moreObjects);
+            }
+
+            mv.invokevirtual(p(Invoker.class),
+                    getObjectParameterMethodName(parameterTypes.length),
+                    getObjectParameterMethodSignature(parameterTypes.length, i + 1));
+            narrow(mv, long.class, nativeIntType);
             mv.go_to(convertResult);
+            if (!isLast) mv.label(moreObjects);
         }
     }
 

@@ -18,18 +18,15 @@
 
 package jnr.ffi;
 
-import java.nio.ByteOrder;
-
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.types.int32_t;
 import jnr.ffi.types.int8_t;
 import jnr.ffi.types.size_t;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.*;
+
+import java.nio.ByteOrder;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -54,6 +51,8 @@ public class PointerTest {
         void ptr_set_int64_t(Pointer p, int offset, @LongLong long value);
         void ptr_set_float(Pointer p, int offset, float value);
         void ptr_set_double(Pointer p, int offset, double value);
+        void ptr_reverse_l5(Pointer p1, Pointer p2, Pointer p3, Pointer p4, Pointer p5);
+        void ptr_reverse_l6(Pointer p1, Pointer p2, Pointer p3, Pointer p4, Pointer p5, Pointer p6);
 
         Pointer ptr_malloc(@size_t int size);
         void ptr_free(Pointer ptr);
@@ -280,6 +279,42 @@ public class PointerTest {
         for (int i  = 0; i < pointers.length; ++i) {
             testlib.ptr_free(pointers[i]);
         }      
+    }
+
+    @Test
+    public void testP5() {
+        Pointer[] p = new Pointer[5];
+        long[] v = { 1, 2, 3, 4, 5 };
+        for (int i  = 0; i < p.length; ++i) {
+            if ((i % 2) == 0) {
+                p[i] = Memory.allocate(Library.getRuntime(testlib), 8);
+            } else {
+                p[i] = Memory.allocateDirect(Library.getRuntime(testlib), 8);
+            }
+            p[i].putLongLong(0, v[i]);
+        }
+        testlib.ptr_reverse_l5(p[0], p[1], p[2], p[3], p[4]);
+        for (int i  = 0; i < p.length; ++i) {
+            assertEquals("not same value for pointer " + (i + 1), v[v.length - i - 1], p[i].getLongLong(0));
+        }
+    }
+
+    @Test
+    public void testP6() {
+        Pointer[] p = new Pointer[6];
+        long[] v = { 1, 2, 3, 4, 5, 6};
+        for (int i  = 0; i < p.length; ++i) {
+            if ((i % 2) == 0) {
+                p[i] = Memory.allocate(Library.getRuntime(testlib), 8);
+            } else {
+                p[i] = Memory.allocateDirect(Library.getRuntime(testlib), 8);
+            }
+            p[i].putLongLong(0, v[i]);
+        }
+        testlib.ptr_reverse_l6(p[0], p[1], p[2], p[3], p[4], p[5]);
+        for (int i  = 0; i < p.length; ++i) {
+            assertEquals("not same value for pointer " + (i + 1), v[v.length - i - 1], p[i].getLongLong(0));
+        }
     }
     
 //    @Test
