@@ -19,10 +19,8 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
-import com.kenai.jffi.ObjectParameterInfo;
 import jnr.ffi.*;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.byref.ByReference;
@@ -43,7 +41,7 @@ import java.nio.Buffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
+import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static org.objectweb.asm.Opcodes.*;
 
@@ -95,8 +93,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         // Create the constructor to set the 'library' & functions fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
-                sig(void.class, NativeLibrary.class, Function[].class,
-                        FromNativeConverter[].class, ToNativeConverter[].class, ObjectParameterInfo[].class),
+                sig(void.class, NativeLibrary.class, Object[].class),
                 null, null));
         init.start();
         // Invokes the super class constructor as super(Library)
@@ -177,69 +174,27 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
         }
 
-        Function[] functions = builder.getFunctionArray();
-        for (int i = 0; i < functions.length; i++) {
-            Function function = functions[i];
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, builder.getFunctionFieldName(function), ci(Function.class), null, null);
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, builder.getCallContextFieldName(function), ci(CallContext.class), null, null);
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, builder.getFunctionAddressFieldName(function), ci(long.class), null, null);
 
+        AsmBuilder.ObjectField[] fields = builder.getObjectFieldArray();
+        Object[] fieldObjects = new Object[fields.length];
+        for (int i = 0; i < fieldObjects.length; i++) {
+            fieldObjects[i] = fields[i].value;
+            String fieldName = fields[i].name;
+            cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(fields[i].klass), null, null);
+            init.aload(0);
             init.aload(2);
             init.pushInt(i);
             init.aaload();
-            init.dup();
-            init.dup();
 
-            init.aload(0);
-            init.swap();
-            init.putfield(className, builder.getFunctionFieldName(function), ci(Function.class));
-
-
-            init.aload(0);
-            init.swap();
-            init.invokevirtual(Function.class, "getCallContext", CallContext.class);
-            init.putfield(className, builder.getCallContextFieldName(function), ci(CallContext.class));
-
-            init.aload(0);
-            init.swap();
-            init.invokevirtual(Function.class, "getFunctionAddress", long.class);
-            init.putfield(className, builder.getFunctionAddressFieldName(function), ci(long.class));
+            if (fields[i].klass.isPrimitive()) {
+                Class boxedType = boxedType(fields[i].klass);
+                init.checkcast(boxedType);
+                unboxNumber(init, boxedType, fields[i].klass);
+            } else {
+                init.checkcast(fields[i].klass);
+            }
+            init.putfield(className, fieldName, ci(fields[i].klass));
         }
-
-        FromNativeConverter[] fromNativeConverters = builder.getFromNativeConverterArray();
-        for (int i = 0; i < fromNativeConverters.length; i++) {
-            String fieldName = builder.getFromNativeConverterName(fromNativeConverters[i]);
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(FromNativeConverter.class), null, null);
-            init.aload(0);
-            init.aload(3);
-            init.pushInt(i);
-            init.aaload();
-
-            init.putfield(className, fieldName, ci(FromNativeConverter.class));
-        }
-
-        ToNativeConverter[] toNativeConverters = builder.getToNativeConverterArray();
-        for (int i = 0; i < toNativeConverters.length; i++) {
-            String fieldName = builder.getToNativeConverterName(toNativeConverters[i]);
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(ToNativeConverter.class), null, null);
-            init.aload(0);
-            init.aload(4);
-            init.pushInt(i);
-            init.aaload();
-            init.putfield(className, fieldName, ci(ToNativeConverter.class));
-        }
-
-        ObjectParameterInfo[] objectParameterInfo = builder.getObjectParameterInfoArray();
-        for (int i = 0; i < objectParameterInfo.length; i++) {
-            String fieldName = builder.getObjectParameterInfoName(objectParameterInfo[i]);
-            cv.visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(ObjectParameterInfo.class), null, null);
-            init.aload(0);
-            init.aload(5);
-            init.pushInt(i);
-            init.aaload();
-            init.putfield(className, fieldName, ci(ObjectParameterInfo.class));
-        }
-
 
         init.voidreturn();
         init.visitMaxs(10, 10);
@@ -255,9 +210,8 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
             Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), bytes);
-            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Function[].class,
-                    FromNativeConverter[].class, ToNativeConverter[].class, ObjectParameterInfo[].class);
-            T result = cons.newInstance(library, functions, fromNativeConverters, toNativeConverters, objectParameterInfo);
+            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Object[].class);
+            T result = cons.newInstance(library, fieldObjects);
 
             // Attach any native method stubs - we have to delay this until the
             // implementation class is loaded for it to work.

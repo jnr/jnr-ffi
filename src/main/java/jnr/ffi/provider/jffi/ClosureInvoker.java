@@ -273,34 +273,31 @@ abstract public class ClosureInvoker {
         closureInvoke.visitEnd();
 
         SkinnyMethodAdapter closureInit = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "<init>",
-                sig(void.class, NativeRuntime.class, ToNativeConverter[].class, FromNativeConverter[].class),
+                sig(void.class, NativeRuntime.class, Object[].class),
                 null, null));
         closureInit.start();
         closureInit.aload(0);
         closureInit.aload(1);
         closureInit.invokespecial(p(ClosureInvoker.class), "<init>", sig(void.class, NativeRuntime.class));
 
-        ToNativeConverter[] toNativeConverters = builder.getToNativeConverterArray();
-        for (int i = 0; i < toNativeConverters.length; i++) {
-            String fieldName = builder.getToNativeConverterName(toNativeConverters[i]);
-            builder.getClassVisitor().visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(ToNativeConverter.class), null, null);
+        AsmBuilder.ObjectField[] fields = builder.getObjectFieldArray();
+        Object[] fieldObjects = new Object[fields.length];
+        for (int i = 0; i < fieldObjects.length; i++) {
+            fieldObjects[i] = fields[i].value;
+            String fieldName = fields[i].name;
+            builder.getClassVisitor().visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(fields[i].klass), null, null);
             closureInit.aload(0);
             closureInit.aload(2);
             closureInit.pushInt(i);
             closureInit.aaload();
-            closureInit.putfield(closureInvokerClassName, fieldName, ci(ToNativeConverter.class));
-        }
-
-        FromNativeConverter[] fromNativeConverters = builder.getFromNativeConverterArray();
-        for (int i = 0; i < fromNativeConverters.length; i++) {
-            String fieldName = builder.getFromNativeConverterName(fromNativeConverters[i]);
-            builder.getClassVisitor().visitField(ACC_PRIVATE | ACC_FINAL, fieldName, ci(FromNativeConverter.class), null, null);
-            closureInit.aload(0);
-            closureInit.aload(3);
-            closureInit.pushInt(i);
-            closureInit.aaload();
-
-            closureInit.putfield(closureInvokerClassName, fieldName, ci(FromNativeConverter.class));
+            if (fields[i].klass.isPrimitive()) {
+                Class unboxedType = unboxedType(fields[i].klass);
+                closureInit.checkcast(unboxedType);
+                unboxNumber(closureInit, unboxedType, fields[i].klass);
+            } else {
+                closureInit.checkcast(fields[i].klass);
+            }
+            closureInit.putfield(builder.getClassNamePath(), fieldName, ci(fields[i].klass));
         }
 
         closureInit.voidreturn();
@@ -325,9 +322,9 @@ abstract public class ClosureInvoker {
             AsmClassLoader asm = new AsmClassLoader(cl);
             Class<? extends ClosureInvoker> nativeClosureClass = asm.defineClass(c(closureInvokerClassName), closureImpBytes);
             Constructor<? extends ClosureInvoker> closureInvokerConstructor
-                    = nativeClosureClass.getConstructor(NativeRuntime.class, ToNativeConverter[].class, FromNativeConverter[].class);
+                    = nativeClosureClass.getConstructor(NativeRuntime.class, Object[].class);
 
-            return closureInvokerConstructor.newInstance(runtime, toNativeConverters, fromNativeConverters);
+            return closureInvokerConstructor.newInstance(runtime, fieldObjects);
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }
