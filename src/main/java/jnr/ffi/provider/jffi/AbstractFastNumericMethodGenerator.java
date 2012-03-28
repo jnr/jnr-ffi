@@ -237,11 +237,13 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             narrow(mv, long.class, nativeIntType);
             mv.go_to(convertResult);
 
-            // fallback to buffer invocation
-            mv.label(bufferInvocation);
-            emitBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes, nativeIntType,
-                    objCount, pointers, strategies);
-            mv.go_to(convertResult);
+            if (pointerCount > MAX_OBJECT_COUNT) {
+                // fallback to buffer invocation
+                mv.label(bufferInvocation);
+                emitBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes, nativeIntType,
+                        objCount, pointers, strategies);
+                mv.go_to(convertResult);
+            }
         }
     }
 
