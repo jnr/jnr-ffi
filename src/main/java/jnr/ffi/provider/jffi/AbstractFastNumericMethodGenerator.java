@@ -62,14 +62,13 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
     public void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes,
                          boolean ignoreError) {
-// [ stack contains: Invoker, Function ]
+        // [ stack contains: Invoker, Function ]
          final Class nativeIntType = getInvokerType();
         final LocalVariable objCount = localVariableAllocator.allocate(int.class);
         LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
         LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
         LocalVariable[] converted = new LocalVariable[parameterTypes.length];
-        ObjectParameterInfo[] objectParameterInfo = new ObjectParameterInfo[parameterTypes.length];
         int pointerCount = 0;
 
         // Load, convert, and un-box parameters
@@ -131,8 +130,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 mv.iadd();
                 mv.istore(objCount);
 
-                objectParameterInfo[i] = ObjectParameterInfo.create(i, AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
-
                 if (CharSequence.class.isAssignableFrom(javaParameterType)
                     || javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                     // heap objects are always address == 0, no need to call getAddress()
@@ -191,15 +188,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
         // Now implement heap object support
         if (pointerCount > 0) {
-            final int MAX_OBJECT_COUNT = 3;
             mv.label(hasObjects);
-            Label bufferInvocation = new Label();
-
-            if (pointerCount > MAX_OBJECT_COUNT) {
-                mv.iload(objCount);
-                mv.pushInt(MAX_OBJECT_COUNT);
-                mv.if_icmpgt(bufferInvocation);
-            }
 
             if (int.class == nativeIntType) {
                 // For int invoker, need to convert all the int args to long
@@ -236,81 +225,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     getObjectParameterMethodSignature(parameterTypes.length, pointerCount));
             narrow(mv, long.class, nativeIntType);
             mv.go_to(convertResult);
-
-            if (pointerCount > MAX_OBJECT_COUNT) {
-                // fallback to buffer invocation
-                mv.label(bufferInvocation);
-                emitBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes, nativeIntType,
-                        objCount, pointers, strategies);
-                mv.go_to(convertResult);
-            }
         }
     }
 
-    private void emitBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes, Class nativeIntType, LocalVariable objCount, LocalVariable[] pointers, LocalVariable[] strategies) {
-        // Save the converted parameters
-        LocalVariable[] saved = new LocalVariable[parameterTypes.length];
-        for (int i = parameterTypes.length - 1; i >= 0; i--) {
-            if (strategies[i] == null) {
-                saved[i] = localVariableAllocator.allocate(nativeIntType);
-                store(mv, nativeIntType, saved[i]);
-            } else {
-                // No need to save the address arg, since it will be re-fetched via the strategy
-                if (long.class == nativeIntType) mv.pop2(); else mv.pop();
-            }
-        }
-
-        // Create a new InvocationBuffer
-        mv.aload(0);
-        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(function), ci(CallContext.class));
-        mv.iload(objCount);
-        mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, CallContext.class, int.class);
-
-        // Now add each of the parameters to the invocation buffer
-        for (int i = 0; i < parameterTypes.length; i++) {
-            mv.dup();
-
-            if (strategies[i] != null) {
-                mv.aload(pointers[i]);
-                mv.aload(strategies[i]);
-                mv.pushInt(AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
-                mv.invokevirtual(HeapInvocationBuffer.class, "putObject", void.class, Object.class, ObjectParameterStrategy.class, int.class);
-
-            } else {
-                load(mv, nativeIntType, saved[i]);
-                switch (parameterTypes[i].nativeType) {
-                    case SCHAR:
-                    case UCHAR:
-                        narrow(mv, nativeIntType, int.class);
-                        mv.invokevirtual(HeapInvocationBuffer.class, "putByte", void.class, int.class);
-                        break;
-
-                    case SSHORT:
-                    case USHORT:
-                        narrow(mv, nativeIntType, int.class);
-                        mv.invokevirtual(HeapInvocationBuffer.class, "putShort", void.class, int.class);
-                        break;
-
-                    default:
-                        if (sizeof(parameterTypes[i].nativeType) < 8) {
-                            narrow(mv, nativeIntType, int.class);
-                            mv.invokevirtual(HeapInvocationBuffer.class, "putInt", void.class, int.class);
-                        } else {
-                            mv.invokevirtual(HeapInvocationBuffer.class, "putLong", void.class, long.class);
-                        }
-                }
-            }
-
-        }
-
-
-        if (resultType.nativeType == NativeType.VOID || sizeof(resultType.nativeType) < 8) {
-            mv.invokevirtual(Invoker.class, "invokeInt", int.class, CallContext.class, long.class, HeapInvocationBuffer.class);
-            widen(mv, int.class, nativeIntType);
-        } else {
-            mv.invokevirtual(Invoker.class, "invokeLong", long.class, CallContext.class, long.class, HeapInvocationBuffer.class);
-        }
-    }
 
     @SuppressWarnings("unchecked")
     static final Set<Class> pointerTypes = Collections.unmodifiableSet(new LinkedHashSet<Class>(Arrays.asList(
