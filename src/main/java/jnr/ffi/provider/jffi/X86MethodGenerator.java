@@ -354,7 +354,7 @@ class X86MethodGenerator implements MethodGenerator {
                 return float.class;
 
             case DOUBLE:
-                return float.class;
+                return double.class;
 
             case VOID:
                 return void.class;
