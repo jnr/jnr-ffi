@@ -236,7 +236,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             return EnumMapper.getInstance(parameterType.asSubclass(Enum.class));
 
         } else if (isDelegate(parameterType)) {
-            return closureManager.getClosureFactory(parameterType);
+            return closureManager.newClosureSite(parameterType);
 
         } else if (ByReference.class.isAssignableFrom(parameterType)) {
             return new ByReferenceParameterConverter(ParameterFlags.parse(m.getParameterAnnotations()[parameterIndex]));

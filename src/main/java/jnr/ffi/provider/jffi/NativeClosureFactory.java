@@ -24,8 +24,6 @@ import com.kenai.jffi.ClosureMagazine;
 import com.kenai.jffi.ClosureManager;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.Delegate;
-import jnr.ffi.mapper.ToNativeContext;
-import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.util.ref.FinalizableWeakReference;
 
@@ -43,7 +41,7 @@ import static jnr.ffi.provider.jffi.InvokerUtil.getNativeCallingConvention;
 /**
  *
  */
-public final class NativeClosureFactory<T extends Object> implements ToNativeConverter<Object, Pointer> {
+public final class NativeClosureFactory<T extends Object> {
     private final NativeRuntime runtime;
     private final ConcurrentMap<Integer, ClosureReference> closures = new ConcurrentHashMap<Integer, ClosureReference>();
     private final CallContext callContext;
@@ -112,38 +110,11 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
         }
     }
 
-    public final Pointer toNative(Object callable, ToNativeContext context) {
-        Integer key = System.identityHashCode(callable);
-        ClosureReference ref = closures.get(key);
-        if (ref != null) {
-            // Simple case - no identity hash code clash - just return the ptr
-            if (ref.getCallable() == callable) {
-                return ref.pointer;
-            }
-
-            // There has been a key clash, search the list
-            synchronized (closures) {
-                while ((ref = ref.next) != null) {
-                    if (ref.getCallable() == callable) {
-                        return ref.pointer;
-                    }
-                }
-            }
-        }
-
-        return newClosure(callable, key);
-    }
-
-    public Class<Pointer> nativeType() {
-        return Pointer.class;
-    }
-
-
     private void recycle(NativeClosurePointer ptr) {
         freeQueue.add(ptr);
     }
 
-    private final class ClosureReference extends FinalizableWeakReference<Object> {
+    final class ClosureReference extends FinalizableWeakReference<Object> {
         volatile ClosureReference next;
         private final NativeClosureFactory factory;
         private final NativeClosurePointer pointer;
@@ -159,12 +130,17 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
         }
 
         public void finalizeReferent() {
+            clear();
             factory.expunge(this, key);
             factory.recycle(pointer);
         }
 
-        private Object getCallable() {
+        Object getCallable() {
             return get();
+        }
+
+        Pointer getPointer() {
+            return pointer;
         }
     }
 
@@ -190,12 +166,16 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
     }
 
     NativeClosurePointer newClosure(Object callable, Integer key) {
+        return newClosureReference(callable, key).pointer;
+    }
+
+    ClosureReference newClosureReference(Object callable, Integer key) {
 
         NativeClosurePointer ptr = allocateClosurePointer();
         ClosureReference ref = new ClosureReference(callable, key, this, ptr);
         ptr.proxy.closureReference = ref;
         if (closures.putIfAbsent(key, ref) == null) {
-            return ref.pointer;
+            return ref;
         }
 
         synchronized (closures) {
@@ -210,6 +190,28 @@ public final class NativeClosureFactory<T extends Object> implements ToNativeCon
             } while (!closures.replace(key, ref.next, ref));
         }
 
-        return ptr;
+        return ref;
+    }
+
+    ClosureReference getClosureReference(Object callable) {
+        Integer key = System.identityHashCode(callable);
+        ClosureReference ref = closures.get(key);
+        if (ref != null) {
+            // Simple case - no identity hash code clash - just return the ptr
+            if (ref.getCallable() == callable) {
+                return ref;
+            }
+
+            // There has been a key clash, search the list
+            synchronized (closures) {
+                while ((ref = ref.next) != null) {
+                    if (ref.getCallable() == callable) {
+                        return ref;
+                    }
+                }
+            }
+        }
+
+        return newClosureReference(callable, key);
     }
 }

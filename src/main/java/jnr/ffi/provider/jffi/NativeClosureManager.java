@@ -18,6 +18,9 @@
 
 package jnr.ffi.provider.jffi;
 
+import jnr.ffi.Pointer;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.ClosureManager;
 
@@ -55,5 +58,36 @@ final class NativeClosureManager implements ClosureManager {
         factories.put(closureClass, factory);
 
         return factory;
+    }
+
+    <T extends Object> ToNativeConverter<T, Pointer> newClosureSite(Class<T> closureClass) {
+        return new ClosureSite<T>(getClosureFactory(closureClass));
+    }
+
+    private static final class ClosureSite<T> implements ToNativeConverter<T, Pointer> {
+        private final NativeClosureFactory<T> factory;
+        private NativeClosureFactory.ClosureReference closureReference = null;
+
+        private ClosureSite(NativeClosureFactory<T> factory) {
+            this.factory = factory;
+        }
+
+        public Pointer toNative(T value, ToNativeContext context) {
+            NativeClosureFactory.ClosureReference ref = closureReference;
+            if (ref != null && ref.getCallable() == value) {
+                return ref.getPointer();
+            }
+
+            ref = factory.getClosureReference(value);
+            if (closureReference == null || closureReference.get() == null) {
+                closureReference = ref;
+            }
+
+            return ref.getPointer();
+        }
+
+        public Class<Pointer> nativeType() {
+            return Pointer.class;
+        }
     }
 }
