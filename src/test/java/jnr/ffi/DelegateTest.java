@@ -20,14 +20,11 @@ package jnr.ffi;
 
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
-import jnr.ffi.types.u_int16_t;
 import jnr.ffi.types.u_int32_t;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 /**
  *
  */
@@ -352,6 +349,16 @@ public class DelegateTest {
         Pointer p1 = lib.ret_pointer(closure);
         Pointer p2 = lib.ret_pointer(closure);
         assertEquals("not same native address for Callable instance", p1, p2);
+    }
+
+    @Test public void allocateMany() {
+        for (int i = 0; i < 100000; i++) {
+        Pointer p1 = lib.ret_pointer(new TestLib.ReusableCallable() {
+
+            public void call(int a1) {}
+        });
+        }
+//        assertEquals("not same native address for Callable instance", p1, p2);
     }
 
 //    @Test

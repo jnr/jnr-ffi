@@ -502,6 +502,17 @@ final class AsmUtil {
         return lvars;
     }
 
+    static LocalVariable[] getParameterVariables(Class[] parameterTypes) {
+        LocalVariable[] lvars = new LocalVariable[parameterTypes.length];
+        int idx = 1;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            lvars[i] = new LocalVariable(parameterTypes[i], idx);
+            idx += calculateLocalVariableSpace(parameterTypes[i]);
+        }
+
+        return lvars;
+    }
+
     static void load(SkinnyMethodAdapter mv, Class parameterType, LocalVariable parameter) {
         if (!parameterType.isPrimitive()) {
             mv.aload(parameter);

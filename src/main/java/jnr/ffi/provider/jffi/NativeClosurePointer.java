@@ -24,15 +24,14 @@ import jnr.ffi.provider.InAccessibleMemoryIO;
  *
  */
 class NativeClosurePointer extends InAccessibleMemoryIO {
-    volatile NativeClosurePointer next;
-    private final NativeClosure nativeClosure;
     private final com.kenai.jffi.Closure.Handle handle;
+    final NativeClosureProxy proxy;
 
 
-    public NativeClosurePointer(jnr.ffi.Runtime runtime, NativeClosure nativeClosure, com.kenai.jffi.Closure.Handle handle) {
+    public NativeClosurePointer(jnr.ffi.Runtime runtime, com.kenai.jffi.Closure.Handle handle, NativeClosureProxy proxy) {
         super(runtime);
-        this.nativeClosure = nativeClosure;
         this.handle = handle;
+        this.proxy = proxy;
     }
 
     @Override
@@ -48,13 +47,5 @@ class NativeClosurePointer extends InAccessibleMemoryIO {
     @Override
     public long size() {
         return 0;
-    }
-
-    Object getCallable() {
-        return nativeClosure.get();
-    }
-
-    NativeClosure getNativeClosure() {
-        return nativeClosure;
     }
 }
