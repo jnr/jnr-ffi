@@ -25,7 +25,7 @@ public final class DefaultObjectReferenceManager extends ObjectReferenceManager 
 
         int nextId = System.identityHashCode(obj);
 
-        ObjectReference ptr = null;
+        ObjectReference ptr;
         while (references.putIfAbsent(ptr = new ObjectReference(runtime, nextId), obj) != null) {
             // A collision on the identity hash is extremely rare, but possible, so probe for a vacant slot
             ++nextId;
@@ -43,11 +43,11 @@ public final class DefaultObjectReferenceManager extends ObjectReferenceManager 
     }
 
     private static final class ObjectReference extends InAccessibleMemoryIO {
-        private final int address;
+        private final long address;
 
         public ObjectReference(jnr.ffi.Runtime runtime, int address) {
             super(runtime);
-            this.address = address;
+            this.address = address & 0xffffffffL;
         }
 
         public boolean isDirect() {
@@ -55,7 +55,7 @@ public final class DefaultObjectReferenceManager extends ObjectReferenceManager 
         }
 
         public long address() {
-            return address & 0xffffffffL;
+            return address;
         }
 
         public long size() {
@@ -64,12 +64,12 @@ public final class DefaultObjectReferenceManager extends ObjectReferenceManager 
 
         @Override
         public int hashCode() {
-            return address;
+            return (int) address;
         }
 
         @Override
         public boolean equals(Object obj) {
-            return obj.getClass() == ObjectReference.class && ((ObjectReference) obj).address == address;
+            return obj instanceof Pointer && ((Pointer) obj).address() == address;
         }
     }
 }
