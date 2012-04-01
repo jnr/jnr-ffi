@@ -2,7 +2,6 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Function;
 import com.kenai.jffi.Platform;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
@@ -25,10 +24,6 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
         "invokeI0", "invokeI1", "invokeI2", "invokeI3", "invokeI4", "invokeI5", "invokeI6"
     };
 
-    private static final String[] noErrnoMethodNames = {
-        "invokeI0NoErrno", "invokeI1NoErrno", "invokeI2NoErrno", "invokeI3NoErrno"
-    };
-
     static {
         signatures = new String[MAX_FASTINT_PARAMETERS + 1];
         for (int i = 0; i <= MAX_FASTINT_PARAMETERS; i++) {
@@ -49,10 +44,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes, boolean ignoreErrno) {
         final int parameterCount = parameterTypes.length;
 
-        if (ignoreErrno && parameterCount <= MAX_FASTINT_PARAMETERS && parameterCount <= noErrnoMethodNames.length) {
-            return noErrnoMethodNames[parameterTypes.length];
-
-        } else if (parameterCount <= MAX_FASTINT_PARAMETERS && parameterCount <= methodNames.length) {
+        if (parameterCount <= MAX_FASTINT_PARAMETERS && parameterCount <= methodNames.length) {
             return methodNames[parameterCount];
 
         } else {
@@ -105,17 +97,10 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     static int getMaximumFastIntParameters() {
         try {
-            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeIIIIIIrI", Function.class,
+            com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeI6", CallContext.class, long.class,
                     int.class, int.class, int.class, int.class, int.class, int.class);
             return 6;
-        } catch (NoSuchMethodException nex) {
-            try {
-                com.kenai.jffi.Invoker.class.getDeclaredMethod("invokeIIIrI", Function.class,
-                        int.class, int.class, int.class);
-                return 3;
-            } catch (NoSuchMethodException nex2) {
-                return 0;
-            }
+
         } catch (Throwable t) {
             return 0;
         }
@@ -132,9 +117,6 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
             case SLONG:
             case ULONG:
                 return sizeof(type.nativeType) <= 4;
-
-            case ADDRESS:
-                return sizeof(type.nativeType) <= 4 && isDelegate(type.getDeclaredType());
 
             default:
                 return false;
