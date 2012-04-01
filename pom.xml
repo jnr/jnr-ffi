@@ -9,7 +9,7 @@
   <groupId>com.github.jnr</groupId>
   <artifactId>jnr-ffi</artifactId>
   <packaging>jar</packaging>
-  <version>0.7.0-SNAPSHOT</version>
+  <version>0.7.0</version>
   <name>jnr-ffi</name>
   <description>A DSL for invoking native functions from java</description>
   <url>http://github.com/jnr/jnr-ffi</url>
