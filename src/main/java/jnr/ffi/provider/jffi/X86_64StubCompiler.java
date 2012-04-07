@@ -211,17 +211,21 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
 
         if (saveErrno) {
             // Save the return on the stack
-            if (resultClass == void.class) {
-                // No need to save/reload return value registers
+            switch (resultType.nativeType) {
+                case VOID:
+                    // No need to save/reload return value registers
+                    break;
 
-            } else if (resultClass == float.class) {
-                a.movss(dword_ptr(rsp, 0), xmm0);
+                case FLOAT:
+                    a.movss(dword_ptr(rsp, 0), xmm0);
+                    break;
 
-            } else if (resultClass == double.class) {
-                a.movsd(qword_ptr(rsp, 0), xmm0);
+                case DOUBLE:
+                    a.movsd(qword_ptr(rsp, 0), xmm0);
+                    break;
 
-            } else {
-                a.mov(qword_ptr(rsp, 0), rax);
+                default:
+                    a.mov(qword_ptr(rsp, 0), rax);
             }
 
             // Save the errno in a thread-local variable
@@ -229,44 +233,76 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             a.call(rax);
 
             // Retrieve return value and put it back in the appropriate return register
-            if (resultClass == void.class) {
-                // No need to save/reload return value registers
+            switch (resultType.nativeType) {
+                case VOID:
+                    // No need to save/reload return value registers
+                    break;
 
-            } else if (resultClass == float.class) {
-                a.movss(xmm0, dword_ptr(rsp, 0));
+                case SCHAR:
+                    a.movsx(rax, byte_ptr(rsp, 0));
+                    break;
 
-            } else if (resultClass == double.class) {
-                a.movsd(xmm0, qword_ptr(rsp, 0));
+                case UCHAR:
+                    a.movzx(rax, byte_ptr(rsp, 0));
+                    break;
 
-            } else {
-                a.mov(rax, dword_ptr(rsp, 0));
+                case SSHORT:
+                    a.movsx(rax, word_ptr(rsp, 0));
+                    break;
+
+                case USHORT:
+                    a.movzx(rax, word_ptr(rsp, 0));
+                    break;
+
+                case SINT:
+                    a.movsxd(rax, dword_ptr(rsp, 0));
+                    break;
+
+                case UINT:
+                    // storing a value in eax zeroes out the upper 32 bits of rax
+                    a.mov(eax, dword_ptr(rsp, 0));
+                    break;
+
+                case FLOAT:
+                    a.movss(xmm0, dword_ptr(rsp, 0));
+                    break;
+
+                case DOUBLE:
+                    a.movsd(xmm0, qword_ptr(rsp, 0));
+                    break;
+
+                default:
+                    a.mov(rax, qword_ptr(rsp, 0));
+                    break;
             }
-        }
 
-        switch (resultType.nativeType) {
-            case SCHAR:
-                a.movsx(rax, al);
-                break;
+        } else {
+            // sign/zero extend the result
+            switch (resultType.nativeType) {
+                case SCHAR:
+                    a.movsx(rax, al);
+                    break;
 
-            case UCHAR:
-                a.movzx(rax, al);
-                break;
+                case UCHAR:
+                    a.movzx(rax, al);
+                    break;
 
-            case SSHORT:
-                a.movsx(rax, ax);
-                break;
+                case SSHORT:
+                    a.movsx(rax, ax);
+                    break;
 
-            case USHORT:
-                a.movzx(rax, ax);
-                break;
+                case USHORT:
+                    a.movzx(rax, ax);
+                    break;
 
-            case SINT:
-                a.movsxd(rax, eax);
-                break;
+                case SINT:
+                    if (long.class == resultClass) a.movsxd(rax, eax);
+                    break;
 
-            case UINT:
-                a.mov(eax, eax);
-                break;
+                case UINT:
+                    if (long.class == resultClass) a.mov(eax, eax);
+                    break;
+            }
         }
 
         // Restore rsp to original position

@@ -21,6 +21,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
 import jnr.ffi.NativeType;
+import jnr.x86asm.Asm;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.Mem;
 import jnr.x86asm.Register;
@@ -205,6 +206,22 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
                     a.fld(qword_ptr(esp, save));
                     break;
 
+                case SCHAR:
+                    a.movsx(eax, byte_ptr(esp, save));
+                    break;
+
+                case UCHAR:
+                    a.movzx(eax, byte_ptr(esp, save));
+                    break;
+
+                case SSHORT:
+                    a.movsx(eax, word_ptr(esp, save));
+                    break;
+
+                case USHORT:
+                    a.movzx(eax, word_ptr(esp, save));
+                    break;
+
                 case SLONGLONG:
                 case ULONGLONG:
                     a.mov(eax, dword_ptr(esp, save));
@@ -219,27 +236,29 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
                     a.mov(eax, dword_ptr(esp, save));
             }
 
-        }
+        } else {
 
-        switch (resultType.nativeType) {
-            case SCHAR:
-                a.movsx(eax, al);
-                break;
+            switch (resultType.nativeType) {
+                case SCHAR:
+                    a.movsx(eax, al);
+                    break;
 
-            case UCHAR:
-                a.movzx(eax, al);
-                break;
+                case UCHAR:
+                    a.movzx(eax, al);
+                    break;
 
-            case SSHORT:
-                a.movsx(eax, ax);
-                break;
+                case SSHORT:
+                    a.movsx(eax, ax);
+                    break;
 
-            case USHORT:
-                a.movzx(eax, ax);
-                break;
+                case USHORT:
+                    a.movzx(eax, ax);
+                    break;
+            }
         }
 
         if (long.class == resultClass) {
+            // sign or zero extend the result to 64 bits
             switch (resultType.nativeType) {
                 case SCHAR:
                 case SSHORT:

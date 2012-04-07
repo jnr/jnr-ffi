@@ -63,6 +63,7 @@ public class NumberTest {
         public double div_double(double f1, double f2);
         public @int32_t long ret_int32_t(@int32_t long l);
         public @u_int32_t long ret_uint32_t(@u_int32_t long l);
+        public @pid_t int ret_int32_t(@pid_t int l);
     }
     static TestLib testlib;
 
