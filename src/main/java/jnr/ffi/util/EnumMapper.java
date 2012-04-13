@@ -22,6 +22,7 @@ import jnr.ffi.mapper.AbstractDataConverter;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.ToNativeContext;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -31,21 +32,36 @@ public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
 
     private static final class StaticDataHolder {
         private static volatile Map<Class<? extends Enum>, EnumMapper> MAPPERS = Collections.emptyMap();
-    };
+    }
     
     private final Class<? extends Enum> enumClass;
-    private final Integer[] values;
-    private final Map<Integer, Enum> reverseLookupMap = new HashMap<Integer, Enum>();
+    private final int[] intValues;
+    private final long[] longValues;
+    private final Map<Number, Enum> reverseLookupMap = new HashMap<Number, Enum>();
 
     private EnumMapper(Class<? extends Enum> enumClass) {
         this.enumClass = enumClass;
 
         EnumSet<? extends Enum> enums = EnumSet.allOf(enumClass);
 
-        this.values = new Integer[enums.size()];
+        this.intValues = new int[enums.size()];
+        this.longValues = new long[enums.size()];
+        Method intValueMethod = getNumberValueMethod(enumClass, int.class);
+        Method longValueMethod = getNumberValueMethod(enumClass, long.class);
         for (Enum e : enums) {
-            Integer value = getIntegerValue(e);
-            this.values[e.ordinal()] = value;
+            Number value;
+            if (longValueMethod != null) {
+                value = reflectedNumberValue(e, longValueMethod);
+
+            } else if (intValueMethod != null) {
+                value = reflectedNumberValue(e, intValueMethod);
+
+            } else {
+                value = e.ordinal();
+            }
+            intValues[e.ordinal()] = value.intValue();
+            longValues[e.ordinal()] = value.longValue();
+
             reverseLookupMap.put(value, e);
         }
         
@@ -88,36 +104,59 @@ public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
         return mapper;
     }
 
-    private static final int getIntegerValue(Enum e) {
-        if (e instanceof IntegerEnum) {
-            return ((IntegerEnum) e).intValue();
-        } else {
-            return e.ordinal();
+    private static Method getNumberValueMethod(Class c, Class numberClass) {
+        try {
+            Method m = c.getDeclaredMethod(numberClass.getSimpleName() + "Value");
+            return m != null && numberClass == m.getReturnType() ? m : null;
+
+        } catch (Throwable t) {
+            return null;
         }
     }
+
+    private static Number reflectedNumberValue(Enum e, Method m) {
+        try {
+            return (Number) m.invoke(e);
+        } catch (Throwable ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 
     public final int intValue(Enum value) {
         if (value.getClass() != enumClass) {
             throw new IllegalArgumentException("enum class mismatch, " + value.getClass());
         }
 
-        return values[value.ordinal()];
+        return intValues[value.ordinal()];
+    }
+
+    public final long longValue(Enum value) {
+        if (value.getClass() != enumClass) {
+            throw new IllegalArgumentException("enum class mismatch, " + value.getClass());
+        }
+
+        return longValues[value.ordinal()];
     }
 
     public Enum valueOf(int value) {
-        return valueOf(Integer.valueOf(value));
+        return reverseLookup(value);
+    }
+
+    public Enum valueOf(long value) {
+        return reverseLookup(value);
     }
 
     public Enum valueOf(Number value) {
-        return valueOf(Integer.valueOf(value.intValue()));
+        return reverseLookup(value);
     }
 
-    public Enum valueOf(Integer value) {
+    private Enum reverseLookup(Number value) {
         Enum e = reverseLookupMap.get(value);
         return e != null ? e : badValue(value);
     }
 
-    private final Enum badValue(Integer value) {
+    private Enum badValue(Number value) {
         //
         // No value found - try to find the default value for unknown values.
         // This is useful for enums that aren't fixed in stone and/or where you
