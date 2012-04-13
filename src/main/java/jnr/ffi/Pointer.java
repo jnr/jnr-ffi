@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 Wayne Meissner
+ * Copyright (C) 2008-2012 Wayne Meissner
  *
  * This file is part of the JNR project.
  *
@@ -20,6 +20,8 @@ package jnr.ffi;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 abstract public class Pointer {
     /**
@@ -315,11 +317,11 @@ abstract public class Pointer {
      * beginning at the given offset, from an array.
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
-     * @param dst the array to get values from.
+     * @param src the array to get values from.
      * @param idx the start index in the {@code dst} array to begin reading values.
      * @param len the number of values to be written.
      */
-    abstract public void put(long offset, byte[] dst, int idx, int len);
+    abstract public void put(long offset, byte[] src, int idx, int len);
 
     /**
      * Bulk get method for multiple {@code short} values.
@@ -341,11 +343,11 @@ abstract public class Pointer {
      * beginning at the given offset, from an array.
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
-     * @param dst the array to get values from.
+     * @param src the array to get values from.
      * @param idx the start index in the {@code dst} array to begin reading values.
      * @param len the number of values to be written.
      */
-    abstract public void put(long offset, short[] dst, int idx, int len);
+    abstract public void put(long offset, short[] src, int idx, int len);
 
     /**
      * Bulk get method for multiple {@code int} values.
@@ -367,11 +369,11 @@ abstract public class Pointer {
      * beginning at the given offset, from an array.
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
-     * @param dst the array to get values from.
+     * @param src the array to get values from.
      * @param idx the start index in the {@code dst} array to begin reading values.
      * @param len the number of values to be written.
      */
-    abstract public void put(long offset, int[] dst, int idx, int len);
+    abstract public void put(long offset, int[] src, int idx, int len);
 
     /**
      * Bulk get method for multiple {@code long} values.
@@ -393,11 +395,11 @@ abstract public class Pointer {
      * beginning at the given offset, from an array.
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
-     * @param dst the array to get values from.
+     * @param src the array to get values from.
      * @param idx the start index in the {@code dst} array to begin reading values.
      * @param len the number of values to be written.
      */
-    abstract public void put(long offset, long[] dst, int idx, int len);
+    abstract public void put(long offset, long[] src, int idx, int len);
 
     /**
      * Bulk get method for multiple {@code float} values.
@@ -419,11 +421,11 @@ abstract public class Pointer {
      * beginning at the given offset, from an array.
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
-     * @param dst the array to get values from.
+     * @param src the array to get values from.
      * @param idx the start index in the {@code dst} array to begin reading values.
      * @param len the number of values to be written.
      */
-    abstract public void put(long offset, float[] dst, int idx, int len);
+    abstract public void put(long offset, float[] src, int idx, int len);
 
     /**
      * Bulk get method for multiple {@code double} values.
@@ -445,11 +447,11 @@ abstract public class Pointer {
      * beginning at the given offset, from an array.
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
-     * @param dst the array to get values from.
+     * @param src the array to get values from.
      * @param idx the start index in the {@code dst} array to begin reading values.
      * @param len the number of values to be written.
      */
-    abstract public void put(long offset, double[] dst, int idx, int len);
+    abstract public void put(long offset, double[] src, int idx, int len);
 
     /**
      * Reads an {@code Pointer} value at the given offset.
@@ -582,4 +584,78 @@ abstract public class Pointer {
      * @return the offset from the start of the search area (i.e. relative to the offset parameter), or -1 if not found.
      */
     abstract public int indexOf(long offset, byte value, int maxlen);
+
+    /**
+     * Bulk get method for multiple {@code Pointer} values.
+     *
+     * This method reads multiple {@code Pointer} values from consecutive addresses,
+     * beginning at the given offset, and stores them in an array.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the first value will be read.
+     * @param dst The array into which values are to be stored.
+     * @param idx the start index in the {@code dst} array to begin storing the values.
+     * @param len the number of values to be read.
+     */
+    public void get(long offset, Pointer[] dst, int idx, int len) {
+        final int pointerSize = getRuntime().addressSize();
+        for (int i = 0; i < len; i++) {
+            dst[idx + i] = getPointer(offset + (i * pointerSize));
+        }
+    }
+
+    /**
+     * Bulk put method for multiple {@code Pointer} values.
+     *
+     * This method writes multiple {@code Pointer} values to consecutive addresses,
+     * beginning at the given offset, from an array.
+     *
+     * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
+     * @param src the array to get values from.
+     * @param idx the start index in the {@code src} array to begin reading values.
+     * @param len the number of values to be written.
+     */
+    public void put(long offset, Pointer[] src, int idx, int len) {
+        final int pointerSize = getRuntime().addressSize();
+        for (int i = 0; i < len; i++) {
+            putPointer(offset + (i * pointerSize), src[idx + i]);
+        }
+    }
+
+    public String[] getNullTerminatedStringArray(long offset) {
+
+        Pointer ptr;
+        if ((ptr = getPointer(offset)) == null) {
+            return new String[0];
+        }
+
+        final int pointerSize = getRuntime().addressSize();
+
+        List<String> array = new ArrayList<String>();
+        array.add(ptr.getString(0));
+
+        for (int off = pointerSize; (ptr = getPointer(offset + off)) != null; off += pointerSize) {
+            array.add(ptr.getString(0));
+        }
+
+        return array.toArray(new String[array.size()]);
+    }
+
+    public Pointer[] getNullTerminatedPointerArray(long offset) {
+
+        Pointer ptr;
+        if ((ptr = getPointer(offset)) == null) {
+            return new Pointer[0];
+        }
+
+        final int pointerSize = getRuntime().addressSize();
+
+        List<Pointer> array = new ArrayList<Pointer>();
+        array.add(ptr);
+
+        for (int off = pointerSize; (ptr = getPointer(offset + off)) != null; off += pointerSize) {
+            array.add(ptr);
+        }
+
+        return array.toArray(new Pointer[array.size()]);
+    }
 }

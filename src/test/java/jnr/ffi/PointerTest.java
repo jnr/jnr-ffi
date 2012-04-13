@@ -25,7 +25,9 @@ import jnr.ffi.types.size_t;
 import org.junit.*;
 
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -315,6 +317,34 @@ public class PointerTest {
         for (int i  = 0; i < p.length; ++i) {
             assertEquals("not same value for pointer " + (i + 1), v[v.length - i - 1], p[i].getLongLong(0));
         }
+    }
+
+    @Test public void nullTerminatedStringArray() {
+        Runtime runtime = Library.getRuntime(testlib);
+        Pointer[] array = new Pointer[10];
+        String[] in = new String[array.length];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = Memory.allocateDirect(runtime, 128);
+            array[i].putString(0, in[i] = Integer.toString(i), 128, Charset.defaultCharset());
+        }
+        Pointer memory = Memory.allocateDirect(runtime, (2 * array.length + 1) * runtime.addressSize(), true);
+        memory.put(array.length * runtime.addressSize(), array, 0, array.length);
+        String[] out = memory.getNullTerminatedStringArray(array.length * runtime.addressSize());
+        assertArrayEquals(in, out);
+    }
+
+    @Test public void nullTerminatedPointerArray() {
+        Runtime runtime = Library.getRuntime(testlib);
+        Pointer[] array = new Pointer[10];
+        String[] in = new String[array.length];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = Memory.allocateDirect(runtime, 128);
+            array[i].putString(0, in[i] = Integer.toString(i), 128, Charset.defaultCharset());
+        }
+        Pointer memory = Memory.allocateDirect(runtime, (2 * array.length + 1) * runtime.addressSize(), true);
+        memory.put(array.length * runtime.addressSize(), array, 0, array.length);
+        Pointer[] out = memory.getNullTerminatedPointerArray(array.length * runtime.addressSize());
+        assertArrayEquals(array, out);
     }
     
 //    @Test

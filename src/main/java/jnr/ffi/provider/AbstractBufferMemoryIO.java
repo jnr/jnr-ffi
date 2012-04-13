@@ -165,23 +165,23 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
     }
 
     @Override
-    public void put(long offset, int[] dst, int off, int len) {
-        BufferUtil.slice(buffer, (int) offset, len * Integer.SIZE / 8).asIntBuffer().put(dst, off, len);
+    public void put(long offset, int[] src, int off, int len) {
+        BufferUtil.slice(buffer, (int) offset, len * Integer.SIZE / 8).asIntBuffer().put(src, off, len);
     }
 
     @Override
-    public void put(long offset, long[] dst, int off, int len) {
-        BufferUtil.slice(buffer, (int) offset, len * Long.SIZE / 8).asLongBuffer().put(dst, off, len);
+    public void put(long offset, long[] src, int off, int len) {
+        BufferUtil.slice(buffer, (int) offset, len * Long.SIZE / 8).asLongBuffer().put(src, off, len);
     }
 
     @Override
-    public void put(long offset, float[] dst, int off, int len) {
-        BufferUtil.slice(buffer, (int) offset, len * Float.SIZE / 8).asFloatBuffer().put(dst, off, len);
+    public void put(long offset, float[] src, int off, int len) {
+        BufferUtil.slice(buffer, (int) offset, len * Float.SIZE / 8).asFloatBuffer().put(src, off, len);
     }
 
     @Override
-    public void put(long offset, double[] dst, int off, int len) {
-        BufferUtil.slice(buffer, (int) offset, len * Double.SIZE / 8).asDoubleBuffer().put(dst, off, len);
+    public void put(long offset, double[] src, int off, int len) {
+        BufferUtil.slice(buffer, (int) offset, len * Double.SIZE / 8).asDoubleBuffer().put(src, off, len);
     }
 
     @Override

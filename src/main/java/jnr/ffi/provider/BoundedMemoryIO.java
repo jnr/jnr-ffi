@@ -206,9 +206,9 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
     }
 
     @Override
-    public void put(long offset, int[] dst, int off, int len) {
+    public void put(long offset, int[] src, int off, int len) {
         checkBounds(size, offset, len * Integer.SIZE / 8);
-        io.put(base + offset, dst, off, len);
+        io.put(base + offset, src, off, len);
     }
 
     @Override
@@ -218,9 +218,9 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
     }
 
     @Override
-    public void put(long offset, long[] dst, int off, int len) {
+    public void put(long offset, long[] src, int off, int len) {
         checkBounds(size, offset, len * Long.SIZE / 8);
-        io.put(base + offset, dst, off, len);
+        io.put(base + offset, src, off, len);
     }
 
     @Override
@@ -230,9 +230,9 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
     }
 
     @Override
-    public void put(long offset, float[] dst, int off, int len) {
+    public void put(long offset, float[] src, int off, int len) {
         checkBounds(size, offset, len * Float.SIZE / 8);
-        io.put(base + offset, dst, off, len);
+        io.put(base + offset, src, off, len);
     }
 
     @Override
@@ -242,9 +242,9 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
     }
 
     @Override
-    public void put(long offset, double[] dst, int off, int len) {
+    public void put(long offset, double[] src, int off, int len) {
         checkBounds(size, offset, len * Double.SIZE / 8);
-        io.put(base + offset, dst, off, len);
+        io.put(base + offset, src, off, len);
     }
 
     @Override

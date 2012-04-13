@@ -198,8 +198,8 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     }
 
     @Override
-    public void put(long offset, int[] dst, int off, int len) {
-        ptr.put(base + offset, dst, off, len);
+    public void put(long offset, int[] src, int off, int len) {
+        ptr.put(base + offset, src, off, len);
     }
 
     @Override
@@ -208,8 +208,8 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     }
 
     @Override
-    public void put(long offset, long[] dst, int off, int len) {
-        ptr.put(base + offset, dst, off, len);
+    public void put(long offset, long[] src, int off, int len) {
+        ptr.put(base + offset, src, off, len);
     }
 
     @Override
@@ -218,8 +218,8 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     }
 
     @Override
-    public void put(long offset, float[] dst, int off, int len) {
-        ptr.put(base + offset, dst, off, len);
+    public void put(long offset, float[] src, int off, int len) {
+        ptr.put(base + offset, src, off, len);
     }
 
     @Override
@@ -228,8 +228,8 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     }
 
     @Override
-    public void put(long offset, double[] dst, int off, int len) {
-        ptr.put(base + offset, dst, off, len);
+    public void put(long offset, double[] src, int off, int len) {
+        ptr.put(base + offset, src, off, len);
     }
 
     @Override

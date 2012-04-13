@@ -39,7 +39,7 @@ public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
     }
     
     public void putPointer(long offset, Pointer value) {
-        putAddress(offset, value.address());
+        putAddress(offset, value != null ? value.address() : 0L);
     }
 
 

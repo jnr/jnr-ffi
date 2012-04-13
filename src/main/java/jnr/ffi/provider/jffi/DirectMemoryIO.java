@@ -196,7 +196,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
     }
 
     public void putPointer(long offset, Pointer value) {
-        IO.putAddress(address + offset, value.address());
+        IO.putAddress(address + offset, value != null ? value.address() : 0L);
     }
 
     public String getString(long offset) {

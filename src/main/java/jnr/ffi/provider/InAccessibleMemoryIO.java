@@ -131,7 +131,7 @@ abstract public class InAccessibleMemoryIO extends AbstractMemoryIO {
         throw error();
     }
 
-    public final void put(long offset, int[] dst, int off, int len) {
+    public final void put(long offset, int[] src, int off, int len) {
         throw error();
     }
 
@@ -139,7 +139,7 @@ abstract public class InAccessibleMemoryIO extends AbstractMemoryIO {
         throw error();
     }
 
-    public final void put(long offset, long[] dst, int off, int len) {
+    public final void put(long offset, long[] src, int off, int len) {
         throw error();
     }
 
@@ -147,7 +147,7 @@ abstract public class InAccessibleMemoryIO extends AbstractMemoryIO {
         throw error();
     }
 
-    public final void put(long offset, float[] dst, int off, int len) {
+    public final void put(long offset, float[] src, int off, int len) {
         throw error();
     }
 
@@ -155,7 +155,7 @@ abstract public class InAccessibleMemoryIO extends AbstractMemoryIO {
         throw error();
     }
 
-    public final void put(long offset, double[] dst, int off, int len) {
+    public final void put(long offset, double[] src, int off, int len) {
         throw error();
     }
 
