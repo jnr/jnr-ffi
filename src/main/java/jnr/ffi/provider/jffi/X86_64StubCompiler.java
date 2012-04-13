@@ -20,6 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
+import jnr.ffi.NativeType;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.REG;
 import jnr.x86asm.Register;
@@ -109,16 +110,43 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
                        Class resultClass, Class[] parameterClasses, CallingConvention convention, boolean saveErrno) {
 
         Assembler a = new Assembler(X86_64);
-        
-        //
+        int iCount = iCount(parameterTypes);
+        int fCount = fCount(parameterTypes);
+
+        boolean canJumpToTarget = !saveErrno & iCount <= 6 & fCount <= 8;
+        switch (resultType.nativeType) {
+            case SINT:
+            case UINT:
+                canJumpToTarget &= int.class == resultClass;
+                break;
+
+            case SLONGLONG:
+            case ULONGLONG:
+                canJumpToTarget &= long.class == resultClass;
+                break;
+
+            case FLOAT:
+                canJumpToTarget &= float.class == resultClass;
+                break;
+
+            case DOUBLE:
+                canJumpToTarget &= double.class == resultClass;
+                break;
+
+            case VOID:
+                break;
+
+            default:
+                canJumpToTarget = false;
+                break;
+        }
+
         // JNI functions all look like:
         // foo(JNIEnv* env, jobject self, arg...)
         // on AMD64, those sit in %rdi, %rsi, %rdx, %rcx, %r8 and %r9
         // So we need to shuffle all the integer args up to over-write the
         // env and self arguments
         //
-
-        int iCount = iCount(parameterTypes);
         for (int i = 0; i < Math.min(iCount, 4); i++) {
             switch (parameterTypes[i].nativeType) {
                 case SCHAR:
@@ -193,9 +221,14 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
 
         // All the integer registers are loaded; there nothing to do for the floating
         // registers, as the first 8 args are already in xmm0..xmm7, so just sanity check
-        int fCount = fCount(parameterTypes);
         if (fCount > 8) {
             throw new IllegalArgumentException("float argument count > 8");
+        }
+
+        if (canJumpToTarget) {
+            a.jmp(imm(function.getFunctionAddress()));
+            stubs.add(new Stub(name, sig(resultClass, parameterClasses), a));
+            return;
         }
 
         // Need to align the stack to 16 bytes for function call.
@@ -206,8 +239,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         a.sub(rsp, imm(space));
 
         // Call to the actual native function
-        a.mov(rax, imm(function.getFunctionAddress()));
-        a.call(rax);
+        a.call(imm(function.getFunctionAddress()));
 
         if (saveErrno) {
             // Save the return on the stack
@@ -229,8 +261,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             }
 
             // Save the errno in a thread-local variable
-            a.mov(rax, imm(errnoFunctionAddress));
-            a.call(rax);
+            a.call(imm(errnoFunctionAddress));
 
             // Retrieve return value and put it back in the appropriate return register
             switch (resultType.nativeType) {

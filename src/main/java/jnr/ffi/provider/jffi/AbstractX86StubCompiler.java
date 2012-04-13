@@ -128,9 +128,13 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
                 disassembler.setMode(Platform.getNativePlatform().getCPU() == Platform.CPU.I386
                         ? X86Disassembler.Mode.I386 : X86Disassembler.Mode.X86_64);
                 disassembler.setSyntax(X86Disassembler.Syntax.INTEL);
-                disassembler.setInputBuffer(MemoryUtil.newPointer(fn), buf.limit());
+                disassembler.setInputBuffer(MemoryUtil.newPointer(fn), asm.offset());
                 while (disassembler.disassemble()) {
-                    dbg.printf("%8x: %s\t\n", disassembler.offset(), disassembler.insn());
+                    dbg.printf("%8x: %s\n", disassembler.offset(), disassembler.insn());
+                }
+                if (buf.remaining() > asm.offset()) {
+                    // libudis86 for some reason cannot understand the code asmjit emits for the trampolines
+                    dbg.printf("%8x: <indirect call trampolines>\n", asm.offset());
                 }
                 dbg.println();
             }
