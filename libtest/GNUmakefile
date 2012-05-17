@@ -32,7 +32,7 @@ CCACHE := $(strip $(realpath $(shell which ccache 2> /dev/null)))
 
 TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)
 TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(TEST_SRCS))
-	
+
 #
 # Compiler/linker flags from:
 #   http://weblogs.java.net/blog/kellyohair/archive/2006/01/compilation_of_1.html
@@ -40,7 +40,7 @@ JFLAGS = -fno-omit-frame-pointer -fno-strict-aliasing
 OFLAGS = -O2 $(JFLAGS)
 WFLAGS = -W -Werror -Wall -Wno-unused -Wno-parentheses
 PICFLAGS = -fPIC
-SOFLAGS = -shared -mimpure-text -Wl,-O1
+SOFLAGS = -shared -Wl,-O1
 LDFLAGS += $(SOFLAGS)
 
 IFLAGS = -I"$(BUILD_DIR)"
