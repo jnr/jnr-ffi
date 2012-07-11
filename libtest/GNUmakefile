@@ -28,13 +28,11 @@ LIBNAME = $(PREFIX)test.$(LIBEXT)
 
 export MACOSX_DEPLOYMENT_TARGET=10.5
 
-ifeq ($(OS),linux)
-CCACHE := $(shell /usr/bin/which ccache)
-endif
+CCACHE := $(strip $(realpath $(shell which ccache 2> /dev/null)))
 
 TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)
 TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(TEST_SRCS))
-	
+
 #
 # Compiler/linker flags from:
 #   http://weblogs.java.net/blog/kellyohair/archive/2006/01/compilation_of_1.html
@@ -42,7 +40,7 @@ JFLAGS = -fno-omit-frame-pointer -fno-strict-aliasing
 OFLAGS = -O2 $(JFLAGS)
 WFLAGS = -W -Werror -Wall -Wno-unused -Wno-parentheses
 PICFLAGS = -fPIC
-SOFLAGS = -shared -mimpure-text -Wl,-O1
+SOFLAGS = -shared -Wl,-O1
 LDFLAGS += $(SOFLAGS)
 
 IFLAGS = -I"$(BUILD_DIR)"
@@ -65,18 +63,17 @@ ifeq ($(OS),win64)
 endif
 
 ifeq ($(OS), darwin)
-  ARCHFLAGS = -arch ppc
+  CC = gcc
   ifneq ($(findstring $(CPU), i386 x86_64),)
-    ARCHFLAGS += -arch i386 -arch x86_64
+    ARCHFLAGS = -arch i386 -arch x86_64
   endif
-  MACSDK = /Developer/SDKs/MacOSX10.5.sdk
-  CFLAGS += $(ARCHFLAGS) -isysroot $(MACSDK) -DTARGET_RT_MAC_CFM=0
-  CFLAGS += -fno-common
-  LDFLAGS = $(ARCHFLAGS) -dynamiclib -Wl,-syslibroot,$(MACSDK) -mmacosx-version-min=10.5
-  # link against the universal libraries on ppc machines
-  LDFLAGS += -L$(MACSDK)/usr/lib
+  ifneq ($(findstring $(CPU), ppc powerpc),)
+    ARCHFLAGS = -arch ppc
+  endif
+  
+  CFLAGS += -fno-common $(ARCHFLAGS)
+  LDFLAGS = $(ARCHFLAGS) -dynamiclib
   LIBEXT = dylib
-  FFI_CFLAGS += -isysroot $(MACSDK)
   PICFLAGS =
   SOFLAGS =
 endif
@@ -120,7 +117,7 @@ ifeq ($(CPU), x86_64)
 endif
 
 # On platforms (linux, solaris) that support both 32bit and 64bit, force building for one or the other
-ifneq ($(or $(findstring linux, $(OS)), $(findstring solaris, $(OS))),)
+ifneq ($(strip $(findstring $(OS), solaris)),)
   # Change the CC/LD instead of CFLAGS/LDFLAGS, incase other things in the flags
   # makes the libffi build choke
   CC += -m$(MODEL)
