@@ -163,7 +163,7 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
 
             parameterConverters[i] = new ToNativeConverter[parameterTypes.length];
             for (int pidx = 0; pidx < parameterTypes.length; ++pidx) {
-                ToNativeConverter converter = typeMapper.getToNativeConverter(parameterTypes[pidx]);
+                ToNativeConverter converter = getParameterConverter(parameterTypes[pidx], typeMapper);
                 if (converter != null) {
                     cv.visitField(ACC_PRIVATE | ACC_FINAL, getParameterConverterFieldName(i, pidx),
                             ci(ToNativeConverter.class), null, null);
@@ -273,9 +273,22 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
             return new FromNativeProxy(conv, new MethodResultContext(m));
         } else if (Enum.class.isAssignableFrom(returnType)) {
             return new EnumResultConverter(returnType);
+
+        } else if (NativeLong.class.isAssignableFrom(returnType)) {
+            return Platform.getPlatform().longSize() == 32
+                    ? NativeLong32Converter.INSTANCE : NativeLong64Converter.INSTANCE;
         } else {
             return null;
         }
+    }
+
+    private ToNativeConverter getParameterConverter(Class parameterType, TypeMapper typeMapper) {
+        if (NativeLong.class.isAssignableFrom(parameterType)) {
+            return Platform.getPlatform().longSize() == 32
+                    ? NativeLong32Converter.INSTANCE : NativeLong64Converter.INSTANCE;
+        }
+
+        return typeMapper.getToNativeConverter(parameterType);
     }
 
     private static final com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
