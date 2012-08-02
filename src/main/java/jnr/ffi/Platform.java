@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public abstract class Platform {
+    private static final java.util.Locale LOCALE = java.util.Locale.ENGLISH;
     private final OS os;
     private final CPU cpu;
     private final int addressSize;
@@ -68,7 +69,7 @@ public abstract class Platform {
 
         @Override
         public String toString() {
-            return name().toLowerCase();
+            return name().toLowerCase(LOCALE);
         }
     }
 
@@ -121,7 +122,7 @@ public abstract class Platform {
          */
         @Override
         public String toString() {
-            return name().toLowerCase();
+            return name().toLowerCase(LOCALE);
         }
     }
 
@@ -131,20 +132,20 @@ public abstract class Platform {
      * @return An member of the <tt>OS</tt> enum.
      */
     private static final OS determineOS() {
-        String osName = System.getProperty("os.name").split(" ")[0].toLowerCase();
-        if (osName.startsWith("mac") || osName.startsWith("darwin")) {
+        String osName = System.getProperty("os.name").split(" ")[0];
+        if (startsWithIgnoreCase(osName, "mac") || startsWithIgnoreCase(osName, "darwin")) {
             return OS.DARWIN;
-        } else if (osName.startsWith("linux")) {
+        } else if (startsWithIgnoreCase(osName, "linux")) {
             return OS.LINUX;
-        } else if (osName.startsWith("sunos") || osName.startsWith("solaris")) {
+        } else if (startsWithIgnoreCase(osName, "sunos") || startsWithIgnoreCase(osName, "solaris")) {
             return OS.SOLARIS;
-        } else if (osName.startsWith("aix")) {
+        } else if (startsWithIgnoreCase(osName, "aix")) {
             return OS.AIX;
-        } else if (osName.startsWith("openbsd")) {
+        } else if (startsWithIgnoreCase(osName, "openbsd")) {
             return OS.OPENBSD;
-        } else if (osName.startsWith("freebsd")) {
+        } else if (startsWithIgnoreCase(osName, "freebsd")) {
             return OS.FREEBSD;
-        } else if (osName.startsWith("windows")) {
+        } else if (startsWithIgnoreCase(osName, "windows")) {
             return OS.WINDOWS;
         } else {
             return OS.UNKNOWN;
@@ -186,21 +187,28 @@ public abstract class Platform {
         }
     }
     
-    private static final CPU determineCPU() {
-        String archString = System.getProperty("os.arch").toLowerCase();
-        if ("x86".equals(archString) || "i386".equals(archString) || "i86pc".equals(archString)) {
+    private static CPU determineCPU() {
+        String archString = System.getProperty("os.arch");
+        if ("x86".equalsIgnoreCase(archString) || "i386".equalsIgnoreCase(archString) || "i86pc".equalsIgnoreCase(archString)) {
             return CPU.I386;
-        } else if ("x86_64".equals(archString) || "amd64".equals(archString)) {
+        } else if ("x86_64".equalsIgnoreCase(archString) || "amd64".equalsIgnoreCase(archString)) {
             return CPU.X86_64;
-        } else if ("ppc".equals(archString) || "powerpc".equals(archString)) {
+        } else if ("ppc".equalsIgnoreCase(archString) || "powerpc".equalsIgnoreCase(archString)) {
             return CPU.PPC;
+        } else if ("ppc64".equalsIgnoreCase(archString) || "powerpc64".equalsIgnoreCase(archString)) {
+            return CPU.PPC64;
+        } else if ("s390".equalsIgnoreCase(archString) || "s390x".equalsIgnoreCase(archString)) {
+            return CPU.S390X;
         }
+
         // Try to find by lookup up in the CPU list
-        try {
-            return CPU.valueOf(archString.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            return CPU.UNKNOWN;
+        for (CPU cpu : CPU.values()) {
+            if (cpu.name().equalsIgnoreCase(archString)) {
+                return cpu;
+            }
         }
+
+        return CPU.UNKNOWN;
     }
 
     public Platform(OS os, CPU cpu, int addressSize, int longSize, String libPattern) {
@@ -469,6 +477,12 @@ public abstract class Platform {
         public Windows() {
             super(OS.WINDOWS);
         }
+    }
+
+    private static boolean startsWithIgnoreCase(String s1, String s2) {
+        return s1.startsWith(s2)
+            || s1.toUpperCase(LOCALE).startsWith(s2.toUpperCase(LOCALE))
+            || s1.toLowerCase(LOCALE).startsWith(s2.toLowerCase(LOCALE));
     }
 }
 
