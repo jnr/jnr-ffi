@@ -80,8 +80,8 @@ public final class NativeRuntime extends AbstractRuntime {
     private static NativeType[] buildNativeTypeAliases() {
         Platform platform = Platform.getNativePlatform();
         Package pkg = NativeRuntime.class.getPackage();
-        String cpu = platform.getCPU().name().toLowerCase();
-        String os = platform.getOS().name().toLowerCase();
+        String cpu = platform.getCPU().toString();
+        String os = platform.getOS().toString();
         EnumSet<TypeAlias> typeAliases = EnumSet.allOf(TypeAlias.class);
         NativeType[] aliases = {};
         Class cls;
