@@ -1,15 +1,13 @@
 package jnr.ffi.provider.jffi.platform.x86_64.freebsd;
-
-import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;
-
+import jnr.ffi.NativeType;
 import java.util.EnumMap;
 import java.util.Map;
 
 public final class TypeAliases {
-    public static final Map<TypeAlias, NativeType> ALIASES = buildTypeMap();
-    private static Map<TypeAlias, NativeType> buildTypeMap() {
-        Map<TypeAlias, NativeType> m = new EnumMap<TypeAlias, NativeType>(TypeAlias.class);
+    public static final Map<TypeAlias, jnr.ffi.NativeType> ALIASES = buildTypeMap();
+    private static Map<TypeAlias, jnr.ffi.NativeType> buildTypeMap() {
+        Map<TypeAlias, jnr.ffi.NativeType> m = new EnumMap<TypeAlias, jnr.ffi.NativeType>(TypeAlias.class);
         m.put(TypeAlias.int8_t, NativeType.SCHAR);
         m.put(TypeAlias.u_int8_t, NativeType.UCHAR);
         m.put(TypeAlias.int16_t, NativeType.SSHORT);
