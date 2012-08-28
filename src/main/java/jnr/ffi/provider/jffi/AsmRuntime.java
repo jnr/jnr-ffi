@@ -376,14 +376,14 @@ public final class AsmRuntime {
             buffer.putAddress(0L);
 
         } else {
-            final AllocatedDirectMemoryIO[] pointers = new AllocatedDirectMemoryIO[strings.length];
+            final Pointer[] pointers = new Pointer[strings.length];
             Charset charset = Charset.defaultCharset();
 
             if (ParameterFlags.isIn(inout)) {
                 for (int i = 0; i < strings.length; ++i) {
                     if (strings[i] != null) {
                         ByteBuffer buf = charset.encode(CharBuffer.wrap(strings[i]));
-                        AllocatedDirectMemoryIO ptr = new AllocatedDirectMemoryIO(buf.remaining() + 1, false);
+                        DirectMemoryIO ptr = TransientNativeMemory.allocate(NativeRuntime.getInstance(), buf.remaining() + 1, 1, false);
                         ptr.putZeroTerminatedByteArray(0, buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
                         pointers[i] = ptr;
 
@@ -393,33 +393,22 @@ public final class AsmRuntime {
                 }
             }
 
-            // pass it as an array of pointers
-            final Pointer[] tmp = new Pointer[pointers.length];
-            System.arraycopy(pointers, 0, tmp, 0, tmp.length);
-            marshal(buffer, session, tmp, inout, nativeArrayFlags);
+            marshal(buffer, session, pointers, inout, nativeArrayFlags);
 
             // Reload any elements of the native array that were changed, and convert back to java strings
             // the PostInvoke also keeps the native memory alive until after the function call
-            session.addPostInvoke(new InvocationSession.PostInvoke() {
-
-                public void postInvoke() {
-                    if (ParameterFlags.isOut(inout)) {
+            session.keepAlive(pointers);
+            if (ParameterFlags.isOut(inout)) {
+                session.addPostInvoke(new InvocationSession.PostInvoke() {
+                    public void postInvoke() {
                         for (int i = 0; i < pointers.length; ++i) {
-                            if (tmp[i] != null) {
-                                strings[i] = tmp[i].getString(0);
+                            if (pointers[i] != null) {
+                                strings[i] = pointers[i].getString(0);
                             }
                         }
                     }
-
-                    // Dispose all the allocated memory as soon as the call is finished
-                    for (int i = 0; i < pointers.length; ++i) {
-                        if (pointers[i] != null) {
-                            pointers[i].dispose();
-                        }
-                    }
-                }
-            });
-
+                });
+            }
         }
     }
 

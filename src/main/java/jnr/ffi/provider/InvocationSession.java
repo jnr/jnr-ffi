@@ -25,6 +25,7 @@ import java.util.ArrayList;
  */
 public class InvocationSession {
     private ArrayList<PostInvoke> list;
+    private ArrayList<Object> liveObjects;
     public InvocationSession() {
         
     }
@@ -43,5 +44,12 @@ public class InvocationSession {
             list = new ArrayList<PostInvoke>();
         }
         list.add(postInvoke);
+    }
+
+    public void keepAlive(Object obj) {
+        if (liveObjects == null) {
+            liveObjects = new ArrayList<Object>();
+        }
+        liveObjects.add(obj);
     }
 }
