@@ -30,8 +30,10 @@ public abstract class FFIProvider {
      * @return an instance of <tt>FFIProvider</tt>
      */
     static final FFIProvider getSystemProvider() {
-        return SystemProviderSingletonHolder.getInstance();
+        return SystemProviderSingletonHolder.INSTANCE;
     }
+
+    protected FFIProvider() {}
 
     /** Gets the default <tt>Runtime</tt> for this provider */
     public abstract Runtime getRuntime();
@@ -73,11 +75,14 @@ public abstract class FFIProvider {
 
             try {
                 return (FFIProvider) Class.forName(providerName).newInstance();
+
             } catch (Throwable ex) {
-                ex.printStackTrace(System.out);
-                throw new RuntimeException("Could not load FFI provider " + providerName, ex);
+                return newInvalidProvider("could not load FFI provider " + providerName, ex);
             }
         }
     }
-    protected FFIProvider() {}
+
+    private static FFIProvider newInvalidProvider(String message, Throwable cause) {
+        return new InvalidProvider(message, cause);
+    }
 }
