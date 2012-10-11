@@ -989,12 +989,6 @@ public class AsmLibraryLoader extends LibraryLoader implements Opcodes {
         } else if (double.class == parameterType || Double.class == parameterType) {
             paramMethod = "putDouble";
             paramClass = double.class;
-        } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 32) {
-            paramMethod = "putInt";
-            paramClass = int.class;
-        } else if (NativeLong.class.isAssignableFrom(parameterType) && Platform.getPlatform().longSize() == 64) {
-            paramMethod = "putLong";
-            paramClass = long.class;
         } else {
             throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
