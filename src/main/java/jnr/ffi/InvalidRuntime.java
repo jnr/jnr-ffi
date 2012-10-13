@@ -5,11 +5,7 @@ import jnr.ffi.provider.MemoryManager;
 import java.nio.ByteOrder;
 
 /**
- * Created with IntelliJ IDEA.
- * User: wayne
- * Date: 7/10/12
- * Time: 8:43 PM
- * To change this template use File | Settings | File Templates.
+ * A {@link Runtime} subclass that throws exceptions for all methods
  */
 class InvalidRuntime extends Runtime {
     private final String message;
