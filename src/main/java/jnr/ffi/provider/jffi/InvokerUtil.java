@@ -27,8 +27,9 @@ import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
 import jnr.ffi.annotations.*;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.*;
+import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.util.EnumMapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -262,4 +263,55 @@ final class InvokerUtil {
     static NativeType getMethodResultNativeType(NativeRuntime runtime, Class parameterClass, Annotation[] annotations) {
         return getNativeType(runtime, parameterClass, annotations);
     }
+
+
+    static ToNativeConverter getToNativeConverter(Class javaType, Annotation[] annotations,
+                                                        TypeMapper typeMapper, NativeClosureManager closureManager,
+                                                        ToNativeContext toNativeContext) {
+        ToNativeConverter conv = typeMapper.getToNativeConverter(javaType);
+        if (conv != null) {
+            return new ParameterConverter(conv, toNativeContext);
+
+        } else if (Enum.class.isAssignableFrom(javaType)) {
+            return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
+
+        } else if (isDelegate(javaType)) {
+            return closureManager.newClosureSite(javaType);
+
+        } else if (ByReference.class.isAssignableFrom(javaType)) {
+            return new ByReferenceParameterConverter(ParameterFlags.parse(annotations));
+
+        } else {
+            return null;
+        }
+    }
+
+
+    static FromNativeConverter getFromNativeConverter(Class javaType, Annotation[] annotations,
+                                                              TypeMapper typeMapper, NativeClosureManager closureManager,
+                                                              FromNativeContext fromNativeContext) {
+        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaType);
+        if (conv != null) {
+            return new ResultConverter(conv, fromNativeContext);
+
+        } else if (Enum.class.isAssignableFrom(javaType)) {
+            return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
+
+        } else if (closureManager != null && isDelegate(javaType)) {
+            final Class type = javaType;
+            return new FromNativeConverter() {
+                public Object fromNative(Object nativeValue, FromNativeContext context) {
+                    throw new UnsupportedOperationException("cannot convert to " + type);
+                }
+
+                public Class nativeType() {
+                    return Pointer.class;
+                }
+            };
+
+        } else {
+            return null;
+        }
+    }
+
 }

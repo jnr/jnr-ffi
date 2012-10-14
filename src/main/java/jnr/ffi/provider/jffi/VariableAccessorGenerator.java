@@ -19,8 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
-import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
+import static jnr.ffi.provider.jffi.InvokerUtil.*;
 import static jnr.ffi.provider.jffi.NumberUtil.narrow;
 import static jnr.ffi.provider.jffi.NumberUtil.widen;
 import static org.objectweb.asm.Opcodes.*;
@@ -36,8 +35,8 @@ public class VariableAccessorGenerator {
                          Class javaType, Annotation[] annotations,
                          TypeMapper typeMapper, NativeClosureManager closureManager) {
         System.out.println("generating accessor for " + variableName + " of type " + javaType);
-        FromNativeConverter fromNativeConverter = getFromNativeConverter(javaType, typeMapper, closureManager);
-        ToNativeConverter toNativeConverter = getToNativeConverter(javaType, typeMapper, closureManager);
+        FromNativeConverter fromNativeConverter = getFromNativeConverter(javaType, annotations, typeMapper, closureManager, null);
+        ToNativeConverter toNativeConverter = getToNativeConverter(javaType, annotations, typeMapper, closureManager, null);
 
         Variable variableAccessor = buildVariableAccessor(address, interfaceClass, javaType, annotations,
                 toNativeConverter, fromNativeConverter);
@@ -57,7 +56,7 @@ public class VariableAccessorGenerator {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
-        AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$$VariableAccessor$$" + nextClassID.getAndIncrement(), cv);
+        AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$VariableAccessor$$" + nextClassID.getAndIncrement(), cv);
         cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(Object.class),
                 new String[] { p(Variable.class) });
         cv.visitField(ACC_PRIVATE | ACC_FINAL, "pointer", ci(Pointer.class), null, null);
@@ -169,47 +168,6 @@ public class VariableAccessorGenerator {
                     toNativeConverter, fromNativeConverter);
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
-        }
-    }
-
-    private static FromNativeConverter getFromNativeConverter(Class javaType, TypeMapper typeMapper, NativeClosureManager closureManager) {
-        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaType);
-        if (conv != null) {
-            return new ResultConverter(conv, null);
-
-        } else if (Enum.class.isAssignableFrom(javaType)) {
-            return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
-
-        } else if (isDelegate(javaType)) {
-            final Class type = javaType;
-            return new FromNativeConverter() {
-                public Object fromNative(Object nativeValue, FromNativeContext context) {
-                    throw new UnsupportedOperationException("cannot convert to " + type);
-                }
-
-                public Class nativeType() {
-                    return Pointer.class;
-                }
-            };
-
-        } else {
-            return null;
-        }
-    }
-
-    private static ToNativeConverter getToNativeConverter(Class javaType, TypeMapper typeMapper, NativeClosureManager closureManager) {
-        ToNativeConverter conv = typeMapper.getToNativeConverter(javaType);
-        if (conv != null) {
-            return new ParameterConverter(conv, null);
-
-        } else if (Enum.class.isAssignableFrom(javaType)) {
-            return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
-
-        } else if (isDelegate(javaType)) {
-            return closureManager.newClosureSite(javaType);
-
-        } else {
-            return null;
         }
     }
 

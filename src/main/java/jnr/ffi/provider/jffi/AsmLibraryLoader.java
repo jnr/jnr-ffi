@@ -45,6 +45,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.InvokerUtil.getFromNativeConverter;
+import static jnr.ffi.provider.jffi.InvokerUtil.getToNativeConverter;
 import static org.objectweb.asm.Opcodes.*;
 
 public class AsmLibraryLoader extends LibraryLoader {
@@ -59,9 +61,9 @@ public class AsmLibraryLoader extends LibraryLoader {
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
-
+        NativeClosureManager closureManager = new NativeClosureManager(runtime, typeMapper);
         for (Method m : interfaceClass.getDeclaredMethods()) {
-            if (!isReturnTypeSupported(m.getReturnType()) && getResultConverter(m, typeMapper) == null) {
+            if (!isReturnTypeSupported(m.getReturnType()) && getResultConverter(m, typeMapper, closureManager) == null) {
                 System.err.println("Unsupported return type: " + m.getReturnType());
                 return false;
             }
@@ -135,7 +137,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             final Annotation[][] parameterAnnotations = m.getParameterAnnotations();
 
             ResultType resultType = InvokerUtil.getResultType(runtime, m.getReturnType(),
-                    resultAnnotations, getResultConverter(m, typeMapper));
+                    resultAnnotations, getResultConverter(m, typeMapper, closureManager));
 
             ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
@@ -243,37 +245,14 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final ToNativeConverter getParameterConverter(Method m, int parameterIndex,
                                                           TypeMapper typeMapper, NativeClosureManager closureManager) {
-        Class parameterType = m.getParameterTypes()[parameterIndex];
-        ToNativeConverter conv = typeMapper.getToNativeConverter(parameterType);
-        if (conv != null) {
-            return new ParameterConverter(conv, new MethodParameterContext(m, parameterIndex));
-
-        } else if (Enum.class.isAssignableFrom(parameterType)) {
-            return EnumMapper.getInstance(parameterType.asSubclass(Enum.class));
-
-        } else if (isDelegate(parameterType)) {
-            return closureManager.newClosureSite(parameterType);
-
-        } else if (ByReference.class.isAssignableFrom(parameterType)) {
-            return new ByReferenceParameterConverter(ParameterFlags.parse(m.getParameterAnnotations()[parameterIndex]));
-
-        } else {
-            return null;
-        }
+        return getToNativeConverter(m.getParameterTypes()[parameterIndex], m.getParameterAnnotations()[parameterIndex],
+                typeMapper, closureManager,
+                new MethodParameterContext(m, parameterIndex));
     }
 
-    private final FromNativeConverter getResultConverter(Method m, TypeMapper typeMapper) {
-        Class returnType = m.getReturnType();
-        FromNativeConverter conv = typeMapper.getFromNativeConverter(returnType);
-        if (conv != null) {
-            return new ResultConverter(conv, new MethodResultContext(m));
 
-        } else if (Enum.class.isAssignableFrom(returnType)) {
-            return EnumMapper.getInstance(returnType.asSubclass(Enum.class));
-
-        } else {
-            return null;
-        }
+    private final FromNativeConverter getResultConverter(Method m, TypeMapper typeMapper, NativeClosureManager closureManager) {
+        return getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager, new MethodResultContext(m));
     }
 
     private static final com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
