@@ -86,7 +86,7 @@ abstract public class AbstractMemoryIO extends Pointer {
     }
 
     public long getLong(long offset) {
-        return getRuntime().longSize() == 4 ? getInt(offset) : getLong(offset);
+        return getRuntime().longSize() == 4 ? getInt(offset) : getLongLong(offset);
     }
 
     public void putLong(long offset, long value) {
