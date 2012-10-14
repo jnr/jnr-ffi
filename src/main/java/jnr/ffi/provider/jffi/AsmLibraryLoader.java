@@ -81,6 +81,7 @@ public class AsmLibraryLoader extends LibraryLoader {
     private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
 
         boolean debug = DEBUG && interfaceClass.getAnnotation(NoTrace.class) == null;
+        int errorId = 0;
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
@@ -103,10 +104,6 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         init.invokespecial(p(AbstractAsmLibraryInterface.class), "<init>", sig(void.class, NativeLibrary.class));
         
-        final Method[] methods = interfaceClass.getMethods();
-        FromNativeConverter[] resultConverters = new FromNativeConverter[methods.length];
-        ToNativeConverter[][] parameterConverters = new ToNativeConverter[methods.length][0];
-        
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
@@ -128,29 +125,24 @@ public class AsmLibraryLoader extends LibraryLoader {
         };
 
 
-        for (int i = 0; i < methods.length; ++i) {
-            Method m = methods[i];
+        for (Method m : interfaceClass.getMethods()) {
             final Class javaReturnType = m.getReturnType();
             final Class[] javaParameterTypes = m.getParameterTypes();
             final Annotation[] resultAnnotations = m.getAnnotations();
             final Annotation[][] parameterAnnotations = m.getParameterAnnotations();
 
-            resultConverters[i] = getResultConverter(m, typeMapper);
             ResultType resultType = InvokerUtil.getResultType(runtime, m.getReturnType(),
-                    resultAnnotations, resultConverters[i]);
+                    resultAnnotations, getResultConverter(m, typeMapper));
 
-            parameterConverters[i] = new ToNativeConverter[javaParameterTypes.length];
             ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
             for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
-                parameterConverters[i][pidx] = getParameterConverter(m, pidx, typeMapper, closureManager);
                 parameterTypes[pidx] = InvokerUtil.getParameterType(runtime, javaParameterTypes[pidx],
-                        parameterAnnotations[pidx], parameterConverters[i][pidx]);
+                        parameterAnnotations[pidx], getParameterConverter(m, pidx, typeMapper, closureManager));
             }
 
             // Stash the name of the function in a static field
             String functionName = functionMapper.mapFunctionName(m.getName(), null);
-            cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "name_" + i, ci(String.class), null, functionName);
 
             // Allow individual methods to set the calling convention to stdcall
             CallingConvention callingConvention = m.getAnnotation(StdCall.class) != null
@@ -161,8 +153,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                 function = getFunction(library.findSymbolAddress(functionName),
                     resultType, parameterTypes, saveErrno, callingConvention);
             } catch (SymbolNotFoundError ex) {
-                cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, "error_" + i, ci(String.class), null, ex.getMessage());
-                generateFunctionNotFound(cv, className, i, functionName, javaReturnType, javaParameterTypes);
+                String errorFieldName = "error_" + ++errorId;
+                cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
+                generateFunctionNotFound(cv, className, errorFieldName, functionName, javaReturnType, javaParameterTypes);
                 continue;
             }
 
@@ -267,12 +260,12 @@ public class AsmLibraryLoader extends LibraryLoader {
         return InvokerUtil.getCallingConvention(options);
     }
 
-    private final void generateFunctionNotFound(ClassVisitor cv, String className, int idx, String functionName,
-            Class returnType, Class[] parameterTypes) {
+    private final void generateFunctionNotFound(ClassVisitor cv, String className, String errorFieldName, String functionName,
+                                                Class returnType, Class[] parameterTypes) {
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
                 sig(returnType, parameterTypes), null, null));
         mv.start();
-        mv.getstatic(className, "error_" + idx, ci(String.class));
+        mv.getstatic(className, errorFieldName, ci(String.class));
         mv.invokestatic(AsmRuntime.class, "newUnsatisifiedLinkError", UnsatisfiedLinkError.class, String.class);
         mv.athrow();
         mv.visitMaxs(10, 10);
