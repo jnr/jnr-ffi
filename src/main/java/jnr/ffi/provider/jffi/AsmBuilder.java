@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.ObjectParameterInfo;
+import jnr.ffi.Variable;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassVisitor;
@@ -21,10 +22,12 @@ class AsmBuilder {
     private final ObjectNameGenerator toNativeConverterId = new ObjectNameGenerator("toNativeConverter");
     private final ObjectNameGenerator fromNativeConverterId = new ObjectNameGenerator("fromNativeConverter");
     private final ObjectNameGenerator objectParameterInfoId = new ObjectNameGenerator("objectParameterInfo");
+    private final ObjectNameGenerator variableAccessorId = new ObjectNameGenerator("variableAccessor");
 
     private final Map<ToNativeConverter, ObjectField> toNativeConverters = new IdentityHashMap<ToNativeConverter, ObjectField>();
     private final Map<FromNativeConverter, ObjectField> fromNativeConverters = new IdentityHashMap<FromNativeConverter, ObjectField>();
     private final Map<ObjectParameterInfo, ObjectField> objectParameterInfo = new HashMap<ObjectParameterInfo, ObjectField>();
+    private final Map<Variable, ObjectField> variableAccessors = new HashMap<Variable, ObjectField>();
     private final Map<CallContext, ObjectField> callContextMap = new HashMap<CallContext, ObjectField>();
     private final Map<Long, ObjectField> functionAddresses = new HashMap<Long, ObjectField>();
     private final List<ObjectField> objectFields = new ArrayList<ObjectField>();
@@ -87,6 +90,10 @@ class AsmBuilder {
 
     String getObjectParameterInfoName(ObjectParameterInfo info) {
         return getField(objectParameterInfo, info, ObjectParameterInfo.class, objectParameterInfoId).name;
+    }
+
+    String getVariableName(Variable variableAccessor) {
+        return getField(variableAccessors, variableAccessor, Variable.class, variableAccessorId).name;
     }
 
     public static final class ObjectField {

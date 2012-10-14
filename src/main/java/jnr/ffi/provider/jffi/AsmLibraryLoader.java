@@ -36,7 +36,9 @@ import org.objectweb.asm.ClassWriter;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.nio.Buffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -48,6 +50,7 @@ import static org.objectweb.asm.Opcodes.*;
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
+    private static final AtomicLong uniqueId = new AtomicLong(0);
 
 
     private final NativeRuntime runtime = NativeRuntime.getInstance();
@@ -81,15 +84,12 @@ public class AsmLibraryLoader extends LibraryLoader {
     private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
 
         boolean debug = DEBUG && interfaceClass.getAnnotation(NoTrace.class) == null;
-        int errorId = 0;
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
-        String className = p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement();
-        AsmBuilder builder = new AsmBuilder(className, cv);
+        AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement(), cv);
 
-
-        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractAsmLibraryInterface.class),
+        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(AbstractAsmLibraryInterface.class),
                 new String[] { p(interfaceClass) });
 
         // Create the constructor to set the 'library' & functions fields
@@ -97,11 +97,10 @@ public class AsmLibraryLoader extends LibraryLoader {
                 sig(void.class, NativeLibrary.class, Object[].class),
                 null, null));
         init.start();
-        // Invokes the super class constructor as super(Library)
 
+        // Invoke the super class constructor as super(Library)
         init.aload(0);
         init.aload(1);
-
         init.invokespecial(p(AbstractAsmLibraryInterface.class), "<init>", sig(void.class, NativeLibrary.class));
         
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
@@ -125,7 +124,11 @@ public class AsmLibraryLoader extends LibraryLoader {
         };
 
 
+
         for (Method m : interfaceClass.getMethods()) {
+            if (Variable.class.isAssignableFrom(m.getReturnType())) {
+                continue;
+            }
             final Class javaReturnType = m.getReturnType();
             final Class[] javaParameterTypes = m.getParameterTypes();
             final Annotation[] resultAnnotations = m.getAnnotations();
@@ -141,31 +144,51 @@ public class AsmLibraryLoader extends LibraryLoader {
                         parameterAnnotations[pidx], getParameterConverter(m, pidx, typeMapper, closureManager));
             }
 
-            // Stash the name of the function in a static field
             String functionName = functionMapper.mapFunctionName(m.getName(), null);
 
             // Allow individual methods to set the calling convention to stdcall
             CallingConvention callingConvention = m.getAnnotation(StdCall.class) != null
                     ? CallingConvention.STDCALL : libraryCallingConvention;
             boolean saveErrno = InvokerUtil.requiresErrno(m);
-            Function function;
             try {
-                function = getFunction(library.findSymbolAddress(functionName),
+                Function function = getFunction(library.findSymbolAddress(functionName),
                     resultType, parameterTypes, saveErrno, callingConvention);
-            } catch (SymbolNotFoundError ex) {
-                String errorFieldName = "error_" + ++errorId;
-                cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
-                generateFunctionNotFound(cv, className, errorFieldName, functionName, javaReturnType, javaParameterTypes);
-                continue;
-            }
 
-            for (MethodGenerator g : generators) {
-                if (g.isSupported(resultType, parameterTypes, callingConvention)) {
-                    g.generate(builder, m.getName(), function, resultType, parameterTypes, !saveErrno);
-                    break;
+                for (MethodGenerator g : generators) {
+                    if (g.isSupported(resultType, parameterTypes, callingConvention)) {
+                        g.generate(builder, m.getName(), function, resultType, parameterTypes, !saveErrno);
+                        break;
+                    }
+                }
+            } catch (SymbolNotFoundError ex) {
+                String errorFieldName = "error_" + uniqueId.incrementAndGet();
+                cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
+                generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, javaReturnType, javaParameterTypes);
+            }
+        }
+
+        // generate global variable accessors
+        VariableAccessorGenerator variableAccessorGenerator = new VariableAccessorGenerator();
+        for (Method m : interfaceClass.getMethods()) {
+            if (Variable.class == m.getReturnType()) {
+                java.lang.reflect.Type variableType = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0];
+                if (!(variableType instanceof Class)) {
+                    throw new IllegalArgumentException("unsupported variable class: " + variableType);
+                }
+                String functionName = functionMapper.mapFunctionName(m.getName(), null);
+                try {
+                    variableAccessorGenerator.generate(builder, interfaceClass, m.getName(),
+                            library.findSymbolAddress(functionName), (Class) variableType, m.getAnnotations(),
+                            typeMapper, closureManager);
+
+                } catch (SymbolNotFoundError ex) {
+                    String errorFieldName = "error_" + uniqueId.incrementAndGet();
+                    cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
+                    generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, m.getReturnType(), m.getParameterTypes());
                 }
             }
         }
+
 
 
         AsmBuilder.ObjectField[] fields = builder.getObjectFieldArray();
@@ -186,7 +209,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             } else {
                 init.checkcast(fields[i].klass);
             }
-            init.putfield(className, fieldName, ci(fields[i].klass));
+            init.putfield(builder.getClassNamePath(), fieldName, ci(fields[i].klass));
         }
 
         init.voidreturn();
@@ -202,7 +225,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new ClassReader(bytes).accept(trace, 0);
             }
 
-            Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(className.replace("/", "."), bytes);
+            Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(builder.getClassNamePath().replace("/", "."), bytes);
             Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Object[].class);
             T result = cons.newInstance(library, fieldObjects);
 
@@ -286,7 +309,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                 || Enum.class.isAssignableFrom(type)
                 || Pointer.class == type || Address.class == type
                 || String.class == type
-                || Struct.class.isAssignableFrom(type);
+                || Struct.class.isAssignableFrom(type)
+                || Variable.class == type
+                ;
 
     }
 
