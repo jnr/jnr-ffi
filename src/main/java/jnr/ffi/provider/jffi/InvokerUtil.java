@@ -162,6 +162,22 @@ final class InvokerUtil {
         return new ParameterType(type, nativeType, annotations, toNativeConverter);
     }
 
+    static ParameterType[] getParameterTypes(NativeRuntime runtime, TypeMapper typeMapper, NativeClosureManager closureManager,
+                                             Method m) {
+        final Class[] javaParameterTypes = m.getParameterTypes();
+        final Annotation[][] parameterAnnotations = m.getParameterAnnotations();
+        ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
+
+        for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
+            ToNativeConverter toNativeConverter = getToNativeConverter(javaParameterTypes[pidx], parameterAnnotations[pidx],
+                    typeMapper, closureManager, new MethodParameterContext(m, pidx));
+            parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
+                    parameterAnnotations[pidx], toNativeConverter);
+        }
+
+        return parameterTypes;
+    }
+
     static CallContext getCallContext(SigType resultType, SigType[] parameterTypes, com.kenai.jffi.CallingConvention convention, boolean requiresErrno) {
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
 
@@ -313,5 +329,65 @@ final class InvokerUtil {
             return null;
         }
     }
+
+    static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, NativeClosureManager closureManager, MethodGenerator[] generators) {
+        ResultType resultType = getResultType(runtime, m.getReturnType(),
+                m.getAnnotations(), getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager, new MethodResultContext(m)));
+
+        ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, closureManager, m);
+
+        Function function = getFunction(functionAddress,
+                resultType, parameterTypes, saveErrno, callingConvention);
+
+        for (MethodGenerator g : generators) {
+            if (g.isSupported(resultType, parameterTypes, callingConvention)) {
+                g.generate(builder, m.getName(), function, resultType, parameterTypes, !saveErrno);
+                break;
+            }
+        }
+    }
+
+
+    private static Function getFunction(long address, ResultType resultType, ParameterType[] parameterTypes,
+                                        boolean requiresErrno, CallingConvention convention) {
+        return new Function(address, getCallContext(resultType, parameterTypes, convention, requiresErrno));
+    }
+
+    static boolean isReturnTypeSupported(Class type) {
+        return type.isPrimitive() || Byte.class == type
+                || Short.class == type || Integer.class == type
+                || Long.class == type || Float.class == type
+                || Double.class == type || NativeLong.class == type
+                || Enum.class.isAssignableFrom(type)
+                || Pointer.class == type || Address.class == type
+                || String.class == type
+                || Struct.class.isAssignableFrom(type)
+                || Variable.class == type
+                ;
+
+    }
+
+    static boolean isParameterTypeSupported(Class type) {
+        return type.isPrimitive() || Byte.class == type
+                || Short.class == type || Integer.class == type
+                || Long.class == type || Float.class == type
+                || Double.class == type || NativeLong.class == type
+                || Pointer.class.isAssignableFrom(type) || Address.class.isAssignableFrom(type)
+                || Enum.class.isAssignableFrom(type)
+                || Buffer.class.isAssignableFrom(type)
+                || (type.isArray() && type.getComponentType().isPrimitive())
+                || Struct.class.isAssignableFrom(type)
+                || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))
+                || (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType()))
+                || (type.isArray() && CharSequence.class.isAssignableFrom(type.getComponentType()))
+                || CharSequence.class.isAssignableFrom(type)
+                || ByReference.class.isAssignableFrom(type)
+                || StringBuilder.class.isAssignableFrom(type)
+                || StringBuffer.class.isAssignableFrom(type)
+                || isDelegate(type)
+                ;
+    }
+
+
 
 }

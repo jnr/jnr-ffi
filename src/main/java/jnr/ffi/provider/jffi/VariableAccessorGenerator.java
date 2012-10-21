@@ -59,28 +59,6 @@ public class VariableAccessorGenerator {
         AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$VariableAccessor$$" + nextClassID.getAndIncrement(), cv);
         cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(Object.class),
                 new String[] { p(Variable.class) });
-        cv.visitField(ACC_PRIVATE | ACC_FINAL, "pointer", ci(Pointer.class), null, null);
-        cv.visitField(ACC_PRIVATE | ACC_FINAL, "toNativeConverter", ci(ToNativeConverter.class), null, null);
-        cv.visitField(ACC_PRIVATE | ACC_FINAL, "fromNativeConverter", ci(FromNativeConverter.class), null, null);
-
-        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
-                sig(void.class, Pointer.class, ToNativeConverter.class, FromNativeConverter.class),
-                null, null);
-        init.start();
-        init.aload(0);
-        init.invokespecial(p(Object.class), "<init>", sig(void.class));
-        init.aload(0);
-        init.aload(1);
-        init.putfield(builder.getClassNamePath(), "pointer", ci(Pointer.class));
-        init.aload(0);
-        init.aload(2);
-        init.putfield(builder.getClassNamePath(), "toNativeConverter", ci(ToNativeConverter.class));
-        init.aload(0);
-        init.aload(3);
-        init.putfield(builder.getClassNamePath(), "fromNativeConverter", ci(FromNativeConverter.class));
-        init.voidreturn();
-        init.visitMaxs(10, 10);
-        init.visitEnd();
 
         SkinnyMethodAdapter set = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL, "set",
                 sig(void.class, Object.class),
@@ -93,12 +71,13 @@ public class VariableAccessorGenerator {
 
         set.start();
         set.aload(0);
-        set.getfield(builder.getClassNamePath(), "pointer", ci(Pointer.class));
+        Pointer pointer = DirectMemoryIO.wrap(NativeRuntime.getInstance(), address);
+        set.getfield(builder.getClassNamePath(), builder.getObjectFieldName(pointer, Pointer.class), ci(Pointer.class));
         set.lconst_0();
 
         if (toNativeConverter != null) {
             set.aload(0);
-            set.getfield(builder.getClassNamePath(), "toNativeConverter", ci(ToNativeConverter.class));
+            set.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(toNativeConverter), ci(ToNativeConverter.class));
             set.aload(1);
             set.aconst_null();
             set.invokeinterface(ToNativeConverter.class, "toNative", Object.class, Object.class, ToNativeContext.class);
@@ -137,11 +116,11 @@ public class VariableAccessorGenerator {
         get.start();
         if (fromNativeConverter != null) {
             get.aload(0);
-            get.getfield(builder.getClassNamePath(), "fromNativeConverter", ci(FromNativeConverter.class));
+            get.getfield(builder.getClassNamePath(), builder.getFromNativeConverterName(fromNativeConverter), ci(FromNativeConverter.class));
         }
 
         get.aload(0);
-        get.getfield(builder.getClassNamePath(), "pointer", ci(Pointer.class));
+        get.getfield(builder.getClassNamePath(), builder.getObjectFieldName(pointer, Pointer.class), ci(Pointer.class));
         get.lconst_0();
         op.get(get, primitiveType);
         boxValue(get, boxedType, primitiveType);
@@ -153,6 +132,20 @@ public class VariableAccessorGenerator {
         get.areturn();
         get.visitMaxs(10, 10 + getVariableAllocator.getSpaceUsed());
         get.visitEnd();
+
+        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
+                sig(void.class, Object[].class),
+                null, null);
+        init.start();
+        init.aload(0);
+        init.invokespecial(p(Object.class), "<init>", sig(void.class));
+
+        builder.emitFieldInitialization(init, 1);
+
+        init.voidreturn();
+        init.visitMaxs(10, 10);
+        init.visitEnd();
+
         cv.visitEnd();
 
         try {
@@ -163,9 +156,8 @@ public class VariableAccessorGenerator {
             }
 
             Class<Variable> implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(builder.getClassNamePath().replace("/", "."), bytes);
-            Constructor<Variable> cons = implClass.getDeclaredConstructor(Pointer.class, ToNativeConverter.class, FromNativeConverter.class);
-            return cons.newInstance(NativeRuntime.getInstance().getMemoryManager().newPointer(address),
-                    toNativeConverter, fromNativeConverter);
+            Constructor<Variable> cons = implClass.getDeclaredConstructor(Object[].class);
+            return cons.newInstance(new Object[] { builder.getObjectFieldValues() });
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }

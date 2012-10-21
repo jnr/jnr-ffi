@@ -10,6 +10,12 @@ import org.objectweb.asm.ClassVisitor;
 
 import java.util.*;
 
+import static jnr.ffi.provider.jffi.AsmUtil.boxedType;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+
 /**
  *
  */
@@ -23,6 +29,7 @@ class AsmBuilder {
     private final ObjectNameGenerator fromNativeConverterId = new ObjectNameGenerator("fromNativeConverter");
     private final ObjectNameGenerator objectParameterInfoId = new ObjectNameGenerator("objectParameterInfo");
     private final ObjectNameGenerator variableAccessorId = new ObjectNameGenerator("variableAccessor");
+    private final ObjectNameGenerator genericObjectId = new ObjectNameGenerator("objectField");
 
     private final Map<ToNativeConverter, ObjectField> toNativeConverters = new IdentityHashMap<ToNativeConverter, ObjectField>();
     private final Map<FromNativeConverter, ObjectField> fromNativeConverters = new IdentityHashMap<FromNativeConverter, ObjectField>();
@@ -30,6 +37,7 @@ class AsmBuilder {
     private final Map<Variable, ObjectField> variableAccessors = new HashMap<Variable, ObjectField>();
     private final Map<CallContext, ObjectField> callContextMap = new HashMap<CallContext, ObjectField>();
     private final Map<Long, ObjectField> functionAddresses = new HashMap<Long, ObjectField>();
+    private final Map<Object, ObjectField> genericObjects = new IdentityHashMap<Object, ObjectField>();
     private final List<ObjectField> objectFields = new ArrayList<ObjectField>();
 
     AsmBuilder(String classNamePath, ClassVisitor classVisitor) {
@@ -92,6 +100,10 @@ class AsmBuilder {
         return getField(objectParameterInfo, info, ObjectParameterInfo.class, objectParameterInfoId).name;
     }
 
+    String getObjectFieldName(Object obj, Class klass) {
+        return getField(genericObjects, obj, klass, genericObjectId).name;
+    }
+
     String getVariableName(Variable variableAccessor) {
         return getField(variableAccessors, variableAccessor, Variable.class, variableAccessorId).name;
     }
@@ -110,5 +122,34 @@ class AsmBuilder {
 
     ObjectField[] getObjectFieldArray() {
         return objectFields.toArray(new ObjectField[objectFields.size()]);
+    }
+
+    Object[] getObjectFieldValues() {
+        Object[] fieldObjects = new Object[objectFields.size()];
+        int i = 0;
+        for (ObjectField f : objectFields) {
+            fieldObjects[i++] = f.value;
+        }
+        return fieldObjects;
+    }
+
+    void emitFieldInitialization(SkinnyMethodAdapter init, int objectsParameterIndex) {
+        int i = 0;
+        for (ObjectField f : objectFields) {
+            getClassVisitor().visitField(ACC_PRIVATE | ACC_FINAL, f.name, ci(f.klass), null, null);
+            init.aload(0);
+            init.aload(objectsParameterIndex);
+            init.pushInt(i++);
+            init.aaload();
+
+            if (f.klass.isPrimitive()) {
+                Class boxedType = boxedType(f.klass);
+                init.checkcast(boxedType);
+                unboxNumber(init, boxedType, f.klass);
+            } else {
+                init.checkcast(f.klass);
+            }
+            init.putfield(getClassNamePath(), f.name, ci(f.klass));
+        }
     }
 }
