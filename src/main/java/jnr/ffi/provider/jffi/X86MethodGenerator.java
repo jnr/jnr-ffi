@@ -116,10 +116,10 @@ class X86MethodGenerator implements MethodGenerator {
             javaParameterTypes[i] = parameterTypes[i].getDeclaredType();
         }
 
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(),
                 ACC_PUBLIC | ACC_FINAL,
-                functionName, sig(resultType.getDeclaredType(), javaParameterTypes), null, null));
-        mv = new SkinnyMethodAdapter(AsmUtil.newTraceMethodVisitor(mv));
+                functionName, sig(resultType.getDeclaredType(), javaParameterTypes), null, null);
+        mv.setMethodVisitor(AsmUtil.newTraceMethodVisitor(mv.getMethodVisitor()));
         mv.start();
 
 

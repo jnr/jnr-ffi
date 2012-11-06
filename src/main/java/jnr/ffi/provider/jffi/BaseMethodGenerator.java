@@ -34,9 +34,9 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             javaParameterTypes[i] = parameterTypes[i].getDeclaredType();
         }
 
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL,
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL,
                 functionName,
-                sig(resultType.getDeclaredType(), javaParameterTypes), null, null));
+                sig(resultType.getDeclaredType(), javaParameterTypes), null, null);
         mv.start();
 
         // Retrieve the static 'ffi' Invoker instance

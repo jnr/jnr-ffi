@@ -92,9 +92,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new String[] { p(interfaceClass) });
 
         // Create the constructor to set the 'library' & functions fields
-        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
+        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
                 sig(void.class, NativeLibrary.class, Object[].class),
-                null, null));
+                null, null);
         init.start();
         // Invokes the super class constructor as super(Library)
 
@@ -269,8 +269,8 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final void generateFunctionNotFound(ClassVisitor cv, String className, int idx, String functionName,
             Class returnType, Class[] parameterTypes) {
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC | ACC_FINAL, functionName,
-                sig(returnType, parameterTypes), null, null));
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv, ACC_PUBLIC | ACC_FINAL, functionName,
+                sig(returnType, parameterTypes), null, null);
         mv.start();
         mv.getstatic(className, "error_" + idx, ci(String.class));
         mv.invokestatic(AsmRuntime.class, "newUnsatisifiedLinkError", UnsatisfiedLinkError.class, String.class);
