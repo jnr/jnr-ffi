@@ -88,9 +88,9 @@ public abstract class NativeClosureProxy {
 
         Class nativeResultClass = getNativeClass(resultType.nativeType);
 
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC | ACC_FINAL, "invoke",
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(closureClassVisitor, ACC_PUBLIC | ACC_FINAL, "invoke",
                 sig(nativeResultClass, nativeParameterClasses),
-                null, null));
+                null, null);
         mv.start();
 
         // Cast the callable instance to the correct class
@@ -189,9 +189,9 @@ public abstract class NativeClosureProxy {
         mv.visitMaxs(10, 10 + localVariableAllocator.getSpaceUsed());
         mv.visitEnd();
 
-        SkinnyMethodAdapter closureInit = new SkinnyMethodAdapter(closureClassVisitor.visitMethod(ACC_PUBLIC, "<init>",
+        SkinnyMethodAdapter closureInit = new SkinnyMethodAdapter(closureClassVisitor, ACC_PUBLIC, "<init>",
                 sig(void.class, NativeRuntime.class, Object[].class),
-                null, null));
+                null, null);
         closureInit.start();
         closureInit.aload(0);
         closureInit.aload(1);

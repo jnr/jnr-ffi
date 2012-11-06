@@ -40,8 +40,8 @@ public class VariableAccessorGenerator {
 
         Variable variableAccessor = buildVariableAccessor(address, interfaceClass, javaType, annotations,
                 toNativeConverter, fromNativeConverter);
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL,
-                variableName, sig(Variable.class), null, null));
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL,
+                variableName, sig(Variable.class), null, null);
         mv.start();
         mv.aload(0);
         mv.getfield(builder.getClassNamePath(), builder.getVariableName(variableAccessor), ci(Variable.class));
@@ -63,9 +63,9 @@ public class VariableAccessorGenerator {
         cv.visitField(ACC_PRIVATE | ACC_FINAL, "toNativeConverter", ci(ToNativeConverter.class), null, null);
         cv.visitField(ACC_PRIVATE | ACC_FINAL, "fromNativeConverter", ci(FromNativeConverter.class), null, null);
 
-        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv.visitMethod(ACC_PUBLIC, "<init>",
+        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
                 sig(void.class, Pointer.class, ToNativeConverter.class, FromNativeConverter.class),
-                null, null));
+                null, null);
         init.start();
         init.aload(0);
         init.invokespecial(p(Object.class), "<init>", sig(void.class));
@@ -82,9 +82,9 @@ public class VariableAccessorGenerator {
         init.visitMaxs(10, 10);
         init.visitEnd();
 
-        SkinnyMethodAdapter set = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL, "set",
+        SkinnyMethodAdapter set = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL, "set",
                 sig(void.class, Object.class),
-                null, null));
+                null, null);
         Class boxedType = toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
         Class primitiveType = unboxedType(boxedType);
 
@@ -129,9 +129,9 @@ public class VariableAccessorGenerator {
         set.visitMaxs(10, 10 + setVariableAllocator.getSpaceUsed());
         set.visitEnd();
 
-        SkinnyMethodAdapter get = new SkinnyMethodAdapter(builder.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_FINAL, "get",
+        SkinnyMethodAdapter get = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL, "get",
                 sig(Object.class),
-                null, null));
+                null, null);
 
         LocalVariableAllocator getVariableAllocator = new LocalVariableAllocator(0);
         get.start();
