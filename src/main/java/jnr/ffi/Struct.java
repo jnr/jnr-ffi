@@ -1991,6 +1991,24 @@ public abstract class Struct {
         }
     }
 
+    protected final class Function<T extends Object> extends AbstractMember {
+        private final Class<? extends T> closureClass;
+        private T instance;
+
+        public Function(Class<? extends T> closureClass) {
+            super(NativeType.ADDRESS);
+            this.closureClass = closureClass;
+        }
+
+        public final void set(T value) {
+            getMemory().putPointer(offset(), getRuntime().getClosureManager().getClosurePointer(closureClass, instance = value));
+        }
+    };
+
+    protected final <T extends Object> Function<T> function(Class<T> closureClass) {
+        return new Function<T>(closureClass);
+    }
+
     public final class int8_t extends IntegerAlias {
         public int8_t() { super(TypeAlias.int8_t); }
         public int8_t(Offset offset) { super(TypeAlias.int8_t, offset); }

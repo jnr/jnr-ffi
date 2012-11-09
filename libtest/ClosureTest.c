@@ -68,6 +68,15 @@ void testClosureDrV(void (*closure)(double), double a1)
 {
     (*closure)(a1);
 }
+
+struct StructClosureIrV {
+    void (*closure)(int);
+};
+
+void testStructClosureIrV(struct StructClosureIrV *s, int a1)
+{
+    (*s->closure)(a1);
+}
 //
 // These macros produce functions of the form:
 // testClosureBIrV(void (*closure)(char, int), char a1, int a2) {}

@@ -19,6 +19,7 @@
 package jnr.ffi;
 
 import jnr.ffi.provider.MemoryManager;
+import jnr.ffi.provider.ClosureManager;
 
 import java.nio.ByteOrder;
 
@@ -49,6 +50,8 @@ public abstract class Runtime {
      * @return a {@link MemoryManager}
      */
     public abstract MemoryManager getMemoryManager();
+
+    public abstract ClosureManager getClosureManager();
 
     public abstract ObjectReferenceManager newObjectReferenceManager();
 

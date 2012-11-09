@@ -24,20 +24,29 @@ import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.ClosureManager;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
  *
  */
 final class NativeClosureManager implements ClosureManager {
-    private volatile Map<Class<? extends Object>, NativeClosureFactory> factories = new HashMap<Class<? extends Object>, NativeClosureFactory>();
+    private volatile Map<Class<? extends Object>, NativeClosureFactory> factories = new IdentityHashMap<Class<? extends Object>, NativeClosureFactory>();
     private final NativeRuntime runtime;
     private final TypeMapper typeMapper;
 
     NativeClosureManager(NativeRuntime runtime, TypeMapper typeMapper) {
         this.runtime = runtime;
         this.typeMapper = typeMapper;
+    }
+
+    <T extends Object> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
+        NativeClosureFactory<T> factory = factories.get(closureClass);
+        if (factory != null) {
+            return factory;
+        }
+
+        return initClosureFactory(closureClass);
     }
 
     public <T extends Object> T newClosure(Class<? extends T> closureClass, T instance) {
@@ -48,14 +57,22 @@ final class NativeClosureManager implements ClosureManager {
         return null;
     }
 
-    synchronized <T extends Object> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
+    public final <T extends Object> jnr.ffi.Pointer getClosurePointer(Class<? extends T> closureClass, T instance) {
+        return getClosureFactory(closureClass).getClosureReference(instance).getPointer();
+    }
+
+    synchronized <T extends Object> NativeClosureFactory<T> initClosureFactory(Class<T> closureClass) {
         NativeClosureFactory<T> factory = factories.get(closureClass);
         if (factory != null) {
             return factory;
         }
 
+
         factory = NativeClosureFactory.newClosureFactory(runtime, closureClass, typeMapper);
+        Map<Class<? extends Object>, NativeClosureFactory> factories = new IdentityHashMap<Class<? extends Object>, NativeClosureFactory>();
+        factories.putAll(this.factories);
         factories.put(closureClass, factory);
+        this.factories = factories;
 
         return factory;
     }

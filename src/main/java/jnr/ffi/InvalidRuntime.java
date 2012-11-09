@@ -1,6 +1,7 @@
 package jnr.ffi;
 
 import jnr.ffi.provider.MemoryManager;
+import jnr.ffi.provider.ClosureManager;
 
 import java.nio.ByteOrder;
 
@@ -28,6 +29,11 @@ class InvalidRuntime extends Runtime {
 
     @Override
     public MemoryManager getMemoryManager() {
+        throw newLoadError();
+    }
+
+    @Override
+    public ClosureManager getClosureManager() {
         throw newLoadError();
     }
 

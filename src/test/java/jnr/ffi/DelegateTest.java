@@ -110,6 +110,14 @@ public class DelegateTest {
         }
         int testClosureVrI(CallableVrE closure);
 
+        public class ClosureStruct extends Struct {
+            public final Function<CallableIrV> function = function(CallableIrV.class);
+            public ClosureStruct(Runtime runtime) {
+                super(runtime);
+            }
+        }
+        void testStructClosureIrV(ClosureStruct closure, int a1);
+
 //        void testClosureBrV(Callable closure, byte a1);
 //        void testClosureSrV(Callable closure, short a1);
 
@@ -273,6 +281,7 @@ public class DelegateTest {
         assertTrue("Callable not called", called[0]);
         assertEquals("Wrong value passed to closure", MAGIC, val[0]);
     }
+
     @Test
     public void closureIrV() {
         final boolean[] called = { false };
@@ -289,6 +298,26 @@ public class DelegateTest {
         assertTrue("Callable not called", called[0]);
         assertEquals("Wrong value passed to closure", MAGIC, val[0]);
     }
+
+    @Test
+    public void closureStructIrV() {
+        final boolean[] called = { false };
+        final int[] val = { 0 };
+        final int MAGIC = 0xdeadbeef;
+        TestLib.CallableIrV closure = new TestLib.CallableIrV() {
+
+            public void call(int a1) {
+                called[0] = true;
+                val[0] = a1;
+            }
+        };
+        TestLib.ClosureStruct s = new TestLib.ClosureStruct(Library.getRuntime(lib));
+        s.function.set(closure);
+        lib.testStructClosureIrV(s, MAGIC);
+        assertTrue("Callable not called", called[0]);
+        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+    }
+
 
     @Test
     public void closureIrVBoxed() {
