@@ -34,7 +34,6 @@ public class VariableAccessorGenerator {
     public void generate(AsmBuilder builder, Class interfaceClass, String variableName, long address,
                          Class javaType, Annotation[] annotations,
                          TypeMapper typeMapper, NativeClosureManager closureManager) {
-        System.out.println("generating accessor for " + variableName + " of type " + javaType);
         FromNativeConverter fromNativeConverter = getFromNativeConverter(javaType, annotations, typeMapper, closureManager, null);
         ToNativeConverter toNativeConverter = getToNativeConverter(javaType, annotations, typeMapper, closureManager, null);
 
