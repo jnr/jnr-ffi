@@ -116,6 +116,7 @@ public class DelegateTest {
                 super(runtime);
             }
         }
+
         void testStructClosureIrV(ClosureStruct closure, int a1);
 
 //        void testClosureBrV(Callable closure, byte a1);

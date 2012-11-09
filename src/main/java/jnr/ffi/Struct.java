@@ -1991,7 +1991,7 @@ public abstract class Struct {
         }
     }
 
-    protected final class Function<T extends Object> extends AbstractMember {
+    protected final class Function<T> extends AbstractMember {
         private final Class<? extends T> closureClass;
         private T instance;
 
@@ -2003,9 +2003,9 @@ public abstract class Struct {
         public final void set(T value) {
             getMemory().putPointer(offset(), getRuntime().getClosureManager().getClosurePointer(closureClass, instance = value));
         }
-    };
+    }
 
-    protected final <T extends Object> Function<T> function(Class<T> closureClass) {
+    protected final <T> Function<T> function(Class<T> closureClass) {
         return new Function<T>(closureClass);
     }
 

@@ -1537,6 +1537,23 @@ public class StructLayout extends Type {
         }
     }
 
+    protected final class Function<T extends Object> extends AbstractField {
+        private final Class<? extends T> closureClass;
+        private T instance;
+
+        public Function(Class<? extends T> closureClass) {
+            super(NativeType.ADDRESS);
+            this.closureClass = closureClass;
+        }
+
+        public final void set(jnr.ffi.Pointer ptr, T value) {
+            ptr.putPointer(offset(), getRuntime().getClosureManager().getClosurePointer(closureClass, instance = value));
+        }
+    }
+
+    protected final <T> Function<T> function(Class<T> closureClass) {
+        return new Function<T>(closureClass);
+    }
 
     public final class int8_t extends IntegerAlias {
         public int8_t() { super(TypeAlias.int8_t); }
