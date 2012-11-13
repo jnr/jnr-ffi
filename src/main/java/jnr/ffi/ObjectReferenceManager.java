@@ -3,13 +3,13 @@ package jnr.ffi;
 /**
  *
  */
-public abstract class ObjectReferenceManager {
+public abstract class ObjectReferenceManager<T> {
 
-    public static ObjectReferenceManager newInstance(Runtime runtime) {
+    public static <T> ObjectReferenceManager<T> newInstance(Runtime runtime) {
         return runtime.newObjectReferenceManager();
     }
 
-    public abstract Pointer newReference(Object obj);
+    public abstract Pointer newReference(T obj);
     public abstract void freeReference(Pointer reference);
-    public abstract Object getObject(Pointer reference);
+    public abstract T getObject(Pointer reference);
 }

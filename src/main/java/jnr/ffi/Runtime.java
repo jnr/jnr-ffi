@@ -53,7 +53,7 @@ public abstract class Runtime {
 
     public abstract ClosureManager getClosureManager();
 
-    public abstract ObjectReferenceManager newObjectReferenceManager();
+    public abstract <T> ObjectReferenceManager<T> newObjectReferenceManager();
 
     /**
      * Gets the last native error code.
