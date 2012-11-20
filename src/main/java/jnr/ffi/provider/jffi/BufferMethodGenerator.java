@@ -109,9 +109,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     }
 
     static boolean isSessionRequired(ParameterType parameterType) {
-        Class javaType = parameterType.toNativeConverter != null
-            ? parameterType.toNativeConverter.nativeType()
-            : parameterType.getDeclaredType();
+        Class javaType = parameterType.effectiveJavaType();
         return StringBuilder.class.isAssignableFrom(javaType)
                 || StringBuffer.class.isAssignableFrom(javaType)
                 || ByReference.class.isAssignableFrom(javaType)
@@ -220,11 +218,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 sessionmarshal(mv, CharSequence[].class, int.class, int.class);
-
-            } else if (jnr.ffi.Struct.class.isAssignableFrom(javaParameterType)) {
-                mv.pushInt(parameterFlags);
-                mv.pushInt(nativeArrayFlags);
-                marshal(mv, jnr.ffi.Struct.class, int.class, int.class);
 
             } else if (javaParameterType.isArray() && jnr.ffi.Struct.class.isAssignableFrom(javaParameterType.getComponentType())) {
                 mv.pushInt(parameterFlags);

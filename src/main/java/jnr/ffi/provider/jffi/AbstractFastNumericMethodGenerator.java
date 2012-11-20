@@ -3,7 +3,6 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.Label;
@@ -86,7 +85,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 unboxPointer(mv, nativeIntType);
 
             } else if (Pointer.class.isAssignableFrom(javaParameterType)
-                    || Struct.class.isAssignableFrom(javaParameterType)
                     || String.class == javaParameterType
                     || CharSequence.class == javaParameterType
                     || ByteBuffer.class.isAssignableFrom(javaParameterType)
@@ -243,23 +241,12 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             if (c.isAssignableFrom(javaParameterType)) {
                 mv.invokestatic(AsmRuntime.class, "pointerParameterStrategy", PointerParameterStrategy.class, c);
                 converted = true;
+                break;
             }
         }
-        if (converted) {
-            return;
-        }
 
-        if (Struct.class.isAssignableFrom(javaParameterType)) {
-            if (ParameterFlags.isDirect(AsmUtil.getParameterFlags(annotations))) {
-                // Force the struct to be passed using direct backing memory
-                mv.invokestatic(AsmRuntime.class, "directStructParameterStrategy", PointerParameterStrategy.class, Struct.class);
-
-            } else {
-                mv.invokestatic(AsmRuntime.class, "structParameterStrategy", PointerParameterStrategy.class, Struct.class);
-            }
-
-        } else {
-            throw new RuntimeException("no strategy for " + javaParameterType);
+        if (!converted) {
+            throw new RuntimeException("no conversion strategy for " + javaParameterType);
         }
     }
 

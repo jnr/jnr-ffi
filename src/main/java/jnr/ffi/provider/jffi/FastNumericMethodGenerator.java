@@ -124,7 +124,6 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
     private static boolean isSupportedPointerParameterType(Class javaParameterType) {
         return Pointer.class.isAssignableFrom(javaParameterType)
                 || String.class == javaParameterType || CharSequence.class == javaParameterType
-                || Struct.class.isAssignableFrom(javaParameterType)
                 || ByteBuffer.class.isAssignableFrom(javaParameterType)
                 || ShortBuffer.class.isAssignableFrom(javaParameterType)
                 || IntBuffer.class.isAssignableFrom(javaParameterType)

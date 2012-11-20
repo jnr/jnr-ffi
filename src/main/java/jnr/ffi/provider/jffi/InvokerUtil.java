@@ -304,6 +304,9 @@ final class InvokerUtil {
         } else if (ByReference.class.isAssignableFrom(javaType)) {
             return new ByReferenceParameterConverter(ParameterFlags.parse(annotations));
 
+        } else if (Struct.class.isAssignableFrom(javaType)) {
+            return new StructByReferenceToNativeConverter(ParameterFlags.parse(annotations));
+
         } else {
             return null;
         }

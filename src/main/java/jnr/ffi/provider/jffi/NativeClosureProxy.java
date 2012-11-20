@@ -274,7 +274,6 @@ public abstract class NativeClosureProxy {
                 /*
                 || CharSequence.class == type
                 || Buffer.class.isAssignableFrom(type)
-                || Struct.class.isAssignableFrom(type)
                 || Enum.class.isAssignableFrom(type)
                 || (type.isArray() && type.getComponentType().isPrimitive())
                 || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))

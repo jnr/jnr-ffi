@@ -124,8 +124,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     private static boolean isSupportedPointerParameterType(Class javaParameterType) {
-        return Pointer.class.isAssignableFrom(javaParameterType)
-                || Struct.class.isAssignableFrom(javaParameterType);
+        return Pointer.class.isAssignableFrom(javaParameterType);
     }
 
     static boolean isFastIntResult(Platform platform, ResultType resultType) {

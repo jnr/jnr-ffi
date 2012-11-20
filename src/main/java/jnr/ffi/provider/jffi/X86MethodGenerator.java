@@ -151,9 +151,7 @@ class X86MethodGenerator implements MethodGenerator {
                 // delegates are always direct, so handle without the strategy processing
                 unboxPointer(mv, nativeParameterClass);
 
-            } else if (Pointer.class.isAssignableFrom(javaParameterClass)
-                    || Struct.class.isAssignableFrom(javaParameterClass)
-                    ) {
+            } else if (Pointer.class.isAssignableFrom(javaParameterClass)) {
 
                 // Initialize the objectCount local var
                 if (pointerCount++ < 1) {
@@ -300,9 +298,7 @@ class X86MethodGenerator implements MethodGenerator {
 
 
     private static boolean isSupportedObjectParameterType(ParameterType type) {
-        return Pointer.class.isAssignableFrom(type.effectiveJavaType())
-                || Struct.class.isAssignableFrom(type.effectiveJavaType())
-                ;
+        return Pointer.class.isAssignableFrom(type.effectiveJavaType());
     }
 
 

@@ -268,23 +268,6 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, jnr.ffi.Struct parameter, int parameterFlags, int nativeArrayFlags) {
-        if (parameter == null) {
-            buffer.putAddress(0L);
-        } else {
-            jnr.ffi.Struct s = parameter;
-            Pointer memory = Struct.getMemory(s, parameterFlags);
-            
-            if (memory instanceof AbstractArrayMemoryIO) {
-                AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) memory;
-                buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
-            
-            } else if (memory.isDirect()) {
-                buffer.putAddress(memory.address());
-            }
-        }
-    }
-
     public static final void marshal(HeapInvocationBuffer buffer, jnr.ffi.Struct[] parameter, int parameterFlags, int nativeArrayFlags) {
         if (parameter == null) {
             buffer.putAddress(0L);
@@ -655,22 +638,6 @@ public final class AsmRuntime {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 3): 0L;
     }
 
-    public static final boolean isDirect(jnr.ffi.Struct s) {
-        return s == null || Struct.isDirect(s);
-    }
-
-    public static final boolean isDirect(jnr.ffi.Struct s, int flags) {
-        return s == null || Struct.getMemory(s, flags).isDirect();
-    }
-
-    public static final int intValue(jnr.ffi.Struct s) {
-        return s != null ? (int) Struct.getMemory(s).address() : 0;
-    }
-
-    public static final long longValue(jnr.ffi.Struct s) {
-        return s != null ? Struct.getMemory(s).address() : 0L;
-    }
-
     public static PointerParameterStrategy pointerParameterStrategy(Pointer pointer) {
         if (pointer instanceof DirectMemoryIO) {
             return DirectMemoryParameterStrategy.INSTANCE;
@@ -702,27 +669,6 @@ public final class AsmRuntime {
 
         } else {
             return new StringParameterStrategy(s);
-        }
-    }
-
-    public static PointerParameterStrategy structParameterStrategy(Struct s) {
-        if (s == null) {
-            return NullPointerParameterStrategy.INSTANCE;
-
-        } else if (Struct.isDirect(s)) {
-            return DirectStructParameterStrategy.INSTANCE;
-
-        } else {
-            return HeapStructParameterStrategy.INSTANCE;
-        }
-    }
-
-    public static PointerParameterStrategy directStructParameterStrategy(Struct s) {
-        if (s == null) {
-            return NullPointerParameterStrategy.INSTANCE;
-
-        } else {
-            return DirectStructParameterStrategy.INSTANCE;
         }
     }
 
