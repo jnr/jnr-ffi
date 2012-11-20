@@ -81,7 +81,7 @@ final class NativeClosureManager implements ClosureManager {
         return new ClosureSite<T>(getClosureFactory(closureClass));
     }
 
-    private static final class ClosureSite<T> implements ToNativeConverter<T, Pointer> {
+    public static final class ClosureSite<T> implements ToNativeConverter<T, Pointer> {
         private final NativeClosureFactory<T> factory;
         private NativeClosureFactory.ClosureReference closureReference = null;
 
@@ -91,11 +91,13 @@ final class NativeClosureManager implements ClosureManager {
 
         public Pointer toNative(T value, ToNativeContext context) {
             NativeClosureFactory.ClosureReference ref = closureReference;
+            // Fast path - same delegate as last call to this site - just re-use the native closure
             if (ref != null && ref.getCallable() == value) {
                 return ref.getPointer();
             }
 
             ref = factory.getClosureReference(value);
+            // Cache the new native closure, if this site has no valid native closure
             if (closureReference == null || closureReference.get() == null) {
                 closureReference = ref;
             }
