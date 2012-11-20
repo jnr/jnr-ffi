@@ -33,6 +33,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
@@ -657,5 +658,10 @@ final class AsmUtil {
             boxValue(mv, returnType, nativeIntType);
             mv.areturn();
         }
+    }
+
+    static void getfield(SkinnyMethodAdapter mv, AsmBuilder builder, AsmBuilder.ObjectField field) {
+        mv.aload(0);
+        mv.getfield(builder.getClassNamePath(), field.name, ci(field.klass));
     }
 }

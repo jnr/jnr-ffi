@@ -198,7 +198,7 @@ public class AsmLibraryLoader extends LibraryLoader {
     }
 
     private static FromNativeConverter getResultConverter(Method m, TypeMapper typeMapper, NativeClosureManager closureManager) {
-        return getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager, new MethodResultContext(m));
+        return getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager);
     }
 
     private static final com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {

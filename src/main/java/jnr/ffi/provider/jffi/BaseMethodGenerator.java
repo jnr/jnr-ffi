@@ -89,7 +89,13 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             if (!toNativeMethod.getParameterTypes()[0].isAssignableFrom(getBoxedClass(parameterType.getDeclaredType()))) {
                 mv.checkcast(toNativeMethod.getParameterTypes()[0]);
             }
-            mv.aconst_null();
+
+            if (parameterType.toNativeContext != null) {
+                getfield(mv, builder, builder.getToNativeContextField(parameterType.toNativeContext));
+            } else {
+                mv.aconst_null();
+            }
+
             if (toNativeMethod.getDeclaringClass().isInterface()) {
                 mv.invokeinterface(toNativeMethod.getDeclaringClass(), toNativeMethod.getName(),
                         toNativeMethod.getReturnType(), toNativeMethod.getParameterTypes());
@@ -188,7 +194,12 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             AsmBuilder.ObjectField fromNativeConverterField = builder.getFromNativeConverterField(resultConverter);
             mv.getfield(builder.getClassNamePath(), fromNativeConverterField.name, ci(fromNativeConverterField.klass));
             mv.swap();
-            mv.aconst_null();
+            if (resultType.fromNativeContext != null) {
+                getfield(mv, builder, builder.getFromNativeContextField(resultType.fromNativeContext));
+            } else {
+                mv.aconst_null();
+            }
+
             if (fromNativeMethod.getDeclaringClass().isInterface()) {
                 mv.invokeinterface(fromNativeMethod.getDeclaringClass(), fromNativeMethod.getName(),
                         fromNativeMethod.getReturnType(), fromNativeMethod.getParameterTypes());

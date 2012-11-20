@@ -40,7 +40,7 @@ final class ClosureUtil {
         ToNativeConverter converter = getToNativeConverter(m.getReturnType(), annotations, typeMapper);
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
-        return new ToNativeType(m.getReturnType(), nativeType, annotations, converter);
+        return new ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
     }
 
     static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
@@ -49,7 +49,7 @@ final class ClosureUtil {
         FromNativeConverter converter = getFromNativeConverter(declaredJavaClass, annotations, typeMapper);
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
-        return new FromNativeType(declaredJavaClass, nativeType, annotations, converter);
+        return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
     }
 
     static com.kenai.jffi.Type getNativeResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {

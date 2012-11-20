@@ -154,12 +154,19 @@ final class InvokerUtil {
 
     static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter fromNativeConverter) {
         NativeType nativeType = getMethodResultNativeType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations);
-        return new ResultType(type, nativeType, annotations, fromNativeConverter);
+        return new ResultType(type, nativeType, annotations, fromNativeConverter, null);
     }
 
-    static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations, ToNativeConverter toNativeConverter) {
+    static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations,
+                                          ToNativeConverter toNativeConverter) {
         NativeType nativeType = getMethodParameterNativeType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations);
-        return new ParameterType(type, nativeType, annotations, toNativeConverter);
+        return new ParameterType(type, nativeType, annotations, toNativeConverter, null);
+    }
+
+    static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations,
+                                          ToNativeConverter toNativeConverter, ToNativeContext toNativeContext) {
+        NativeType nativeType = getMethodParameterNativeType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations);
+        return new ParameterType(type, nativeType, annotations, toNativeConverter, toNativeContext);
     }
 
     static ParameterType[] getParameterTypes(NativeRuntime runtime, TypeMapper typeMapper, NativeClosureManager closureManager,
@@ -169,10 +176,11 @@ final class InvokerUtil {
         ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
+            ToNativeContext toNativeContext = new MethodParameterContext(m, pidx);
             ToNativeConverter toNativeConverter = getToNativeConverter(javaParameterTypes[pidx], parameterAnnotations[pidx],
-                    typeMapper, closureManager, new MethodParameterContext(m, pidx));
+                    typeMapper, closureManager);
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
-                    parameterAnnotations[pidx], toNativeConverter);
+                    parameterAnnotations[pidx], toNativeConverter, toNativeContext);
         }
 
         return parameterTypes;
@@ -282,11 +290,10 @@ final class InvokerUtil {
 
 
     static ToNativeConverter getToNativeConverter(Class javaType, Annotation[] annotations,
-                                                        TypeMapper typeMapper, NativeClosureManager closureManager,
-                                                        ToNativeContext toNativeContext) {
+                                                        TypeMapper typeMapper, NativeClosureManager closureManager) {
         ToNativeConverter conv = typeMapper.getToNativeConverter(javaType);
         if (conv != null) {
-            return new ParameterConverter(conv, toNativeContext);
+            return conv;
 
         } else if (Enum.class.isAssignableFrom(javaType)) {
             return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
@@ -304,11 +311,10 @@ final class InvokerUtil {
 
 
     static FromNativeConverter getFromNativeConverter(Class javaType, Annotation[] annotations,
-                                                              TypeMapper typeMapper, NativeClosureManager closureManager,
-                                                              FromNativeContext fromNativeContext) {
+                                                              TypeMapper typeMapper, NativeClosureManager closureManager) {
         FromNativeConverter conv = typeMapper.getFromNativeConverter(javaType);
         if (conv != null) {
-            return new ResultConverter(conv, fromNativeContext);
+            return conv;
 
         } else if (Enum.class.isAssignableFrom(javaType)) {
             return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
@@ -332,7 +338,7 @@ final class InvokerUtil {
 
     static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, NativeClosureManager closureManager, MethodGenerator[] generators) {
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                m.getAnnotations(), getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager, new MethodResultContext(m)));
+                m.getAnnotations(), getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager));
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, closureManager, m);
 

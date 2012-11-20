@@ -4,7 +4,9 @@ import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.ObjectParameterInfo;
 import jnr.ffi.Variable;
+import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassVisitor;
 
@@ -27,13 +29,17 @@ class AsmBuilder {
     private final ObjectNameGenerator functionId = new ObjectNameGenerator("functionAddress");
     private final ObjectNameGenerator contextId = new ObjectNameGenerator("callContext");
     private final ObjectNameGenerator toNativeConverterId = new ObjectNameGenerator("toNativeConverter");
+    private final ObjectNameGenerator toNativeContextId = new ObjectNameGenerator("toNativeContext");
     private final ObjectNameGenerator fromNativeConverterId = new ObjectNameGenerator("fromNativeConverter");
+    private final ObjectNameGenerator fromNativeContextId = new ObjectNameGenerator("fromNativeContext");
     private final ObjectNameGenerator objectParameterInfoId = new ObjectNameGenerator("objectParameterInfo");
     private final ObjectNameGenerator variableAccessorId = new ObjectNameGenerator("variableAccessor");
     private final ObjectNameGenerator genericObjectId = new ObjectNameGenerator("objectField");
 
     private final Map<ToNativeConverter, ObjectField> toNativeConverters = new IdentityHashMap<ToNativeConverter, ObjectField>();
+    private final Map<ToNativeContext, ObjectField> toNativeContexts = new IdentityHashMap<ToNativeContext, ObjectField>();
     private final Map<FromNativeConverter, ObjectField> fromNativeConverters = new IdentityHashMap<FromNativeConverter, ObjectField>();
+    private final Map<FromNativeContext, ObjectField> fromNativeContexts = new IdentityHashMap<FromNativeContext, ObjectField>();
     private final Map<ObjectParameterInfo, ObjectField> objectParameterInfo = new HashMap<ObjectParameterInfo, ObjectField>();
     private final Map<Variable, ObjectField> variableAccessors = new HashMap<Variable, ObjectField>();
     private final Map<CallContext, ObjectField> callContextMap = new HashMap<CallContext, ObjectField>();
@@ -97,18 +103,24 @@ class AsmBuilder {
         return getToNativeConverterField(converter).name;
     }
 
+    private static Class nearestClass(Object obj, Class defaultClass) {
+        return Modifier.isPublic(obj.getClass().getModifiers()) ? obj.getClass() : defaultClass;
+    }
+
     ObjectField getToNativeConverterField(ToNativeConverter converter) {
-        Class converterClass = converter.getClass();
-        return getField(toNativeConverters, converter,
-                Modifier.isPublic(converterClass.getModifiers()) ? converterClass : ToNativeConverter.class,
-                toNativeConverterId);
+        return getField(toNativeConverters, converter, nearestClass(converter, ToNativeConverter.class), toNativeConverterId);
     }
 
     ObjectField getFromNativeConverterField(FromNativeConverter converter) {
-        Class converterClass = converter.getClass();
-        return getField(fromNativeConverters, converter,
-                Modifier.isPublic(converterClass.getModifiers()) ? converterClass : FromNativeConverter.class,
-                fromNativeConverterId);
+        return getField(fromNativeConverters, converter, nearestClass(converter, FromNativeConverter.class), fromNativeConverterId);
+    }
+
+    ObjectField getToNativeContextField(ToNativeContext context) {
+        return getField(toNativeContexts, context, nearestClass(context, ToNativeContext.class), toNativeContextId);
+    }
+
+    ObjectField getFromNativeContextField(FromNativeContext context) {
+        return getField(fromNativeContexts, context, nearestClass(context, FromNativeContext.class), fromNativeContextId);
     }
 
 
