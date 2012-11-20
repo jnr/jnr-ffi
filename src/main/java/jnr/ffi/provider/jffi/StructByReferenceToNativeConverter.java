@@ -12,6 +12,7 @@ import jnr.ffi.mapper.ToNativeConverter;
  * Time: 2:43 AM
  * To change this template use File | Settings | File Templates.
  */
+@ToNativeConverter.NoContext
 public final class StructByReferenceToNativeConverter implements ToNativeConverter<Struct, Pointer> {
     private final int flags;
 

@@ -10,6 +10,7 @@ import jnr.ffi.provider.ParameterFlags;
 /**
  *
  */
+@ToNativeConverter.NoContext
 public final class ByReferenceParameterConverter implements ToNativeConverter<ByReference, Pointer>, ToNativeConverter.PostInvocation<ByReference, Pointer> {
     final NativeRuntime runtime = NativeRuntime.getInstance();
     private final int flags;

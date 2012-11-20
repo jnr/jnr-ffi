@@ -18,6 +18,11 @@
 
 package jnr.ffi.mapper;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 public interface ToNativeConverter<J, N> {
     public N toNative(J value, ToNativeContext context);
     public Class<N> nativeType();
@@ -27,5 +32,10 @@ public interface ToNativeConverter<J, N> {
      */
     public static interface PostInvocation<J,N> extends ToNativeConverter<J, N> {
         public void postInvoke(J j, N n, ToNativeContext context);
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    public static @interface NoContext {
     }
 }

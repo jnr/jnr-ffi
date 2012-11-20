@@ -18,10 +18,20 @@
 
 package jnr.ffi.mapper;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Converts data from a native type to a java type
  */
 public interface FromNativeConverter<J, N> {
     public J fromNative(N nativeValue, FromNativeContext context);
     public Class<N> nativeType();
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    public static @interface NoContext {
+    }
 }

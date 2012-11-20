@@ -45,6 +45,7 @@ class X86Disassembler {
         return new AsmLibraryLoader().loadLibrary(library, UDis86.class, options);
     }
 
+    @ToNativeConverter.NoContext
     public static final class X86DisassemblerConverter implements ToNativeConverter<X86Disassembler, Pointer> {
         public Pointer toNative(X86Disassembler value, ToNativeContext context) {
             return value.ud;

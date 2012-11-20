@@ -176,9 +176,11 @@ final class InvokerUtil {
         ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
-            ToNativeContext toNativeContext = new MethodParameterContext(m, pidx);
+
             ToNativeConverter toNativeConverter = getToNativeConverter(javaParameterTypes[pidx], parameterAnnotations[pidx],
                     typeMapper, closureManager);
+            ToNativeContext toNativeContext = toNativeConverter != null && toNativeConverter.getClass().getAnnotation(ToNativeConverter.NoContext.class) == null
+                ? new MethodParameterContext(m, pidx) : null;
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
                     parameterAnnotations[pidx], toNativeConverter, toNativeContext);
         }

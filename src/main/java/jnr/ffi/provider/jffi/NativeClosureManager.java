@@ -81,6 +81,7 @@ final class NativeClosureManager implements ClosureManager {
         return new ClosureSite<T>(getClosureFactory(closureClass));
     }
 
+    @ToNativeConverter.NoContext
     public static final class ClosureSite<T> implements ToNativeConverter<T, Pointer> {
         private final NativeClosureFactory<T> factory;
         private NativeClosureFactory.ClosureReference closureReference = null;

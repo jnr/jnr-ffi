@@ -18,9 +18,7 @@
 
 package jnr.ffi.util;
 
-import jnr.ffi.mapper.AbstractDataConverter;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.*;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -28,6 +26,8 @@ import java.util.*;
 /**
  * Provides mapping from Enum values to native integers and vice-versa
  */
+@ToNativeConverter.NoContext
+@FromNativeConverter.NoContext
 public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
 
     private static final class StaticDataHolder {
