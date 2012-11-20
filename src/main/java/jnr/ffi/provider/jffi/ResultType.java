@@ -8,11 +8,9 @@ import java.lang.annotation.Annotation;
 /**
  *
  */
-class ResultType extends SigType {
-    final FromNativeConverter fromNativeConverter;
+class ResultType extends FromNativeType {
 
     ResultType(Class javaType, NativeType nativeType, Annotation[] annotations, FromNativeConverter fromNativeConverter) {
-        super(javaType, nativeType, annotations, fromNativeConverter != null ? fromNativeConverter.nativeType() : javaType);
-        this.fromNativeConverter = fromNativeConverter;
+        super(javaType, nativeType, annotations, fromNativeConverter);
     }
 }

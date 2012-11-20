@@ -105,7 +105,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         }
     }
 
-    static Method getToNativeMethod(ParameterType toNativeType) {
+    static Method getToNativeMethod(ToNativeType toNativeType) {
         ToNativeConverter toNativeConverter = toNativeType.toNativeConverter;
         if (toNativeConverter == null) {
             return null;
@@ -139,7 +139,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         }
     }
 
-    static Method getFromNativeMethod(ResultType fromNativeType) {
+    static Method getFromNativeMethod(FromNativeType fromNativeType) {
         FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
         if (fromNativeConverter == null) {
             return null;
