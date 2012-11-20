@@ -76,7 +76,8 @@ public class VariableAccessorGenerator {
 
         if (toNativeConverter != null) {
             set.aload(0);
-            set.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(toNativeConverter), ci(ToNativeConverter.class));
+            AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(toNativeConverter);
+            set.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
             set.aload(1);
             set.aconst_null();
             set.invokeinterface(ToNativeConverter.class, "toNative", Object.class, Object.class, ToNativeContext.class);
@@ -115,7 +116,8 @@ public class VariableAccessorGenerator {
         get.start();
         if (fromNativeConverter != null) {
             get.aload(0);
-            get.getfield(builder.getClassNamePath(), builder.getFromNativeConverterName(fromNativeConverter), ci(FromNativeConverter.class));
+            AsmBuilder.ObjectField fromNativeConverterField = builder.getFromNativeConverterField(fromNativeConverter);
+            get.getfield(builder.getClassNamePath(), fromNativeConverterField.name, ci(fromNativeConverterField.klass));
         }
 
         get.aload(0);

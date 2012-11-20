@@ -8,6 +8,7 @@ import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassVisitor;
 
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.boxedType;
@@ -89,12 +90,27 @@ class AsmBuilder {
 
 
     String getFromNativeConverterName(FromNativeConverter converter) {
-        return getField(fromNativeConverters, converter, FromNativeConverter.class, fromNativeConverterId).name;
+        return getFromNativeConverterField(converter).name;
     }
 
     String getToNativeConverterName(ToNativeConverter converter) {
-        return getField(toNativeConverters, converter, ToNativeConverter.class, toNativeConverterId).name;
+        return getToNativeConverterField(converter).name;
     }
+
+    ObjectField getToNativeConverterField(ToNativeConverter converter) {
+        Class converterClass = converter.getClass();
+        return getField(toNativeConverters, converter,
+                Modifier.isPublic(converterClass.getModifiers()) ? converterClass : ToNativeConverter.class,
+                toNativeConverterId);
+    }
+
+    ObjectField getFromNativeConverterField(FromNativeConverter converter) {
+        Class converterClass = converter.getClass();
+        return getField(fromNativeConverters, converter,
+                Modifier.isPublic(converterClass.getModifiers()) ? converterClass : FromNativeConverter.class,
+                fromNativeConverterId);
+    }
+
 
     String getObjectParameterInfoName(ObjectParameterInfo info) {
         return getField(objectParameterInfo, info, ObjectParameterInfo.class, objectParameterInfoId).name;

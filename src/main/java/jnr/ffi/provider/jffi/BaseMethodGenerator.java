@@ -4,6 +4,13 @@ import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
 import jnr.ffi.mapper.*;
 
+import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.util.Arrays;
+import java.util.Collections;
+
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.getBoxedClass;
@@ -64,19 +71,110 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                                        ParameterType parameterType) {
         ToNativeConverter parameterConverter = parameterType.toNativeConverter;
         if (parameterConverter != null) {
+            Method toNativeMethod = getToNativeMethod(parameterType);
             mv.aload(0);
-            mv.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(parameterConverter), ci(ToNativeConverter.class));
-        }
-        AsmUtil.load(mv, parameterType.getDeclaredType(), parameter);
-        if (parameterConverter != null) {
+            AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(parameterConverter);
+            mv.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
+
+            if (!toNativeMethod.getDeclaringClass().equals(toNativeConverterField.klass)) {
+                mv.checkcast(toNativeMethod.getDeclaringClass());
+            }
+
+            AsmUtil.load(mv, parameterType.getDeclaredType(), parameter);
+
             if (parameterType.getDeclaredType().isPrimitive()) {
                 boxValue(mv, getBoxedClass(parameterType.getDeclaredType()), parameterType.getDeclaredType());
             }
+
+            if (!toNativeMethod.getParameterTypes()[0].isAssignableFrom(getBoxedClass(parameterType.getDeclaredType()))) {
+                mv.checkcast(toNativeMethod.getParameterTypes()[0]);
+            }
             mv.aconst_null();
-            mv.invokeinterface(ToNativeConverter.class, "toNative",
-                    Object.class, Object.class, ToNativeContext.class);
-            mv.checkcast(p(parameterConverter.nativeType()));
+            if (toNativeMethod.getDeclaringClass().isInterface()) {
+                mv.invokeinterface(toNativeMethod.getDeclaringClass(), toNativeMethod.getName(),
+                        toNativeMethod.getReturnType(), toNativeMethod.getParameterTypes());
+            } else {
+                mv.invokevirtual(toNativeMethod.getDeclaringClass(), toNativeMethod.getName(),
+                    toNativeMethod.getReturnType(), toNativeMethod.getParameterTypes());
+            }
+            if (!parameterConverter.nativeType().isAssignableFrom(toNativeMethod.getReturnType())) {
+                mv.checkcast(p(parameterConverter.nativeType()));
+            }
+        } else {
+            AsmUtil.load(mv, parameterType.getDeclaredType(), parameter);
         }
+    }
+
+    static Method getToNativeMethod(ParameterType toNativeType) {
+        ToNativeConverter toNativeConverter = toNativeType.toNativeConverter;
+        if (toNativeConverter == null) {
+            return null;
+        }
+
+        try {
+            Class<? extends ToNativeConverter> toNativeConverterClass = toNativeConverter.getClass();
+            if (Modifier.isPublic(toNativeConverterClass.getModifiers())) {
+                for (Method method : toNativeConverterClass.getMethods()) {
+                    if (!method.getName().equals("toNative")) continue;
+                    Class[] methodParameterTypes = method.getParameterTypes();
+                    if (toNativeConverter.nativeType().isAssignableFrom(method.getReturnType())
+                            && methodParameterTypes.length == 2
+                            && methodParameterTypes[0].isAssignableFrom(toNativeType.getDeclaredType())
+                            && methodParameterTypes[1] == ToNativeContext.class
+                            && methodIsAccessible(method)) {
+                        return method;
+                    }
+                }
+            }
+            Method method = toNativeConverterClass.getMethod("toNative", Object.class, ToNativeContext.class);
+            return methodIsAccessible(method)
+                    ? method : ToNativeConverter.class.getDeclaredMethod("toNative", Object.class, ToNativeContext.class);
+
+        } catch (NoSuchMethodException nsme) {
+            try {
+                return ToNativeConverter.class.getDeclaredMethod("toNative", Object.class, ToNativeContext.class);
+            } catch (NoSuchMethodException nsme2) {
+                throw new RuntimeException("internal error. " + ToNativeConverter.class + " has no toNative() method");
+            }
+        }
+    }
+
+    static Method getFromNativeMethod(ResultType fromNativeType) {
+        FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
+        if (fromNativeConverter == null) {
+            return null;
+        }
+
+        try {
+            Class<? extends FromNativeConverter> fromNativeConverterClass = fromNativeConverter.getClass();
+            if (Modifier.isPublic(fromNativeConverterClass.getModifiers())) {
+                for (Method method : fromNativeConverterClass.getMethods()) {
+                    if (!method.getName().equals("fromNative")) continue;
+                    Class[] methodParameterTypes = method.getParameterTypes();
+                    if (fromNativeType.getDeclaredType().isAssignableFrom(method.getReturnType())
+                            && methodParameterTypes.length == 2
+                            && methodParameterTypes[0].isAssignableFrom(fromNativeConverter.nativeType())
+                            && methodParameterTypes[1] == FromNativeContext.class
+                            && methodIsAccessible(method)) {
+                        return method;
+                    }
+                }
+            }
+            Method method = fromNativeConverterClass.getMethod("fromNative", Object.class, FromNativeContext.class);
+            return methodIsAccessible(method)
+                    ? method : FromNativeConverter.class.getDeclaredMethod("fromNative", Object.class, FromNativeContext.class);
+
+        } catch (NoSuchMethodException nsme) {
+            try {
+                return FromNativeConverter.class.getDeclaredMethod("fromNative", Object.class, FromNativeContext.class);
+            } catch (NoSuchMethodException nsme2) {
+                throw new RuntimeException("internal error. " + FromNativeConverter.class + " has no fromNative() method");
+            }
+        }
+    }
+
+    static boolean methodIsAccessible(Method method) {
+        return Modifier.isPublic(method.getModifiers()) && Modifier.isPublic(method.getDeclaringClass().getModifiers());
     }
 
     static void convertAndReturnResult(AsmBuilder builder, SkinnyMethodAdapter mv, ResultType resultType, Class nativeResultClass) {
@@ -86,11 +184,18 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             boxValue(mv, resultConverter.nativeType(), nativeResultClass);
 
             mv.aload(0);
-            mv.getfield(builder.getClassNamePath(), builder.getFromNativeConverterName(resultConverter), ci(FromNativeConverter.class));
+            Method fromNativeMethod = getFromNativeMethod(resultType);
+            AsmBuilder.ObjectField fromNativeConverterField = builder.getFromNativeConverterField(resultConverter);
+            mv.getfield(builder.getClassNamePath(), fromNativeConverterField.name, ci(fromNativeConverterField.klass));
             mv.swap();
             mv.aconst_null();
-            mv.invokeinterface(FromNativeConverter.class, "fromNative",
-                    Object.class, Object.class, FromNativeContext.class);
+            if (fromNativeMethod.getDeclaringClass().isInterface()) {
+                mv.invokeinterface(fromNativeMethod.getDeclaringClass(), fromNativeMethod.getName(),
+                        fromNativeMethod.getReturnType(), fromNativeMethod.getParameterTypes());
+            } else {
+                mv.invokevirtual(fromNativeMethod.getDeclaringClass(), fromNativeMethod.getName(),
+                        fromNativeMethod.getReturnType(), fromNativeMethod.getParameterTypes());
+            }
 
             if (resultType.getDeclaredType().isPrimitive()) {
                 // The actual return type is a primitive, but there was a converter for it - extract the primitive value
@@ -114,8 +219,8 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         for (int i = 0; i < converted.length; ++i) {
             if (converted[i] != null) {
                 mv.aload(0);
-                mv.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(parameterTypes[i].toNativeConverter),
-                        ci(ToNativeConverter.class));
+                AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(parameterTypes[i].toNativeConverter);
+                mv.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
                 mv.checkcast(ToNativeConverter.PostInvocation.class);
                 mv.aload(parameters[i]);
                 mv.aload(converted[i]);

@@ -128,7 +128,8 @@ public abstract class NativeClosureProxy {
                     boxValue(mv, boxedType(parameterClass), parameterClass);
                 }
                 mv.aload(0);
-                mv.getfield(builder.getClassNamePath(), builder.getFromNativeConverterName(fromNativeConverter), ci(FromNativeConverter.class));
+                AsmBuilder.ObjectField fromNativeConverterField = builder.getFromNativeConverterField(fromNativeConverter);
+                mv.getfield(builder.getClassNamePath(), fromNativeConverterField.name, ci(fromNativeConverterField.klass));
                 mv.swap();
                 mv.aconst_null();
                 mv.invokeinterface(FromNativeConverter.class, "fromNative",
@@ -159,7 +160,8 @@ public abstract class NativeClosureProxy {
         if (toNativeConverter != null) {
 
             mv.aload(0);
-            mv.getfield(builder.getClassNamePath(), builder.getToNativeConverterName(toNativeConverter), ci(ToNativeConverter.class));
+            AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(toNativeConverter);
+            mv.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
             mv.swap();
             if (resultType.getDeclaredType().isPrimitive()) {
                 boxValue(mv, getBoxedClass(resultType.getDeclaredType()), resultType.getDeclaredType());
