@@ -21,6 +21,10 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.Platform;
 import jnr.ffi.*;
 import jnr.ffi.annotations.Delegate;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -31,6 +35,7 @@ import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.Buffer;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -664,4 +669,161 @@ final class AsmUtil {
         mv.aload(0);
         mv.getfield(builder.getClassNamePath(), field.name, ci(field.klass));
     }
+
+    static void emitToNativeConversion(AsmBuilder builder, SkinnyMethodAdapter mv, ToNativeType toNativeType) {
+        ToNativeConverter parameterConverter = toNativeType.toNativeConverter;
+        if (parameterConverter != null) {
+            Method toNativeMethod = getToNativeMethod(toNativeType);
+
+            if (toNativeType.getDeclaredType().isPrimitive()) {
+                boxValue(mv, getBoxedClass(toNativeType.getDeclaredType()), toNativeType.getDeclaredType());
+            }
+            if (!toNativeMethod.getParameterTypes()[0].isAssignableFrom(getBoxedClass(toNativeType.getDeclaredType()))) {
+                mv.checkcast(toNativeMethod.getParameterTypes()[0]);
+            }
+
+            mv.aload(0);
+            AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(parameterConverter);
+            mv.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
+            if (!toNativeMethod.getDeclaringClass().equals(toNativeConverterField.klass)) {
+                mv.checkcast(toNativeMethod.getDeclaringClass());
+            }
+
+            // Re-order so the value to be converted is on the top of the stack
+            mv.swap();
+
+            if (toNativeType.toNativeContext != null) {
+                getfield(mv, builder, builder.getToNativeContextField(toNativeType.toNativeContext));
+            } else {
+                mv.aconst_null();
+            }
+
+            if (toNativeMethod.getDeclaringClass().isInterface()) {
+                mv.invokeinterface(toNativeMethod.getDeclaringClass(), toNativeMethod.getName(),
+                        toNativeMethod.getReturnType(), toNativeMethod.getParameterTypes());
+            } else {
+                mv.invokevirtual(toNativeMethod.getDeclaringClass(), toNativeMethod.getName(),
+                        toNativeMethod.getReturnType(), toNativeMethod.getParameterTypes());
+            }
+            if (!parameterConverter.nativeType().isAssignableFrom(toNativeMethod.getReturnType())) {
+                mv.checkcast(p(parameterConverter.nativeType()));
+            }
+        }
+    }
+
+    static void emitFromNativeConversion(AsmBuilder builder, SkinnyMethodAdapter mv, FromNativeType fromNativeType, Class nativeClass) {
+        // If there is a result converter, retrieve it and put on the stack
+        FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
+        if (fromNativeConverter != null) {
+            convertPrimitive(mv, nativeClass, unboxedType(fromNativeConverter.nativeType()), fromNativeType.nativeType);
+            boxValue(mv, fromNativeConverter.nativeType(), nativeClass);
+
+            Method fromNativeMethod = getFromNativeMethod(fromNativeType);
+            getfield(mv, builder, builder.getFromNativeConverterField(fromNativeConverter));
+            mv.swap();
+            if (fromNativeType.fromNativeContext != null) {
+                getfield(mv, builder, builder.getFromNativeContextField(fromNativeType.fromNativeContext));
+            } else {
+                mv.aconst_null();
+            }
+
+            if (fromNativeMethod.getDeclaringClass().isInterface()) {
+                mv.invokeinterface(fromNativeMethod.getDeclaringClass(), fromNativeMethod.getName(),
+                        fromNativeMethod.getReturnType(), fromNativeMethod.getParameterTypes());
+            } else {
+                mv.invokevirtual(fromNativeMethod.getDeclaringClass(), fromNativeMethod.getName(),
+                        fromNativeMethod.getReturnType(), fromNativeMethod.getParameterTypes());
+            }
+
+            if (fromNativeType.getDeclaredType().isPrimitive()) {
+                // The actual return type is a primitive, but there was a converter for it - extract the primitive value
+                Class boxedType = getBoxedClass(fromNativeType.getDeclaredType());
+                mv.checkcast(p(boxedType));
+                unboxNumber(mv, boxedType, fromNativeType.getDeclaredType(), fromNativeType.nativeType);
+
+            } else {
+                mv.checkcast(p(fromNativeType.getDeclaredType()));
+            }
+
+        } else if (!fromNativeType.getDeclaredType().isPrimitive()) {
+            Class unboxedType = unboxedType(fromNativeType.getDeclaredType());
+            convertPrimitive(mv, nativeClass, unboxedType, fromNativeType.nativeType);
+            boxValue(mv, fromNativeType.getDeclaredType(), unboxedType);
+
+        }
+    }
+
+    static Method getToNativeMethod(ToNativeType toNativeType) {
+        ToNativeConverter toNativeConverter = toNativeType.toNativeConverter;
+        if (toNativeConverter == null) {
+            return null;
+        }
+
+        try {
+            Class<? extends ToNativeConverter> toNativeConverterClass = toNativeConverter.getClass();
+            if (Modifier.isPublic(toNativeConverterClass.getModifiers())) {
+                for (Method method : toNativeConverterClass.getMethods()) {
+                    if (!method.getName().equals("toNative")) continue;
+                    Class[] methodParameterTypes = method.getParameterTypes();
+                    if (toNativeConverter.nativeType().isAssignableFrom(method.getReturnType())
+                            && methodParameterTypes.length == 2
+                            && methodParameterTypes[0].isAssignableFrom(toNativeType.getDeclaredType())
+                            && methodParameterTypes[1] == ToNativeContext.class
+                            && methodIsAccessible(method)) {
+                        return method;
+                    }
+                }
+            }
+            Method method = toNativeConverterClass.getMethod("toNative", Object.class, ToNativeContext.class);
+            return methodIsAccessible(method)
+                    ? method : ToNativeConverter.class.getDeclaredMethod("toNative", Object.class, ToNativeContext.class);
+
+        } catch (NoSuchMethodException nsme) {
+            try {
+                return ToNativeConverter.class.getDeclaredMethod("toNative", Object.class, ToNativeContext.class);
+            } catch (NoSuchMethodException nsme2) {
+                throw new RuntimeException("internal error. " + ToNativeConverter.class + " has no toNative() method");
+            }
+        }
+    }
+
+
+    static Method getFromNativeMethod(FromNativeType fromNativeType) {
+        FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
+        if (fromNativeConverter == null) {
+            return null;
+        }
+
+        try {
+            Class<? extends FromNativeConverter> fromNativeConverterClass = fromNativeConverter.getClass();
+            if (Modifier.isPublic(fromNativeConverterClass.getModifiers())) {
+                for (Method method : fromNativeConverterClass.getMethods()) {
+                    if (!method.getName().equals("fromNative")) continue;
+                    Class[] methodParameterTypes = method.getParameterTypes();
+                    if (fromNativeType.getDeclaredType().isAssignableFrom(method.getReturnType())
+                            && methodParameterTypes.length == 2
+                            && methodParameterTypes[0].isAssignableFrom(fromNativeConverter.nativeType())
+                            && methodParameterTypes[1] == FromNativeContext.class
+                            && methodIsAccessible(method)) {
+                        return method;
+                    }
+                }
+            }
+            Method method = fromNativeConverterClass.getMethod("fromNative", Object.class, FromNativeContext.class);
+            return methodIsAccessible(method)
+                    ? method : FromNativeConverter.class.getDeclaredMethod("fromNative", Object.class, FromNativeContext.class);
+
+        } catch (NoSuchMethodException nsme) {
+            try {
+                return FromNativeConverter.class.getDeclaredMethod("fromNative", Object.class, FromNativeContext.class);
+            } catch (NoSuchMethodException nsme2) {
+                throw new RuntimeException("internal error. " + FromNativeConverter.class + " has no fromNative() method");
+            }
+        }
+    }
+
+    static boolean methodIsAccessible(Method method) {
+        return Modifier.isPublic(method.getModifiers()) && Modifier.isPublic(method.getDeclaringClass().getModifiers());
+    }
+
 }

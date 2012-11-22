@@ -158,9 +158,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
         if (pointerCount > 0) mv.label(convertResult);
 
-        // Update any converted parameters that require it
-        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
-
         Class javaReturnType = resultType.effectiveJavaType();
         Class nativeReturnType = nativeIntType;
 
@@ -180,7 +177,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         // box and/or narrow/widen the return value if needed
         Class unboxedResultType = unboxedReturnType(javaReturnType);
         convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
-        convertAndReturnResult(builder, mv, resultType, unboxedResultType);
+        emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
+        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
+        emitReturnOp(mv, resultType.getDeclaredType());
 
         /* --  method returns above - below is an alternative path -- */
 

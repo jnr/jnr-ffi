@@ -112,35 +112,10 @@ public abstract class NativeClosureProxy {
             }
 
             AsmUtil.load(mv, nativeParameterClasses[i], parameterVariables[i]);
-
             if (!parameterClass.isPrimitive()) {
-                Class unboxedType = unboxedType(parameterClass);
-                convertPrimitive(mv, nativeParameterClasses[i], unboxedType, parameterType.nativeType);
-                boxValue(mv, parameterClass, unboxedType);
+                emitFromNativeConversion(builder, mv, parameterTypes[i], nativeParameterClasses[i]);
             } else {
                 convertPrimitive(mv, nativeParameterClasses[i], parameterClass, parameterType.nativeType);
-            }
-
-            // If there is a parameter converter, use it to convert the parameter to its java form
-            FromNativeConverter fromNativeConverter = parameterTypes[i].fromNativeConverter;
-            if (fromNativeConverter != null) {
-                if (parameterClass.isPrimitive()) {
-                    boxValue(mv, boxedType(parameterClass), parameterClass);
-                }
-                mv.aload(0);
-                AsmBuilder.ObjectField fromNativeConverterField = builder.getFromNativeConverterField(fromNativeConverter);
-                mv.getfield(builder.getClassNamePath(), fromNativeConverterField.name, ci(fromNativeConverterField.klass));
-                mv.swap();
-                mv.aconst_null();
-                mv.invokeinterface(FromNativeConverter.class, "fromNative",
-                        Object.class, Object.class, FromNativeContext.class);
-                if (parameterType.getDeclaredType().isPrimitive()) {
-                    Class boxedType = getBoxedClass(parameterType.getDeclaredType());
-                    mv.checkcast(p(boxedType));
-                    unboxNumber(mv, boxedType, parameterType.getDeclaredType(), parameterType.nativeType);
-                } else {
-                    mv.checkcast(p(parameterTypes[i].getDeclaredType()));
-                }
             }
         }
 
@@ -155,25 +130,7 @@ public abstract class NativeClosureProxy {
             throw new IllegalArgumentException("unsupported closure return type " + resultType.getDeclaredType());
         }
 
-
-        ToNativeConverter toNativeConverter = resultType.toNativeConverter;
-        if (toNativeConverter != null) {
-
-            mv.aload(0);
-            AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(toNativeConverter);
-            mv.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
-            mv.swap();
-            if (resultType.getDeclaredType().isPrimitive()) {
-                boxValue(mv, getBoxedClass(resultType.getDeclaredType()), resultType.getDeclaredType());
-            }
-            mv.aconst_null();
-            mv.invokeinterface(ToNativeConverter.class, "toNative",
-                    Object.class, Object.class, ToNativeContext.class);
-            mv.checkcast(p(toNativeConverter.nativeType()));
-        }
-
-
-
+        emitToNativeConversion(builder, mv, resultType);
         if (!resultType.effectiveJavaType().isPrimitive()) {
             if (Number.class.isAssignableFrom(resultType.effectiveJavaType())) {
                 AsmUtil.unboxNumber(mv, resultType.effectiveJavaType(), nativeResultClass, resultType.nativeType);

@@ -211,9 +211,9 @@ class X86MethodGenerator implements MethodGenerator {
             mv.label(convertResult);
         }
 
+        emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
         emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
-
-        convertAndReturnResult(builder, mv, resultType, unboxedResultType);
+        emitReturnOp(mv, resultType.getDeclaredType());
 
         /* --  method returns above - below is the object path, which will jump back above to return -- */
 

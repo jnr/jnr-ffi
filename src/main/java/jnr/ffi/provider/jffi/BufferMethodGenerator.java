@@ -13,8 +13,7 @@ import jnr.ffi.provider.ParameterFlags;
 
 import java.nio.Buffer;
 
-import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
-import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
+import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 
@@ -240,9 +239,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
         String invokeMethod ;
         Class nativeReturnType;
-        FromNativeConverter resultConverter = resultType.fromNativeConverter;
-        Class javaReturnType = resultConverter != null
-                ? resultConverter.nativeType() : resultType.getDeclaredType();
+        Class javaReturnType = resultType.effectiveJavaType();
 
         if (NativeType.SCHAR == resultType.nativeType || NativeType.UCHAR == resultType.nativeType
             || NativeType.SSHORT== resultType.nativeType || NativeType.USHORT == resultType.nativeType
@@ -283,16 +280,18 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         mv.invokevirtual(Invoker.class, invokeMethod,
                 nativeReturnType, CallContext.class, long.class, HeapInvocationBuffer.class);
 
-        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
+        // box and/or narrow/widen the return value if needed
+        Class unboxedResultType = unboxedReturnType(javaReturnType);
 
+        convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
+        emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
+
+        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
         if (sessionRequired) {
             mv.aload(session);
             mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
         }
 
-        // box and/or narrow/widen the return value if needed
-        Class unboxedResultType = unboxedReturnType(javaReturnType);
-        convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
-        convertAndReturnResult(builder, mv, resultType, unboxedResultType);
+        emitReturnOp(mv, resultType.getDeclaredType());
     }
 }

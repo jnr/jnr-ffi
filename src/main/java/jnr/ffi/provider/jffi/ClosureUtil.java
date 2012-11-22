@@ -18,14 +18,18 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
+import jnr.ffi.Struct;
+import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.EnumMapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.InvokerUtil.jffiType;
 
 /**
@@ -86,6 +90,10 @@ final class ClosureUtil {
 
         } else if (Enum.class.isAssignableFrom(javaClass)) {
             return EnumMapper.getInstance(javaClass.asSubclass(Enum.class));
+
+        } else if (Struct.class.isAssignableFrom(javaClass)) {
+            return new StructByReferenceToNativeConverter(ParameterFlags.IN | ParameterFlags.OUT);
+
 
         } else {
             return null;
