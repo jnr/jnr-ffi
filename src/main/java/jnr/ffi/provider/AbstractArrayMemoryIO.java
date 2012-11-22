@@ -287,7 +287,7 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
 
     protected static abstract class ArrayIO {
 
-        public static final ArrayIO getArrayIO(Runtime runtime) {
+        public static ArrayIO getArrayIO(Runtime runtime) {
             if (runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)) {
                 return runtime.addressSize() == 8
                         ? BE64ArrayIO.INSTANCE : BE32ArrayIO.INSTANCE;

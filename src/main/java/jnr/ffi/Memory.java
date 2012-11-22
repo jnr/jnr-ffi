@@ -34,7 +34,7 @@ public final class Memory {
      *
      * @return a {@code Pointer} instance that can access the memory.
      */
-    public static final Pointer allocate(Runtime runtime, int size) {
+    public static Pointer allocate(Runtime runtime, int size) {
         return runtime.getMemoryManager().allocate(size);
     }
 
@@ -46,7 +46,7 @@ public final class Memory {
      *
      * @return a {@code Pointer} instance that can access the memory.
      */
-    public static final Pointer allocate(Runtime runtime, NativeType type) {
+    public static Pointer allocate(Runtime runtime, NativeType type) {
         return runtime.getMemoryManager().allocate(runtime.findType(type).size());
     }
 
@@ -58,7 +58,7 @@ public final class Memory {
      *
      * @return a {@code Pointer} instance that can access the memory.
      */
-    public static final Pointer allocateDirect(Runtime runtime, int size) {
+    public static Pointer allocateDirect(Runtime runtime, int size) {
         return runtime.getMemoryManager().allocateDirect(size);
     }
 
@@ -70,7 +70,7 @@ public final class Memory {
      *
      * @return a {@code Pointer} instance that can access the memory.
      */
-    public static final Pointer allocateDirect(Runtime runtime, NativeType type) {
+    public static Pointer allocateDirect(Runtime runtime, NativeType type) {
         return runtime.getMemoryManager().allocateDirect(runtime.findType(type).size());
     }
 
@@ -84,7 +84,7 @@ public final class Memory {
      *
      * @return a {@code Pointer} instance that can access the memory.
      */
-    public static final Pointer allocateDirect(Runtime runtime, int size, boolean clear) {
+    public static Pointer allocateDirect(Runtime runtime, int size, boolean clear) {
         return runtime.getMemoryManager().allocateDirect(size, clear);
     }
 
@@ -97,7 +97,7 @@ public final class Memory {
      *
      * @return a {@code Pointer} instance that can access the memory.
      */
-    public static final Pointer allocateTemporary(Runtime runtime, NativeType type) {
+    public static Pointer allocateTemporary(Runtime runtime, NativeType type) {
         return runtime.getMemoryManager().allocateTemporary(runtime.findType(type).size(), true);
     }
     
@@ -112,7 +112,7 @@ public final class Memory {
      *
      * @return a {@code Pointer} instance that can access the memory.
      */
-    public static final Pointer allocateTemporary(Runtime runtime, NativeType type, boolean clear) {
+    public static Pointer allocateTemporary(Runtime runtime, NativeType type, boolean clear) {
         return runtime.getMemoryManager().allocateTemporary(runtime.findType(type).size(), clear);
     }
 }

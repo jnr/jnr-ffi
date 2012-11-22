@@ -31,7 +31,7 @@ import java.util.Map;
  *
  */
 final class NativeClosureManager implements ClosureManager {
-    private volatile Map<Class<? extends Object>, NativeClosureFactory> factories = new IdentityHashMap<Class<? extends Object>, NativeClosureFactory>();
+    private volatile Map<Class<?>, NativeClosureFactory> factories = new IdentityHashMap<Class<?>, NativeClosureFactory>();
     private final NativeRuntime runtime;
     private final TypeMapper typeMapper;
 
@@ -40,7 +40,7 @@ final class NativeClosureManager implements ClosureManager {
         this.typeMapper = typeMapper;
     }
 
-    <T extends Object> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
+    <T> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
         NativeClosureFactory<T> factory = factories.get(closureClass);
         if (factory != null) {
             return factory;
@@ -49,7 +49,7 @@ final class NativeClosureManager implements ClosureManager {
         return initClosureFactory(closureClass);
     }
 
-    public <T extends Object> T newClosure(Class<? extends T> closureClass, T instance) {
+    public <T> T newClosure(Class<? extends T> closureClass, T instance) {
         NativeClosureFactory<T> factory = factories.get(closureClass);
         if (factory != null) {
             //return factory.newClosure(instance);
@@ -57,11 +57,11 @@ final class NativeClosureManager implements ClosureManager {
         return null;
     }
 
-    public final <T extends Object> jnr.ffi.Pointer getClosurePointer(Class<? extends T> closureClass, T instance) {
+    public final <T> jnr.ffi.Pointer getClosurePointer(Class<? extends T> closureClass, T instance) {
         return getClosureFactory(closureClass).getClosureReference(instance).getPointer();
     }
 
-    synchronized <T extends Object> NativeClosureFactory<T> initClosureFactory(Class<T> closureClass) {
+    synchronized <T> NativeClosureFactory<T> initClosureFactory(Class<T> closureClass) {
         NativeClosureFactory<T> factory = factories.get(closureClass);
         if (factory != null) {
             return factory;
@@ -69,7 +69,7 @@ final class NativeClosureManager implements ClosureManager {
 
 
         factory = NativeClosureFactory.newClosureFactory(runtime, closureClass, typeMapper);
-        Map<Class<? extends Object>, NativeClosureFactory> factories = new IdentityHashMap<Class<? extends Object>, NativeClosureFactory>();
+        Map<Class<?>, NativeClosureFactory> factories = new IdentityHashMap<Class<?>, NativeClosureFactory>();
         factories.putAll(this.factories);
         factories.put(closureClass, factory);
         this.factories = factories;
@@ -77,7 +77,7 @@ final class NativeClosureManager implements ClosureManager {
         return factory;
     }
 
-    <T extends Object> ToNativeConverter<T, Pointer> newClosureSite(Class<T> closureClass) {
+    <T> ToNativeConverter<T, Pointer> newClosureSite(Class<T> closureClass) {
         return new ClosureSite<T>(getClosureFactory(closureClass));
     }
 

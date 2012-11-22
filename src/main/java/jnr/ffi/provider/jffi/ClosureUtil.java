@@ -56,18 +56,6 @@ final class ClosureUtil {
         return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
     }
 
-    static com.kenai.jffi.Type getNativeResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
-        ToNativeConverter converter = getToNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper);
-        Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
-        return jffiType(InvokerUtil.getNativeType(runtime, m.getReturnType(), m.getAnnotations()));
-    }
-
-    static com.kenai.jffi.Type getNativeParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
-        FromNativeConverter converter = getFromNativeConverter(m.getParameterTypes()[idx], m.getParameterAnnotations()[idx], typeMapper);
-        Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
-        return jffiType(InvokerUtil.getNativeType(runtime, m.getParameterTypes()[idx], m.getParameterAnnotations()[idx]));
-    }
-
     @SuppressWarnings("unchecked")
     static FromNativeConverter getFromNativeConverter(Class javaClass, Annotation[] annotations, TypeMapper typeMapper) {
         FromNativeConverter conv = typeMapper.getFromNativeConverter(javaClass);

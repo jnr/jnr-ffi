@@ -5,13 +5,6 @@ import jnr.ffi.Struct;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 
-/**
- * Created with IntelliJ IDEA.
- * User: wayne
- * Date: 21/11/12
- * Time: 2:43 AM
- * To change this template use File | Settings | File Templates.
- */
 @ToNativeConverter.NoContext
 public final class StructByReferenceToNativeConverter implements ToNativeConverter<Struct, Pointer> {
     private final int flags;

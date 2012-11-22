@@ -32,7 +32,7 @@ abstract class StubCompiler {
     static final boolean hasPageManager = hasPageManager();
     static final boolean hasAssembler = hasAssembler();
     
-    public static final StubCompiler newCompiler() {
+    public static StubCompiler newCompiler() {
         if (errnoFunctionAddress != 0 && hasPageManager && hasAssembler) {
             switch (Platform.getPlatform().getCPU()) {
                 case I386:
@@ -77,7 +77,7 @@ abstract class StubCompiler {
 
     }
 
-    private static final long getErrnoSaveFunction() {
+    private static long getErrnoSaveFunction() {
         try {
             return Internals.getErrnoSaveFunction();
             
@@ -86,7 +86,7 @@ abstract class StubCompiler {
         }
     }
 
-    private static final boolean hasPageManager() {
+    private static boolean hasPageManager() {
         try {
             // Just try and allocate/free a page to check the PageManager is working
             long page = PageManager.getInstance().allocatePages(1, PageManager.PROT_READ | PageManager.PROT_WRITE);
@@ -97,7 +97,7 @@ abstract class StubCompiler {
         }
     }
 
-    private static final boolean hasAssembler() {
+    private static boolean hasAssembler() {
         try {
             switch (Platform.getPlatform().getCPU()) {
                 case I386:

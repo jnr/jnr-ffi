@@ -29,7 +29,7 @@ import java.nio.ByteOrder;
 public abstract class Runtime {
 
     /** Gets the global Runtime for the current FFI provider */
-    public static final Runtime getSystemRuntime() {
+    public static Runtime getSystemRuntime() {
         return SingletonHolder.SYSTEM_RUNTIME;
     }
 

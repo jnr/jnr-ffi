@@ -54,5 +54,5 @@ public enum LibraryOption {
     /**
      * Load the library into memory immediately, instead of lazily loading it
      */
-    LoadNow;
+    LoadNow
 }

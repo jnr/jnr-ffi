@@ -30,7 +30,7 @@ public final class LastError {
      * @param runtime FFI runtime to get errno for.
      * @return An integer containing the errno value.
      */
-    public static final int getLastError(Runtime runtime) {
+    public static int getLastError(Runtime runtime) {
         return runtime.getLastError();
     }
 
@@ -40,7 +40,7 @@ public final class LastError {
      * @param runtime FFI runtime to set errno for.
      * @param error The value to set errno to.
      */
-    public static final void setLastError(Runtime runtime, int error) {
+    public static void setLastError(Runtime runtime, int error) {
         runtime.setLastError(error);
     }
 }

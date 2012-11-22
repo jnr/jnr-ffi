@@ -29,7 +29,7 @@ public abstract class FFIProvider {
      *
      * @return an instance of <tt>FFIProvider</tt>
      */
-    static final FFIProvider getSystemProvider() {
+    static FFIProvider getSystemProvider() {
         return SystemProviderSingletonHolder.INSTANCE;
     }
 
@@ -65,7 +65,7 @@ public abstract class FFIProvider {
     private static final class SystemProviderSingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();
 
-        static final FFIProvider getInstance() {
+        static FFIProvider getInstance() {
             String providerName = System.getProperty("jnr.ffi.provider");
             if (providerName == null) {
                 Package pkg = FFIProvider.class.getPackage();

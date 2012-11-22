@@ -20,23 +20,23 @@ package jnr.ffi.provider;
 
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.util.EnumMapper;
 
 
-public final class EnumResultConverter implements FromNativeConverter {
+@FromNativeConverter.NoContext
+public final class EnumResultConverter implements FromNativeConverter<Enum, Integer> {
     private final EnumMapper mapper;
-    private final Class enumClass;
 
-    public EnumResultConverter(Class enumClass) {
-        this.mapper = EnumMapper.getInstance(enumClass.asSubclass(Enum.class));
-        this.enumClass = enumClass;
+    public EnumResultConverter(Class<? extends Enum> enumClass) {
+        this.mapper = EnumMapper.getInstance(enumClass);
     }
 
-    public Enum fromNative(Object nativeValue, FromNativeContext context) {
-        return mapper.valueOf((Integer) nativeValue);
+    public Enum fromNative(Integer nativeValue, FromNativeContext context) {
+        return mapper.valueOf(nativeValue);
     }
 
-    public Class nativeType() {
+    public Class<Integer> nativeType() {
         return Integer.class;
     }
 }

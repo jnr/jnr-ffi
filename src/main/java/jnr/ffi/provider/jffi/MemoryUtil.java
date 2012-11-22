@@ -26,15 +26,15 @@ public final class MemoryUtil {
 
     private MemoryUtil() {}
 
-    static final jnr.ffi.Pointer newPointer(long ptr) {
+    static jnr.ffi.Pointer newPointer(long ptr) {
         return ptr != 0 ? new DirectMemoryIO(NativeRuntime.getInstance(), ptr) : null;
     }
 
-    static final jnr.ffi.Pointer newPointer(int ptr) {
+    static jnr.ffi.Pointer newPointer(int ptr) {
         return ptr != 0 ? new DirectMemoryIO(NativeRuntime.getInstance(), ptr) : null;
     }
     
-    static final jnr.ffi.Pointer newPointer(long ptr, long size) {
+    static jnr.ffi.Pointer newPointer(long ptr, long size) {
         return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(NativeRuntime.getInstance(), ptr), 0, size) : null;
     }
 }

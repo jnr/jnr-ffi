@@ -37,7 +37,7 @@ public final class AsmRuntime {
 
     private AsmRuntime() {}
 
-    public static final void marshal(HeapInvocationBuffer buffer, byte[] array, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, byte[] array, int flags) {
         if (array == null) {
             buffer.putAddress(0L);
         } else {
@@ -45,7 +45,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, short[] array, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, short[] array, int flags) {
         if (array == null) {
             buffer.putAddress(0L);
         } else {
@@ -53,7 +53,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, int[] array, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, int[] array, int flags) {
         if (array == null) {
             buffer.putAddress(0L);
         } else {
@@ -61,7 +61,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, long[] array, int nativeArrayFlags) {
+    public static void marshal(HeapInvocationBuffer buffer, long[] array, int nativeArrayFlags) {
         if (array == null) {
             buffer.putAddress(0L);
         } else {
@@ -69,7 +69,7 @@ public final class AsmRuntime {
         }
     }
     
-    public static final void marshal32(HeapInvocationBuffer buffer, InvocationSession session, 
+    public static void marshal32(HeapInvocationBuffer buffer, InvocationSession session,
             final long[] array, int nativeArrayFlags) {
         
         if (array == null) {
@@ -98,7 +98,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, float[] array, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, float[] array, int flags) {
         if (array == null) {
             buffer.putAddress(0L);
         } else {
@@ -106,7 +106,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, double[] array, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, double[] array, int flags) {
         if (array == null) {
             buffer.putAddress(0L);
         } else {
@@ -114,7 +114,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, Pointer ptr, int nativeArrayFlags) {
+    public static void marshal(HeapInvocationBuffer buffer, Pointer ptr, int nativeArrayFlags) {
         if (ptr == null) {
             buffer.putAddress(0L);
         
@@ -134,7 +134,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, Address ptr) {
+    public static void marshal(HeapInvocationBuffer buffer, Address ptr) {
         if (ptr == null) {
             buffer.putAddress(0L);
         } else {
@@ -169,7 +169,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, ByteBuffer buf, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, ByteBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
 
@@ -184,7 +184,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, ShortBuffer buf, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, ShortBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
 
@@ -199,7 +199,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, IntBuffer buf, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, IntBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
 
@@ -214,7 +214,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, LongBuffer buf, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, LongBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
 
@@ -229,7 +229,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, FloatBuffer buf, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, FloatBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
 
@@ -244,7 +244,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, DoubleBuffer buf, int flags) {
+    public static void marshal(HeapInvocationBuffer buffer, DoubleBuffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
 
@@ -259,7 +259,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, CharSequence cs) {
+    public static void marshal(HeapInvocationBuffer buffer, CharSequence cs) {
         if (cs == null) {
             buffer.putAddress(0L);
         } else {
@@ -268,7 +268,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, jnr.ffi.Struct[] parameter, int parameterFlags, int nativeArrayFlags) {
+    public static void marshal(HeapInvocationBuffer buffer, jnr.ffi.Struct[] parameter, int parameterFlags, int nativeArrayFlags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
@@ -288,7 +288,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, InvocationSession session, StringBuilder parameter, int inout, int nflags) {
+    public static void marshal(HeapInvocationBuffer buffer, InvocationSession session, StringBuilder parameter, int inout, int nflags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
@@ -320,7 +320,7 @@ public final class AsmRuntime {
         }
     }
     
-    public static final void marshal(HeapInvocationBuffer buffer, InvocationSession session, final StringBuffer parameter, int inout, int nflags) {
+    public static void marshal(HeapInvocationBuffer buffer, InvocationSession session, final StringBuffer parameter, int inout, int nflags) {
         if (parameter == null) {
             buffer.putAddress(0L);
         } else {
@@ -353,7 +353,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, InvocationSession session,
+    public static void marshal(HeapInvocationBuffer buffer, InvocationSession session,
             final CharSequence[] strings, final int inout, int nativeArrayFlags) {
         if (strings == null) {
             buffer.putAddress(0L);
@@ -396,7 +396,7 @@ public final class AsmRuntime {
     }
 
 
-    public static final void marshal(HeapInvocationBuffer buffer, final Enum parameter) {
+    public static void marshal(HeapInvocationBuffer buffer, final Enum parameter) {
         if (parameter == null) {
             throw new IllegalArgumentException("enum value cannot be null");
         } else {
@@ -404,7 +404,7 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, final Boolean parameter) {
+    public static void marshal(HeapInvocationBuffer buffer, final Boolean parameter) {
         if (parameter == null) {
             throw new IllegalArgumentException("Boolean value cannot be null");
         } else {
@@ -412,12 +412,12 @@ public final class AsmRuntime {
         }
     }
 
-    public static final void marshal(HeapInvocationBuffer buffer, final boolean parameter) {
+    public static void marshal(HeapInvocationBuffer buffer, final boolean parameter) {
         buffer.putInt(parameter ? 1 : 0);
     }
 
 
-    public static final void marshal(HeapInvocationBuffer buffer, InvocationSession session,
+    public static void marshal(HeapInvocationBuffer buffer, InvocationSession session,
             final Pointer[] pointers, int inout, int nativeArrayFlags) {
         if (pointers == null) {
             buffer.putAddress(0L);
@@ -467,11 +467,11 @@ public final class AsmRuntime {
         }
     }
 
-    public static final UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {
+    public static UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {
         return new UnsatisfiedLinkError(msg);
     }
 
-    public static final HeapInvocationBuffer newHeapInvocationBuffer(Function function) {
+    public static HeapInvocationBuffer newHeapInvocationBuffer(Function function) {
         return new HeapInvocationBuffer(function);
     }
 
@@ -483,46 +483,46 @@ public final class AsmRuntime {
         return new HeapInvocationBuffer(callContext, objCount);
     }
 
-    public static final String stringValue(long ptr) {
+    public static String stringValue(long ptr) {
         if (ptr == 0) {
             return null;
         }
         return Charset.defaultCharset().decode(ByteBuffer.wrap(IO.getZeroTerminatedByteArray(ptr))).toString();
     }
 
-    public static final String stringValue(int ptr) {
+    public static String stringValue(int ptr) {
         return stringValue((long) ptr);
     }
 
-    public static final Pointer pointerValue(long ptr) {
+    public static Pointer pointerValue(long ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
 
-    public static final Pointer pointerValue(int ptr) {
+    public static Pointer pointerValue(int ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }
 
-    public static final void useMemory(long ptr, jnr.ffi.Struct s) {
+    public static void useMemory(long ptr, jnr.ffi.Struct s) {
         s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
     }
 
-    public static final void useMemory(int ptr, jnr.ffi.Struct s) {
+    public static void useMemory(int ptr, jnr.ffi.Struct s) {
         s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
     }
 
-    public static final boolean isDirect(Pointer ptr) {
+    public static boolean isDirect(Pointer ptr) {
         return ptr == null || ptr.isDirect();
     }
 
-    public static final int intValue(Pointer ptr) {
+    public static int intValue(Pointer ptr) {
         return ptr != null ? (int) ptr.address() : 0;
     }
 
-    public static final long longValue(Pointer ptr) {
+    public static long longValue(Pointer ptr) {
         return ptr != null ? ptr.address() : 0L;
     }
 
-    public static final boolean isDirect5(Buffer buffer) {
+    public static boolean isDirect5(Buffer buffer) {
         if (buffer == null) {
             return true;
 
@@ -552,35 +552,35 @@ public final class AsmRuntime {
         }
     }
 
-    public static final boolean isDirect(Buffer buffer) {
+    public static boolean isDirect(Buffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
-    public static final boolean isDirect(ByteBuffer buffer) {
+    public static boolean isDirect(ByteBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
-    public static final boolean isDirect(CharBuffer buffer) {
+    public static boolean isDirect(CharBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
-    public static final boolean isDirect(ShortBuffer buffer) {
+    public static boolean isDirect(ShortBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
-    public static final boolean isDirect(IntBuffer buffer) {
+    public static boolean isDirect(IntBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
-    public static final boolean isDirect(LongBuffer buffer) {
+    public static boolean isDirect(LongBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
-    public static final boolean isDirect(FloatBuffer buffer) {
+    public static boolean isDirect(FloatBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
-    public static final boolean isDirect(DoubleBuffer buffer) {
+    public static boolean isDirect(DoubleBuffer buffer) {
         return buffer == null || buffer.isDirect();
     }
 
@@ -610,31 +610,31 @@ public final class AsmRuntime {
 
         return address + pos;
     }
-    public static final long longValue(ByteBuffer buffer) {
+    public static long longValue(ByteBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + buffer.position(): 0L;
     }
 
-    public static final long longValue(ShortBuffer buffer) {
+    public static long longValue(ShortBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 1): 0L;
     }
 
-    public static final long longValue(CharBuffer buffer) {
+    public static long longValue(CharBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 1): 0L;
     }
 
-    public static final long longValue(IntBuffer buffer) {
+    public static long longValue(IntBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 2): 0L;
     }
 
-    public static final long longValue(LongBuffer buffer) {
+    public static long longValue(LongBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 3): 0L;
     }
 
-    public static final long longValue(FloatBuffer buffer) {
+    public static long longValue(FloatBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 2): 0L;
     }
 
-    public static final long longValue(DoubleBuffer buffer) {
+    public static long longValue(DoubleBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 3): 0L;
     }
 

@@ -131,7 +131,7 @@ public abstract class Platform {
      *
      * @return An member of the <tt>OS</tt> enum.
      */
-    private static final OS determineOS() {
+    private static OS determineOS() {
         String osName = System.getProperty("os.name").split(" ")[0];
         if (startsWithIgnoreCase(osName, "mac") || startsWithIgnoreCase(osName, "darwin")) {
             return OS.DARWIN;
@@ -158,7 +158,7 @@ public abstract class Platform {
      * @param os The operating system.
      * @return An instance of <tt>Platform</tt>
      */
-    private static final Platform determinePlatform(OS os) {
+    private static Platform determinePlatform(OS os) {
         switch (os) {
             case DARWIN:
                 return new Darwin();
@@ -173,7 +173,7 @@ public abstract class Platform {
         }
     }
 
-    private static final Platform determinePlatform() {
+    private static Platform determinePlatform() {
         String providerName = System.getProperty("jaffl.provider");
         try {
             Class c = Class.forName(providerName + "$Platform");
@@ -223,7 +223,7 @@ public abstract class Platform {
         this.os = os;
         this.cpu = determineCPU();
         
-        String libpattern = null;
+        String libpattern;
         switch (os) {
             case WINDOWS:
                 libpattern = ".*\\.dll$";
@@ -241,7 +241,7 @@ public abstract class Platform {
         this.longSize = os == OS.WINDOWS ? 32 : addressSize;
     }
 
-    private static final int calculateAddressSize(CPU cpu) {
+    private static int calculateAddressSize(CPU cpu) {
         int dataModel = Integer.getInteger("sun.arch.data.model");
         if (dataModel != 32 && dataModel != 64) {
             switch (cpu) {
@@ -269,12 +269,12 @@ public abstract class Platform {
      *
      * @return The current platform.
      */
-    public static final Platform getNativePlatform() {
+    public static Platform getNativePlatform() {
         return SingletonHolder.PLATFORM;
     }
 
     @Deprecated
-    public static final Platform getPlatform() {
+    public static Platform getPlatform() {
         return SingletonHolder.PLATFORM;
     }
 
@@ -297,7 +297,7 @@ public abstract class Platform {
     }
     
     public final boolean isBSD() {
-        return os == OS.FREEBSD || os == os.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
+        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
     }
     public final boolean isUnix() {
         return os != OS.WINDOWS;

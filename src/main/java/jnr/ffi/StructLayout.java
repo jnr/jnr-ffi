@@ -1537,7 +1537,7 @@ public class StructLayout extends Type {
         }
     }
 
-    protected final class Function<T extends Object> extends AbstractField {
+    protected final class Function<T> extends AbstractField {
         private final Class<? extends T> closureClass;
         private T instance;
 

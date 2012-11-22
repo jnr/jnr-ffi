@@ -53,7 +53,7 @@ public class NativeLibrary {
         return path != null ? path : null;
     }
 
-    private static final List<String> getPropertyPaths(String propName) {
+    private static List<String> getPropertyPaths(String propName) {
         String value = System.getProperty(propName);
         if (value != null) {
             String[] paths = value.split(File.pathSeparator);

@@ -85,7 +85,7 @@ public class AddressByReferenceTest {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final Address MAGIC = Address.valueOf(0xdeadbeef);
         AddressByReference ref = new AddressByReference(MAGIC);
-        assertTrue("Reference value passed to native code when it should not be", MAGIC != lib.ptr_ret_pointer(ref, 0));
+        assertTrue("Reference value passed to native code when it should not be", !MAGIC.equals(lib.ptr_ret_pointer(ref, 0)));
     }
 
     @Test public void outOnlyIntReferenceGet() {

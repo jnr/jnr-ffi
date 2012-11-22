@@ -606,7 +606,7 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     public void start() {
         getMethodVisitor().visitCode();
     }
-    private final void dump() {
+    private void dump() {
         PrintWriter pw = new PrintWriter(System.out);
 
         Class tmvClass = getMethodVisitor().getClass();

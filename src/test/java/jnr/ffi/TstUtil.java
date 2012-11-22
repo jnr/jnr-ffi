@@ -9,11 +9,11 @@ public final class TstUtil {
     private static FFIProvider provider;
     private static String libname = "test";
 
-    public static final void setProvider(FFIProvider provider) {
+    public static void setProvider(FFIProvider provider) {
         TstUtil.provider = provider;
     }
 
-    public static final void setPath(String path) {
+    public static void setPath(String path) {
         TstUtil.libname = path;
     }
     

@@ -46,7 +46,7 @@ import static jnr.ffi.provider.jffi.NumberUtil.*;
 final class AsmUtil {
     private AsmUtil() {}
     
-    public static final MethodVisitor newTraceMethodVisitor(MethodVisitor mv) {
+    public static MethodVisitor newTraceMethodVisitor(MethodVisitor mv) {
         try {
             Class<? extends MethodVisitor> tmvClass = Class.forName("org.objectweb.asm.util.TraceMethodVisitor").asSubclass(MethodVisitor.class);
             Constructor<? extends MethodVisitor> c = tmvClass.getDeclaredConstructor(MethodVisitor.class);
@@ -56,11 +56,11 @@ final class AsmUtil {
         }
     }
 
-    public static final ClassVisitor newTraceClassVisitor(ClassVisitor cv, OutputStream out) {
+    public static ClassVisitor newTraceClassVisitor(ClassVisitor cv, OutputStream out) {
         return newTraceClassVisitor(cv, new PrintWriter(out, true));
     }
 
-    public static final ClassVisitor newTraceClassVisitor(ClassVisitor cv, PrintWriter out) {
+    public static ClassVisitor newTraceClassVisitor(ClassVisitor cv, PrintWriter out) {
         try {
 
             Class<? extends ClassVisitor> tmvClass = Class.forName("org.objectweb.asm.util.TraceClassVisitor").asSubclass(ClassVisitor.class);
@@ -71,7 +71,7 @@ final class AsmUtil {
         }
     }
 
-    public static final ClassVisitor newTraceClassVisitor(PrintWriter out) {
+    public static ClassVisitor newTraceClassVisitor(PrintWriter out) {
         try {
 
             Class<? extends ClassVisitor> tmvClass = Class.forName("org.objectweb.asm.util.TraceClassVisitor").asSubclass(ClassVisitor.class);
@@ -82,7 +82,7 @@ final class AsmUtil {
         }
     }
 
-    public static final ClassVisitor newCheckClassAdapter(ClassVisitor cv) {
+    public static ClassVisitor newCheckClassAdapter(ClassVisitor cv) {
         try {
             Class<? extends ClassVisitor> tmvClass = Class.forName("org.objectweb.asm.util.CheckClassAdapter").asSubclass(ClassVisitor.class);
             Constructor<? extends ClassVisitor> c = tmvClass.getDeclaredConstructor(ClassVisitor.class);
@@ -92,7 +92,7 @@ final class AsmUtil {
         }
     }
 
-    public static final Class unboxedReturnType(Class type) {
+    public static Class unboxedReturnType(Class type) {
         if (Pointer.class.isAssignableFrom(type)
             || Struct.class.isAssignableFrom(type)
             || String.class.isAssignableFrom(type)) {
@@ -102,7 +102,7 @@ final class AsmUtil {
         return unboxedType(type);
     }
 
-    public static final Class unboxedParameterType(Class type) {
+    public static Class unboxedParameterType(Class type) {
         if (Buffer.class.isAssignableFrom(type)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
@@ -111,7 +111,7 @@ final class AsmUtil {
         }
     }
 
-    public static final Class unboxedType(Class boxedType) {
+    public static Class unboxedType(Class boxedType) {
         if (boxedType == Byte.class) {
             return byte.class;
 
@@ -147,7 +147,7 @@ final class AsmUtil {
         }
     }
 
-    public static final Class boxedType(Class type) {
+    public static Class boxedType(Class type) {
         if (type == byte.class) {
             return Byte.class;
         } else if (type == short.class) {
@@ -168,7 +168,7 @@ final class AsmUtil {
     }
 
     
-    static final void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
+    static void emitReturnOp(SkinnyMethodAdapter mv, Class returnType) {
         if (!returnType.isPrimitive()) {
             mv.areturn();
         } else if (long.class == returnType) {
@@ -190,7 +190,7 @@ final class AsmUtil {
      * @param type The type of parameter
      * @return The size in parameter units
      */
-    static final int calculateLocalVariableSpace(Class type) {
+    static int calculateLocalVariableSpace(Class type) {
         return long.class == type || double.class == type ? 2 : 1;
     }
 
@@ -210,7 +210,7 @@ final class AsmUtil {
      * @param types The type of parameter
      * @return The size in parameter units
      */
-    static final int calculateLocalVariableSpace(Class... types) {
+    static int calculateLocalVariableSpace(Class... types) {
         int size = 0;
 
         for (int i = 0; i < types.length; ++i) {
@@ -236,26 +236,26 @@ final class AsmUtil {
         return size;
     }
 
-    private static final void unboxPointerOrStruct(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
+    private static void unboxPointerOrStruct(final SkinnyMethodAdapter mv, final Class type, final Class nativeType) {
         mv.invokestatic(p(AsmRuntime.class), long.class == nativeType ? "longValue" : "intValue",
                 sig(nativeType, type));
     }
 
-    static final void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
+    static void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
         unboxPointerOrStruct(mv, Pointer.class, nativeType);
     }
 
-    static final void unboxEnum(final SkinnyMethodAdapter mv, final Class nativeType) {
+    static void unboxEnum(final SkinnyMethodAdapter mv, final Class nativeType) {
         mv.invokestatic(p(AsmRuntime.class), long.class == nativeType ? "longValue" : "intValue",
                 sig(nativeType, Enum.class));
     }
 
-    static final void unboxBoolean(final SkinnyMethodAdapter mv, Class boxedType, final Class nativeType) {
+    static void unboxBoolean(final SkinnyMethodAdapter mv, Class boxedType, final Class nativeType) {
         mv.invokevirtual(p(boxedType), "booleanValue", "()Z");
         widen(mv, boolean.class, nativeType);
     }
 
-    static final void unboxBoolean(final SkinnyMethodAdapter mv, final Class nativeType) {
+    static void unboxBoolean(final SkinnyMethodAdapter mv, final Class nativeType) {
         unboxBoolean(mv, Boolean.class, nativeType);
     }
 
@@ -316,7 +316,7 @@ final class AsmUtil {
     }
 
 
-    static final void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeType) {
+    static void unboxNumber(final SkinnyMethodAdapter mv, final Class boxedType, final Class nativeType) {
 
         if (Number.class.isAssignableFrom(boxedType)) {
 
@@ -350,9 +350,8 @@ final class AsmUtil {
         }
     }
 
-    static final void boxValue(SkinnyMethodAdapter mv, Class boxedType, Class unboxedType) {
+    static void boxValue(SkinnyMethodAdapter mv, Class boxedType, Class unboxedType) {
         if (boxedType == unboxedType || boxedType.isPrimitive()) {
-            return;
 
         } else if (Boolean.class.isAssignableFrom(boxedType)) {
             narrow(mv, unboxedType, boolean.class);
@@ -390,11 +389,11 @@ final class AsmUtil {
     }
 
 
-    static final int getParameterFlags(Annotation[] annotations) {
+    static int getParameterFlags(Annotation[] annotations) {
         return ParameterFlags.parse(annotations);
     }
 
-    static final int getNativeArrayFlags(int flags) {
+    static int getNativeArrayFlags(int flags) {
         int nflags = 0;
         nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ArrayFlags.IN : 0;
         nflags |= ParameterFlags.isOut(flags) ? com.kenai.jffi.ArrayFlags.OUT : 0;
@@ -403,7 +402,7 @@ final class AsmUtil {
         return nflags;
     }
 
-    static final int getNativeArrayFlags(Annotation[] annotations) {
+    static int getNativeArrayFlags(Annotation[] annotations) {
         return getNativeArrayFlags(getParameterFlags(annotations));
     }
 
@@ -506,7 +505,7 @@ final class AsmUtil {
         }
     }
 
-    static final Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes) {
+    static Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes) {
 
         // Iterate through any parameters that might require a HeapInvocationBuffer
         Label bufferInvocationLabel = new Label();
@@ -547,7 +546,7 @@ final class AsmUtil {
         return needBufferInvocation ? bufferInvocationLabel : null;
     }
 
-    static final Label emitDirectCheck(SkinnyMethodAdapter mv, ParameterType[] parameterTypes) {
+    static Label emitDirectCheck(SkinnyMethodAdapter mv, ParameterType[] parameterTypes) {
 
         // Iterate through any parameters that might require a HeapInvocationBuffer
         Label bufferInvocationLabel = new Label();

@@ -157,12 +157,12 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
 
     }
 
-    private static final NativeLong _valueOf(final long value) {
+    private static NativeLong _valueOf(final long value) {
         return value >= -128 && value <= 127
             ? Cache.cache[128 + (int) value] : new NativeLong(value);
     }
 
-    private static final NativeLong _valueOf(final int value) {
+    private static NativeLong _valueOf(final int value) {
         return value >= -128 && value <= 127
             ? Cache.cache[128 + value] : new NativeLong(value);
     }
@@ -173,7 +173,7 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
      * @param value a long value
      * @return a <tt>NativeLong</tt> instance representing <tt>value</tt>
      */
-    public static final NativeLong valueOf(final long value) {
+    public static NativeLong valueOf(final long value) {
         return value == 0 ? ZERO : value == 1 ? ONE : value == -1 ? MINUS_ONE : _valueOf(value);
     }
 
@@ -183,7 +183,7 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
      * @param value a 32bit integer value
      * @return a <tt>NativeLong</tt> instance representing <tt>value</tt>
      */
-    public static final NativeLong valueOf(final int value) {
+    public static NativeLong valueOf(final int value) {
         return value == 0 ? ZERO : value == 1 ? ONE : value == -1 ? MINUS_ONE : _valueOf(value);
     }
 }

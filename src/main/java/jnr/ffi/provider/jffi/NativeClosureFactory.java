@@ -41,7 +41,7 @@ import static jnr.ffi.provider.jffi.InvokerUtil.getNativeCallingConvention;
 /**
  *
  */
-public final class NativeClosureFactory<T extends Object> {
+public final class NativeClosureFactory<T> {
     private final NativeRuntime runtime;
     private final ConcurrentMap<Integer, ClosureReference> closures = new ConcurrentHashMap<Integer, ClosureReference>();
     private final CallContext callContext;
@@ -57,7 +57,7 @@ public final class NativeClosureFactory<T extends Object> {
         this.callContext = callContext;
     }
 
-    static <T extends Object> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass, TypeMapper typeMapper) {
+    static <T> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass, TypeMapper typeMapper) {
 
         Method callMethod = null;
         for (Method m : closureClass.getMethods()) {

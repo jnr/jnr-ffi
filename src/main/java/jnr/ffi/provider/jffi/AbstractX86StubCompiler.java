@@ -149,11 +149,11 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         StaticDataHolder.PAGES.put(clazz, page);
     }
 
-    static final int align(int offset, int align) {
+    static int align(int offset, int align) {
         return (offset + align - 1) & ~(align - 1);
     }
 
-    static final long align(long offset, long align) {
+    static long align(long offset, long align) {
         return (offset + align - 1) & ~(align - 1);
     }
 }

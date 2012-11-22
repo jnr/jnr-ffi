@@ -263,4 +263,4 @@ public final class JNINativeInterface {
     public static final int GetDirectBufferAddress = 230;
     public static final int GetDirectBufferCapacity = 231;
     public static final int GetObjectRefType = 232;
-};
+}

@@ -59,7 +59,7 @@ final class InvokerUtil {
     }
 
 
-    public static final boolean requiresErrno(Method method) {
+    public static boolean requiresErrno(Method method) {
         boolean saveError = true;
         for (Annotation a : method.getAnnotations()) {
             if (a instanceof IgnoreError) {

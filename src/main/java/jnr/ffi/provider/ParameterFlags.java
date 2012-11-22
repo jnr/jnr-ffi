@@ -45,7 +45,7 @@ public final class ParameterFlags {
     /** When allocating memory for the parameter, allocate a persistent memory block */
     public static final int DIRECT = 0x20;
 
-    public static final int parse(Annotation[] annotations) {
+    public static int parse(Annotation[] annotations) {
         int flags = 0;
         for (Annotation a : annotations) {
             flags |= a instanceof Out ? OUT : 0;
@@ -63,7 +63,7 @@ public final class ParameterFlags {
      * @param annotation the annotation to check.
      * @return <tt>true</tt> if the annotation is a parameter flag
      */
-    public static final boolean isFlag(Annotation annotation) {
+    public static boolean isFlag(Annotation annotation) {
         return annotation instanceof Pinned 
                 || annotation instanceof Transient
                 || annotation instanceof Direct
@@ -71,22 +71,22 @@ public final class ParameterFlags {
                 || annotation instanceof Out 
                 || annotation instanceof In;
     }
-    public static final boolean isPinned(int flags) {
+    public static boolean isPinned(int flags) {
         return (flags & PINNED) != 0;
     }
-    public static final boolean isTransient(int flags) {
+    public static boolean isTransient(int flags) {
         return (flags & TRANSIENT) != 0;
     }
-    public static final boolean isDirect(int flags) {
+    public static boolean isDirect(int flags) {
         return (flags & DIRECT) != 0;
     }
-    public static final boolean isNulTerminate(int flags) {
+    public static boolean isNulTerminate(int flags) {
         return (flags & NULTERMINATE) != 0;
     }
-    public static final boolean isOut(int flags) {
+    public static boolean isOut(int flags) {
         return (flags & (OUT | IN)) != IN;
     }
-    public static final boolean isIn(int flags) {
+    public static boolean isIn(int flags) {
         return (flags & (OUT | IN)) != OUT;
     }
 }

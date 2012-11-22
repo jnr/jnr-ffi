@@ -43,7 +43,7 @@ public final class NativeRuntime extends AbstractRuntime {
     private final NativeClosureManager closureManager = new NativeClosureManager(this, DEFAULT_TYPEMAPPER);
     private final Type[] aliases;
 
-    public static final NativeRuntime getInstance() {
+    public static NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
     }
 
@@ -162,7 +162,7 @@ public final class NativeRuntime extends AbstractRuntime {
         }
     }
     
-    private static final jnr.ffi.Type jafflType(NativeType type) {
+    private static jnr.ffi.Type jafflType(NativeType type) {
         switch (type) {
             case VOID:
                 return new TypeDelegate(com.kenai.jffi.Type.VOID, NativeType.VOID);

@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
 abstract public class AbstractMemoryIO extends Pointer {
     private final Runtime runtime;
     
-    protected static final void checkBounds(long size, long off, long len) {
+    protected static void checkBounds(long size, long off, long len) {
         if ((off | len | (off + len) | (size - (off + len))) < 0) {
             throw new IndexOutOfBoundsException();
         }

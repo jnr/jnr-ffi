@@ -28,7 +28,7 @@ import java.lang.annotation.Annotation;
 public final class NumberUtil {
     private NumberUtil() {}
     
-    static final Class getBoxedClass(Class c) {
+    static Class getBoxedClass(Class c) {
         if (!c.isPrimitive()) {
             return c;
         }
@@ -65,7 +65,7 @@ public final class NumberUtil {
         }
     }
 
-    static final Class getPrimitiveClass(Class c) {
+    static Class getPrimitiveClass(Class c) {
         if (Void.class == c) {
             return void.class;
 
@@ -105,7 +105,7 @@ public final class NumberUtil {
     }
 
 
-    public static final void widen(SkinnyMethodAdapter mv, Class from, Class to) {
+    public static void widen(SkinnyMethodAdapter mv, Class from, Class to) {
         if (long.class == to && long.class != from && isPrimitiveInt(from)) {
             mv.i2l();
 
@@ -145,7 +145,7 @@ public final class NumberUtil {
     }
 
 
-    public static final void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
+    public static void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
         if (!from.equals(to)) {
             if (byte.class == to || short.class == to || char.class == to || int.class == to || boolean.class == to) {
                 if (long.class == from) {

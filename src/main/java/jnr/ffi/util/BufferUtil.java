@@ -28,16 +28,16 @@ import java.nio.charset.*;
 public final class BufferUtil {
     private BufferUtil() {}
     
-    public final static void putString(ByteBuffer buf, Charset charset, String value) {
+    public static void putString(ByteBuffer buf, Charset charset, String value) {
         putCharSequence(buf, charset, value);
     }
-    public final static String getString(ByteBuffer buf, Charset charset) {
+    public static String getString(ByteBuffer buf, Charset charset) {
         return getCharSequence(buf, charset).toString();
     }
-    public final static void putCharSequence(ByteBuffer buf, Charset charset, CharSequence value) {
+    public static void putCharSequence(ByteBuffer buf, Charset charset, CharSequence value) {
         putCharSequence(buf, charset.newEncoder(), value);
     }
-    public final static void putCharSequence(ByteBuffer buf, CharsetEncoder encoder, CharSequence value) {
+    public static void putCharSequence(ByteBuffer buf, CharsetEncoder encoder, CharSequence value) {
         // 
         // Convert any CharSequence implementor (String, etc) into a native
         // C string.
@@ -56,7 +56,7 @@ public final class BufferUtil {
             buf.put((byte) 0);
         }
     }
-    public final static CharSequence getCharSequence(ByteBuffer buf, Charset charset) {
+    public static CharSequence getCharSequence(ByteBuffer buf, Charset charset) {
         final ByteBuffer buffer = buf.slice();
         // Find the NUL terminator and limit to that, so the
         // StringBuffer/StringBuilder does not have superfluous NUL chars
@@ -68,7 +68,7 @@ public final class BufferUtil {
         return charset.decode(buffer);
     }
 
-    public final static CharSequence getCharSequence(final ByteBuffer buf, final CharsetDecoder decoder) {
+    public static CharSequence getCharSequence(final ByteBuffer buf, final CharsetDecoder decoder) {
         final ByteBuffer buffer = buf.slice();
         // Find the NUL terminator and limit to that, so the
         // StringBuffer/StringBuilder does not have superfluous NUL chars
@@ -93,7 +93,7 @@ public final class BufferUtil {
      * @return The position within the buffer that value is found, or -1 if not
      * found.
      */
-    public final static int positionOf(ByteBuffer buf, byte value) {
+    public static int positionOf(ByteBuffer buf, byte value) {
         if (buf.hasArray()) {
             final byte[] array = buf.array();
             final int offset = buf.arrayOffset();
@@ -116,7 +116,7 @@ public final class BufferUtil {
         return -1;
     }
     
-    public final static int indexOf(ByteBuffer buf, byte value) {
+    public static int indexOf(ByteBuffer buf, byte value) {
         if (buf.hasArray()) {
             byte[] array = buf.array();
             int begin = buf.arrayOffset() + buf.position();

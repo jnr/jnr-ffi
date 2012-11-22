@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TransientNativeMemory extends DirectMemoryIO {
     /** Keeps strong references to the magazine until cleanup */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private static final Map<Magazine, Boolean> referenceSet = new ConcurrentHashMap<Magazine, Boolean>();
 
     private static final ThreadLocal<Magazine> currentMagazine = new ThreadLocal<Magazine>();

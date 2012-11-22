@@ -78,7 +78,7 @@ public abstract class Struct {
             return minAlign;
         }
 
-        private final jnr.ffi.Pointer allocateMemory(int flags) {
+        private jnr.ffi.Pointer allocateMemory(int flags) {
             if (ParameterFlags.isDirect(flags)) {
                 return runtime.getMemoryManager().allocateDirect(size(), true);
             } else {
@@ -509,13 +509,13 @@ public abstract class Struct {
         return array;
     }
 
-    protected final <T extends Struct> T inner(Struct struct) {
+    protected final <T extends Struct> T inner(T struct) {
         int off = align(__info.size, struct.__info.getMinimumAlignment());
         struct.__info.enclosing = this;
         struct.__info.offset = off;
         __info.size = off + struct.__info.size;
 
-        return (T) struct;
+        return struct;
     }
     
     /**

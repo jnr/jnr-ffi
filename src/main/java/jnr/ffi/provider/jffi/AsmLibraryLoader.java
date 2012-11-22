@@ -88,7 +88,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
     }
 
-    private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    private <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
 
         boolean debug = DEBUG && !interfaceClass.isAnnotationPresent(NoTrace.class);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -191,7 +191,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new ClassReader(bytes).accept(trace, 0);
             }
 
-            Class implClass = classLoader.get().defineClass(builder.getClassNamePath().replace("/", "."), bytes);
+            Class<T> implClass = classLoader.get().defineClass(builder.getClassNamePath().replace("/", "."), bytes);
             Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Object[].class);
             T result = cons.newInstance(library, builder.getObjectFieldValues());
 
@@ -211,14 +211,14 @@ public class AsmLibraryLoader extends LibraryLoader {
         return getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager);
     }
 
-    private static final com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
+    private static com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
         if (interfaceClass.isAnnotationPresent(StdCall.class)) {
             return com.kenai.jffi.CallingConvention.STDCALL;
         }
         return InvokerUtil.getCallingConvention(options);
     }
 
-    private final void generateFunctionNotFound(ClassVisitor cv, String className, String errorFieldName, String functionName,
+    private void generateFunctionNotFound(ClassVisitor cv, String className, String errorFieldName, String functionName,
                                                 Class returnType, Class[] parameterTypes) {
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(cv, ACC_PUBLIC | ACC_FINAL, functionName,
                 sig(returnType, parameterTypes), null, null);

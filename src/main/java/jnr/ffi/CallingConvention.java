@@ -32,5 +32,5 @@ public enum CallingConvention {
     /**
      * Windows stdcall calling convention
      */
-    STDCALL;
+    STDCALL
 }

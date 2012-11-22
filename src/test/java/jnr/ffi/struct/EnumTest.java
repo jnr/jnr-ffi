@@ -39,7 +39,7 @@ public class EnumTest {
     public enum TestEnum {
         ZERO,
         B,
-        MAGIC;
+        MAGIC
     }
     public class struct1 extends Struct {
         public final Enum8<TestEnum> b = new Enum8<TestEnum>(TestEnum.class);

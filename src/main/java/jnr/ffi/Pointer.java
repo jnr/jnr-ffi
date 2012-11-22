@@ -64,7 +64,7 @@ abstract public class Pointer {
      *
      * @return a {@code Pointer} instance that will proxy all accesses to the ByteBuffer contents.
      */
-    public static final Pointer wrap(Runtime runtime, ByteBuffer buffer) {
+    public static Pointer wrap(Runtime runtime, ByteBuffer buffer) {
         return runtime.getMemoryManager().newPointer(buffer);
     }
 

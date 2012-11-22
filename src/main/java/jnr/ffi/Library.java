@@ -41,7 +41,7 @@ public final class Library {
         name = libraryName;
     }
 
-    public static final Runtime getRuntime(Object obj) {
+    public static Runtime getRuntime(Object obj) {
         return ((LoadedLibrary) obj).getRuntime();
     }
 
@@ -105,7 +105,7 @@ public final class Library {
      * @param libraryName the name of the library to search for
      * @param path the path to search for the library in
      */
-    public static synchronized final void addLibraryPath(String libraryName, File path) {
+    public static synchronized void addLibraryPath(String libraryName, File path) {
         List<String> customPaths = customSearchPaths.get(libraryName);
         if (customPaths == null) {
             customPaths = new CopyOnWriteArrayList<String>();
@@ -129,7 +129,7 @@ public final class Library {
         return Collections.emptyList();
     }
 
-    public static final Library getInstance(String libraryName) {
+    public static Library getInstance(String libraryName) {
         return new Library(libraryName);
     }
     
