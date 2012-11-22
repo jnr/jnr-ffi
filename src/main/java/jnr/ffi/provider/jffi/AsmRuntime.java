@@ -24,7 +24,6 @@ import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 import jnr.ffi.provider.*;
 import jnr.ffi.util.BufferUtil;
-import jnr.ffi.util.EnumMapper;
 
 import java.nio.*;
 import java.nio.charset.Charset;
@@ -491,14 +490,6 @@ public final class AsmRuntime {
 
     public static Pointer pointerValue(int ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
-    }
-
-    public static void useMemory(long ptr, jnr.ffi.Struct s) {
-        s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
-    }
-
-    public static void useMemory(int ptr, jnr.ffi.Struct s) {
-        s.useMemory(ptr != 0 ? new DirectMemoryIO(ptr) : MemoryUtil.NULL);
     }
 
     public static boolean isDirect(Pointer ptr) {
