@@ -68,7 +68,9 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                 mv.aload(0);
                 AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(parameterTypes[i].toNativeConverter);
                 mv.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
-                mv.checkcast(ToNativeConverter.PostInvocation.class);
+                if (!ToNativeConverter.PostInvocation.class.isAssignableFrom(toNativeConverterField.klass)) {
+                    mv.checkcast(ToNativeConverter.PostInvocation.class);
+                }
                 mv.aload(parameters[i]);
                 mv.aload(converted[i]);
                 mv.aconst_null();
