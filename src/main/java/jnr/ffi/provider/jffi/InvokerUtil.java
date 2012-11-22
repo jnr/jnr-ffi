@@ -155,7 +155,7 @@ final class InvokerUtil {
     static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations,
                                     FromNativeConverter fromNativeConverter, FromNativeContext fromNativeContext) {
         NativeType nativeType = getMethodResultNativeType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations);
-        boolean useContext = fromNativeConverter != null && fromNativeConverter.getClass().getAnnotation(FromNativeConverter.NoContext.class) == null;
+        boolean useContext = fromNativeConverter != null && !fromNativeConverter.getClass().isAnnotationPresent(FromNativeConverter.NoContext.class);
         return new ResultType(type, nativeType, annotations, fromNativeConverter, useContext ? fromNativeContext : null);
     }
 
@@ -181,7 +181,7 @@ final class InvokerUtil {
 
             ToNativeConverter toNativeConverter = getToNativeConverter(javaParameterTypes[pidx], parameterAnnotations[pidx],
                     typeMapper, closureManager);
-            ToNativeContext toNativeContext = toNativeConverter != null && toNativeConverter.getClass().getAnnotation(ToNativeConverter.NoContext.class) == null
+            ToNativeContext toNativeContext = toNativeConverter != null && !toNativeConverter.getClass().isAnnotationPresent(ToNativeConverter.NoContext.class)
                 ? new MethodParameterContext(m, pidx) : null;
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
                     parameterAnnotations[pidx], toNativeConverter, toNativeContext);
@@ -213,7 +213,7 @@ final class InvokerUtil {
     }
 
     public static com.kenai.jffi.CallingConvention getNativeCallingConvention(Method m) {
-        if (m.getAnnotation(StdCall.class) != null || m.getDeclaringClass().getAnnotation(StdCall.class) != null) {
+        if (m.isAnnotationPresent(StdCall.class) || m.getDeclaringClass().isAnnotationPresent(StdCall.class)) {
             return CallingConvention.STDCALL;
         }
 

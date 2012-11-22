@@ -90,7 +90,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
 
-        boolean debug = DEBUG && interfaceClass.getAnnotation(NoTrace.class) == null;
+        boolean debug = DEBUG && !interfaceClass.isAnnotationPresent(NoTrace.class);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
@@ -111,7 +111,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         StubCompiler compiler = StubCompiler.newCompiler();
 
         final MethodGenerator[] generators = {
-                interfaceClass.getAnnotation(NoX86.class) == null
+                !interfaceClass.isAnnotationPresent(NoX86.class)
                     ? new X86MethodGenerator(compiler, bufgen) : new NotImplMethodGenerator(),
                 new FastIntMethodGenerator(bufgen),
                 new FastLongMethodGenerator(bufgen),
@@ -129,7 +129,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             String functionName = functionMapper.mapFunctionName(m.getName(), null);
 
             // Allow individual methods to set the calling convention to stdcall
-            CallingConvention callingConvention = m.getAnnotation(StdCall.class) != null
+            CallingConvention callingConvention = m.isAnnotationPresent(StdCall.class)
                     ? CallingConvention.STDCALL : libraryCallingConvention;
             boolean saveErrno = InvokerUtil.requiresErrno(m);
             try {
@@ -212,7 +212,7 @@ public class AsmLibraryLoader extends LibraryLoader {
     }
 
     private static final com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
-        if (interfaceClass.getAnnotation(StdCall.class) != null) {
+        if (interfaceClass.isAnnotationPresent(StdCall.class)) {
             return com.kenai.jffi.CallingConvention.STDCALL;
         }
         return InvokerUtil.getCallingConvention(options);
