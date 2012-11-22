@@ -33,6 +33,10 @@ public final class ArrayMemoryIO extends AbstractArrayMemoryIO {
         super(NativeRuntime.getInstance(), size);
     }
 
+    public ArrayMemoryIO(Runtime runtime, byte[] bytes, int off, int len) {
+        super(runtime, bytes, off, len);
+    }
+
     public Pointer getPointer(long offset) {
         return MemoryUtil.newPointer(getAddress(offset));
     }

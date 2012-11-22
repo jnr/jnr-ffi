@@ -312,6 +312,12 @@ final class InvokerUtil {
         } else if (NativeLong.class.isAssignableFrom(javaType)) {
             return NativeLongConverter.INSTANCE;
 
+        } else if (StringBuilder.class.isAssignableFrom(javaType)) {
+            return StringBuilderParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(annotations));
+
+        } else if (StringBuffer.class.isAssignableFrom(javaType)) {
+            return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(annotations));
+
         } else {
             return null;
         }

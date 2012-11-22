@@ -202,12 +202,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.pushInt(nativeArrayFlags);
                 marshal(mv, javaParameterType, int.class);
 
-            } else if (StringBuilder.class.isAssignableFrom(javaParameterType) || StringBuffer.class.isAssignableFrom(javaParameterType)) {
-                mv.pushInt(parameterFlags);
-                mv.pushInt(nativeArrayFlags);
-                // stack should be: [ session, buffer, ref, flags ]
-                sessionmarshal(mv, javaParameterType, int.class, int.class);
-
             } else if (CharSequence.class.isAssignableFrom(javaParameterType)) {
                 // stack should be: [ Buffer, array, flags ]
                 marshal(mv, CharSequence.class);
