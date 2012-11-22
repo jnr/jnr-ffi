@@ -364,10 +364,7 @@ final class AsmUtil {
         } else if (Address.class == boxedType) {
             mv.invokestatic(boxedType, "valueOf", boxedType, unboxedType);
 
-        } else if (Struct.class.isAssignableFrom(boxedType)) {
-            boxStruct(mv, boxedType, unboxedType);
-
-        } else if (Number.class.isAssignableFrom(boxedType) && boxedType(unboxedType) == boxedType) {
+       } else if (Number.class.isAssignableFrom(boxedType) && boxedType(unboxedType) == boxedType) {
             mv.invokestatic(boxedType, "valueOf", boxedType, unboxedType);
 
         } else if (String.class == boxedType) {
@@ -376,51 +373,6 @@ final class AsmUtil {
         } else {
             throw new IllegalArgumentException("cannot box value of type " + unboxedType + " to " + boxedType);
         }
-    }
-
-
-    static final void boxStruct(SkinnyMethodAdapter mv, Class structClass, Class nativeType) {
-        Label nonnull = new Label();
-        Label end = new Label();
-
-        if (long.class == nativeType) {
-            mv.dup2();
-            mv.lconst_0();
-            mv.lcmp();
-            mv.ifne(nonnull);
-            mv.pop2();
-
-        } else {
-            mv.dup();
-            mv.ifne(nonnull);
-            mv.pop();
-        }
-
-        mv.aconst_null();
-        mv.go_to(end);
-
-        mv.label(nonnull);
-
-        // Create an instance of the struct subclass
-        mv.newobj(p(structClass));
-        mv.dup();
-        try {
-            Constructor<? extends Struct> constructor = structClass.asSubclass(Struct.class).getConstructor(jnr.ffi.Runtime.class);
-        } catch (NoSuchMethodException ex) {
-            throw new RuntimeException("struct subclass " + structClass.getName() + " has no constructor that takes a "
-                + jnr.ffi.Runtime.class.getName(), ex);
-        }
-        mv.invokestatic(p(NativeRuntime.class), "getInstance", sig(NativeRuntime.class));
-        mv.invokespecial(structClass, "<init>", void.class, jnr.ffi.Runtime.class);
-        if (long.class == nativeType) {
-            mv.dup_x2();
-        } else {
-            mv.dup_x1();
-        }
-
-        // associate the memory with the struct and return the struct
-        mv.invokestatic(AsmRuntime.class, "useMemory", void.class, nativeType, Struct.class);
-        mv.label(end);
     }
 
     static boolean isDelegate(Class klass) {

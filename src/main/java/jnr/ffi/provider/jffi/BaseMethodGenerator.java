@@ -24,7 +24,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
 
     public void generate(AsmBuilder builder, String functionName, Function function, Signature signature) {
         ResultType resultType = InvokerUtil.getResultType(NativeRuntime.getInstance(),
-                signature.resultType, signature.resultAnnotations, null);
+                signature.resultType, signature.resultAnnotations, null, null);
         ParameterType[] parameterTypes = new ParameterType[signature.parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             parameterTypes[i] = InvokerUtil.getParameterType(NativeRuntime.getInstance(),

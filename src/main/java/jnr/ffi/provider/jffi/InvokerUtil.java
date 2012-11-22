@@ -152,9 +152,11 @@ final class InvokerUtil {
         return jnrType.getNativeType();
     }
 
-    static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations, FromNativeConverter fromNativeConverter) {
+    static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations,
+                                    FromNativeConverter fromNativeConverter, FromNativeContext fromNativeContext) {
         NativeType nativeType = getMethodResultNativeType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations);
-        return new ResultType(type, nativeType, annotations, fromNativeConverter, null);
+        boolean useContext = fromNativeConverter != null && fromNativeConverter.getClass().getAnnotation(FromNativeConverter.NoContext.class) == null;
+        return new ResultType(type, nativeType, annotations, fromNativeConverter, useContext ? fromNativeContext : null);
     }
 
     static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations,
@@ -324,6 +326,10 @@ final class InvokerUtil {
         } else if (Enum.class.isAssignableFrom(javaType)) {
             return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
 
+        } else if (Struct.class.isAssignableFrom(javaType)) {
+            return StructByReferenceFromNativeConverter.newStructByReferenceConverter(javaType.asSubclass(Struct.class),
+                    ParameterFlags.parse(annotations));
+
         } else if (closureManager != null && isDelegate(javaType)) {
             final Class type = javaType;
             return new FromNativeConverter() {
@@ -346,7 +352,9 @@ final class InvokerUtil {
 
     static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, NativeClosureManager closureManager, MethodGenerator[] generators) {
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                m.getAnnotations(), getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager));
+                m.getAnnotations(),
+                getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager),
+                new MethodResultContext(m));
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, closureManager, m);
 

@@ -48,7 +48,7 @@ public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
     private static final AtomicLong uniqueId = new AtomicLong(0);
-
+    private static final ThreadLocal<AsmClassLoader> classLoader = new ThreadLocal<AsmClassLoader>();
 
     private final NativeRuntime runtime = NativeRuntime.getInstance();
 
@@ -73,9 +73,19 @@ public class AsmLibraryLoader extends LibraryLoader {
         return true;
     }
 
+    static AsmClassLoader getCurrentClassLoader() {
+        return classLoader.get();
+    }
+
     @Override
     <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        return generateInterfaceImpl(library, interfaceClass, libraryOptions);
+        AsmClassLoader oldClassLoader = classLoader.get();
+        classLoader.set(new AsmClassLoader(interfaceClass.getClassLoader()));
+        try {
+            return generateInterfaceImpl(library, interfaceClass, libraryOptions);
+        } finally {
+            classLoader.set(oldClassLoader);
+        }
     }
 
     private final <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
@@ -181,7 +191,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new ClassReader(bytes).accept(trace, 0);
             }
 
-            Class implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(builder.getClassNamePath().replace("/", "."), bytes);
+            Class implClass = classLoader.get().defineClass(builder.getClassNamePath().replace("/", "."), bytes);
             Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Object[].class);
             T result = cons.newInstance(library, builder.getObjectFieldValues());
 

@@ -156,7 +156,7 @@ public class VariableAccessorGenerator {
                 new ClassReader(bytes).accept(trace, 0);
             }
 
-            Class<Variable> implClass = new AsmClassLoader(interfaceClass.getClassLoader()).defineClass(builder.getClassNamePath().replace("/", "."), bytes);
+            Class<Variable> implClass = AsmLibraryLoader.getCurrentClassLoader().defineClass(builder.getClassNamePath().replace("/", "."), bytes);
             Constructor<Variable> cons = implClass.getDeclaredConstructor(Object[].class);
             return cons.newInstance(new Object[] { builder.getObjectFieldValues() });
         } catch (Throwable ex) {
