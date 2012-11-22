@@ -5,7 +5,6 @@ import jnr.ffi.Address;
 import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
@@ -108,10 +107,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
     static boolean isSessionRequired(ParameterType parameterType) {
         Class javaType = parameterType.effectiveJavaType();
-        return StringBuilder.class.isAssignableFrom(javaType)
-                || StringBuffer.class.isAssignableFrom(javaType)
-                || ByReference.class.isAssignableFrom(javaType)
-                || (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType()))
+        return (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType()))
                 || (javaType.isArray() && CharSequence.class.isAssignableFrom(javaType.getComponentType()))
                 || (javaType.isArray() && NativeLong.class.isAssignableFrom(javaType.getComponentType()))
                 || (javaType.isArray() && isLong32(javaType.getComponentType(), parameterType.annotations))
