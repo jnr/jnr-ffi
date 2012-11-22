@@ -93,9 +93,6 @@ public final class NumberUtil {
         } else if (Double.class == c) {
             return double.class;
         
-        } else if (NativeLong.class == c) {
-            return Platform.getPlatform().longSize() == 4 ? int.class : long.class;
-
         } else if (c.isPrimitive()) {
             return c;
         } else {
@@ -321,15 +318,14 @@ public final class NumberUtil {
     static boolean isLong32(Platform platform, Class type, Annotation[] annotations) {
         return platform.longSize() == 32
             && (((long.class == type || Long.class.isAssignableFrom(type))
-                 && !InvokerUtil.hasAnnotation(annotations, LongLong.class))
-               || NativeLong.class.isAssignableFrom(type));
+                 && !InvokerUtil.hasAnnotation(annotations, LongLong.class)));
     }
 
     static boolean isLong64(Class type, Annotation[] annotations) {
         final int longSize = Platform.getPlatform().longSize();
         return ((long.class == type || Long.class.isAssignableFrom(type))
                 && (longSize == 64 || InvokerUtil.hasAnnotation(annotations, LongLong.class)))
-            || (NativeLong.class.isAssignableFrom(type) && longSize == 64);
+                ;
     }
 
     static boolean isInt32(Class type, Annotation[] annotations) {

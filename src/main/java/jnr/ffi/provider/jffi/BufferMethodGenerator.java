@@ -6,7 +6,6 @@ import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;

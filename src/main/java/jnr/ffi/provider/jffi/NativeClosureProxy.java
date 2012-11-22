@@ -214,7 +214,7 @@ public abstract class NativeClosureProxy {
                 || Byte.class == type
                 || Short.class == type || Integer.class == type
                 || Long.class == type || Float.class == type
-                || Double.class == type || NativeLong.class == type
+                || Double.class == type
                 || Pointer.class == type
                 ;
     }
@@ -225,7 +225,7 @@ public abstract class NativeClosureProxy {
                 || Byte.class == type
                 || Short.class == type || Integer.class == type
                 || Long.class == type || Float.class == type
-                || Double.class == type || NativeLong.class == type
+                || Double.class == type
                 || Pointer.class == type
                 || String.class == type
                 /*

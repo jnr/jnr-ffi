@@ -133,9 +133,6 @@ final class AsmUtil {
         } else if (boxedType == Boolean.class) {
             return boolean.class;
 
-        } else if (boxedType == NativeLong.class) {
-            return Platform.getPlatform().longSize() == 32 ? int.class : long.class;
-
         } else if (Pointer.class.isAssignableFrom(boxedType) || Struct.class.isAssignableFrom(boxedType)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
@@ -364,7 +361,7 @@ final class AsmUtil {
         } else if (Pointer.class.isAssignableFrom(boxedType)) {
             mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, unboxedType);
 
-        } else if (Address.class == boxedType || NativeLong.class.isAssignableFrom(boxedType)) {
+        } else if (Address.class == boxedType) {
             mv.invokestatic(boxedType, "valueOf", boxedType, unboxedType);
 
         } else if (Struct.class.isAssignableFrom(boxedType)) {
@@ -742,7 +739,7 @@ final class AsmUtil {
                 mv.checkcast(p(boxedType));
                 unboxNumber(mv, boxedType, fromNativeType.getDeclaredType(), fromNativeType.nativeType);
 
-            } else {
+            } else if (!fromNativeType.getDeclaredType().isAssignableFrom(fromNativeMethod.getReturnType())) {
                 mv.checkcast(p(fromNativeType.getDeclaredType()));
             }
 

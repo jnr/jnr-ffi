@@ -1,10 +1,8 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
-import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
 import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.Label;
 
@@ -12,7 +10,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
-import static jnr.ffi.provider.jffi.BaseMethodGenerator.*;
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 import static org.objectweb.asm.Opcodes.*;
@@ -308,10 +307,9 @@ class X86MethodGenerator implements MethodGenerator {
                 || Byte.class.isAssignableFrom(javaType) || byte.class == javaType
                 || Short.class.isAssignableFrom(javaType) || short.class == javaType
                 || Integer.class.isAssignableFrom(javaType) || int.class == javaType
-                || Long.class == javaType || long.class == javaType
-                || Float.class == javaType || float.class == javaType
-                || Double.class == javaType || double.class == javaType
-                || NativeLong.class == javaType
+                || Long.class.isAssignableFrom(javaType) || long.class == javaType
+                || Float.class.isAssignableFrom(javaType) || float.class == javaType
+                || Double.class.isAssignableFrom(javaType) || double.class == javaType
                 ;
     }
 

@@ -241,9 +241,6 @@ final class InvokerUtil {
         } else if (Long.class.isAssignableFrom(type) || long.class == type) {
             return isLongLong(type, annotations) ? NativeType.SLONGLONG : NativeType.SLONG;
 
-        } else if (NativeLong.class.isAssignableFrom(type)) {
-            return NativeType.SLONG;
-
         } else if (Float.class.isAssignableFrom(type) || float.class == type) {
             return NativeType.FLOAT;
 
@@ -309,6 +306,9 @@ final class InvokerUtil {
         } else if (Struct.class.isAssignableFrom(javaType)) {
             return new StructByReferenceToNativeConverter(ParameterFlags.parse(annotations));
 
+        } else if (NativeLong.class.isAssignableFrom(javaType)) {
+            return NativeLongConverter.INSTANCE;
+
         } else {
             return null;
         }
@@ -335,6 +335,9 @@ final class InvokerUtil {
                     return Pointer.class;
                 }
             };
+
+        } else if (NativeLong.class.isAssignableFrom(javaType)) {
+            return NativeLongConverter.INSTANCE;
 
         } else {
             return null;
@@ -368,7 +371,7 @@ final class InvokerUtil {
         return type.isPrimitive() || Byte.class == type
                 || Short.class == type || Integer.class == type
                 || Long.class == type || Float.class == type
-                || Double.class == type || NativeLong.class == type
+                || Double.class == type
                 || Enum.class.isAssignableFrom(type)
                 || Pointer.class == type || Address.class == type
                 || String.class == type
@@ -382,7 +385,7 @@ final class InvokerUtil {
         return type.isPrimitive() || Byte.class == type
                 || Short.class == type || Integer.class == type
                 || Long.class == type || Float.class == type
-                || Double.class == type || NativeLong.class == type
+                || Double.class == type
                 || Pointer.class.isAssignableFrom(type) || Address.class.isAssignableFrom(type)
                 || Enum.class.isAssignableFrom(type)
                 || Buffer.class.isAssignableFrom(type)
