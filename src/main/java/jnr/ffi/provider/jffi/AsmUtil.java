@@ -692,6 +692,7 @@ final class AsmUtil {
             // Re-order so the value to be converted is on the top of the stack
             mv.swap();
 
+            // load context parameter (if there is one)
             if (toNativeType.toNativeContext != null) {
                 getfield(mv, builder, builder.getToNativeContextField(toNativeType.toNativeContext));
             } else {
