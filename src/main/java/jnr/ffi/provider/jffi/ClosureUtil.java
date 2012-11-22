@@ -23,6 +23,7 @@ import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.EnumMapper;
 
@@ -63,7 +64,7 @@ final class ClosureUtil {
             return conv;
 
         } else if (Enum.class.isAssignableFrom(javaClass)) {
-            return EnumMapper.getInstance(javaClass.asSubclass(Enum.class));
+            return EnumConverter.getInstance(javaClass.asSubclass(Enum.class));
 
         } else {
             return null;
@@ -77,7 +78,7 @@ final class ClosureUtil {
             return conv;
 
         } else if (Enum.class.isAssignableFrom(javaClass)) {
-            return EnumMapper.getInstance(javaClass.asSubclass(Enum.class));
+            return EnumConverter.getInstance(javaClass.asSubclass(Enum.class));
 
         } else if (Struct.class.isAssignableFrom(javaClass)) {
             return new StructByReferenceToNativeConverter(ParameterFlags.IN | ParameterFlags.OUT);

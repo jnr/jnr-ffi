@@ -28,6 +28,7 @@ import jnr.ffi.Struct;
 import jnr.ffi.annotations.*;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
+import jnr.ffi.provider.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.EnumMapper;
 
@@ -297,7 +298,7 @@ final class InvokerUtil {
             return conv;
 
         } else if (Enum.class.isAssignableFrom(javaType)) {
-            return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
+            return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
 
         } else if (isDelegate(javaType)) {
             return closureManager.newClosureSite(javaType);
@@ -324,7 +325,7 @@ final class InvokerUtil {
             return conv;
 
         } else if (Enum.class.isAssignableFrom(javaType)) {
-            return EnumMapper.getInstance(javaType.asSubclass(Enum.class));
+            return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
 
         } else if (Struct.class.isAssignableFrom(javaType)) {
             return StructByReferenceFromNativeConverter.newStructByReferenceConverter(javaType.asSubclass(Struct.class),

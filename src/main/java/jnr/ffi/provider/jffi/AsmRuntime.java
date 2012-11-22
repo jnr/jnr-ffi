@@ -395,15 +395,6 @@ public final class AsmRuntime {
         }
     }
 
-
-    public static void marshal(HeapInvocationBuffer buffer, final Enum parameter) {
-        if (parameter == null) {
-            throw new IllegalArgumentException("enum value cannot be null");
-        } else {
-            buffer.putInt(EnumMapper.getInstance(parameter.getClass()).intValue(parameter));
-        }
-    }
-
     public static void marshal(HeapInvocationBuffer buffer, final Boolean parameter) {
         if (parameter == null) {
             throw new IllegalArgumentException("Boolean value cannot be null");

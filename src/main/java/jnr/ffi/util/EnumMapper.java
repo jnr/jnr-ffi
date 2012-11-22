@@ -28,15 +28,15 @@ import java.util.*;
  */
 @ToNativeConverter.NoContext
 @FromNativeConverter.NoContext
-public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
+public final class EnumMapper {
 
     private static final class StaticDataHolder {
         private static volatile Map<Class<? extends Enum>, EnumMapper> MAPPERS = Collections.emptyMap();
     }
     
     private final Class<? extends Enum> enumClass;
-    private final int[] intValues;
-    private final long[] longValues;
+    private final Integer[] intValues;
+    private final Long[] longValues;
     private final Map<Number, Enum> reverseLookupMap = new HashMap<Number, Enum>();
 
     private EnumMapper(Class<? extends Enum> enumClass) {
@@ -44,8 +44,8 @@ public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
 
         EnumSet<? extends Enum> enums = EnumSet.allOf(enumClass);
 
-        this.intValues = new int[enums.size()];
-        this.longValues = new long[enums.size()];
+        this.intValues = new Integer[enums.size()];
+        this.longValues = new Long[enums.size()];
         Method intValueMethod = getNumberValueMethod(enumClass, int.class);
         Method longValueMethod = getNumberValueMethod(enumClass, long.class);
         for (Enum e : enums) {
@@ -65,18 +65,6 @@ public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
             reverseLookupMap.put(value, e);
         }
         
-    }
-
-    public Enum fromNative(Integer nativeValue, FromNativeContext context) {
-        return valueOf(nativeValue);
-    }
-
-    public Class<Integer> nativeType() {
-        return Integer.class;
-    }
-
-    public Integer toNative(Enum value, ToNativeContext context) {
-        return intValue(enumClass.cast(value));
     }
 
     public static interface IntegerEnum {
@@ -122,8 +110,7 @@ public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
         }
     }
 
-
-    public final int intValue(Enum value) {
+    public final Integer integerValue(Enum value) {
         if (value.getClass() != enumClass) {
             throw new IllegalArgumentException("enum class mismatch, " + value.getClass());
         }
@@ -131,7 +118,11 @@ public final class EnumMapper extends AbstractDataConverter<Enum, Integer> {
         return intValues[value.ordinal()];
     }
 
-    public final long longValue(Enum value) {
+    public final int intValue(Enum value) {
+        return integerValue(value);
+    }
+
+    public final Long longValue(Enum value) {
         if (value.getClass() != enumClass) {
             throw new IllegalArgumentException("enum class mismatch, " + value.getClass());
         }
