@@ -20,9 +20,7 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.NativeType;
 import jnr.ffi.Struct;
 import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.*;
 import jnr.ffi.provider.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.EnumMapper;
@@ -42,7 +40,7 @@ final class ClosureUtil {
 
     static ToNativeType getResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
         Annotation[] annotations = m.getAnnotations();
-        ToNativeConverter converter = getToNativeConverter(m.getReturnType(), annotations, typeMapper);
+        ToNativeConverter converter = getToNativeConverter(m.getReturnType(), typeMapper, new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
         return new ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
@@ -51,15 +49,15 @@ final class ClosureUtil {
     static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
         Annotation[] annotations = m.getParameterAnnotations()[idx];
         Class declaredJavaClass = m.getParameterTypes()[idx];
-        FromNativeConverter converter = getFromNativeConverter(declaredJavaClass, annotations, typeMapper);
+        FromNativeConverter converter = getFromNativeConverter(declaredJavaClass, typeMapper, new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
         return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
     }
 
     @SuppressWarnings("unchecked")
-    static FromNativeConverter getFromNativeConverter(Class javaClass, Annotation[] annotations, TypeMapper typeMapper) {
-        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaClass);
+    static FromNativeConverter getFromNativeConverter(Class javaClass, TypeMapper typeMapper, FromNativeContext context) {
+        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaClass, context);
         if (conv != null) {
             return conv;
 
@@ -72,8 +70,8 @@ final class ClosureUtil {
     }
 
     @SuppressWarnings("unchecked")
-    static ToNativeConverter getToNativeConverter(Class javaClass, Annotation[] annotations, TypeMapper typeMapper) {
-        ToNativeConverter conv = typeMapper.getToNativeConverter(javaClass);
+    static ToNativeConverter getToNativeConverter(Class javaClass, TypeMapper typeMapper, ToNativeContext context) {
+        ToNativeConverter conv = typeMapper.getToNativeConverter(javaClass, context);
         if (conv != null) {
             return conv;
 

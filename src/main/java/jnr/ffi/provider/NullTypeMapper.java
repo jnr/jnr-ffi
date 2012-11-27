@@ -18,9 +18,7 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.*;
 
 /**
  * An instance of {@link TypeMapper} which always returns null
@@ -28,11 +26,11 @@ import jnr.ffi.mapper.TypeMapper;
 public class NullTypeMapper implements TypeMapper {
     public static final TypeMapper INSTANCE = new NullTypeMapper();
     
-    public FromNativeConverter getFromNativeConverter(Class type) {
+    public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
         return null;
     }
 
-    public ToNativeConverter getToNativeConverter(Class type) {
+    public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
         return null;
     }
 

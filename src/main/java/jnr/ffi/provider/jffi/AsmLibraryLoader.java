@@ -63,7 +63,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 return false;
             }
             for (Class c: m.getParameterTypes()) {
-                if (!isParameterTypeSupported(c) && typeMapper.getToNativeConverter(c) == null) {
+                if (!isParameterTypeSupported(c) && typeMapper.getToNativeConverter(c, null) == null) {
                     System.err.println("Unsupported parameter type: " + c);
                     return false;
                 }

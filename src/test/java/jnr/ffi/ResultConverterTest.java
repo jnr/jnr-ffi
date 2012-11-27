@@ -4,10 +4,8 @@ import jnr.ffi.LibraryOption;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.Library;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.*;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.After;
@@ -56,14 +54,14 @@ public class ResultConverterTest {
 
     static final TypeMapper mapper = new TypeMapper() {
 
-        public FromNativeConverter getFromNativeConverter(Class type) {
+        public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
             if (TestType.class == type) {
                 return new TestTypeResultConverter();
             }
             return null;
         }
 
-        public ToNativeConverter getToNativeConverter(Class type) {
+        public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
             return null;
         }
     };

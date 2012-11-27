@@ -293,7 +293,7 @@ final class InvokerUtil {
 
     static ToNativeConverter getToNativeConverter(Class javaType, TypeMapper typeMapper, ToNativeContext context,
                                                   NativeClosureManager closureManager) {
-        ToNativeConverter conv = typeMapper.getToNativeConverter(javaType);
+        ToNativeConverter conv = typeMapper.getToNativeConverter(javaType, context);
         if (conv != null) {
             return conv;
 
@@ -326,7 +326,7 @@ final class InvokerUtil {
 
     static FromNativeConverter getFromNativeConverter(Class javaType, TypeMapper typeMapper, FromNativeContext fromNativeContext,
                                                       NativeClosureManager closureManager) {
-        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaType);
+        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaType, fromNativeContext);
         if (conv != null) {
             return conv;
 

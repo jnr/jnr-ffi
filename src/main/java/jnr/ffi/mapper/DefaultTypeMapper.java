@@ -28,11 +28,11 @@ public final class DefaultTypeMapper implements TypeMapper {
         fromNativeConverters.put(javaClass, converter);
     }
 
-    public FromNativeConverter getFromNativeConverter(Class type) {
+    public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
         return fromNativeConverters.get(type);
     }
 
-    public ToNativeConverter getToNativeConverter(Class type) {
+    public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
         return toNativeConverters.get(type);
     }
 }
