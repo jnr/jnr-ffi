@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitEpilogue;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
@@ -107,15 +108,15 @@ class X86MethodGenerator implements MethodGenerator {
         }
     }
 
-    private static void generateWrapper(AsmBuilder builder, String functionName, Function function,
-                                        ResultType resultType, ParameterType[] parameterTypes,
+    private static void generateWrapper(final AsmBuilder builder, String functionName, Function function,
+                                        final ResultType resultType, final ParameterType[] parameterTypes,
                                         String nativeMethodName, Class nativeReturnType, Class[] nativeParameterTypes) {
         Class[] javaParameterTypes = new Class[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             javaParameterTypes[i] = parameterTypes[i].getDeclaredType();
         }
 
-        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(),
+        final SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(),
                 ACC_PUBLIC | ACC_FINAL,
                 functionName, sig(resultType.getDeclaredType(), javaParameterTypes), null, null);
         mv.setMethodVisitor(AsmUtil.newTraceMethodVisitor(mv.getMethodVisitor()));
@@ -124,10 +125,10 @@ class X86MethodGenerator implements MethodGenerator {
 
         LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
         final LocalVariable objCount = localVariableAllocator.allocate(int.class);
-        LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
+        final LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
         LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
-        LocalVariable[] converted = new LocalVariable[parameterTypes.length];
+        final LocalVariable[] converted = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         for (int i = 0; i < parameterTypes.length; ++i) {
@@ -203,16 +204,13 @@ class X86MethodGenerator implements MethodGenerator {
         mv.invokestatic(builder.getClassNamePath(), nativeMethodName, sig(nativeReturnType, nativeParameterTypes));
 
         // If boxing is neccessary, perform conversions
-        Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());
+        final Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());
         convertPrimitive(mv, nativeReturnType, unboxedResultType);
 
         if (pointerCount > 0) {
             mv.label(convertResult);
         }
-
-        emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
-        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
-        emitReturnOp(mv, resultType.getDeclaredType());
+        emitEpilogue(builder, mv, resultType, parameterTypes, parameters, converted, null);
 
         /* --  method returns above - below is the object path, which will jump back above to return -- */
 

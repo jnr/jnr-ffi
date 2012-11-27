@@ -22,6 +22,8 @@ import com.kenai.jffi.*;
 import jnr.ffi.Address;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.*;
 import jnr.ffi.util.BufferUtil;
 
@@ -718,6 +720,12 @@ public final class AsmRuntime {
         if (s3.isDirect()) {
             throw new RuntimeException("pointer 3 is direct");
         }
+    }
+
+    public static void postInvoke(ToNativeConverter.PostInvocation postInvocation, Object j, Object n, ToNativeContext context) {
+        try {
+            postInvocation.postInvoke(j, n, context);
+        } catch (Throwable t) {}
     }
 
 }

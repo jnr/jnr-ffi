@@ -6,6 +6,9 @@ import jnr.ffi.Runtime;
 import jnr.ffi.Library;
 import jnr.ffi.mapper.*;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.After;
@@ -102,5 +105,61 @@ public class ResultConverterTest {
         TestType t = testlib.strdup(MAGIC);
         assertNotNull(t);
         assertEquals("contents not set", MAGIC, t.str);
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface PosixError {
+
+    }
+
+    @FromNativeConverter.NoContext
+    public static final class PosixErrorConverter implements FromNativeConverter<Integer, Integer> {
+        public final Integer fromNative(Integer nativeValue, FromNativeContext context) {
+            if (nativeValue < 0) {
+                throw new RuntimeException("posix error!");
+            }
+
+            return nativeValue;
+        }
+
+        public Class<Integer> nativeType() {
+            return Integer.class;
+        }
+    }
+
+    static final TypeMapper posixTypeMapper = new TypeMapper() {
+
+        public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
+            if (int.class == type) {
+                for (Annotation a : context.getAnnotations()) {
+                    if (a instanceof PosixError) {
+                        return new PosixErrorConverter();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
+            return null;
+        }
+    };
+
+    public static interface Posix {
+        @PosixError int ret_int32_t(int v);
+    }
+
+    @Test public void testPosixError() {
+        System.setProperty("jnr.ffi.compile.dump", "true");
+        Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
+        options.put(LibraryOption.TypeMapper, posixTypeMapper);
+        Posix posix = TstUtil.loadTestLib(Posix.class, options);
+        assertEquals(1, posix.ret_int32_t(1));
+        try {
+            posix.ret_int32_t(-1);
+        } catch (RuntimeException re) {
+            System.out.println(re);
+        }
     }
 }

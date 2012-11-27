@@ -59,15 +59,15 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         }
     }
 
-    public void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes,
+    public void generate(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, final ResultType resultType, final ParameterType[] parameterTypes,
                          boolean ignoreError) {
         // [ stack contains: Invoker, Function ]
          final Class nativeIntType = getInvokerType();
         final LocalVariable objCount = localVariableAllocator.allocate(int.class);
-        LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
+        final LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
         LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
-        LocalVariable[] converted = new LocalVariable[parameterTypes.length];
+        final LocalVariable[] converted = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         // Load, convert, and un-box parameters
@@ -175,11 +175,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         }
 
         // box and/or narrow/widen the return value if needed
-        Class unboxedResultType = unboxedReturnType(javaReturnType);
+        final Class unboxedResultType = unboxedReturnType(javaReturnType);
         convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
-        emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
-        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
-        emitReturnOp(mv, resultType.getDeclaredType());
+        emitEpilogue(builder, mv, resultType, parameterTypes, parameters, converted, null);
 
         /* --  method returns above - below is an alternative path -- */
 

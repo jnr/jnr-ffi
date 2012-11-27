@@ -61,7 +61,44 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         emitToNativeConversion(builder, mv, parameterType);
     }
 
-    static void emitPostInvoke(AsmBuilder builder, SkinnyMethodAdapter mv, ParameterType[] parameterTypes,
+    static boolean isPostInvokeRequired(LocalVariable[] converted) {
+        for (int i = 0; i < converted.length; ++i) {
+            if (converted[i] != null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static void emitEpilogue(final AsmBuilder builder, final SkinnyMethodAdapter mv, final ResultType resultType,
+                           final ParameterType[] parameterTypes,
+                      final LocalVariable[] parameters, final LocalVariable[] converted, final Runnable sessionCleanup) {
+        final Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());
+        if (isPostInvokeRequired(converted) || sessionCleanup != null) {
+            tryfinally(mv, new Runnable() {
+                        public void run() {
+                            emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
+                            // ensure there is always at least one instruction inside the try {} block
+                            mv.nop();
+                        }
+                    },
+                    new Runnable() {
+                        public void run() {
+                            emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
+                            if (sessionCleanup != null) {
+                                sessionCleanup.run();
+                            }
+                        }
+                    }
+            );
+        } else {
+            emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
+        }
+        emitReturnOp(mv, resultType.getDeclaredType());
+    }
+
+    static void emitPostInvoke(AsmBuilder builder, final SkinnyMethodAdapter mv, ParameterType[] parameterTypes,
                                LocalVariable[] parameters, LocalVariable[] converted) {
         for (int i = 0; i < converted.length; ++i) {
             if (converted[i] != null) {
@@ -78,8 +115,9 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                 } else {
                     mv.aconst_null();
                 }
-                mv.invokeinterface(ToNativeConverter.PostInvocation.class, "postInvoke", void.class,
-                        Object.class, Object.class, ToNativeContext.class);
+
+                mv.invokestatic(AsmRuntime.class, "postInvoke", void.class,
+                        ToNativeConverter.PostInvocation.class, Object.class, Object.class, ToNativeContext.class);
             }
         }
     }

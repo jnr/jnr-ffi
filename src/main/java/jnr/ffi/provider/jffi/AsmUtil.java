@@ -38,6 +38,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.Buffer;
 
+import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
@@ -618,6 +619,22 @@ final class AsmUtil {
         mv.getfield(builder.getClassNamePath(), field.name, ci(field.klass));
     }
 
+    static void tryfinally(SkinnyMethodAdapter mv, Runnable codeBlock, Runnable finallyBlock) {
+        Label before = new Label(), after = new Label(), ensure = new Label(), done = new Label();
+        mv.trycatch(before, after, ensure, null);
+        mv.label(before);
+        codeBlock.run();
+        mv.label(after);
+        if (finallyBlock != null) finallyBlock.run();
+        mv.go_to(done);
+        if (finallyBlock != null) {
+            mv.label(ensure);
+            finallyBlock.run();
+            mv.athrow();
+        }
+        mv.label(done);
+    }
+
     static void emitToNativeConversion(AsmBuilder builder, SkinnyMethodAdapter mv, ToNativeType toNativeType) {
         ToNativeConverter parameterConverter = toNativeType.toNativeConverter;
         if (parameterConverter != null) {
@@ -687,7 +704,7 @@ final class AsmUtil {
             if (fromNativeType.getDeclaredType().isPrimitive()) {
                 // The actual return type is a primitive, but there was a converter for it - extract the primitive value
                 Class boxedType = getBoxedClass(fromNativeType.getDeclaredType());
-                mv.checkcast(p(boxedType));
+                if (!boxedType.isAssignableFrom(fromNativeMethod.getReturnType())) mv.checkcast(p(boxedType));
                 unboxNumber(mv, boxedType, fromNativeType.getDeclaredType(), fromNativeType.nativeType);
 
             } else if (!fromNativeType.getDeclaredType().isAssignableFrom(fromNativeMethod.getReturnType())) {
@@ -749,7 +766,10 @@ final class AsmUtil {
                 for (Method method : fromNativeConverterClass.getMethods()) {
                     if (!method.getName().equals("fromNative")) continue;
                     Class[] methodParameterTypes = method.getParameterTypes();
-                    if (fromNativeType.getDeclaredType().isAssignableFrom(method.getReturnType())
+                    Class javaType = fromNativeType.getDeclaredType().isPrimitive()
+                            ? boxedType(fromNativeType.getDeclaredType())
+                            : fromNativeType.getDeclaredType();
+                    if (javaType.isAssignableFrom(method.getReturnType())
                             && methodParameterTypes.length == 2
                             && methodParameterTypes[0].isAssignableFrom(fromNativeConverter.nativeType())
                             && methodParameterTypes[1] == FromNativeContext.class

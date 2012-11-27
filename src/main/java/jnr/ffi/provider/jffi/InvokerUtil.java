@@ -161,12 +161,6 @@ final class InvokerUtil {
     }
 
     static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations,
-                                          ToNativeConverter toNativeConverter) {
-        NativeType nativeType = getMethodParameterNativeType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations);
-        return new ParameterType(type, nativeType, annotations, toNativeConverter, null);
-    }
-
-    static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations,
                                           ToNativeConverter toNativeConverter, ToNativeContext toNativeContext) {
         NativeType nativeType = getMethodParameterNativeType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations);
         return new ParameterType(type, nativeType, annotations, toNativeConverter, toNativeContext);
@@ -198,17 +192,6 @@ final class InvokerUtil {
         }
 
         return CallContextCache.getInstance().getCallContext(jffiType(resultType.nativeType),
-                nativeParamTypes, convention, requiresErrno);
-    }
-
-    static CallContext getCallContext(NativeType resultType, NativeType[] parameterTypes, com.kenai.jffi.CallingConvention convention, boolean requiresErrno) {
-        com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
-
-        for (int i = 0; i < nativeParamTypes.length; ++i) {
-            nativeParamTypes[i] = jffiType(parameterTypes[i]);
-        }
-
-        return CallContextCache.getInstance().getCallContext(jffiType(resultType),
                 nativeParamTypes, convention, requiresErrno);
     }
 
@@ -315,40 +298,6 @@ final class InvokerUtil {
         return new Function(address, getCallContext(resultType, parameterTypes, convention, requiresErrno));
     }
 
-    static boolean isReturnTypeSupported(Class type) {
-        return type.isPrimitive() || Byte.class == type
-                || Short.class == type || Integer.class == type
-                || Long.class == type || Float.class == type
-                || Double.class == type
-                || Enum.class.isAssignableFrom(type)
-                || Pointer.class == type || Address.class == type
-                || String.class == type
-                || Struct.class.isAssignableFrom(type)
-                || Variable.class == type
-                ;
-
-    }
-
-    static boolean isParameterTypeSupported(Class type) {
-        return type.isPrimitive() || Byte.class == type
-                || Short.class == type || Integer.class == type
-                || Long.class == type || Float.class == type
-                || Double.class == type
-                || Pointer.class.isAssignableFrom(type) || Address.class.isAssignableFrom(type)
-                || Enum.class.isAssignableFrom(type)
-                || Buffer.class.isAssignableFrom(type)
-                || (type.isArray() && type.getComponentType().isPrimitive())
-                || Struct.class.isAssignableFrom(type)
-                || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))
-                || (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType()))
-                || (type.isArray() && CharSequence.class.isAssignableFrom(type.getComponentType()))
-                || CharSequence.class.isAssignableFrom(type)
-                || ByReference.class.isAssignableFrom(type)
-                || StringBuilder.class.isAssignableFrom(type)
-                || StringBuffer.class.isAssignableFrom(type)
-                || isDelegate(type)
-                ;
-    }
 
     static Collection<Annotation> annotationCollection(Annotation[] annotations) {
         if (annotations.length > 1) {

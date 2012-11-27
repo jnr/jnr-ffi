@@ -8,6 +8,7 @@ import jnr.ffi.Pointer;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
+import org.objectweb.asm.Label;
 
 import java.nio.Buffer;
 
@@ -134,10 +135,10 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 sig(void.class, ci(HeapInvocationBuffer.class) + ci(InvocationSession.class), parameterTypes));
     }
 
-    void generateBufferInvocation(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes) {
+    void generateBufferInvocation(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, final ResultType resultType, final ParameterType[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
         final boolean sessionRequired = isSessionRequired(parameterTypes);
-        LocalVariable session = localVariableAllocator.allocate(InvocationSession.class);
+        final LocalVariable session = localVariableAllocator.allocate(InvocationSession.class);
 
         if (sessionRequired) {
             mv.newobj(p(InvocationSession.class));
@@ -152,8 +153,8 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, CallContext.class);
         // [ stack contains: Invoker, Function, HeapInvocationBuffer ]
 
-        LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
-        LocalVariable[] converted = new LocalVariable[parameterTypes.length];
+        final LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
+        final LocalVariable[] converted = new LocalVariable[parameterTypes.length];
 
 
         for (int i = 0; i < parameterTypes.length; ++i) {
@@ -270,17 +271,15 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 nativeReturnType, CallContext.class, long.class, HeapInvocationBuffer.class);
 
         // box and/or narrow/widen the return value if needed
-        Class unboxedResultType = unboxedReturnType(javaReturnType);
-
+        final Class unboxedResultType = unboxedReturnType(javaReturnType);
         convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
-        emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
-
-        emitPostInvoke(builder, mv, parameterTypes, parameters, converted);
-        if (sessionRequired) {
-            mv.aload(session);
-            mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
-        }
-
-        emitReturnOp(mv, resultType.getDeclaredType());
+        emitEpilogue(builder, mv, resultType, parameterTypes, parameters, converted, new Runnable() {
+            public void run() {
+                if (sessionRequired) {
+                    mv.aload(session);
+                    mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
+                }
+            }
+        });
     }
 }
