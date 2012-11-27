@@ -48,28 +48,6 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final NativeRuntime runtime = NativeRuntime.getInstance();
 
-
-    boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
-        TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
-                ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
-        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper))));
-
-        for (Method m : interfaceClass.getDeclaredMethods()) {
-            if (!isReturnTypeSupported(m.getReturnType()) && typeMapper.getFromNativeConverter(m.getReturnType(), new MethodResultContext(m)) == null) {
-                System.err.println("Unsupported return type: " + m.getReturnType());
-                return false;
-            }
-            for (Class c: m.getParameterTypes()) {
-                if (!isParameterTypeSupported(c) && typeMapper.getToNativeConverter(c, null) == null) {
-                    System.err.println("Unsupported parameter type: " + c);
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
     static AsmClassLoader getCurrentClassLoader() {
         return classLoader.get();
     }
