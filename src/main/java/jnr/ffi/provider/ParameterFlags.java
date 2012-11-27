@@ -21,6 +21,7 @@ package jnr.ffi.provider;
 import jnr.ffi.annotations.*;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 
 /**
  *
@@ -45,18 +46,34 @@ public final class ParameterFlags {
     /** When allocating memory for the parameter, allocate a persistent memory block */
     public static final int DIRECT = 0x20;
 
+    public static int parse(Annotation annotation) {
+        int flags = 0;
+        flags |= annotation instanceof Out ? OUT : 0;
+        flags |= annotation instanceof In ? IN : 0;
+        flags |= annotation instanceof Transient ? TRANSIENT : 0;
+        flags |= annotation instanceof Direct ? DIRECT : 0;
+        flags |= annotation instanceof Pinned ? PINNED : 0;
+        flags |= annotation instanceof NulTerminate ? NULTERMINATE : 0;
+
+        return flags;
+    }
+
     public static int parse(Annotation[] annotations) {
         int flags = 0;
         for (Annotation a : annotations) {
-            flags |= a instanceof Out ? OUT : 0;
-            flags |= a instanceof In ? IN : 0;
-            flags |= a instanceof Transient ? TRANSIENT : 0;
-            flags |= a instanceof Direct ? DIRECT : 0;
-            flags |= a instanceof Pinned ? PINNED : 0;
-            flags |= a instanceof NulTerminate ? NULTERMINATE : 0;
+            flags |= parse(a);
         }
         return flags;
     }
+
+    public static int parse(Collection<Annotation> annotations) {
+        int flags = 0;
+        for (Annotation a : annotations) {
+            flags |= parse(a);
+        }
+        return flags;
+    }
+
     /**
      * Checks if the annotation is a recognised parameter flag.
      * 
@@ -64,13 +81,9 @@ public final class ParameterFlags {
      * @return <tt>true</tt> if the annotation is a parameter flag
      */
     public static boolean isFlag(Annotation annotation) {
-        return annotation instanceof Pinned 
-                || annotation instanceof Transient
-                || annotation instanceof Direct
-                || annotation instanceof NulTerminate
-                || annotation instanceof Out 
-                || annotation instanceof In;
+        return parse(annotation) != 0;
     }
+
     public static boolean isPinned(int flags) {
         return (flags & PINNED) != 0;
     }

@@ -20,6 +20,7 @@ package jnr.ffi.mapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * Holds context for a method parameter java->native conversion.
@@ -27,16 +28,37 @@ import java.lang.reflect.Method;
 public final class MethodParameterContext implements ToNativeContext {
     private final Method method;
     private final int parameterIndex;
-    private final Annotation[] annotations;
+    private Collection<Annotation> annotations;
+    private Annotation[] annotationArray;
+
     public MethodParameterContext(Method method, int parameterIndex) {
         this.method = method;
         this.parameterIndex = parameterIndex;
-        this.annotations = method.getParameterAnnotations()[parameterIndex];
     }
+
+    public MethodParameterContext(Method method, int parameterIndex, Annotation[] annotationArray) {
+        this.method = method;
+        this.parameterIndex = parameterIndex;
+        this.annotationArray = annotationArray.clone();
+    }
+
     public Method getMethod() {
         return method;
     }
+
     public int getParameterIndex() {
         return parameterIndex;
+    }
+
+    public Collection<Annotation> getAnnotations() {
+        return annotations != null ? annotations : buildAnnotationCollection();
+    }
+
+    private Collection<Annotation> buildAnnotationCollection() {
+        if (annotationArray != null) {
+            return annotations = Util.annotationCollection(annotationArray);
+        } else {
+            return annotations = Util.annotationCollection(annotationArray = method.getParameterAnnotations()[parameterIndex]);
+        }
     }
 }

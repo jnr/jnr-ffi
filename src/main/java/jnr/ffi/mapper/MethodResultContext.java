@@ -18,17 +18,26 @@
 
 package jnr.ffi.mapper;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  *
  */
 public class MethodResultContext implements FromNativeContext {
     private final Method method;
+    private Collection<Annotation> annotations;
+
     public MethodResultContext(Method method) {
         this.method = method;
     }
+
     public Method getMethod() {
         return method;
+    }
+
+    public Collection<Annotation> getAnnotations() {
+        return annotations != null ? annotations : (annotations = Util.annotationCollection(method.getAnnotations()));
     }
 }

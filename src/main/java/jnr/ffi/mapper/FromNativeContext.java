@@ -18,9 +18,18 @@
 
 package jnr.ffi.mapper;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Context for a native->java type conversion.
  */
 public interface FromNativeContext {
-    // Nothing here, just a placeholder
+    /**
+     * Gets a sorted list of annotations
+     *
+     * @return a sorted list of annotations for this native type
+     */
+    public abstract Collection<Annotation> getAnnotations();
 }

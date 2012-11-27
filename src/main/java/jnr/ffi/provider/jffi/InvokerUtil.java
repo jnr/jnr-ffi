@@ -35,7 +35,7 @@ import jnr.ffi.util.EnumMapper;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
-import java.util.Map;
+import java.util.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 
@@ -179,13 +179,13 @@ final class InvokerUtil {
         ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
+            ToNativeContext toNativeContext = new MethodParameterContext(m, pidx, parameterAnnotations[pidx]);
+            ToNativeConverter toNativeConverter = getToNativeConverter(javaParameterTypes[pidx],
+                    typeMapper, toNativeContext, closureManager);
 
-            ToNativeConverter toNativeConverter = getToNativeConverter(javaParameterTypes[pidx], parameterAnnotations[pidx],
-                    typeMapper, closureManager);
-            ToNativeContext toNativeContext = toNativeConverter != null && !toNativeConverter.getClass().isAnnotationPresent(ToNativeConverter.NoContext.class)
-                ? new MethodParameterContext(m, pidx) : null;
+            boolean contextRequired = toNativeConverter != null && !toNativeConverter.getClass().isAnnotationPresent(ToNativeConverter.NoContext.class);
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
-                    parameterAnnotations[pidx], toNativeConverter, toNativeContext);
+                    parameterAnnotations[pidx], toNativeConverter, contextRequired ? toNativeContext : null);
         }
 
         return parameterTypes;
@@ -291,8 +291,8 @@ final class InvokerUtil {
     }
 
 
-    static ToNativeConverter getToNativeConverter(Class javaType, Annotation[] annotations,
-                                                        TypeMapper typeMapper, NativeClosureManager closureManager) {
+    static ToNativeConverter getToNativeConverter(Class javaType, TypeMapper typeMapper, ToNativeContext context,
+                                                  NativeClosureManager closureManager) {
         ToNativeConverter conv = typeMapper.getToNativeConverter(javaType);
         if (conv != null) {
             return conv;
@@ -304,19 +304,19 @@ final class InvokerUtil {
             return closureManager.newClosureSite(javaType);
 
         } else if (ByReference.class.isAssignableFrom(javaType)) {
-            return new ByReferenceParameterConverter(ParameterFlags.parse(annotations));
+            return new ByReferenceParameterConverter(ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Struct.class.isAssignableFrom(javaType)) {
-            return new StructByReferenceToNativeConverter(ParameterFlags.parse(annotations));
+            return new StructByReferenceToNativeConverter(ParameterFlags.parse(context.getAnnotations()));
 
         } else if (NativeLong.class.isAssignableFrom(javaType)) {
             return NativeLongConverter.INSTANCE;
 
         } else if (StringBuilder.class.isAssignableFrom(javaType)) {
-            return StringBuilderParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(annotations));
+            return StringBuilderParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
         } else if (StringBuffer.class.isAssignableFrom(javaType)) {
-            return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(annotations));
+            return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
         } else {
             return null;
@@ -324,8 +324,8 @@ final class InvokerUtil {
     }
 
 
-    static FromNativeConverter getFromNativeConverter(Class javaType, Annotation[] annotations,
-                                                              TypeMapper typeMapper, NativeClosureManager closureManager) {
+    static FromNativeConverter getFromNativeConverter(Class javaType, TypeMapper typeMapper, FromNativeContext fromNativeContext,
+                                                      NativeClosureManager closureManager) {
         FromNativeConverter conv = typeMapper.getFromNativeConverter(javaType);
         if (conv != null) {
             return conv;
@@ -335,7 +335,7 @@ final class InvokerUtil {
 
         } else if (Struct.class.isAssignableFrom(javaType)) {
             return StructByReferenceFromNativeConverter.newStructByReferenceConverter(javaType.asSubclass(Struct.class),
-                    ParameterFlags.parse(annotations));
+                    ParameterFlags.parse(fromNativeContext.getAnnotations()));
 
         } else if (closureManager != null && isDelegate(javaType)) {
             final Class type = javaType;
@@ -358,10 +358,10 @@ final class InvokerUtil {
     }
 
     static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, NativeClosureManager closureManager, MethodGenerator[] generators) {
+        FromNativeContext resultContext = new MethodResultContext(m);
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                m.getAnnotations(),
-                getFromNativeConverter(m.getReturnType(), m.getAnnotations(), typeMapper, closureManager),
-                new MethodResultContext(m));
+                m.getAnnotations(), getFromNativeConverter(m.getReturnType(), typeMapper, resultContext, closureManager),
+                resultContext);
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, closureManager, m);
 
@@ -417,6 +417,25 @@ final class InvokerUtil {
                 ;
     }
 
+    static Collection<Annotation> annotationCollection(Annotation[] annotations) {
+        if (annotations.length > 1) {
+            Arrays.sort(annotations, AnnotationComparator.INSTANCE);
+            return Collections.unmodifiableList(Arrays.asList(annotations));
 
+        } else if (annotations.length > 0) {
+            return Collections.singletonList(annotations[0]);
+
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    private static final class AnnotationComparator implements Comparator<Annotation> {
+        static final Comparator<Annotation> INSTANCE = new AnnotationComparator();
+
+        public int compare(Annotation o1, Annotation o2) {
+            return o1.annotationType().getName().compareTo(o2.annotationType().getName());
+        }
+    }
 
 }
