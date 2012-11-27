@@ -172,7 +172,7 @@ final class InvokerUtil {
         return new ParameterType(type, nativeType, annotations, toNativeConverter, toNativeContext);
     }
 
-    static ParameterType[] getParameterTypes(NativeRuntime runtime, TypeMapper typeMapper, NativeClosureManager closureManager,
+    static ParameterType[] getParameterTypes(NativeRuntime runtime, TypeMapper typeMapper,
                                              Method m) {
         final Class[] javaParameterTypes = m.getParameterTypes();
         final Annotation[][] parameterAnnotations = m.getParameterAnnotations();
@@ -180,8 +180,7 @@ final class InvokerUtil {
 
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
             ToNativeContext toNativeContext = new MethodParameterContext(m, pidx, parameterAnnotations[pidx]);
-            ToNativeConverter toNativeConverter = getToNativeConverter(javaParameterTypes[pidx],
-                    typeMapper, toNativeContext, closureManager);
+            ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(javaParameterTypes[pidx], toNativeContext);
 
             boolean contextRequired = toNativeConverter != null && !toNativeConverter.getClass().isAnnotationPresent(ToNativeConverter.NoContext.class);
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
@@ -291,79 +290,13 @@ final class InvokerUtil {
     }
 
 
-    static ToNativeConverter getToNativeConverter(Class javaType, TypeMapper typeMapper, ToNativeContext context,
-                                                  NativeClosureManager closureManager) {
-        ToNativeConverter conv = typeMapper.getToNativeConverter(javaType, context);
-        if (conv != null) {
-            return conv;
-
-        } else if (Enum.class.isAssignableFrom(javaType)) {
-            return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
-
-        } else if (isDelegate(javaType)) {
-            return closureManager.newClosureSite(javaType);
-
-        } else if (ByReference.class.isAssignableFrom(javaType)) {
-            return new ByReferenceParameterConverter(ParameterFlags.parse(context.getAnnotations()));
-
-        } else if (Struct.class.isAssignableFrom(javaType)) {
-            return new StructByReferenceToNativeConverter(ParameterFlags.parse(context.getAnnotations()));
-
-        } else if (NativeLong.class.isAssignableFrom(javaType)) {
-            return NativeLongConverter.INSTANCE;
-
-        } else if (StringBuilder.class.isAssignableFrom(javaType)) {
-            return StringBuilderParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
-
-        } else if (StringBuffer.class.isAssignableFrom(javaType)) {
-            return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
-
-        } else {
-            return null;
-        }
-    }
-
-
-    static FromNativeConverter getFromNativeConverter(Class javaType, TypeMapper typeMapper, FromNativeContext fromNativeContext,
-                                                      NativeClosureManager closureManager) {
-        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaType, fromNativeContext);
-        if (conv != null) {
-            return conv;
-
-        } else if (Enum.class.isAssignableFrom(javaType)) {
-            return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
-
-        } else if (Struct.class.isAssignableFrom(javaType)) {
-            return StructByReferenceFromNativeConverter.newStructByReferenceConverter(javaType.asSubclass(Struct.class),
-                    ParameterFlags.parse(fromNativeContext.getAnnotations()));
-
-        } else if (closureManager != null && isDelegate(javaType)) {
-            final Class type = javaType;
-            return new FromNativeConverter() {
-                public Object fromNative(Object nativeValue, FromNativeContext context) {
-                    throw new UnsupportedOperationException("cannot convert to " + type);
-                }
-
-                public Class nativeType() {
-                    return Pointer.class;
-                }
-            };
-
-        } else if (NativeLong.class.isAssignableFrom(javaType)) {
-            return NativeLongConverter.INSTANCE;
-
-        } else {
-            return null;
-        }
-    }
-
-    static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, NativeClosureManager closureManager, MethodGenerator[] generators) {
+    static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, MethodGenerator[] generators) {
         FromNativeContext resultContext = new MethodResultContext(m);
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                m.getAnnotations(), getFromNativeConverter(m.getReturnType(), typeMapper, resultContext, closureManager),
+                m.getAnnotations(), typeMapper.getFromNativeConverter(m.getReturnType(), resultContext),
                 resultContext);
 
-        ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, closureManager, m);
+        ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, m);
 
         Function function = getFunction(functionAddress,
                 resultType, parameterTypes, saveErrno, callingConvention);

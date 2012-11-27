@@ -40,7 +40,7 @@ final class ClosureUtil {
 
     static ToNativeType getResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
         Annotation[] annotations = m.getAnnotations();
-        ToNativeConverter converter = getToNativeConverter(m.getReturnType(), typeMapper, new SimpleNativeContext(annotations));
+        ToNativeConverter converter = typeMapper.getToNativeConverter(m.getReturnType(), new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
         return new ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
@@ -49,42 +49,9 @@ final class ClosureUtil {
     static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
         Annotation[] annotations = m.getParameterAnnotations()[idx];
         Class declaredJavaClass = m.getParameterTypes()[idx];
-        FromNativeConverter converter = getFromNativeConverter(declaredJavaClass, typeMapper, new SimpleNativeContext(annotations));
+        FromNativeConverter converter = typeMapper.getFromNativeConverter(declaredJavaClass, new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
         return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
     }
-
-    @SuppressWarnings("unchecked")
-    static FromNativeConverter getFromNativeConverter(Class javaClass, TypeMapper typeMapper, FromNativeContext context) {
-        FromNativeConverter conv = typeMapper.getFromNativeConverter(javaClass, context);
-        if (conv != null) {
-            return conv;
-
-        } else if (Enum.class.isAssignableFrom(javaClass)) {
-            return EnumConverter.getInstance(javaClass.asSubclass(Enum.class));
-
-        } else {
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static ToNativeConverter getToNativeConverter(Class javaClass, TypeMapper typeMapper, ToNativeContext context) {
-        ToNativeConverter conv = typeMapper.getToNativeConverter(javaClass, context);
-        if (conv != null) {
-            return conv;
-
-        } else if (Enum.class.isAssignableFrom(javaClass)) {
-            return EnumConverter.getInstance(javaClass.asSubclass(Enum.class));
-
-        } else if (Struct.class.isAssignableFrom(javaClass)) {
-            return new StructByReferenceToNativeConverter(ParameterFlags.IN | ParameterFlags.OUT);
-
-
-        } else {
-            return null;
-        }
-    }
-
 }

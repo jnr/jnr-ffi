@@ -33,10 +33,10 @@ public class VariableAccessorGenerator {
 
     public void generate(AsmBuilder builder, Class interfaceClass, String variableName, long address,
                          Class javaType, Annotation[] annotations,
-                         TypeMapper typeMapper, NativeClosureManager closureManager) {
+                         TypeMapper typeMapper) {
         SimpleNativeContext context = new SimpleNativeContext(annotations);
-        FromNativeConverter fromNativeConverter = getFromNativeConverter(javaType, typeMapper, context, closureManager);
-        ToNativeConverter toNativeConverter = getToNativeConverter(javaType, typeMapper, context, closureManager);
+        FromNativeConverter fromNativeConverter = typeMapper.getFromNativeConverter(javaType, context);
+        ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(javaType, context);
 
         Variable variableAccessor = buildVariableAccessor(address, interfaceClass, javaType, annotations,
                 toNativeConverter, fromNativeConverter);

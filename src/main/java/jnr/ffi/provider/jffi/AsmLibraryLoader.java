@@ -20,10 +20,8 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Function;
 import jnr.ffi.*;
 import jnr.ffi.annotations.StdCall;
-import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.IdentityFunctionMapper;
 import jnr.ffi.provider.NullTypeMapper;
@@ -35,11 +33,9 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.nio.Buffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.InvokerUtil.*;
 import static org.objectweb.asm.Opcodes.*;
@@ -56,9 +52,10 @@ public class AsmLibraryLoader extends LibraryLoader {
     boolean isInterfaceSupported(Class interfaceClass, Map<LibraryOption, ?> options) {
         TypeMapper typeMapper = options.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) options.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
-        NativeClosureManager closureManager = new NativeClosureManager(runtime, typeMapper);
+        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper))));
+
         for (Method m : interfaceClass.getDeclaredMethods()) {
-            if (!isReturnTypeSupported(m.getReturnType()) && getResultConverter(m, typeMapper, closureManager) == null) {
+            if (!isReturnTypeSupported(m.getReturnType()) && typeMapper.getFromNativeConverter(m.getReturnType(), new MethodResultContext(m)) == null) {
                 System.err.println("Unsupported return type: " + m.getReturnType());
                 return false;
             }
@@ -104,7 +101,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         TypeMapper typeMapper = libraryOptions.containsKey(LibraryOption.TypeMapper)
                 ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
-        NativeClosureManager closureManager = new NativeClosureManager(runtime, typeMapper);
+        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper))));
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         BufferMethodGenerator bufgen = new BufferMethodGenerator();
@@ -134,7 +131,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             boolean saveErrno = InvokerUtil.requiresErrno(m);
             try {
                 generateFunctionInvocation(runtime, builder, m, library.findSymbolAddress(functionName),
-                        callingConvention, saveErrno, typeMapper, closureManager, generators);
+                        callingConvention, saveErrno, typeMapper, generators);
 
             } catch (SymbolNotFoundError ex) {
                 String errorFieldName = "error_" + uniqueId.incrementAndGet();
@@ -155,7 +152,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 try {
                     variableAccessorGenerator.generate(builder, interfaceClass, m.getName(),
                             library.findSymbolAddress(functionName), (Class) variableType, m.getAnnotations(),
-                            typeMapper, closureManager);
+                            typeMapper);
 
                 } catch (SymbolNotFoundError ex) {
                     String errorFieldName = "error_" + uniqueId.incrementAndGet();
@@ -205,10 +202,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    private static FromNativeConverter getResultConverter(Method m, TypeMapper typeMapper, NativeClosureManager closureManager) {
-        return getFromNativeConverter(m.getReturnType(), typeMapper, new SimpleNativeContext(m.getAnnotations()), closureManager);
     }
 
     private static com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {

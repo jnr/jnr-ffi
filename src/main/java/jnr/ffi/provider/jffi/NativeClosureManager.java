@@ -19,6 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Pointer;
+import jnr.ffi.mapper.CachingTypeMapper;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
@@ -37,7 +38,7 @@ final class NativeClosureManager implements ClosureManager {
 
     NativeClosureManager(NativeRuntime runtime, TypeMapper typeMapper) {
         this.runtime = runtime;
-        this.typeMapper = typeMapper;
+        this.typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new ClosureTypeMapper()));
     }
 
     <T> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
