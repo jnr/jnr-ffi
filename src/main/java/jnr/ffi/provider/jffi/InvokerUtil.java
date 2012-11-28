@@ -91,39 +91,35 @@ final class InvokerUtil {
         return false;
     }
 
+    static final Map<jnr.ffi.NativeType, Type> jffiTypes;
+    static {
+        Map<jnr.ffi.NativeType, Type> m = new EnumMap<NativeType, Type>(jnr.ffi.NativeType.class);
+
+        m.put(NativeType.VOID, Type.VOID);
+        m.put(NativeType.SCHAR, Type.SCHAR);
+        m.put(NativeType.UCHAR, Type.UCHAR);
+        m.put(NativeType.SSHORT, Type.SSHORT);
+        m.put(NativeType.USHORT, Type.USHORT);
+        m.put(NativeType.SINT, Type.SINT);
+        m.put(NativeType.UINT, Type.UINT);
+        m.put(NativeType.SLONG, Type.SLONG);
+        m.put(NativeType.ULONG, Type.ULONG);
+        m.put(NativeType.SLONGLONG, Type.SLONG_LONG);
+        m.put(NativeType.ULONGLONG, Type.ULONG_LONG);
+        m.put(NativeType.FLOAT, Type.FLOAT);
+        m.put(NativeType.DOUBLE, Type.DOUBLE);
+        m.put(NativeType.ADDRESS, Type.POINTER);
+
+        jffiTypes = Collections.unmodifiableMap(m);
+    }
+
     static Type jffiType(jnr.ffi.NativeType jnrType) {
-        switch (jnrType) {
-            case VOID:
-                return Type.VOID;
-            case SCHAR:
-                return Type.SCHAR;
-            case UCHAR:
-                return Type.UCHAR;
-            case SSHORT:
-                return Type.SSHORT;
-            case USHORT:
-                return Type.USHORT;
-            case SINT:
-                return Type.SINT;
-            case UINT:
-                return Type.UINT;
-            case SLONG:
-                return Type.SLONG;
-            case ULONG:
-                return Type.ULONG;
-            case SLONGLONG:
-                return Type.SLONG_LONG;
-            case ULONGLONG:
-                return Type.ULONG_LONG;
-            case FLOAT:
-                return Type.FLOAT;
-            case DOUBLE:
-                return Type.DOUBLE;
-            case ADDRESS:
-                return Type.POINTER;
-            default:
-                throw new IllegalArgumentException("unsupported parameter type: " + jnrType);
+        Type jffiType = jffiTypes.get(jnrType);
+        if (jffiType != null) {
+            return jffiType;
         }
+
+        throw new IllegalArgumentException("unsupported parameter type: " + jnrType);
     }
 
     static NativeType nativeType(jnr.ffi.Type jnrType) {
