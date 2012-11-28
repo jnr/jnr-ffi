@@ -268,13 +268,11 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         // box and/or narrow/widen the return value if needed
         final Class unboxedResultType = unboxedReturnType(javaReturnType);
         convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
-        emitEpilogue(builder, mv, resultType, parameterTypes, parameters, converted, new Runnable() {
+        emitEpilogue(builder, mv, resultType, parameterTypes, parameters, converted, sessionRequired ? new Runnable() {
             public void run() {
-                if (sessionRequired) {
-                    mv.aload(session);
-                    mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
-                }
+                mv.aload(session);
+                mv.invokevirtual(p(InvocationSession.class), "finish", "()V");
             }
-        });
+        } : null);
     }
 }
