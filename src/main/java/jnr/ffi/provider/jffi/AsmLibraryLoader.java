@@ -71,7 +71,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement(), cv);
 
-        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(AbstractAsmLibraryInterface.class),
+        cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(AbstractAsmLibraryInterface.class),
                 new String[] { p(interfaceClass) });
 
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)

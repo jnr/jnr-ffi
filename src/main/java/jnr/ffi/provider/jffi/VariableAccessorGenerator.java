@@ -57,7 +57,7 @@ public class VariableAccessorGenerator {
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$VariableAccessor$$" + nextClassID.getAndIncrement(), cv);
-        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(Object.class),
+        cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(Object.class),
                 new String[] { p(Variable.class) });
 
         SkinnyMethodAdapter set = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL, "set",

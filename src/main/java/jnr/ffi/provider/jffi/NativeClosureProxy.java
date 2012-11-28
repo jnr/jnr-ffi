@@ -78,7 +78,7 @@ public abstract class NativeClosureProxy {
         final ClassVisitor closureClassVisitor = DEBUG ? AsmUtil.newCheckClassAdapter(closureClassWriter) : closureClassWriter;
         AsmBuilder builder = new AsmBuilder(closureProxyClassName, closureClassVisitor);
 
-        closureClassVisitor.visit(V1_5, ACC_PUBLIC | ACC_FINAL, closureProxyClassName, null, p(NativeClosureProxy.class),
+        closureClassVisitor.visit(V1_6, ACC_PUBLIC | ACC_FINAL, closureProxyClassName, null, p(NativeClosureProxy.class),
                 new String[]{ });
 
         Class[] nativeParameterClasses = new Class[parameterTypes.length];
