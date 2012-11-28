@@ -23,9 +23,7 @@ import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
-import jnr.ffi.Struct;
 import jnr.ffi.annotations.*;
-import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 
 import java.lang.annotation.Annotation;
@@ -34,7 +32,6 @@ import java.nio.Buffer;
 import java.util.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
-import static jnr.ffi.provider.jffi.NumberUtil.isLong32;
 import static jnr.ffi.provider.jffi.NumberUtil.isLong64;
 
 final class InvokerUtil {
@@ -45,13 +42,6 @@ final class InvokerUtil {
             if (typedef != null) {
                 return nativeType(runtime.findType(typedef.alias()));
             }
-        }
-
-        if (isLong32(type, annotations)) {
-            return NativeType.SLONG;
-
-        } else if (isLong64(type, annotations)) {
-            return NativeType.SLONGLONG;
         }
 
         return null;
@@ -226,16 +216,10 @@ final class InvokerUtil {
         } else if (Address.class.isAssignableFrom(type)) {
             return NativeType.ADDRESS;
 
-        } else if (String.class.isAssignableFrom(type)) {
-            return NativeType.ADDRESS;
-
         } else if (Buffer.class.isAssignableFrom(type)) {
             return NativeType.ADDRESS;
 
         } else if (CharSequence.class.isAssignableFrom(type)) {
-            return NativeType.ADDRESS;
-
-        } else if (ByReference.class.isAssignableFrom(type)) {
             return NativeType.ADDRESS;
 
         } else if (type.isArray()) {
