@@ -129,7 +129,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 String functionName = functionMapper.mapFunctionName(m.getName(), null);
                 try {
                     variableAccessorGenerator.generate(builder, interfaceClass, m.getName(),
-                            library.findSymbolAddress(functionName), (Class) variableType, m.getAnnotations(),
+                            library.findSymbolAddress(functionName), (Class) variableType, annotationCollection(m.getAnnotations()),
                             typeMapper);
 
                 } catch (SymbolNotFoundError ex) {

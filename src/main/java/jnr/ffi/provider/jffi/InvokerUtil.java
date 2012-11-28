@@ -20,7 +20,6 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
 import com.kenai.jffi.CallingConvention;
-import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
 import jnr.ffi.*;
 import jnr.ffi.NativeType;
@@ -28,9 +27,6 @@ import jnr.ffi.Struct;
 import jnr.ffi.annotations.*;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
-import jnr.ffi.provider.EnumConverter;
-import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.util.EnumMapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -38,10 +34,12 @@ import java.nio.Buffer;
 import java.util.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
+import static jnr.ffi.provider.jffi.NumberUtil.isLong32;
+import static jnr.ffi.provider.jffi.NumberUtil.isLong64;
 
 final class InvokerUtil {
 
-    static NativeType getAliasedNativeType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
+    static NativeType getAliasedNativeType(NativeRuntime runtime, Class type, Collection<Annotation> annotations) {
         for (Annotation a : annotations) {
             TypeDefinition typedef = a.annotationType().getAnnotation(TypeDefinition.class);
             if (typedef != null) {
@@ -52,7 +50,7 @@ final class InvokerUtil {
         if (isLong32(type, annotations)) {
             return NativeType.SLONG;
 
-        } else if (isLongLong(type, annotations)) {
+        } else if (isLong64(type, annotations)) {
             return NativeType.SLONGLONG;
         }
 
@@ -92,8 +90,8 @@ final class InvokerUtil {
 
         return com.kenai.jffi.CallingConvention.DEFAULT;
     }
-    
-    public static boolean hasAnnotation(Annotation[] annotations, Class<? extends Annotation> annotationClass) {
+
+    public static boolean hasAnnotation(Collection<Annotation> annotations, Class<? extends Annotation> annotationClass) {
         for (Annotation a : annotations) {
             if (annotationClass.isInstance(a)) {
                 return true;
@@ -101,17 +99,6 @@ final class InvokerUtil {
         }
 
         return false;
-    }
-    
-    static boolean isLong32(Class type, Annotation[] annotations) {
-        return (long.class == type || Long.class.isAssignableFrom(type))
-                && Platform.getPlatform().longSize() == 32
-                && !hasAnnotation(annotations, LongLong.class);
-    }
-    
-    static boolean isLongLong(Class type, Annotation[] annotations) {
-        return (long.class == type || Long.class.isAssignableFrom(type))
-            && (hasAnnotation(annotations, LongLong.class) || Platform.getPlatform().longSize() == 64);
     }
 
     static Type jffiType(jnr.ffi.NativeType jnrType) {
@@ -153,14 +140,14 @@ final class InvokerUtil {
         return jnrType.getNativeType();
     }
 
-    static ResultType getResultType(NativeRuntime runtime, Class type, Annotation[] annotations,
+    static ResultType getResultType(NativeRuntime runtime, Class type, Collection<Annotation> annotations,
                                     FromNativeConverter fromNativeConverter, FromNativeContext fromNativeContext) {
         NativeType nativeType = getMethodResultNativeType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations);
         boolean useContext = fromNativeConverter != null && !fromNativeConverter.getClass().isAnnotationPresent(FromNativeConverter.NoContext.class);
         return new ResultType(type, nativeType, annotations, fromNativeConverter, useContext ? fromNativeContext : null);
     }
 
-    static ParameterType getParameterType(NativeRuntime runtime, Class type, Annotation[] annotations,
+    static ParameterType getParameterType(NativeRuntime runtime, Class type, Collection<Annotation> annotations,
                                           ToNativeConverter toNativeConverter, ToNativeContext toNativeContext) {
         NativeType nativeType = getMethodParameterNativeType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations);
         return new ParameterType(type, nativeType, annotations, toNativeConverter, toNativeContext);
@@ -173,12 +160,13 @@ final class InvokerUtil {
         ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
-            ToNativeContext toNativeContext = new MethodParameterContext(m, pidx, parameterAnnotations[pidx]);
+            Collection<Annotation> annotations = annotationCollection(parameterAnnotations[pidx]);
+            ToNativeContext toNativeContext = new MethodParameterContext(m, pidx, annotations);
             ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(javaParameterTypes[pidx], toNativeContext);
 
             boolean contextRequired = toNativeConverter != null && !toNativeConverter.getClass().isAnnotationPresent(ToNativeConverter.NoContext.class);
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
-                    parameterAnnotations[pidx], toNativeConverter, contextRequired ? toNativeContext : null);
+                    annotations, toNativeConverter, contextRequired ? toNativeContext : null);
         }
 
         return parameterTypes;
@@ -203,7 +191,7 @@ final class InvokerUtil {
         return CallingConvention.DEFAULT;
     }
 
-    static NativeType getNativeType(NativeRuntime runtime, Class type, final Annotation[] annotations) {
+    static NativeType getNativeType(NativeRuntime runtime, Class type, Collection<Annotation> annotations) {
         NativeType aliasedType = getAliasedNativeType(runtime, type, annotations);
         if (aliasedType != null) {
             return aliasedType;
@@ -224,7 +212,7 @@ final class InvokerUtil {
             return NativeType.SINT;
 
         } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return isLongLong(type, annotations) ? NativeType.SLONGLONG : NativeType.SLONG;
+            return isLong64(type, annotations) ? NativeType.SLONGLONG : NativeType.SLONG;
 
         } else if (Float.class.isAssignableFrom(type) || float.class == type) {
             return NativeType.FLOAT;
@@ -264,11 +252,11 @@ final class InvokerUtil {
         }
     }
 
-    static NativeType getMethodParameterNativeType(NativeRuntime runtime, Class parameterClass, Annotation[] annotations) {
+    static NativeType getMethodParameterNativeType(NativeRuntime runtime, Class parameterClass, Collection<Annotation> annotations) {
         return getNativeType(runtime, parameterClass, annotations);
     }
 
-    static NativeType getMethodResultNativeType(NativeRuntime runtime, Class parameterClass, Annotation[] annotations) {
+    static NativeType getMethodResultNativeType(NativeRuntime runtime, Class parameterClass, Collection<Annotation> annotations) {
         return getNativeType(runtime, parameterClass, annotations);
     }
 
@@ -276,7 +264,7 @@ final class InvokerUtil {
     static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, MethodGenerator[] generators) {
         FromNativeContext resultContext = new MethodResultContext(m);
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                m.getAnnotations(), typeMapper.getFromNativeConverter(m.getReturnType(), resultContext),
+                Arrays.asList(m.getAnnotations()), typeMapper.getFromNativeConverter(m.getReturnType(), resultContext),
                 resultContext);
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, m);
@@ -310,6 +298,12 @@ final class InvokerUtil {
         } else {
             return Collections.emptyList();
         }
+    }
+
+    static Collection<Annotation> annotationCollection(Collection<Annotation> annotations) {
+        ArrayList<Annotation> ary = new ArrayList<Annotation>(annotations);
+        Collections.sort(ary, AnnotationComparator.INSTANCE);
+        return ary;
     }
 
     private static final class AnnotationComparator implements Comparator<Annotation> {

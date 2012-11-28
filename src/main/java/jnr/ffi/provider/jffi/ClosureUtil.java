@@ -27,8 +27,11 @@ import jnr.ffi.util.EnumMapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
+import static jnr.ffi.provider.jffi.InvokerUtil.annotationCollection;
 import static jnr.ffi.provider.jffi.InvokerUtil.jffiType;
 
 /**
@@ -39,7 +42,7 @@ final class ClosureUtil {
     }
 
     static ToNativeType getResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
-        Annotation[] annotations = m.getAnnotations();
+        Collection<Annotation> annotations = annotationCollection(m.getAnnotations());
         ToNativeConverter converter = typeMapper.getToNativeConverter(m.getReturnType(), new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
@@ -47,7 +50,7 @@ final class ClosureUtil {
     }
 
     static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
-        Annotation[] annotations = m.getParameterAnnotations()[idx];
+        Collection<Annotation> annotations = annotationCollection(m.getParameterAnnotations()[idx]);
         Class declaredJavaClass = m.getParameterTypes()[idx];
         FromNativeConverter converter = typeMapper.getFromNativeConverter(declaredJavaClass, new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;

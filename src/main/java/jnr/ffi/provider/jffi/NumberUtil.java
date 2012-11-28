@@ -24,6 +24,9 @@ import jnr.ffi.NativeType;
 import jnr.ffi.annotations.LongLong;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
+
+import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -311,24 +314,22 @@ public final class NumberUtil {
         }
     }
 
-    static boolean isLong32(Class type, Annotation[] annotations) {
+    static boolean isLong32(Class type, Collection<Annotation> annotations) {
         return isLong32(Platform.getPlatform(), type, annotations);
     }
 
-    static boolean isLong32(Platform platform, Class type, Annotation[] annotations) {
+    static boolean isLong32(Platform platform, Class type, Collection<Annotation> annotations) {
         return platform.longSize() == 32
-            && (((long.class == type || Long.class.isAssignableFrom(type))
-                 && !InvokerUtil.hasAnnotation(annotations, LongLong.class)));
+                && (((long.class == type || Long.class.isAssignableFrom(type))
+                && !InvokerUtil.hasAnnotation(annotations, LongLong.class)));
     }
 
-    static boolean isLong64(Class type, Annotation[] annotations) {
-        final int longSize = Platform.getPlatform().longSize();
-        return ((long.class == type || Long.class.isAssignableFrom(type))
-                && (longSize == 64 || InvokerUtil.hasAnnotation(annotations, LongLong.class)))
-                ;
+    static boolean isLong64(Class type, Collection<Annotation> annotations) {
+        return (long.class == type || Long.class.isAssignableFrom(type))
+                && (hasAnnotation(annotations, LongLong.class) || Platform.getPlatform().longSize() == 64);
     }
 
-    static boolean isInt32(Class type, Annotation[] annotations) {
+    static boolean isInt32(Class type, Collection<Annotation> annotations) {
         return Boolean.class.isAssignableFrom(type) || boolean.class == type
                 || Byte.class.isAssignableFrom(type) || byte.class == type
                 || Short.class.isAssignableFrom(type) || short.class == type

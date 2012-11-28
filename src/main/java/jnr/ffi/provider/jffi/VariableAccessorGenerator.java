@@ -12,6 +12,7 @@ import org.objectweb.asm.ClassWriter;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class VariableAccessorGenerator {
     static final Map<NativeType, PointerOp> pointerOperations;
 
     public void generate(AsmBuilder builder, Class interfaceClass, String variableName, long address,
-                         Class javaType, Annotation[] annotations,
+                         Class javaType, Collection<Annotation> annotations,
                          TypeMapper typeMapper) {
         SimpleNativeContext context = new SimpleNativeContext(annotations);
         FromNativeConverter fromNativeConverter = typeMapper.getFromNativeConverter(javaType, context);
@@ -50,7 +51,7 @@ public class VariableAccessorGenerator {
         mv.visitEnd();
     }
 
-    Variable buildVariableAccessor(long address, Class interfaceClass, Class javaType, Annotation[] annotations,
+    Variable buildVariableAccessor(long address, Class interfaceClass, Class javaType, Collection<Annotation> annotations,
                                    ToNativeConverter toNativeConverter, FromNativeConverter fromNativeConverter) {
         boolean debug = AsmLibraryLoader.DEBUG && !hasAnnotation(annotations, NoTrace.class);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);

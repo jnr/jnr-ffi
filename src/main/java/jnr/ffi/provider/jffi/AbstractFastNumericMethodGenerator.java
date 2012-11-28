@@ -9,10 +9,7 @@ import org.objectweb.asm.Label;
 
 import java.lang.annotation.Annotation;
 import java.nio.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -117,7 +114,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     pointers[i] = parameters[i];
                 }
 
-                emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations);
+                emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations());
 
                 strategies[i] = localVariableAllocator.allocate(ObjectParameterStrategy.class);
                 mv.astore(strategies[i]);
@@ -209,7 +206,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     mv.aload(0);
 
                     ObjectParameterInfo info = ObjectParameterInfo.create(i,
-                            AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
+                            AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations()));
 
                     mv.getfield(builder.getClassNamePath(), builder.getObjectParameterInfoName(info),
                             ci(ObjectParameterInfo.class));
@@ -232,7 +229,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         byte[].class, short[].class, char[].class, int[].class, long[].class, float[].class, double[].class, boolean[].class
     )));
 
-    static void emitPointerParameterStrategyLookup(SkinnyMethodAdapter mv, Class javaParameterType, Annotation[] annotations) {
+    static void emitPointerParameterStrategyLookup(SkinnyMethodAdapter mv, Class javaParameterType, Collection<Annotation> annotations) {
         boolean converted = false;
         for (Class c : pointerTypes) {
             if (c.isAssignableFrom(javaParameterType)) {

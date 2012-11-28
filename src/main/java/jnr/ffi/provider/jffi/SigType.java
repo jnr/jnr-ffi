@@ -3,6 +3,9 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.NativeType;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
@@ -11,12 +14,12 @@ import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
  */
 abstract class SigType {
     private final Class javaType, convertedType;
+    private final Collection<Annotation> annotations;
     final NativeType nativeType;
-    final Annotation[] annotations;
 
-    SigType(Class javaType, NativeType nativeType, Annotation[] annotations, Class convertedType) {
+    SigType(Class javaType, NativeType nativeType, Collection<Annotation> annotations, Class convertedType) {
         this.javaType = javaType;
-        this.annotations = annotations.clone();
+        this.annotations = annotations;
         this.convertedType = convertedType;
         this.nativeType = nativeType;
     }
@@ -31,5 +34,9 @@ abstract class SigType {
 
     final int size() {
         return sizeof(nativeType);
+    }
+
+    final Collection<Annotation> annotations() {
+        return annotations;
     }
 }

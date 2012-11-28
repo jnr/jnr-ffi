@@ -171,7 +171,7 @@ class X86MethodGenerator implements MethodGenerator {
                     pointers[i] = parameters[i];
                 }
 
-                emitPointerParameterStrategyLookup(mv, javaParameterClass, parameterTypes[i].annotations);
+                emitPointerParameterStrategyLookup(mv, javaParameterClass, parameterTypes[i].annotations());
 
                 mv.astore(strategies[i]);
                 mv.aload(strategies[i]);
@@ -257,7 +257,7 @@ class X86MethodGenerator implements MethodGenerator {
                     mv.aload(0);
 
                     ObjectParameterInfo info = ObjectParameterInfo.create(i,
-                            AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations));
+                            AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations()));
 
                     mv.getfield(builder.getClassNamePath(), builder.getObjectParameterInfoName(info),
                             ci(ObjectParameterInfo.class));

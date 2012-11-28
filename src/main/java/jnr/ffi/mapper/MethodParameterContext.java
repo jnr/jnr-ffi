@@ -42,6 +42,12 @@ public final class MethodParameterContext implements ToNativeContext {
         this.annotationArray = annotationArray.clone();
     }
 
+    public MethodParameterContext(Method method, int parameterIndex, Collection<Annotation> annotations) {
+        this.method = method;
+        this.parameterIndex = parameterIndex;
+        this.annotations = annotations;
+    }
+
     public Method getMethod() {
         return method;
     }

@@ -37,6 +37,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.Buffer;
+import java.util.Collection;
 
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -389,11 +390,6 @@ final class AsmUtil {
         return isDelegate(type.getDeclaredType());
     }
 
-
-    static int getParameterFlags(Annotation[] annotations) {
-        return ParameterFlags.parse(annotations);
-    }
-
     static int getNativeArrayFlags(int flags) {
         int nflags = 0;
         nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ArrayFlags.IN : 0;
@@ -403,8 +399,8 @@ final class AsmUtil {
         return nflags;
     }
 
-    static int getNativeArrayFlags(Annotation[] annotations) {
-        return getNativeArrayFlags(getParameterFlags(annotations));
+    static int getNativeArrayFlags(Collection<Annotation> annotations) {
+        return getNativeArrayFlags(ParameterFlags.parse(annotations));
     }
 
     static Class getNativeClass(NativeType nativeType) {

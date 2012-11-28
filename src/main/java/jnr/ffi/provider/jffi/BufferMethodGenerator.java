@@ -111,7 +111,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         return (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType()))
                 || (javaType.isArray() && CharSequence.class.isAssignableFrom(javaType.getComponentType()))
                 || (javaType.isArray() && NativeLong.class.isAssignableFrom(javaType.getComponentType()))
-                || (javaType.isArray() && isLong32(javaType.getComponentType(), parameterType.annotations))
+                || (javaType.isArray() && isLong32(javaType.getComponentType(), parameterType.annotations()))
                 ;
     }
 
@@ -169,7 +169,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
             }
 
-            final int parameterFlags = AsmUtil.getParameterFlags(parameterTypes[i].annotations);
+            final int parameterFlags = ParameterFlags.parse(parameterTypes[i].annotations());
             final int nativeArrayFlags = AsmUtil.getNativeArrayFlags(parameterFlags)
                         | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
 
@@ -180,7 +180,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                 mv.pushInt(nativeArrayFlags);
 
-                if (isLong32(javaParameterType.getComponentType(), parameterTypes[i].annotations)) {
+                if (isLong32(javaParameterType.getComponentType(), parameterTypes[i].annotations())) {
                     mv.invokestatic(p(AsmRuntime.class), "marshal32",
                         sig(void.class, ci(HeapInvocationBuffer.class) + ci(InvocationSession.class),
                                 javaParameterType, int.class));
