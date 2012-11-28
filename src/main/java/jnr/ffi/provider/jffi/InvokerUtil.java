@@ -264,7 +264,7 @@ final class InvokerUtil {
     static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, MethodGenerator[] generators) {
         FromNativeContext resultContext = new MethodResultContext(m);
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                Arrays.asList(m.getAnnotations()), typeMapper.getFromNativeConverter(m.getReturnType(), resultContext),
+                resultContext.getAnnotations(), typeMapper.getFromNativeConverter(m.getReturnType(), resultContext),
                 resultContext);
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, m);
