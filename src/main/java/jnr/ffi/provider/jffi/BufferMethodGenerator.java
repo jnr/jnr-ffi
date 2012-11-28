@@ -246,7 +246,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             nativeReturnType = long.class;
 
         } else if (Pointer.class == javaReturnType || Address.class == javaReturnType
-            || jnr.ffi.Struct.class.isAssignableFrom(javaReturnType) || String.class.isAssignableFrom(javaReturnType)) {
+            || String.class.isAssignableFrom(javaReturnType)) {
             invokeMethod = Platform.getPlatform().addressSize() == 32 ? "invokeInt" : "invokeLong";
             nativeReturnType = Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 

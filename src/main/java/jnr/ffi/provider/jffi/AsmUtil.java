@@ -96,21 +96,11 @@ final class AsmUtil {
 
     public static Class unboxedReturnType(Class type) {
         if (Pointer.class.isAssignableFrom(type)
-            || Struct.class.isAssignableFrom(type)
             || String.class.isAssignableFrom(type)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
         }
         
         return unboxedType(type);
-    }
-
-    public static Class unboxedParameterType(Class type) {
-        if (Buffer.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
-
-        } else {
-            return unboxedType(type);
-        }
     }
 
     public static Class unboxedType(Class boxedType) {
@@ -135,7 +125,7 @@ final class AsmUtil {
         } else if (boxedType == Boolean.class) {
             return boolean.class;
 
-        } else if (Pointer.class.isAssignableFrom(boxedType) || Struct.class.isAssignableFrom(boxedType)) {
+        } else if (Pointer.class.isAssignableFrom(boxedType)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
         } else if (Address.class == boxedType) {
@@ -495,89 +485,6 @@ final class AsmUtil {
         } else {
             mv.istore(var);
         }
-    }
-
-    static Label emitDirectCheck(SkinnyMethodAdapter mv, Class[] parameterTypes) {
-
-        // Iterate through any parameters that might require a HeapInvocationBuffer
-        Label bufferInvocationLabel = new Label();
-        boolean needBufferInvocation = false;
-        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-            if (Pointer.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
-                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Pointer.class);
-                mv.iffalse(bufferInvocationLabel);
-                needBufferInvocation = true;
-
-            } else if (Struct.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
-                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Struct.class);
-                mv.iffalse(bufferInvocationLabel);
-                needBufferInvocation = true;
-
-            } else if (Buffer.class.isAssignableFrom(parameterTypes[i])) {
-                mv.aload(lvar++);
-
-
-                if (Platform.getPlatform().getJavaMajorVersion() < 6 && Buffer.class == parameterTypes[i]) {
-                    // Buffer#isDirect() is only available in java 6 or later, so need to use a slower test
-                    // that checks / casts to the appropriate buffer subclass
-                    mv.invokestatic(AsmRuntime.class, "isDirect5", boolean.class, Buffer.class);
-
-                } else {
-                    mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, parameterTypes[i]);
-                }
-                mv.iffalse(bufferInvocationLabel);
-                needBufferInvocation = true;
-
-            } else {
-                lvar += calculateLocalVariableSpace(parameterTypes[i]);
-            }
-        }
-
-        return needBufferInvocation ? bufferInvocationLabel : null;
-    }
-
-    static Label emitDirectCheck(SkinnyMethodAdapter mv, ParameterType[] parameterTypes) {
-
-        // Iterate through any parameters that might require a HeapInvocationBuffer
-        Label bufferInvocationLabel = new Label();
-        boolean needBufferInvocation = false;
-        for (int i = 0, lvar = 1; i < parameterTypes.length; ++i) {
-            Class javaType = parameterTypes[i].getDeclaredType();
-            if (Pointer.class.isAssignableFrom(javaType)) {
-                mv.aload(lvar++);
-                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Pointer.class);
-                mv.iffalse(bufferInvocationLabel);
-                needBufferInvocation = true;
-
-            } else if (Struct.class.isAssignableFrom(javaType)) {
-                mv.aload(lvar++);
-                mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, Struct.class);
-                mv.iffalse(bufferInvocationLabel);
-                needBufferInvocation = true;
-
-            } else if (Buffer.class.isAssignableFrom(javaType)) {
-                mv.aload(lvar++);
-
-
-                if (Platform.getPlatform().getJavaMajorVersion() < 6 && Buffer.class == javaType) {
-                    // Buffer#isDirect() is only available in java 6 or later, so need to use a slower test
-                    // that checks / casts to the appropriate buffer subclass
-                    mv.invokestatic(AsmRuntime.class, "isDirect5", boolean.class, Buffer.class);
-
-                } else {
-                    mv.invokestatic(AsmRuntime.class, "isDirect", boolean.class, javaType);
-                }
-                mv.iffalse(bufferInvocationLabel);
-                needBufferInvocation = true;
-
-            } else {
-                lvar += calculateLocalVariableSpace(parameterTypes[i]);
-            }
-        }
-
-        return needBufferInvocation ? bufferInvocationLabel : null;
     }
 
     static void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {

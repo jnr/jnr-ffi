@@ -226,9 +226,6 @@ final class InvokerUtil {
         } else if (Address.class.isAssignableFrom(type)) {
             return NativeType.ADDRESS;
 
-        } else if (Struct.class.isAssignableFrom(type)) {
-            return NativeType.ADDRESS;
-
         } else if (String.class.isAssignableFrom(type)) {
             return NativeType.ADDRESS;
 
