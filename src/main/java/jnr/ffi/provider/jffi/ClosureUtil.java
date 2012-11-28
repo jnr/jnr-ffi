@@ -18,21 +18,15 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
-import jnr.ffi.Struct;
-import jnr.ffi.byref.ByReference;
-import jnr.ffi.mapper.*;
-import jnr.ffi.provider.EnumConverter;
-import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.util.EnumMapper;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.InvokerUtil.annotationCollection;
-import static jnr.ffi.provider.jffi.InvokerUtil.jffiType;
 
 /**
  *

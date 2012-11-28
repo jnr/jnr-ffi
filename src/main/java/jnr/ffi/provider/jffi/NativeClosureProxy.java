@@ -1,12 +1,7 @@
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeContext;
-import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -19,7 +14,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.NumberUtil.*;
+import static jnr.ffi.provider.jffi.NumberUtil.convertPrimitive;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
@@ -231,7 +227,6 @@ public abstract class NativeClosureProxy {
                 /*
                 || CharSequence.class == type
                 || Buffer.class.isAssignableFrom(type)
-                || Enum.class.isAssignableFrom(type)
                 || (type.isArray() && type.getComponentType().isPrimitive())
                 || (type.isArray() && Struct.class.isAssignableFrom(type.getComponentType()))
                 || (type.isArray() && Pointer.class.isAssignableFrom(type.getComponentType()))

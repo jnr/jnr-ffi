@@ -19,7 +19,6 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Platform;
-import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.annotations.LongLong;
 
@@ -335,7 +334,6 @@ public final class NumberUtil {
                 || Short.class.isAssignableFrom(type) || short.class == type
                 || Integer.class.isAssignableFrom(type) || int.class == type
                 || isLong32(type, annotations)
-                || Enum.class.isAssignableFrom(type)
                 ;
     }
 }

@@ -4,7 +4,6 @@ import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Variable;
 import jnr.ffi.mapper.*;
-import jnr.ffi.util.EnumMapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -20,7 +19,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.InvokerUtil.*;
+import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
+import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 import static jnr.ffi.provider.jffi.NumberUtil.narrow;
 import static jnr.ffi.provider.jffi.NumberUtil.widen;
 import static org.objectweb.asm.Opcodes.*;

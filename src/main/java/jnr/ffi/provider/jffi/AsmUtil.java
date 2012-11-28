@@ -19,7 +19,10 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Platform;
-import jnr.ffi.*;
+import jnr.ffi.Address;
+import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
+import jnr.ffi.Struct;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
@@ -39,10 +42,7 @@ import java.lang.reflect.Modifier;
 import java.nio.Buffer;
 import java.util.Collection;
 
-import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
-import static jnr.ffi.provider.jffi.CodegenUtils.ci;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 
 final class AsmUtil {
@@ -245,11 +245,6 @@ final class AsmUtil {
 
     static void unboxPointer(final SkinnyMethodAdapter mv, final Class nativeType) {
         unboxPointerOrStruct(mv, Pointer.class, nativeType);
-    }
-
-    static void unboxEnum(final SkinnyMethodAdapter mv, final Class nativeType) {
-        mv.invokestatic(p(AsmRuntime.class), long.class == nativeType ? "longValue" : "intValue",
-                sig(nativeType, Enum.class));
     }
 
     static void unboxBoolean(final SkinnyMethodAdapter mv, Class boxedType, final Class nativeType) {
