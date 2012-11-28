@@ -26,11 +26,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         generateBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes);
     }
 
-    public boolean isSupported(Signature signature) {
-        // Buffer invocation supports everything
-        return true;
-    }
-
     public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
         // Buffer invocation supports everything
         return true;
