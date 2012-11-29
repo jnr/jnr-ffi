@@ -20,10 +20,16 @@ package jnr.ffi.mapper;
 
 import jnr.ffi.Library;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+
 
 public interface FunctionMapper {
-    static interface Context {
-        Library getLibrary();
+    public static interface Context {
+        @Deprecated
+        public abstract Library getLibrary();
+        public abstract boolean isSymbolPresent(String name);
+        public Collection<Annotation> getAnnotations();
     }
     public String mapFunctionName(String functionName, Context context);
 }

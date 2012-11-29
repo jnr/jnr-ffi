@@ -30,9 +30,11 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -95,13 +97,12 @@ public class AsmLibraryLoader extends LibraryLoader {
         };
 
 
-
         for (Method m : interfaceClass.getMethods()) {
             if (Variable.class.isAssignableFrom(m.getReturnType())) {
                 continue;
             }
-
-            String functionName = functionMapper.mapFunctionName(m.getName(), null);
+            Collection<Annotation> annotations = annotationCollection(m.getAnnotations());
+            String functionName = functionMapper.mapFunctionName(m.getName(), new NativeFunctionMapperContext(library, annotations));
 
             // Allow individual methods to set the calling convention to stdcall
             CallingConvention callingConvention = m.isAnnotationPresent(StdCall.class)
