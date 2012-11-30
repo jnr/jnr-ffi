@@ -1,0 +1,24 @@
+-classpath
+'/Users/wayne/src/jaffl/target/classes:/Users/wayne/.m2/repository/org/ow2/asm/asm-util/4.0/asm-util-4.0.jar:/Users/wayne/.m2/repository/com/github/jnr/jffi/1.2.6/jffi-1.2.6.jar:/Users/wayne/.m2/repository/org/ow2/asm/asm-tree/4.0/asm-tree-4.0.jar:/Users/wayne/.m2/repository/org/ow2/asm/asm-analysis/4.0/asm-analysis-4.0.jar:/Users/wayne/.m2/repository/org/ow2/asm/asm/4.0/asm-4.0.jar:/Users/wayne/.m2/repository/org/ow2/asm/asm-commons/4.0/asm-commons-4.0.jar:/Users/wayne/.m2/repository/com/github/jnr/jnr-x86asm/1.0.2/jnr-x86asm-1.0.2.jar'
+-encoding
+'UTF-8'
+-protected
+-sourcepath
+'/Users/wayne/src/jaffl/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2012. All Rights Reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/wayne/src/jaffl/target/site/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'jnr-ffi 0.8.0-SNAPSHOT API'
+-linkoffline
+'http://download.oracle.com/javase/6/docs/api' '/Users/wayne/src/jaffl/target/javadoc-bundle-options'
+-use
+-version
+-windowtitle
+'jnr-ffi 0.8.0-SNAPSHOT API'

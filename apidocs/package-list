@@ -1,0 +1,5 @@
+jnr.ffi
+jnr.ffi.annotations
+jnr.ffi.byref
+jnr.ffi.mapper
+jnr.ffi.types
