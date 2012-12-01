@@ -8,6 +8,8 @@ import jnr.ffi.mapper.*;
 import jnr.ffi.provider.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 
+import java.util.EnumSet;
+
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 
 final class InvokerTypeMapper implements TypeMapper {
@@ -49,6 +51,9 @@ final class InvokerTypeMapper implements TypeMapper {
     public ToNativeConverter getToNativeConverter(Class javaType, ToNativeContext context) {
         if (Enum.class.isAssignableFrom(javaType)) {
             return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
+
+        } else if (EnumSet.class.isAssignableFrom(javaType)) {
+            return EnumSetConverter.getToNativeConverter(javaType, context);
 
         } else if (isDelegate(javaType)) {
             return closureManager.newClosureSite(javaType);

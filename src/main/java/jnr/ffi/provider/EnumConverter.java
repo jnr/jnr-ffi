@@ -40,7 +40,7 @@ public final class EnumConverter implements DataConverter<Enum, Integer> {
     }
 
     public Integer toNative(Enum value, ToNativeContext context) {
-        return mapper.intValue(value);
+        return mapper.integerValue(value);
     }
 
     public Class<Integer> nativeType() {

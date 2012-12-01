@@ -24,6 +24,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.EnumSet;
+
 import static org.junit.Assert.*;
 
 /**
@@ -52,6 +55,7 @@ public class EnumTest {
     public static interface TestLib {
         public int ret_int32_t(TestEnum e);
         public int add_int32_t(TestEnum i1, TestEnum i2);
+        public int ret_int32_t(EnumSet<TestEnum> enumSet);
     }
 
     public static interface ReturnEnumLib {
@@ -94,5 +98,10 @@ public class EnumTest {
     public void returnEnum() {
         assertEquals("Wrong value returned for enum", TestEnum.Z, retenum.ret_int32_t(TestEnum.Z.intValue()));
         assertEquals("Wrong value returned for enum", TestEnum.C, retenum.add_int32_t(1, 2));
+    }
+
+    @Test
+    public void enumSet() {
+        assertEquals(TestEnum.A.intValue() | TestEnum.B.intValue(), testlib.ret_int32_t(EnumSet.of(TestEnum.A, TestEnum.B)));
     }
 }
