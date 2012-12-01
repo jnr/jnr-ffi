@@ -1,6 +1,9 @@
 package jnr.ffi.mapper;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -16,12 +19,29 @@ public final class CachingTypeMapper implements TypeMapper {
     }
 
     public final FromNativeConverter getFromNativeConverter(Class klazz, FromNativeContext context) {
+        // Do not cache converters for generic types
+        if ((context instanceof MethodResultContext)) {
+            Method method = ((MethodResultContext) context).getMethod();
+            if (method.getGenericReturnType() instanceof ParameterizedType) {
+                return mapper.getFromNativeConverter(klazz, context);
+            }
+        }
+
         Map<Collection<Annotation>, FromNativeConverter> map = fromNativeConverterMap.get(klazz);
         FromNativeConverter fromNativeConverter = map != null ? map.get(context.getAnnotations()) : null;
         return fromNativeConverter != null ? fromNativeConverter : lookupAndCacheFromNativeConverter(klazz, context);
     }
 
     public final ToNativeConverter getToNativeConverter(Class klazz, ToNativeContext context) {
+        // Do not cache converters for generic types
+        if ((context instanceof MethodParameterContext)) {
+            Method method = ((MethodParameterContext) context).getMethod();
+            Type genericParameterType = method.getGenericParameterTypes()[((MethodParameterContext) context).getParameterIndex()];
+            if (genericParameterType instanceof ParameterizedType) {
+                return mapper.getToNativeConverter(klazz, context);
+            }
+        }
+
         Map<Collection<Annotation>, ToNativeConverter> map = toNativeConverterMap.get(klazz);
         ToNativeConverter toNativeConverter = map != null ? map.get(context.getAnnotations()) : null;
         return toNativeConverter != null ? toNativeConverter : lookupAndCacheToNativeConverter(klazz, context);
