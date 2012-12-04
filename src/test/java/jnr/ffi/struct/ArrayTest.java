@@ -3,6 +3,7 @@ package jnr.ffi.struct;
 
 import jnr.ffi.*;
 import jnr.ffi.Runtime;
+import jnr.ffi.annotations.In;
 import jnr.ffi.provider.AbstractArrayMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
 import org.junit.After;
@@ -15,7 +16,7 @@ import static org.junit.Assert.*;
 
 public class ArrayTest {
     public static interface TestLib {
-        byte ptr_ret_int8_t(s8[] s, int index);
+        byte ptr_ret_int8_t(@In s8[] s, int index);
         class PointerStruct extends Struct {
 
             public final Signed8 s8 = new Signed8();

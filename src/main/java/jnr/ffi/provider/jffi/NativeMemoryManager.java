@@ -26,9 +26,11 @@ import java.nio.ByteBuffer;
 
 public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
     private final NativeRuntime runtime;
+    private final long addressMask;
 
     public NativeMemoryManager(NativeRuntime runtime) {
         this.runtime = runtime;
+        this.addressMask = runtime.addressMask();
     }
     
     public Pointer allocate(int size) {
@@ -56,11 +58,11 @@ public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
     }
 
     public Pointer newPointer(long address) {
-        return new DirectMemoryIO(runtime, address);
+        return new DirectMemoryIO(runtime, address & addressMask);
     }
 
     public Pointer newPointer(long address, long size) {
-        return new BoundedMemoryIO(new DirectMemoryIO(runtime, address), 0, size);
+        return new BoundedMemoryIO(new DirectMemoryIO(runtime, address & addressMask), 0, size);
     }
 
     public Pointer newOpaquePointer(long address) {

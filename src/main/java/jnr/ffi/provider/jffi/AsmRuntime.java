@@ -21,11 +21,9 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import jnr.ffi.Address;
 import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.*;
-import jnr.ffi.util.BufferUtil;
 
 import java.nio.*;
 import java.nio.charset.Charset;
@@ -258,26 +256,6 @@ public final class AsmRuntime {
         } else {
             ByteBuffer buf = Charset.defaultCharset().encode(CharBuffer.wrap(cs));
             buffer.putArray(buf.array(), buf.arrayOffset(), buf.remaining(), com.kenai.jffi.ArrayFlags.IN | com.kenai.jffi.ArrayFlags.NULTERMINATE);
-        }
-    }
-
-    public static void marshal(HeapInvocationBuffer buffer, jnr.ffi.Struct[] parameter, int parameterFlags, int nativeArrayFlags) {
-        if (parameter == null) {
-            buffer.putAddress(0L);
-        } else {
-            jnr.ffi.Struct[] array = parameter;
-            Pointer memory = Struct.getMemory(array[0], parameterFlags);
-            if (!(memory instanceof DelegatingMemoryIO)) {
-                throw new RuntimeException("Struct array must be backed by contiguous array");
-            }
-            memory = ((DelegatingMemoryIO) memory).getDelegatedMemoryIO();
-            if (memory instanceof AbstractArrayMemoryIO) {
-                AbstractArrayMemoryIO aio = (AbstractArrayMemoryIO) memory;
-                buffer.putArray(aio.array(), aio.offset(), aio.length(), nativeArrayFlags);
-            
-            } else if (memory.isDirect()) {
-                buffer.putAddress(memory.address());
-            }
         }
     }
 

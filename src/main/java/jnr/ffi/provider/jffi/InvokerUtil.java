@@ -128,17 +128,67 @@ final class InvokerUtil {
         return jnrType.getNativeType();
     }
 
+
+    private static final Collection<Annotation> emptyAnnotations = Collections.emptyList();
+
+    private static final Collection<Annotation> mergeAnnotations(Collection<Annotation> a, Collection<Annotation> b) {
+        if (a.isEmpty() && b.isEmpty()) {
+            return emptyAnnotations;
+
+        } else if (!a.isEmpty() && b.isEmpty()) {
+            return a;
+
+        } else if (a.isEmpty() && !b.isEmpty()) {
+            return b;
+
+        } else {
+            List<Annotation> all = new ArrayList<Annotation>(a);
+            all.addAll(b);
+            return annotationCollection(all);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static Collection<Annotation> getNativeTypeAnnotations(Class converterClass) {
+        Method nativeTypeMethod;
+        try {
+            nativeTypeMethod = converterClass.getMethod("nativeType");
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+
+        return annotationCollection(nativeTypeMethod.getAnnotations());
+    }
+
+    static Collection<Annotation> getAnnotations(ToNativeConverter toNativeConverter) {
+        return toNativeConverter != null
+                ? getNativeTypeAnnotations(toNativeConverter.getClass())
+                : emptyAnnotations;
+    }
+
+    static Collection<Annotation> getAnnotations(FromNativeConverter fromNativeConverter) {
+        return fromNativeConverter != null
+                ? getNativeTypeAnnotations(fromNativeConverter.getClass())
+                : emptyAnnotations;
+    }
+
+
+
     static ResultType getResultType(NativeRuntime runtime, Class type, Collection<Annotation> annotations,
                                     FromNativeConverter fromNativeConverter, FromNativeContext fromNativeContext) {
-        NativeType nativeType = getMethodResultNativeType(runtime, fromNativeConverter != null ? fromNativeConverter.nativeType() : type, annotations);
+        Collection<Annotation> allAnnotations = mergeAnnotations(annotations, getAnnotations(fromNativeConverter));
+        NativeType nativeType = getMethodResultNativeType(runtime,
+                fromNativeConverter != null ? fromNativeConverter.nativeType() : type, allAnnotations);
         boolean useContext = fromNativeConverter != null && !fromNativeConverter.getClass().isAnnotationPresent(FromNativeConverter.NoContext.class);
-        return new ResultType(type, nativeType, annotations, fromNativeConverter, useContext ? fromNativeContext : null);
+        return new ResultType(type, nativeType, allAnnotations, fromNativeConverter, useContext ? fromNativeContext : null);
     }
 
     static ParameterType getParameterType(NativeRuntime runtime, Class type, Collection<Annotation> annotations,
                                           ToNativeConverter toNativeConverter, ToNativeContext toNativeContext) {
-        NativeType nativeType = getMethodParameterNativeType(runtime, toNativeConverter != null ? toNativeConverter.nativeType() : type, annotations);
-        return new ParameterType(type, nativeType, annotations, toNativeConverter, toNativeContext);
+        Collection<Annotation> allAnnotations = mergeAnnotations(annotations, getAnnotations(toNativeConverter));
+        NativeType nativeType = getMethodParameterNativeType(runtime,
+                toNativeConverter != null ? toNativeConverter.nativeType() : type, allAnnotations);
+        return new ParameterType(type, nativeType, allAnnotations, toNativeConverter, toNativeContext);
     }
 
     static ParameterType[] getParameterTypes(NativeRuntime runtime, TypeMapper typeMapper,

@@ -7,6 +7,10 @@ import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.provider.converters.ByteArrayParameterConverter;
+import jnr.ffi.provider.converters.Pointer32ArrayParameterConverter;
+import jnr.ffi.provider.converters.Pointer64ArrayParameterConverter;
+import jnr.ffi.provider.converters.StructArrayParameterConverter;
 
 import java.util.EnumSet;
 
@@ -73,6 +77,16 @@ final class InvokerTypeMapper implements TypeMapper {
         } else if (StringBuffer.class.isAssignableFrom(javaType)) {
             return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
+        } else if (Byte[].class.isAssignableFrom(javaType)) {
+            return ByteArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType())) {
+            return NativeRuntime.getInstance().addressSize() == 4
+                    ? Pointer32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
+                    : Pointer64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (javaType.isArray() && Struct.class.isAssignableFrom(javaType.getComponentType())) {
+            return StructArrayParameterConverter.getInstance(NativeRuntime.getInstance(), javaType.getComponentType(), ParameterFlags.parse(context.getAnnotations()));
         } else {
             return null;
         }

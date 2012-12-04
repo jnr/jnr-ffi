@@ -18,7 +18,9 @@
 
 package jnr.ffi;
 
+import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.LongLong;
+import jnr.ffi.annotations.Out;
 import jnr.ffi.types.int32_t;
 import jnr.ffi.types.int8_t;
 import jnr.ffi.types.size_t;
@@ -38,8 +40,8 @@ public class PointerTest {
     public PointerTest() {
     }
     public static interface TestLib {
-        Pointer ptr_return_array_element(Pointer[] array, int index);
-        void ptr_set_array_element(Pointer[] array, int index, Pointer value);
+        Pointer ptr_return_array_element(@In Pointer[] array, int index);
+        void ptr_set_array_element(@Out Pointer[] array, int index, Pointer value);
         byte ptr_ret_int8_t(Pointer p, int offset);
         byte ptr_ret_int8_t(Address p, int offset);
         short ptr_ret_int16_t(Pointer p, int offset);
@@ -357,6 +359,26 @@ public class PointerTest {
             p.putByte(i, MAGIC);
             assertEquals("Byte not set at offset " + i, MAGIC, testlib.ptr_ret_int8_t(Address.valueOf(p.address()), i));
         }
+    }
+
+    @Test
+    public void pointerArrayGetElement() {
+        Pointer[] ary = new Pointer[10];
+        Pointer p1 = ary[0] = runtime.getMemoryManager().newPointer(0xdeadbeef & runtime.addressMask());
+        Pointer p2 = ary[9] = runtime.getMemoryManager().newPointer(0xfee1dead & runtime.addressMask());
+        assertEquals(p1, testlib.ptr_return_array_element(ary, 0));
+        assertEquals(p2, testlib.ptr_return_array_element(ary, 9));
+    }
+
+    @Test
+    public void pointerArraySetElement() {
+        Pointer[] ary = new Pointer[10];
+        Pointer p1 = runtime.getMemoryManager().newPointer(0xdeadbeef & runtime.addressMask());
+        Pointer p2 = runtime.getMemoryManager().newPointer(0xfee1dead & runtime.addressMask());
+        testlib.ptr_set_array_element(ary, 0, p1);
+        assertEquals(p1, ary[0]);
+        testlib.ptr_set_array_element(ary, 9, p2);
+        assertEquals(p2, ary[9]);
     }
 //    @Test
 //    public void testLibcMalloc() {

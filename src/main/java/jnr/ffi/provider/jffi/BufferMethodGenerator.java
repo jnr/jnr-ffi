@@ -178,16 +178,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.pushInt(nativeArrayFlags);
                 sessionmarshal(mv, CharSequence[].class, int.class, int.class);
 
-            } else if (javaParameterType.isArray() && jnr.ffi.Struct.class.isAssignableFrom(javaParameterType.getComponentType())) {
-                mv.pushInt(parameterFlags);
-                mv.pushInt(nativeArrayFlags);
-                marshal(mv, jnr.ffi.Struct[].class, int.class, int.class);
-
-            } else if (javaParameterType.isArray() && Pointer.class.isAssignableFrom(javaParameterType.getComponentType())) {
-                mv.pushInt(parameterFlags);
-                mv.pushInt(nativeArrayFlags);
-                sessionmarshal(mv, Pointer[].class, int.class, int.class);
-
             } else {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
             }
