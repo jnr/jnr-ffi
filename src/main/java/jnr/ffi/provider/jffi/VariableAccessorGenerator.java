@@ -21,7 +21,6 @@ import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
 import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
-import static jnr.ffi.provider.jffi.NumberUtil.narrow;
 import static jnr.ffi.provider.jffi.NumberUtil.widen;
 import static org.objectweb.asm.Opcodes.*;
 
@@ -64,11 +63,15 @@ public class VariableAccessorGenerator {
         SkinnyMethodAdapter set = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL, "set",
                 sig(void.class, Object.class),
                 null, null);
+
         Class boxedType = toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
-        Class primitiveType = unboxedType(boxedType);
-
-
-        LocalVariableAllocator setVariableAllocator = new LocalVariableAllocator(1);
+        NativeType nativeType = getNativeType(NativeRuntime.getInstance(), boxedType, annotations);
+        ToNativeType toNativeType = new ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
+        FromNativeType fromNativeType = new FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
+        PointerOp pointerOp = pointerOperations.get(nativeType);
+        if (pointerOp == null) {
+            throw new IllegalArgumentException("global variable type not supported: " + javaType);
+        }
 
         set.start();
         set.aload(0);
@@ -76,64 +79,35 @@ public class VariableAccessorGenerator {
         set.getfield(builder.getClassNamePath(), builder.getObjectFieldName(pointer, Pointer.class), ci(Pointer.class));
         set.lconst_0();
 
-        if (toNativeConverter != null) {
-            set.aload(0);
-            AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(toNativeConverter);
-            set.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
-            set.aload(1);
-            set.aconst_null();
-            set.invokeinterface(ToNativeConverter.class, "toNative", Object.class, Object.class, ToNativeContext.class);
-            set.checkcast(toNativeConverter.nativeType());
-        } else {
-            set.aload(1);
-            set.checkcast(javaType);
-        }
+        set.aload(1);
+        set.checkcast(javaType);
+        emitToNativeConversion(builder, set, toNativeType);
 
-        if (Number.class.isAssignableFrom(boxedType)) {
-            unboxNumber(set, boxedType, primitiveType);
-
-        } else if (Pointer.class.isAssignableFrom(boxedType)) {
-            unboxPointer(set, primitiveType);
-
+        ToNativeOp toNativeOp = ToNativeOp.get(toNativeType);
+        if (toNativeOp != null && toNativeOp.isPrimitive()) {
+            toNativeOp.emitPrimitive(set, pointerOp.nativeIntClass, toNativeType.nativeType);
         } else {
             throw new IllegalArgumentException("global variable type not supported: " + javaType);
         }
 
-        NativeType nativeType = getNativeType(NativeRuntime.getInstance(), boxedType, annotations);
-        PointerOp op = pointerOperations.get(nativeType);
-        if (op == null) {
-            throw new IllegalArgumentException("global variable type not supported: " + javaType);
-        }
-        op.put(set, primitiveType);
+        pointerOp.put(set);
 
         set.voidreturn();
-        set.visitMaxs(10, 10 + setVariableAllocator.getSpaceUsed());
+        set.visitMaxs(10, 10);
         set.visitEnd();
 
         SkinnyMethodAdapter get = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL, "get",
                 sig(Object.class),
                 null, null);
 
-        LocalVariableAllocator getVariableAllocator = new LocalVariableAllocator(0);
         get.start();
-        if (fromNativeConverter != null) {
-            get.aload(0);
-            AsmBuilder.ObjectField fromNativeConverterField = builder.getFromNativeConverterField(fromNativeConverter);
-            get.getfield(builder.getClassNamePath(), fromNativeConverterField.name, ci(fromNativeConverterField.klass));
-        }
-
         get.aload(0);
         get.getfield(builder.getClassNamePath(), builder.getObjectFieldName(pointer, Pointer.class), ci(Pointer.class));
         get.lconst_0();
-        op.get(get, primitiveType);
-        boxValue(get, boxedType, primitiveType);
-        if (fromNativeConverter != null) {
-            get.aconst_null();
-            get.invokeinterface(FromNativeConverter.class, "fromNative", Object.class, Object.class, FromNativeContext.class);
-            get.checkcast(javaType);
-        }
+        pointerOp.get(get);
+        emitFromNativeConversion(builder, get, fromNativeType, pointerOp.nativeIntClass);
         get.areturn();
-        get.visitMaxs(10, 10 + getVariableAllocator.getSpaceUsed());
+        get.visitMaxs(10, 10);
         get.visitEnd();
 
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
@@ -186,32 +160,26 @@ public class VariableAccessorGenerator {
     }
 
     private static void op(Map<NativeType, PointerOp> ops, NativeType type, String name, Class nativeIntType) {
-        ops.put(type, new PointerOp(type, name, nativeIntType));
+        ops.put(type, new PointerOp(name, nativeIntType));
     }
 
     private static final class PointerOp {
-        private final NativeType nativeType;
         private final String getMethodName;
         private final String putMethodName;
-        private final Class nativeIntType;
+        final Class nativeIntClass;
 
-        private PointerOp(NativeType nativeType, String name, Class nativeIntType) {
-            this.nativeType = nativeType;
+        private PointerOp(String name, Class nativeIntClass) {
             this.getMethodName = "get" + name;
             this.putMethodName = "put" + name;
-            this.nativeIntType = nativeIntType;
+            this.nativeIntClass = nativeIntClass;
         }
 
-        void put(SkinnyMethodAdapter mv, Class javaType) {
-            widen(mv, javaType, nativeIntType, nativeType);
-            narrow(mv, javaType, nativeIntType);
-            mv.invokevirtual(Pointer.class, putMethodName, void.class, long.class, nativeIntType);
+        void put(SkinnyMethodAdapter mv) {
+            mv.invokevirtual(Pointer.class, putMethodName, void.class, long.class, nativeIntClass);
         }
 
-        void get(SkinnyMethodAdapter mv, Class javaType) {
-            mv.invokevirtual(Pointer.class, getMethodName, nativeIntType, long.class);
-            widen(mv, nativeIntType, javaType);
-            narrow(mv, nativeIntType, javaType);
+        void get(SkinnyMethodAdapter mv) {
+            mv.invokevirtual(Pointer.class, getMethodName, nativeIntClass, long.class);
         }
     }
 }

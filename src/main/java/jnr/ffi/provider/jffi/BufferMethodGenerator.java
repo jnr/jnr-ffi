@@ -8,7 +8,6 @@ import jnr.ffi.Pointer;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
-import org.objectweb.asm.Label;
 
 import java.nio.Buffer;
 
@@ -31,8 +30,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         return true;
     }
 
-    static void emitInvocationBufferNumericParameter(final SkinnyMethodAdapter mv, ParameterType parameterType,
-                                                     Class javaParameterType) {
+    private static void emitPrimitiveOp(final SkinnyMethodAdapter mv, ParameterType parameterType, ToNativeOp op) {
         String paramMethod;
         Class nativeParamType = int.class;
 
@@ -90,14 +88,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
 
-
-        if (!javaParameterType.isPrimitive()) {
-            unboxNumber(mv, javaParameterType, nativeParamType, parameterType.nativeType);
-        } else {
-            convertPrimitive(mv, javaParameterType, nativeParamType, parameterType.nativeType);
-        }
-
-
+        op.emitPrimitive(mv, nativeParamType, parameterType.nativeType);
         mv.invokevirtual(HeapInvocationBuffer.class, paramMethod, void.class, nativeParamType);
     }
 
@@ -168,11 +159,12 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             final int nativeArrayFlags = AsmUtil.getNativeArrayFlags(parameterFlags)
                         | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
 
-            ToNativeConverter parameterConverter = parameterTypes[i].toNativeConverter;
-            final Class javaParameterType = parameterConverter != null
-                    ? parameterConverter.nativeType() : parameterTypes[i].getDeclaredType();
+            final Class javaParameterType = parameterTypes[i].effectiveJavaType();
+            ToNativeOp op = ToNativeOp.get(parameterTypes[i]);
+            if (op != null && op.isPrimitive()) {
+                emitPrimitiveOp(mv, parameterTypes[i], op);
 
-            if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
+            } else if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                 mv.pushInt(nativeArrayFlags);
 
                 if (isLong32(javaParameterType.getComponentType(), parameterTypes[i].annotations())) {
@@ -212,10 +204,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.pushInt(parameterFlags);
                 mv.pushInt(nativeArrayFlags);
                 sessionmarshal(mv, Pointer[].class, int.class, int.class);
-
-            } else if (javaParameterType.isPrimitive() || Number.class.isAssignableFrom(javaParameterType)
-                    || Boolean.class == javaParameterType) {
-                emitInvocationBufferNumericParameter(mv, parameterTypes[i], javaParameterType);
 
             } else {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);

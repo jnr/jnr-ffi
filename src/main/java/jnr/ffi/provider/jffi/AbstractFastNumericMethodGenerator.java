@@ -26,36 +26,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         this.bufgen = bufgen;
     }
 
-    private void emitNumericParameter(SkinnyMethodAdapter mv, final Class javaType, NativeType nativeType) {
-        final Class nativeIntType = getInvokerType();
-
-        if (Float.class == javaType || float.class == javaType) {
-            if (!javaType.isPrimitive()) {
-                unboxNumber(mv, javaType, float.class);
-            }
-            mv.invokestatic(Float.class, "floatToRawIntBits", int.class, float.class);
-            widen(mv, int.class, nativeIntType);
-
-        } else if (Double.class == javaType || double.class == javaType) {
-            if (!javaType.isPrimitive()) {
-                unboxNumber(mv, javaType, double.class);
-            }
-            mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
-
-        } else if (javaType.isPrimitive()) {
-            NumberUtil.convertPrimitive(mv, javaType, nativeIntType, nativeType);
-
-        } else if (Number.class.isAssignableFrom(javaType)) {
-            unboxNumber(mv, javaType, nativeIntType, nativeType);
-
-        } else if (Boolean.class.isAssignableFrom(javaType)) {
-            unboxBoolean(mv, javaType, nativeIntType);
-
-        } else {
-            throw new IllegalArgumentException("unsupported numeric type " + javaType);
-        }
-    }
-
     public void generate(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, final ResultType resultType, final ParameterType[] parameterTypes,
                          boolean ignoreError) {
         // [ stack contains: Invoker, Function ]
@@ -76,10 +46,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             }
 
             Class javaParameterType = parameterTypes[i].effectiveJavaType();
-
-            if (Pointer.class.isAssignableFrom(javaParameterType) && isDelegate(parameterTypes[i])) {
-                // delegates are always direct, so handle without the strategy processing
-                unboxPointer(mv, nativeIntType);
+            ToNativeOp op = ToNativeOp.get(parameterTypes[i]);
+            if (op != null && op.isPrimitive()) {
+                op.emitPrimitive(mv, getInvokerType(), parameterTypes[i].nativeType);
 
             } else if (Pointer.class.isAssignableFrom(javaParameterType)
                     || String.class == javaParameterType
@@ -138,7 +107,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 }
 
             } else {
-                emitNumericParameter(mv, javaParameterType, parameterTypes[i].nativeType);
+                throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i].getDeclaredType());
             }
         }
 
