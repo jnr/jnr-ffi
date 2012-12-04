@@ -11,10 +11,7 @@ import org.objectweb.asm.ClassWriter;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
@@ -141,7 +138,7 @@ public class VariableAccessorGenerator {
     }
 
     static {
-        Map<NativeType, PointerOp> ops = new HashMap<NativeType, PointerOp>();
+        Map<NativeType, PointerOp> ops = new EnumMap<NativeType, PointerOp>(NativeType.class);
         op(ops, NativeType.SCHAR, "Byte", byte.class);
         op(ops, NativeType.UCHAR, "Byte", byte.class);
         op(ops, NativeType.SSHORT, "Short", short.class);
