@@ -10,15 +10,53 @@ import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
 
 import java.nio.Buffer;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 /**
  *
  */
 final class BufferMethodGenerator extends BaseMethodGenerator {
+    private static final class MarshalOp {
+        private final String methodName;
+        private final Class primitiveClass;
+
+        private MarshalOp(String methodName, Class primitiveClass) {
+            this.methodName = "put" + methodName;
+            this.primitiveClass = primitiveClass;
+        }
+    }
+
+    static final Map<NativeType, MarshalOp> marshalOps;
+    static {
+        Map<NativeType, MarshalOp> ops = new EnumMap<NativeType, MarshalOp>(NativeType.class);
+        ops.put(NativeType.SCHAR, new MarshalOp("Byte", int.class));
+        ops.put(NativeType.UCHAR, new MarshalOp("Byte", int.class));
+        ops.put(NativeType.SSHORT, new MarshalOp("Short", int.class));
+        ops.put(NativeType.USHORT, new MarshalOp("Short", int.class));
+        ops.put(NativeType.SINT, new MarshalOp("Int", int.class));
+        ops.put(NativeType.UINT, new MarshalOp("Int", int.class));
+        ops.put(NativeType.SLONGLONG, new MarshalOp("Long", long.class));
+        ops.put(NativeType.ULONGLONG, new MarshalOp("Long", long.class));
+        ops.put(NativeType.FLOAT, new MarshalOp("Float", float.class));
+        ops.put(NativeType.DOUBLE, new MarshalOp("Double", double.class));
+        ops.put(NativeType.ADDRESS, new MarshalOp("Address", long.class));
+        if (sizeof(NativeType.SLONG) == 4) {
+            ops.put(NativeType.SLONG, new MarshalOp("Int", int.class));
+            ops.put(NativeType.ULONG, new MarshalOp("Int", int.class));
+        } else {
+            ops.put(NativeType.SLONG, new MarshalOp("Long", long.class));
+            ops.put(NativeType.ULONG, new MarshalOp("Long", long.class));
+        }
+
+        marshalOps = Collections.unmodifiableMap(ops);
+    }
 
     @Override
     void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
@@ -31,60 +69,13 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     }
 
     private static void emitPrimitiveOp(final SkinnyMethodAdapter mv, ParameterType parameterType, ToNativeOp op) {
-        String paramMethod;
-        Class nativeParamType = int.class;
-
-
-        switch (parameterType.nativeType) {
-            case SCHAR:
-            case UCHAR:
-                paramMethod = "putByte";
-                break;
-
-            case SSHORT:
-            case USHORT:
-                paramMethod = "putShort";
-                break;
-
-            case SINT:
-            case UINT:
-                paramMethod = "putInt";
-                break;
-
-            case SLONG:
-            case ULONG:
-                if (sizeof(parameterType) == 4) {
-                    paramMethod = "putInt";
-                    nativeParamType = int.class;
-
-                } else {
-                    paramMethod = "putLong";
-                    nativeParamType = long.class;
-                }
-                break;
-
-            case SLONGLONG:
-            case ULONGLONG:
-                paramMethod = "putLong";
-                nativeParamType = long.class;
-                break;
-
-            case FLOAT:
-                paramMethod = "putFloat";
-                nativeParamType = float.class;
-                break;
-
-            case DOUBLE:
-                paramMethod = "putDouble";
-                nativeParamType = double.class;
-                break;
-
-            default:
-                throw new IllegalArgumentException("unsupported parameter type " + parameterType);
+        MarshalOp marshalOp = marshalOps.get(parameterType.nativeType);
+        if (marshalOp == null) {
+            throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
 
-        op.emitPrimitive(mv, nativeParamType, parameterType.nativeType);
-        mv.invokevirtual(HeapInvocationBuffer.class, paramMethod, void.class, nativeParamType);
+        op.emitPrimitive(mv, marshalOp.primitiveClass, parameterType.nativeType);
+        mv.invokevirtual(HeapInvocationBuffer.class, marshalOp.methodName, void.class, marshalOp.primitiveClass);
     }
 
     static boolean isSessionRequired(ParameterType parameterType) {
