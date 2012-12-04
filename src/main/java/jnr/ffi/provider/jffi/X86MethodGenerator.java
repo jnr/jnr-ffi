@@ -77,20 +77,20 @@ class X86MethodGenerator implements MethodGenerator {
         boolean wrapperNeeded = false;
 
         for (int i = 0; i < parameterTypes.length; ++i) {
+            wrapperNeeded |= parameterTypes[i].toNativeConverter != null || !parameterTypes[i].effectiveJavaType().isPrimitive();
             if (!parameterTypes[i].effectiveJavaType().isPrimitive()) {
                 nativeParameterTypes[i] = getNativeClass(parameterTypes[i].nativeType);
-                wrapperNeeded = true;
             } else {
                 nativeParameterTypes[i] = parameterTypes[i].effectiveJavaType();
             }
         }
 
         Class nativeReturnType;
+        wrapperNeeded |= resultType.fromNativeConverter != null || !resultType.effectiveJavaType().isPrimitive();
         if (resultType.effectiveJavaType().isPrimitive()) {
             nativeReturnType = resultType.effectiveJavaType();
         } else {
             nativeReturnType = getNativeClass(resultType.nativeType);
-            wrapperNeeded = true;
         }
 
         String stubName = functionName + (wrapperNeeded ? "$jni$" + nextMethodID.incrementAndGet() : "");
