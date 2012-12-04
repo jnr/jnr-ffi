@@ -67,35 +67,6 @@ public final class AsmRuntime {
             buffer.putArray(array, 0, array.length, nativeArrayFlags);
         }
     }
-    
-    public static void marshal32(HeapInvocationBuffer buffer, InvocationSession session,
-            final long[] array, int nativeArrayFlags) {
-        
-        if (array == null) {
-            buffer.putAddress(0L);
-        } else {
-            // Need to convert to int[], copy+convert, then reload after the call
-            final int[] nativeArray = new int[array.length];
-            if (com.kenai.jffi.ArrayFlags.isIn(nativeArrayFlags)) {
-                for (int i = 0; i < array.length; ++i) {
-                    nativeArray[i] = (int) array[i];
-                }
-            }
-
-            buffer.putArray(nativeArray, 0, nativeArray.length, nativeArrayFlags);
-            
-            if (com.kenai.jffi.ArrayFlags.isOut(nativeArrayFlags)) {
-                session.addPostInvoke(new InvocationSession.PostInvoke() {
-                    public void postInvoke() {
-                        for (int i = 0; i < nativeArray.length; ++i) {
-                            array[i] = nativeArray[i];
-                        }
-                    }
-                });
-            }
-            
-        }
-    }
 
     public static void marshal(HeapInvocationBuffer buffer, float[] array, int flags) {
         if (array == null) {

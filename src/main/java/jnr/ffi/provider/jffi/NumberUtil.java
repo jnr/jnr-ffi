@@ -25,6 +25,7 @@ import jnr.ffi.annotations.LongLong;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
+import static jnr.ffi.provider.jffi.InvokerUtil.getAliasedNativeType;
 import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 
 public final class NumberUtil {
@@ -318,9 +319,11 @@ public final class NumberUtil {
     }
 
     static boolean isLong32(Platform platform, Class type, Collection<Annotation> annotations) {
+        NativeType nativeType = getAliasedNativeType(NativeRuntime.getInstance(), type, annotations);
+        boolean isLong64 = (nativeType != null && sizeof(nativeType) == 8) || hasAnnotation(annotations, LongLong.class);
         return platform.longSize() == 32
-                && (((long.class == type || Long.class.isAssignableFrom(type))
-                && !InvokerUtil.hasAnnotation(annotations, LongLong.class)));
+                && (long.class == type || Long.class.isAssignableFrom(type))
+                && !isLong64;
     }
 
     static boolean isLong64(Class type, Collection<Annotation> annotations) {

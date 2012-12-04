@@ -152,14 +152,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
             } else if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                 mv.pushInt(nativeArrayFlags);
-
-                if (isLong32(javaParameterType.getComponentType(), parameterTypes[i].annotations())) {
-                    mv.invokestatic(p(AsmRuntime.class), "marshal32",
-                        sig(void.class, ci(HeapInvocationBuffer.class) + ci(InvocationSession.class),
-                                javaParameterType, int.class));
-                } else {
-                    marshal(mv, javaParameterType, int.class);
-                }
+                marshal(mv, javaParameterType, int.class);
 
             } else if (Pointer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);

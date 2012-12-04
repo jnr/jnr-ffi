@@ -4,15 +4,21 @@ import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
+import jnr.ffi.annotations.LongLong;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.EnumSet;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
+import static jnr.ffi.provider.jffi.InvokerUtil.getAliasedNativeType;
+import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
+import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 import static jnr.ffi.provider.jffi.NumberUtil.isLong32;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
@@ -87,7 +93,7 @@ final class InvokerTypeMapper implements TypeMapper {
             return BoxedIntegerArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Long[].class.isAssignableFrom(javaType)) {
-            return isLong32(javaType, context.getAnnotations())
+            return sizeof(getNativeType(NativeRuntime.getInstance(), javaType.getComponentType(), context.getAnnotations())) == 4
                 ? BoxedLong32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
                 : BoxedLong64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
@@ -104,6 +110,9 @@ final class InvokerTypeMapper implements TypeMapper {
             return NativeRuntime.getInstance().addressSize() == 4
                     ? Pointer32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
                     : Pointer64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (long[].class.isAssignableFrom(javaType) && sizeof(getNativeType(NativeRuntime.getInstance(), javaType.getComponentType(), context.getAnnotations())) == 4) {
+            return Long32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
         } else if (javaType.isArray() && Struct.class.isAssignableFrom(javaType.getComponentType())) {
             return StructArrayParameterConverter.getInstance(NativeRuntime.getInstance(), javaType.getComponentType(), ParameterFlags.parse(context.getAnnotations()));
