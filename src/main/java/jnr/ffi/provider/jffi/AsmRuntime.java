@@ -230,47 +230,6 @@ public final class AsmRuntime {
         }
     }
 
-    public static void marshal(HeapInvocationBuffer buffer, InvocationSession session,
-            final CharSequence[] strings, final int inout, int nativeArrayFlags) {
-        if (strings == null) {
-            buffer.putAddress(0L);
-
-        } else {
-            final Pointer[] pointers = new Pointer[strings.length];
-            Charset charset = Charset.defaultCharset();
-
-            if (ParameterFlags.isIn(inout)) {
-                for (int i = 0; i < strings.length; ++i) {
-                    if (strings[i] != null) {
-                        ByteBuffer buf = charset.encode(CharBuffer.wrap(strings[i]));
-                        DirectMemoryIO ptr = TransientNativeMemory.allocate(NativeRuntime.getInstance(), buf.remaining() + 1, 1, false);
-                        ptr.putZeroTerminatedByteArray(0, buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
-                        pointers[i] = ptr;
-
-                    } else {
-                        pointers[i] = null;
-                    }
-                }
-            }
-
-            marshal(buffer, session, pointers, inout, nativeArrayFlags);
-
-            // Reload any elements of the native array that were changed, and convert back to java strings
-            // the PostInvoke also keeps the native memory alive until after the function call
-            session.keepAlive(pointers);
-            if (ParameterFlags.isOut(inout)) {
-                session.addPostInvoke(new InvocationSession.PostInvoke() {
-                    public void postInvoke() {
-                        for (int i = 0; i < pointers.length; ++i) {
-                            if (pointers[i] != null) {
-                                strings[i] = pointers[i].getString(0);
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    }
 
     public static void marshal(HeapInvocationBuffer buffer, final Boolean parameter) {
         if (parameter == null) {
@@ -282,57 +241,6 @@ public final class AsmRuntime {
 
     public static void marshal(HeapInvocationBuffer buffer, final boolean parameter) {
         buffer.putInt(parameter ? 1 : 0);
-    }
-
-
-    public static void marshal(HeapInvocationBuffer buffer, InvocationSession session,
-            final Pointer[] pointers, int inout, int nativeArrayFlags) {
-        if (pointers == null) {
-            buffer.putAddress(0L);
-        } else {
-            if (Platform.getPlatform().addressSize() == 32) {
-                final int[] raw = new int[pointers.length + 1];
-                for (int i = 0; i < pointers.length; ++i) {
-                    if (pointers[i] != null && !pointers[i].isDirect()) {
-                        throw new IllegalArgumentException("invalid pointer in array at index " + i);
-                    }
-                    raw[i] = pointers[i] != null ? (int) pointers[i].address() : 0;
-                }
-                buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
-
-                if (ParameterFlags.isOut(inout)) {
-                    session.addPostInvoke(new InvocationSession.PostInvoke() {
-
-                        public void postInvoke() {
-                            for (int i = 0; i < pointers.length; ++i) {
-                                pointers[i] = MemoryUtil.newPointer(raw[i]);
-                            }
-                        }
-                    });
-                }
-            } else {
-                final long[] raw = new long[pointers.length + 1];
-                for (int i = 0; i < pointers.length; ++i) {
-                    if (pointers[i] != null && !pointers[i].isDirect()) {
-                        throw new IllegalArgumentException("invalid pointer in array at index " + i);
-                    }
-                    raw[i] = pointers[i] != null ? pointers[i].address() : 0;
-                }
-
-                buffer.putArray(raw, 0, raw.length, nativeArrayFlags);
-
-                if (ParameterFlags.isOut(inout)) {
-                    session.addPostInvoke(new InvocationSession.PostInvoke() {
-
-                        public void postInvoke() {
-                            for (int i = 0; i < pointers.length; ++i) {
-                                pointers[i] = MemoryUtil.newPointer(raw[i]);
-                            }
-                        }
-                    });
-                }
-            }
-        }
     }
 
     public static UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {

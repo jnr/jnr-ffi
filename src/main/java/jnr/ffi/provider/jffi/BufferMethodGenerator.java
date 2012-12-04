@@ -166,11 +166,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 // stack should be: [ Buffer, array, flags ]
                 marshal(mv, CharSequence.class);
 
-            } else if (javaParameterType.isArray() && CharSequence.class.isAssignableFrom(javaParameterType.getComponentType())) {
-                mv.pushInt(parameterFlags);
-                mv.pushInt(nativeArrayFlags);
-                sessionmarshal(mv, CharSequence[].class, int.class, int.class);
-
             } else {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);
             }

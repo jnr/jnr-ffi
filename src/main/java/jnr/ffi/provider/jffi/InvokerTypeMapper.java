@@ -110,6 +110,10 @@ final class InvokerTypeMapper implements TypeMapper {
 
         } else if (javaType.isArray() && Struct.class.isAssignableFrom(javaType.getComponentType())) {
             return StructArrayParameterConverter.getInstance(NativeRuntime.getInstance(), javaType.getComponentType(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (javaType.isArray() && String.class.isAssignableFrom(javaType.getComponentType())) {
+            return StringArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
         } else {
             return null;
         }
