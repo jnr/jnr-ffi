@@ -41,6 +41,7 @@ public class PointerTest {
         Pointer ptr_return_array_element(Pointer[] array, int index);
         void ptr_set_array_element(Pointer[] array, int index, Pointer value);
         byte ptr_ret_int8_t(Pointer p, int offset);
+        byte ptr_ret_int8_t(Address p, int offset);
         short ptr_ret_int16_t(Pointer p, int offset);
         int ptr_ret_int32_t(Pointer p, int offset);
         @LongLong long ptr_ret_int64_t(Pointer p, int offset);
@@ -346,7 +347,17 @@ public class PointerTest {
         Pointer[] out = memory.getNullTerminatedPointerArray(array.length * runtime.addressSize());
         assertArrayEquals(array, out);
     }
-    
+
+    @Test
+    public void testAddressSetByte() {
+
+        Pointer p = testlib.ptr_malloc(SIZE);
+        byte MAGIC = (byte) 0xFE;
+        for (int i = 0; i < SIZE; ++i) {
+            p.putByte(i, MAGIC);
+            assertEquals("Byte not set at offset " + i, MAGIC, testlib.ptr_ret_int8_t(Address.valueOf(p.address()), i));
+        }
+    }
 //    @Test
 //    public void testLibcMalloc() {
 //        Pointer p = libc.malloc(SIZE);

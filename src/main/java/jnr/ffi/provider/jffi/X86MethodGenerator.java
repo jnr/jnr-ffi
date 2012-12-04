@@ -1,6 +1,7 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
+import jnr.ffi.Address;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.mapper.ToNativeConverter;
@@ -141,15 +142,9 @@ class X86MethodGenerator implements MethodGenerator {
                 mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
             }
 
-            if (Number.class.isAssignableFrom(javaParameterClass)) {
-                unboxNumber(mv, javaParameterClass, nativeParameterClass);
-
-            } else if (Boolean.class.isAssignableFrom(javaParameterClass)) {
-                unboxBoolean(mv, javaParameterClass, nativeParameterClass);
-
-            } else if (Pointer.class.isAssignableFrom(javaParameterClass) && isDelegate(parameterTypes[i].getDeclaredType())) {
-                // delegates are always direct, so handle without the strategy processing
-                unboxPointer(mv, nativeParameterClass);
+            ToNativeOp toNativeOp = ToNativeOp.get(parameterTypes[i]);
+            if (toNativeOp != null && toNativeOp.isPrimitive()) {
+                toNativeOp.emitPrimitive(mv, nativeParameterClass, parameterTypes[i].nativeType);
 
             } else if (Pointer.class.isAssignableFrom(javaParameterClass)) {
 
@@ -300,15 +295,24 @@ class X86MethodGenerator implements MethodGenerator {
 
 
     private static boolean isSupportedType(SigType type) {
-        Class javaType = type.effectiveJavaType();
-        return Boolean.class.isAssignableFrom(javaType) || boolean.class == javaType
-                || Byte.class.isAssignableFrom(javaType) || byte.class == javaType
-                || Short.class.isAssignableFrom(javaType) || short.class == javaType
-                || Integer.class.isAssignableFrom(javaType) || int.class == javaType
-                || Long.class.isAssignableFrom(javaType) || long.class == javaType
-                || Float.class.isAssignableFrom(javaType) || float.class == javaType
-                || Double.class.isAssignableFrom(javaType) || double.class == javaType
-                ;
+        switch (type.nativeType) {
+            case SCHAR:
+            case UCHAR:
+            case SSHORT:
+            case USHORT:
+            case SINT:
+            case UINT:
+            case SLONG:
+            case ULONG:
+            case SLONGLONG:
+            case ULONGLONG:
+            case FLOAT:
+            case DOUBLE:
+                return true;
+
+            default:
+                return false;
+        }
     }
 
 
@@ -321,7 +325,6 @@ class X86MethodGenerator implements MethodGenerator {
     static boolean isSupportedParameter(ParameterType parameterType) {
         return isSupportedType(parameterType)
                 || isSupportedObjectParameterType(parameterType)
-                || isDelegate(parameterType)
                 ;
     }
 

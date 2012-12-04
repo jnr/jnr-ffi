@@ -1,10 +1,10 @@
 package jnr.ffi.provider.jffi;
 
+import jnr.ffi.Address;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -39,6 +39,7 @@ abstract class ToNativeOp {
         m.put(Float.class, new Float32(Float.class));
         m.put(double.class, new Float64(float.class));
         m.put(Double.class, new Float64(Float.class));
+        m.put(Address.class, new AddressOp());
 
         operations = Collections.unmodifiableMap(m);
     }
@@ -84,7 +85,7 @@ abstract class ToNativeOp {
         Float32(Class javaType) {
             super(javaType);
         }
-        
+
         @Override
         void emitPrimitive(SkinnyMethodAdapter mv, Class primitiveClass, NativeType nativeType) {
             if (!javaType.isPrimitive()) {
@@ -124,6 +125,22 @@ abstract class ToNativeOp {
         void emitPrimitive(SkinnyMethodAdapter mv, Class primitiveClass, NativeType nativeType) {
             // delegates are always direct, so handle without the strategy processing
             unboxPointer(mv, primitiveClass);
+        }
+    }
+
+    static class AddressOp extends Primitive {
+        AddressOp() {
+            super(Address.class);
+        }
+
+        @Override
+        void emitPrimitive(SkinnyMethodAdapter mv, Class primitiveClass, NativeType nativeType) {
+            if (long.class == primitiveClass) {
+                mv.invokestatic(AsmRuntime.class, "longValue", long.class, Address.class);
+            } else {
+                mv.invokestatic(AsmRuntime.class, "intValue", int.class, Address.class);
+                narrow(mv, int.class, primitiveClass);
+            }
         }
     }
 }

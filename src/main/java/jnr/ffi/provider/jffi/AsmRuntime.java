@@ -135,14 +135,6 @@ public final class AsmRuntime {
         }
     }
 
-    public static void marshal(HeapInvocationBuffer buffer, Address ptr) {
-        if (ptr == null) {
-            buffer.putAddress(0L);
-        } else {
-            buffer.putAddress(ptr.nativeAddress());
-        }
-    }
-
     public static void marshal(HeapInvocationBuffer buffer, Buffer buf, int flags) {
         if (buf == null) {
             buffer.putAddress(0L);
@@ -555,6 +547,14 @@ public final class AsmRuntime {
 
     public static long longValue(DoubleBuffer buffer) {
         return buffer != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << 3): 0L;
+    }
+
+    public static long longValue(Address ptr) {
+        return ptr != null ? ptr.longValue() : 0L;
+    }
+
+    public static int intValue(Address ptr) {
+        return ptr != null ? ptr.intValue() : 0;
     }
 
     public static PointerParameterStrategy pointerParameterStrategy(Pointer pointer) {

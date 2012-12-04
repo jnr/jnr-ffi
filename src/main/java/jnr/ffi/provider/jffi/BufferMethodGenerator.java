@@ -79,11 +79,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 nativeParamType = double.class;
                 break;
 
-            case ADDRESS:
-                paramMethod = "putAddress";
-                nativeParamType = long.class;
-                break;
-
             default:
                 throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
@@ -178,9 +173,6 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             } else if (Pointer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);
                 marshal(mv, Pointer.class, int.class);
-
-            } else if (Address.class.isAssignableFrom(javaParameterType)) {
-                marshal(mv, Address.class);
 
             } else if (Buffer.class.isAssignableFrom(javaParameterType)) {
                 mv.pushInt(nativeArrayFlags);

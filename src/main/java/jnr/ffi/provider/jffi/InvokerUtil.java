@@ -31,8 +31,10 @@ import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.*;
 
+import static jnr.ffi.provider.jffi.AsmUtil.emitReturn;
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.NumberUtil.isLong64;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 final class InvokerUtil {
 
@@ -210,7 +212,7 @@ final class InvokerUtil {
             return NativeType.ADDRESS;
 
         } else if (Address.class.isAssignableFrom(type)) {
-            return NativeType.ADDRESS;
+            return sizeof(NativeType.ADDRESS) == 4 ? NativeType.SINT : NativeType.SLONGLONG;
 
         } else if (Buffer.class.isAssignableFrom(type)) {
             return NativeType.ADDRESS;
