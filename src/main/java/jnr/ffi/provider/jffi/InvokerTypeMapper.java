@@ -1,20 +1,20 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeLong;
+import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.provider.converters.ByteArrayParameterConverter;
-import jnr.ffi.provider.converters.Pointer32ArrayParameterConverter;
-import jnr.ffi.provider.converters.Pointer64ArrayParameterConverter;
-import jnr.ffi.provider.converters.StructArrayParameterConverter;
+import jnr.ffi.provider.converters.*;
 
 import java.util.EnumSet;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
+import static jnr.ffi.provider.jffi.NumberUtil.isLong32;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 final class InvokerTypeMapper implements TypeMapper {
     private final NativeClosureManager closureManager;
@@ -78,7 +78,27 @@ final class InvokerTypeMapper implements TypeMapper {
             return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Byte[].class.isAssignableFrom(javaType)) {
-            return ByteArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return BoxedByteArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (Short[].class.isAssignableFrom(javaType)) {
+            return BoxedShortArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (Integer[].class.isAssignableFrom(javaType)) {
+            return BoxedIntegerArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (Long[].class.isAssignableFrom(javaType)) {
+            return isLong32(javaType, context.getAnnotations())
+                ? BoxedLong32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
+                : BoxedLong64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (Float[].class.isAssignableFrom(javaType)) {
+            return BoxedFloatArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (Double[].class.isAssignableFrom(javaType)) {
+            return BoxedDoubleArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (Boolean[].class.isAssignableFrom(javaType)) {
+            return BoxedBooleanArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
         } else if (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType())) {
             return NativeRuntime.getInstance().addressSize() == 4

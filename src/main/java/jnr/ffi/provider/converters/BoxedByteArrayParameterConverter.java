@@ -8,15 +8,17 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Byte[] array to a byte[] array parameter
  */
 @ToNativeConverter.NoContext
-public class ByteArrayParameterConverter implements ToNativeConverter<Byte[], byte[]>, ToNativeConverter.PostInvocation<Byte[], byte[]> {
+public class BoxedByteArrayParameterConverter implements ToNativeConverter<Byte[], byte[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;
 
     public static ToNativeConverter<Byte[], byte[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return new ByteArrayParameterConverter(runtime, parameterFlags);
+        return !ParameterFlags.isOut(parameterFlags)
+            ? new BoxedByteArrayParameterConverter(runtime, parameterFlags)
+            : new BoxedByteArrayParameterConverter.Out(runtime, parameterFlags);
     }
 
-    public ByteArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
+    BoxedByteArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
         this.runtime = runtime;
         this.parameterFlags = parameterFlags;
     }
@@ -36,11 +38,17 @@ public class ByteArrayParameterConverter implements ToNativeConverter<Byte[], by
         return primitive;
     }
 
-    @Override
-    public void postInvoke(Byte[] array, byte[] primitive, ToNativeContext context) {
-        if (array != null && primitive != null && ParameterFlags.isOut(parameterFlags)) {
-            for (int i = 0; i < array.length; i++) {
-                array[i] = primitive[i];
+    public static final class Out extends BoxedByteArrayParameterConverter implements PostInvocation<Byte[], byte[]> {
+        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
+            super(runtime, parameterFlags);
+        }
+
+        @Override
+        public void postInvoke(Byte[] array, byte[] primitive, ToNativeContext context) {
+            if (array != null && primitive != null) {
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = primitive[i];
+                }
             }
         }
     }
