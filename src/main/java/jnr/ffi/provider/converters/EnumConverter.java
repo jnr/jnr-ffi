@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package jnr.ffi.provider;
+package jnr.ffi.provider.converters;
 
 import jnr.ffi.mapper.*;
 import jnr.ffi.util.EnumMapper;

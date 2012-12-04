@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider.converters;
 
 import jnr.ffi.Memory;
 import jnr.ffi.Pointer;
@@ -6,6 +6,7 @@ import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.provider.jffi.NativeRuntime;
 
 /**
  *

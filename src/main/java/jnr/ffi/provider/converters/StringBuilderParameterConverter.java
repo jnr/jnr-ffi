@@ -1,9 +1,10 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider.converters;
 
-import jnr.ffi.Pointer;
+import jnr.ffi.*;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.provider.jffi.ArrayMemoryIO;
 import jnr.ffi.util.BufferUtil;
 
 import java.nio.ByteBuffer;
@@ -11,11 +12,11 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 @ToNativeConverter.NoContext
-public class StringBufferParameterConverter implements ToNativeConverter<StringBuffer, Pointer>, ToNativeConverter.PostInvocation<StringBuffer, Pointer> {
+public class StringBuilderParameterConverter implements ToNativeConverter<StringBuilder, Pointer>, ToNativeConverter.PostInvocation<StringBuilder, Pointer> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;
 
-    private StringBufferParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
+    private StringBuilderParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
         this.runtime = runtime;
         this.parameterFlags = parameterFlags;
     }
@@ -24,11 +25,11 @@ public class StringBufferParameterConverter implements ToNativeConverter<StringB
         return Pointer.class;
     }
 
-    public static StringBufferParameterConverter getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return new StringBufferParameterConverter(runtime, parameterFlags);
+    public static StringBuilderParameterConverter getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
+        return new StringBuilderParameterConverter(runtime, parameterFlags);
     }
 
-    public Pointer toNative(StringBuffer parameter, ToNativeContext context) {
+    public Pointer toNative(StringBuilder parameter, ToNativeContext context) {
         if (parameter == null) {
             return null;
 
@@ -49,14 +50,14 @@ public class StringBufferParameterConverter implements ToNativeConverter<StringB
         }
     }
 
-    public void postInvoke(StringBuffer stringBuffer, Pointer pointer, ToNativeContext context) {
+    public void postInvoke(StringBuilder stringBuilder, Pointer pointer, ToNativeContext context) {
         //
         // Copy the string back out if its an OUT parameter
         //
-        if (ParameterFlags.isOut(parameterFlags) && stringBuffer != null && pointer != null) {
+        if (ParameterFlags.isOut(parameterFlags) && stringBuilder != null && pointer != null) {
             ArrayMemoryIO aio = (ArrayMemoryIO) pointer;
             final ByteBuffer tmp = ByteBuffer.wrap(aio.array(), aio.arrayOffset(), aio.arrayLength());
-            stringBuffer.delete(0, stringBuffer.length()).append(BufferUtil.getCharSequence(tmp, Charset.defaultCharset()));
+            stringBuilder.delete(0, stringBuilder.length()).append(BufferUtil.getCharSequence(tmp, Charset.defaultCharset()));
         }
     }
 }

@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider.converters;
 
 import jnr.ffi.mapper.*;
 import jnr.ffi.util.EnumMapper;
@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.EnumSet;
-import java.util.Set;
 
 public final class EnumSetConverter implements DataConverter<EnumSet<? extends Enum>, Integer> {
     private final Class<? extends Enum> enumClass;

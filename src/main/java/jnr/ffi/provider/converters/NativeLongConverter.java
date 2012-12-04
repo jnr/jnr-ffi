@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider.converters;
 
 import jnr.ffi.NativeLong;
 

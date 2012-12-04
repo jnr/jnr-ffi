@@ -2,7 +2,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Struct;
 import jnr.ffi.mapper.*;
-import jnr.ffi.provider.EnumConverter;
+import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 
 final class ClosureTypeMapper implements TypeMapper {

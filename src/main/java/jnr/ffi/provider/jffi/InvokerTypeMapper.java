@@ -1,24 +1,18 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeLong;
-import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.annotations.LongLong;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
-import jnr.ffi.provider.EnumConverter;
+import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
 import java.util.EnumSet;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
-import static jnr.ffi.provider.jffi.InvokerUtil.getAliasedNativeType;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
-import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 import static jnr.ffi.provider.jffi.NumberUtil.isLong32;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
