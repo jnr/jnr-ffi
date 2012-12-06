@@ -206,7 +206,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     public String getString(long offset, int maxLength, Charset cs) {
         final byte[] bytes = IO.getZeroTerminatedByteArray(address + offset, maxLength);
-        return Charset.defaultCharset().decode(ByteBuffer.wrap(bytes)).toString();
+        return cs.decode(ByteBuffer.wrap(bytes)).toString();
     }
 
     public void putString(long offset, String string, int maxLength, Charset cs) {
