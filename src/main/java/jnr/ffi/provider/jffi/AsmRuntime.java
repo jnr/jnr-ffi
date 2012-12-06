@@ -36,18 +36,6 @@ public final class AsmRuntime {
 
     private AsmRuntime() {}
 
-    public static void marshal(HeapInvocationBuffer buffer, final Boolean parameter) {
-        if (parameter == null) {
-            throw new IllegalArgumentException("Boolean value cannot be null");
-        } else {
-            buffer.putInt(parameter.booleanValue() ? 1 : 0);
-        }
-    }
-
-    public static void marshal(HeapInvocationBuffer buffer, final boolean parameter) {
-        buffer.putInt(parameter ? 1 : 0);
-    }
-
     public static UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {
         return new UnsatisfiedLinkError(msg);
     }
@@ -239,33 +227,6 @@ public final class AsmRuntime {
 
     public static PointerParameterStrategy pointerParameterStrategy(boolean [] array) {
         return array != null ? PrimitiveArrayParameterStrategy.BOOLEAN : NullPointerParameterStrategy.INSTANCE;
-    }
-
-    public static void checkAllStrategiesAreHeap(ObjectParameterStrategy s1) {
-        if (s1.isDirect()) {
-            throw new RuntimeException("pointer 1 is direct");
-        }
-    }
-
-    public static void checkAllStrategiesAreHeap(ObjectParameterStrategy s1, ObjectParameterStrategy s2) {
-        if (s1.isDirect()) {
-            throw new RuntimeException("pointer 1 is direct");
-        }
-        if (s2.isDirect()) {
-            throw new RuntimeException("pointer 2 is direct");
-        }
-    }
-
-    public static void checkAllStrategiesAreHeap(ObjectParameterStrategy s1, ObjectParameterStrategy s2, ObjectParameterStrategy s3) {
-        if (s1.isDirect()) {
-            throw new RuntimeException("pointer 1 is direct");
-        }
-        if (s2.isDirect()) {
-            throw new RuntimeException("pointer 2 is direct");
-        }
-        if (s3.isDirect()) {
-            throw new RuntimeException("pointer 3 is direct");
-        }
     }
 
     public static void postInvoke(ToNativeConverter.PostInvocation postInvocation, Object j, Object n, ToNativeContext context) {
