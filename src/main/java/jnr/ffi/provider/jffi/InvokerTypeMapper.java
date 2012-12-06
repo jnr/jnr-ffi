@@ -13,7 +13,6 @@ import java.util.EnumSet;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
-import static jnr.ffi.provider.jffi.NumberUtil.isLong32;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 final class InvokerTypeMapper implements TypeMapper {
@@ -90,6 +89,11 @@ final class InvokerTypeMapper implements TypeMapper {
             return sizeof(getNativeType(NativeRuntime.getInstance(), javaType.getComponentType(), context.getAnnotations())) == 4
                 ? BoxedLong32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
                 : BoxedLong64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+
+        } else if (NativeLong[].class.isAssignableFrom(javaType)) {
+            return sizeof(getNativeType(NativeRuntime.getInstance(), javaType.getComponentType(), context.getAnnotations())) == 4
+                    ? NativeLong32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
+                    : NativeLong64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Float[].class.isAssignableFrom(javaType)) {
             return BoxedFloatArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));

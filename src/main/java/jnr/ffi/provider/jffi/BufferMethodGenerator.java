@@ -2,7 +2,6 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
 import jnr.ffi.Address;
-import jnr.ffi.NativeLong;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.mapper.ToNativeConverter;
@@ -17,7 +16,6 @@ import java.util.Map;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 /**
  *
@@ -79,12 +77,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     }
 
     static boolean isSessionRequired(ParameterType parameterType) {
-        Class javaType = parameterType.effectiveJavaType();
-        return (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType()))
-                || (javaType.isArray() && CharSequence.class.isAssignableFrom(javaType.getComponentType()))
-                || (javaType.isArray() && NativeLong.class.isAssignableFrom(javaType.getComponentType()))
-                || (javaType.isArray() && isLong32(javaType.getComponentType(), parameterType.annotations()))
-                ;
+        return false;
     }
 
 

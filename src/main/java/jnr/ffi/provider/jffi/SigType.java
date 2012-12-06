@@ -3,9 +3,7 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.NativeType;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 

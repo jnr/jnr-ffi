@@ -31,9 +31,7 @@ import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.*;
 
-import static jnr.ffi.provider.jffi.AsmUtil.emitReturn;
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
-import static jnr.ffi.provider.jffi.NumberUtil.isLong64;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 final class InvokerUtil {
@@ -250,7 +248,7 @@ final class InvokerUtil {
             return NativeType.SINT;
 
         } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return isLong64(type, annotations) ? NativeType.SLONGLONG : NativeType.SLONG;
+            return hasAnnotation(annotations, LongLong.class) ? NativeType.SLONGLONG : NativeType.SLONG;
 
         } else if (Float.class.isAssignableFrom(type) || float.class == type) {
             return NativeType.FLOAT;

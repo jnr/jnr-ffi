@@ -248,23 +248,6 @@ public final class NumberUtil {
         return sizeof(type.nativeType);
     }
 
-    static int sizeof(Class type) {
-        if (byte.class == type || boolean.class == type) {
-            return 1;
-
-        } else if (short.class == type || char.class == type) {
-            return 2;
-
-        } else if (int.class == type || float.class == type) {
-            return 4;
-
-        } else if (long.class == type || double.class == type) {
-            return 8;
-        } else {
-            throw new UnsupportedOperationException("cannot determine size of " + type);
-        }
-    }
-
     static int sizeof(NativeType nativeType) {
         switch (nativeType) {
             case SCHAR:
@@ -314,29 +297,4 @@ public final class NumberUtil {
         }
     }
 
-    static boolean isLong32(Class type, Collection<Annotation> annotations) {
-        return isLong32(Platform.getPlatform(), type, annotations);
-    }
-
-    static boolean isLong32(Platform platform, Class type, Collection<Annotation> annotations) {
-        NativeType nativeType = getAliasedNativeType(NativeRuntime.getInstance(), type, annotations);
-        boolean isLong64 = (nativeType != null && sizeof(nativeType) == 8) || hasAnnotation(annotations, LongLong.class);
-        return platform.longSize() == 32
-                && (long.class == type || Long.class.isAssignableFrom(type))
-                && !isLong64;
-    }
-
-    static boolean isLong64(Class type, Collection<Annotation> annotations) {
-        return (long.class == type || Long.class.isAssignableFrom(type))
-                && (hasAnnotation(annotations, LongLong.class) || Platform.getPlatform().longSize() == 64);
-    }
-
-    static boolean isInt32(Class type, Collection<Annotation> annotations) {
-        return Boolean.class.isAssignableFrom(type) || boolean.class == type
-                || Byte.class.isAssignableFrom(type) || byte.class == type
-                || Short.class.isAssignableFrom(type) || short.class == type
-                || Integer.class.isAssignableFrom(type) || int.class == type
-                || isLong32(type, annotations)
-                ;
-    }
 }
