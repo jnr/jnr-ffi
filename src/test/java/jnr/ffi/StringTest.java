@@ -18,6 +18,7 @@
 
 package jnr.ffi;
 
+import jnr.ffi.annotations.In;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -40,6 +41,7 @@ public class StringTest {
         void string_set(StringBuilder dst, CharSequence src);
         void string_concat(StringBuilder dst, CharSequence src);
         void string_concat(StringBuffer dst, CharSequence src);
+        String ptr_return_array_element(@In String[] array, int index);
     }
     static TestLib testlib;
     @BeforeClass
@@ -104,5 +106,10 @@ public class StringTest {
     @Test public void testStringParams() {
         assertTrue("strings should be equal", testlib.string_equals("test", "test"));
         assertFalse("strings should not be equal", testlib.string_equals("test", "deadbeef"));
+    }
+
+    @Test public void stringResult() {
+        final String MAGIC = "deadbeef";
+        assertEquals(MAGIC, testlib.ptr_return_array_element(new String[] { MAGIC }, 0));
     }
 }

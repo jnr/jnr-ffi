@@ -95,8 +95,7 @@ final class AsmUtil {
     }
 
     public static Class unboxedReturnType(Class type) {
-        if (Pointer.class.isAssignableFrom(type)
-            || String.class.isAssignableFrom(type)) {
+        if (Pointer.class.isAssignableFrom(type)) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
         }
         
@@ -129,9 +128,6 @@ final class AsmUtil {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
         } else if (Address.class == boxedType) {
-            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
-
-        } else if (String.class == boxedType) {
             return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
 
         } else {
@@ -352,9 +348,6 @@ final class AsmUtil {
 
        } else if (Number.class.isAssignableFrom(boxedType) && boxedType(unboxedType) == boxedType) {
             mv.invokestatic(boxedType, "valueOf", boxedType, unboxedType);
-
-        } else if (String.class == boxedType) {
-            mv.invokestatic(AsmRuntime.class, "stringValue", String.class, unboxedType);
 
         } else {
             throw new IllegalArgumentException("cannot box value of type " + unboxedType + " to " + boxedType);

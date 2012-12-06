@@ -52,17 +52,6 @@ public final class AsmRuntime {
         return new HeapInvocationBuffer(callContext, objCount);
     }
 
-    public static String stringValue(long ptr) {
-        if (ptr == 0) {
-            return null;
-        }
-        return Charset.defaultCharset().decode(ByteBuffer.wrap(IO.getZeroTerminatedByteArray(ptr))).toString();
-    }
-
-    public static String stringValue(int ptr) {
-        return stringValue((long) ptr);
-    }
-
     public static Pointer pointerValue(long ptr) {
         return ptr != 0 ? new DirectMemoryIO(ptr) : null;
     }

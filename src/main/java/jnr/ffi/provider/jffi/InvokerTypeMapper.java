@@ -9,6 +9,7 @@ import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
 
+import java.nio.charset.Charset;
 import java.util.EnumSet;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
@@ -44,6 +45,9 @@ final class InvokerTypeMapper implements TypeMapper {
 
         } else if (NativeLong.class.isAssignableFrom(javaType)) {
             return NativeLongConverter.INSTANCE;
+
+        } else if (CharSequence.class.isAssignableFrom(javaType)) {
+            return StringResultConverter.getInstance(Charset.defaultCharset());
 
         } else {
             return null;
