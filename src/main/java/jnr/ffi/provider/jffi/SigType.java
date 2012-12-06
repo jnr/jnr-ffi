@@ -37,4 +37,8 @@ abstract class SigType {
     final Collection<Annotation> annotations() {
         return annotations;
     }
+
+    public final String toString() {
+        return String.format("declared: %s, effective: %s, native: %s", getDeclaredType(), effectiveJavaType(), nativeType);
+    }
 }

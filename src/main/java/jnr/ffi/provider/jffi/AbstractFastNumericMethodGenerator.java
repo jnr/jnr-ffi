@@ -50,22 +50,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             if (op != null && op.isPrimitive()) {
                 op.emitPrimitive(mv, getInvokerType(), parameterTypes[i].nativeType);
 
-            } else if (Pointer.class.isAssignableFrom(javaParameterType)
-                    || String.class == javaParameterType
-                    || CharSequence.class == javaParameterType
-                    || ByteBuffer.class.isAssignableFrom(javaParameterType)
-                    || ShortBuffer.class.isAssignableFrom(javaParameterType)
-                    || IntBuffer.class.isAssignableFrom(javaParameterType)
-                    || (LongBuffer.class.isAssignableFrom(javaParameterType) && sizeof(NativeType.SLONG) == 8)
-                    || FloatBuffer.class.isAssignableFrom(javaParameterType)
-                    || DoubleBuffer.class.isAssignableFrom(javaParameterType)
-                    || byte[].class == javaParameterType
-                    || short[].class == javaParameterType
-                    || int[].class == javaParameterType
-                    || (long[].class == javaParameterType && sizeof(NativeType.SLONG) == 8)
-                    || float[].class == javaParameterType
-                    || double[].class == javaParameterType
-                    ) {
+            } else if (hasPointerParameterStrategy(javaParameterType)) {
 
                 // Initialize the objectCount local var
                 if (pointerCount++ < 1) {
@@ -193,10 +178,24 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
     @SuppressWarnings("unchecked")
     static final Set<Class> pointerTypes = Collections.unmodifiableSet(new LinkedHashSet<Class>(Arrays.asList(
         Pointer.class,
+        ByteBuffer.class, CharBuffer.class, ShortBuffer.class, IntBuffer.class, LongBuffer.class, FloatBuffer.class, DoubleBuffer.class,
+        Buffer.class, // make sure Buffer is after the more specific (faster execution path) checks
         CharSequence.class,
-        ByteBuffer.class, ShortBuffer.class, IntBuffer.class, LongBuffer.class, FloatBuffer.class, DoubleBuffer.class,
         byte[].class, short[].class, char[].class, int[].class, long[].class, float[].class, double[].class, boolean[].class
     )));
+
+    @SuppressWarnings("unchecked")
+    static boolean hasPointerParameterStrategy(Class javaType) {
+        for (Class c : pointerTypes) {
+            if (c.isAssignableFrom(javaType)) {
+                // FIXME: replace special handling for 32/64bit arrays with more generic elsewhere
+                return !(LongBuffer.class.isAssignableFrom(javaType) || long[].class == javaType) || sizeof(NativeType.SLONG) == 8;
+            }
+        }
+
+        return true;
+
+    }
 
     static void emitPointerParameterStrategyLookup(SkinnyMethodAdapter mv, Class javaParameterType, Collection<Annotation> annotations) {
         boolean converted = false;

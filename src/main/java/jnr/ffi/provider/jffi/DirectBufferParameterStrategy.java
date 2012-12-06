@@ -38,7 +38,7 @@ final class DirectBufferParameterStrategy extends PointerParameterStrategy {
         return ((Buffer) o).remaining() << shift;
     }
 
-    private static int calculateShift(ObjectParameterType.ComponentType componentType) {
+    static int calculateShift(ObjectParameterType.ComponentType componentType) {
         switch (componentType) {
             case BYTE:
                 return 0;

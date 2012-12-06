@@ -8,11 +8,13 @@ import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.ParameterFlags;
 
-import java.nio.Buffer;
+import java.nio.*;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.hasPointerParameterStrategy;
 import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
@@ -120,7 +122,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
         final LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         final LocalVariable[] converted = new LocalVariable[parameterTypes.length];
-
+        LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
 
         for (int i = 0; i < parameterTypes.length; ++i) {
             mv.dup(); // dup ref to HeapInvocationBuffer
@@ -129,35 +131,25 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 mv.aload(session);
             }
             loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
-            if (parameterTypes[i].toNativeConverter instanceof ToNativeConverter.PostInvocation) {
-                mv.dup();
-                mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
-            }
 
-            final int parameterFlags = ParameterFlags.parse(parameterTypes[i].annotations());
-            final int nativeArrayFlags = AsmUtil.getNativeArrayFlags(parameterFlags)
-                        | ((parameterFlags & ParameterFlags.IN) != 0 ? ArrayFlags.NULTERMINATE : 0);
+            if (parameterTypes[i].toNativeConverter != null) {
+                mv.astore(converted[i] = localVariableAllocator.allocate(parameterTypes[i].effectiveJavaType()));
+                mv.aload(converted[i]);
+            }
 
             final Class javaParameterType = parameterTypes[i].effectiveJavaType();
             ToNativeOp op = ToNativeOp.get(parameterTypes[i]);
             if (op != null && op.isPrimitive()) {
                 emitPrimitiveOp(mv, parameterTypes[i], op);
 
-            } else if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
-                mv.pushInt(nativeArrayFlags);
-                marshal(mv, javaParameterType, int.class);
+            } else if (hasPointerParameterStrategy(javaParameterType)) {
+                mv.dup();
+                emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations());
+                mv.astore(strategies[i] = localVariableAllocator.allocate(PointerParameterStrategy.class));
+                mv.aload(strategies[i]);
 
-            } else if (Pointer.class.isAssignableFrom(javaParameterType)) {
-                mv.pushInt(nativeArrayFlags);
-                marshal(mv, Pointer.class, int.class);
-
-            } else if (Buffer.class.isAssignableFrom(javaParameterType)) {
-                mv.pushInt(nativeArrayFlags);
-                marshal(mv, javaParameterType, int.class);
-
-            } else if (CharSequence.class.isAssignableFrom(javaParameterType)) {
-                // stack should be: [ Buffer, array, flags ]
-                marshal(mv, CharSequence.class);
+                mv.pushInt(AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations()));
+                mv.invokevirtual(HeapInvocationBuffer.class, "putObject", void.class, Object.class, ObjectParameterStrategy.class, int.class);
 
             } else {
                 throw new IllegalArgumentException("unsupported parameter type " + parameterTypes[i]);

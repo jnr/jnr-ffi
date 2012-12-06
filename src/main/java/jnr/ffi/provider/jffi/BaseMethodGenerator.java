@@ -101,7 +101,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
     static void emitPostInvoke(AsmBuilder builder, final SkinnyMethodAdapter mv, ParameterType[] parameterTypes,
                                LocalVariable[] parameters, LocalVariable[] converted) {
         for (int i = 0; i < converted.length; ++i) {
-            if (converted[i] != null) {
+            if (converted[i] != null && parameterTypes[i].toNativeConverter instanceof ToNativeConverter.PostInvocation) {
                 mv.aload(0);
                 AsmBuilder.ObjectField toNativeConverterField = builder.getToNativeConverterField(parameterTypes[i].toNativeConverter);
                 mv.getfield(builder.getClassNamePath(), toNativeConverterField.name, ci(toNativeConverterField.klass));
