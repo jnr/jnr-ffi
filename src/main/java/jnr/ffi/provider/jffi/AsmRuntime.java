@@ -105,15 +105,6 @@ public final class AsmRuntime {
         }
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(CharSequence s) {
-        if (s == null) {
-            return NullPointerParameterStrategy.INSTANCE;
-
-        } else {
-            return new StringParameterStrategy(s);
-        }
-    }
-
     public static PointerParameterStrategy bufferParameterStrategy(Buffer buffer, ObjectParameterType.ComponentType componentType) {
         if (buffer == null) {
             return NullPointerParameterStrategy.INSTANCE;

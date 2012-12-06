@@ -223,7 +223,6 @@ public abstract class NativeClosureProxy {
                 || Long.class == type || Float.class == type
                 || Double.class == type
                 || Pointer.class == type
-                || String.class == type
                 /*
                 || CharSequence.class == type
                 || Buffer.class.isAssignableFrom(type)

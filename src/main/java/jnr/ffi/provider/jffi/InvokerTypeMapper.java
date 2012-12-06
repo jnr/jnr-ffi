@@ -80,6 +80,9 @@ final class InvokerTypeMapper implements TypeMapper {
         } else if (StringBuffer.class.isAssignableFrom(javaType)) {
             return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
+        } else if (CharSequence.class.isAssignableFrom(javaType)) {
+            return CharSequenceParameterConverter.getInstance(NativeRuntime.getInstance(), Charset.defaultCharset());
+
         } else if (Byte[].class.isAssignableFrom(javaType)) {
             return BoxedByteArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
 
