@@ -95,10 +95,6 @@ final class AsmUtil {
     }
 
     public static Class unboxedReturnType(Class type) {
-        if (Pointer.class.isAssignableFrom(type)) {
-            return Platform.getPlatform().addressSize() == 32 ? int.class : long.class;
-        }
-        
         return unboxedType(type);
     }
 
