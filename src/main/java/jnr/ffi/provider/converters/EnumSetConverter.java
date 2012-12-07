@@ -19,22 +19,35 @@ public final class EnumSetConverter implements DataConverter<EnumSet<? extends E
         this.allValues = EnumSet.allOf(enumClass);
     }
 
-    @SuppressWarnings("unchecked")
     public static ToNativeConverter<EnumSet<? extends Enum>, Integer> getToNativeConverter(Class javaType, ToNativeContext toNativeContext) {
         if (!(toNativeContext instanceof MethodParameterContext)) {
             return null;
         }
         Method method = ((MethodParameterContext) toNativeContext).getMethod();
         Type parameterTypes = method.getGenericParameterTypes()[((MethodParameterContext) toNativeContext).getParameterIndex()];
-        if (!(parameterTypes instanceof ParameterizedType)) {
+        return getInstance(parameterTypes);
+    }
+
+
+    public static FromNativeConverter<EnumSet<? extends Enum>, Integer> getFromNativeConverter(Class javaType, FromNativeContext fromNativeContext) {
+        if (!(fromNativeContext instanceof MethodResultContext)) {
+            return null;
+        }
+        Method method = ((MethodResultContext) fromNativeContext).getMethod();
+        return getInstance(method.getGenericReturnType());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static EnumSetConverter getInstance(Type parameterizedType) {
+        if (!(parameterizedType instanceof ParameterizedType)) {
             return null;
         }
 
-        if (((ParameterizedType) parameterTypes).getActualTypeArguments().length < 1) {
+        if (((ParameterizedType) parameterizedType).getActualTypeArguments().length < 1) {
             return null;
         }
 
-        Type enumType = ((ParameterizedType) parameterTypes).getActualTypeArguments()[0];
+        Type enumType = ((ParameterizedType) parameterizedType).getActualTypeArguments()[0];
         if (!(enumType instanceof Class)) {
             return null;
         }

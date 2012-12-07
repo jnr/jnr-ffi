@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -51,15 +52,32 @@ public class EnumTest {
         }
         private final int value;
     }
+
+    public static enum BitField {
+        A(0x1),
+        B(0x2),
+        C(0x4),
+        D(0x8);
+
+        BitField(int value) {
+            this.value = value;
+        }
+
+        public int intValue() {
+            return value;
+        }
+        private final int value;
+    }
     
     public static interface TestLib {
         public int ret_int32_t(TestEnum e);
         public int add_int32_t(TestEnum i1, TestEnum i2);
-        public int ret_int32_t(EnumSet<TestEnum> enumSet);
+        public int ret_int32_t(Set<TestEnum> enumSet);
     }
 
     public static interface ReturnEnumLib {
         public TestEnum ret_int32_t(int e);
+        public Set<BitField> ret_int32_t(Set<BitField> bitfield);
         public TestEnum ret_int32_t(TestEnum e);
         public TestEnum add_int32_t(int i1, int i2);
         public TestEnum add_int32_t(TestEnum i1, TestEnum i2);
@@ -101,7 +119,13 @@ public class EnumTest {
     }
 
     @Test
-    public void enumSet() {
+    public void enumSetParameter() {
         assertEquals(TestEnum.A.intValue() | TestEnum.B.intValue(), testlib.ret_int32_t(EnumSet.of(TestEnum.A, TestEnum.B)));
+    }
+
+    @Test
+    public void enumSetResult() {
+        EnumSet<BitField> MAGIC = EnumSet.of(BitField.A, BitField.B);
+        assertEquals(MAGIC, retenum.ret_int32_t(MAGIC));
     }
 }

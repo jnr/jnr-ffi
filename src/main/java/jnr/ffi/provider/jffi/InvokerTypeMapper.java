@@ -11,6 +11,7 @@ import jnr.ffi.provider.converters.*;
 
 import java.nio.charset.Charset;
 import java.util.EnumSet;
+import java.util.Set;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
@@ -24,6 +25,8 @@ final class InvokerTypeMapper implements TypeMapper {
     }
 
     public FromNativeConverter getFromNativeConverter(Class javaType, FromNativeContext fromNativeContext) {
+        FromNativeConverter converter;
+
         if (Enum.class.isAssignableFrom(javaType)) {
             return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
 
@@ -49,6 +52,9 @@ final class InvokerTypeMapper implements TypeMapper {
         } else if (CharSequence.class.isAssignableFrom(javaType)) {
             return StringResultConverter.getInstance(Charset.defaultCharset());
 
+        } else if (javaType.isAssignableFrom(EnumSet.class) && (converter = EnumSetConverter.getFromNativeConverter(javaType, fromNativeContext)) != null) {
+            return converter;
+
         } else {
             return null;
         }
@@ -56,11 +62,13 @@ final class InvokerTypeMapper implements TypeMapper {
     }
 
     public ToNativeConverter getToNativeConverter(Class javaType, ToNativeContext context) {
+        ToNativeConverter converter;
+
         if (Enum.class.isAssignableFrom(javaType)) {
             return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
 
-        } else if (EnumSet.class.isAssignableFrom(javaType)) {
-            return EnumSetConverter.getToNativeConverter(javaType, context);
+        } else if (Set.class.isAssignableFrom(javaType) && (converter = EnumSetConverter.getToNativeConverter(javaType, context)) != null) {
+            return converter;
 
         } else if (isDelegate(javaType)) {
             return closureManager.newClosureSite(javaType);
