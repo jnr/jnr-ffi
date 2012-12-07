@@ -46,13 +46,13 @@ final class InvokerTypeMapper implements TypeMapper {
                 }
             };
 
-        } else if (NativeLong.class.isAssignableFrom(javaType)) {
+        } else if (NativeLong.class == javaType) {
             return NativeLongConverter.INSTANCE;
 
-        } else if (CharSequence.class.isAssignableFrom(javaType)) {
+        } else if (String.class == javaType || CharSequence.class == javaType) {
             return StringResultConverter.getInstance(Charset.defaultCharset());
 
-        } else if (javaType.isAssignableFrom(EnumSet.class) && (converter = EnumSetConverter.getFromNativeConverter(javaType, fromNativeContext)) != null) {
+        } else if ((Set.class == javaType || EnumSet.class == javaType) && (converter = EnumSetConverter.getFromNativeConverter(javaType, fromNativeContext)) != null) {
             return converter;
 
         } else {
