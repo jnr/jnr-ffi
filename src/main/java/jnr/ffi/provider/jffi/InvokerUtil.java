@@ -25,6 +25,7 @@ import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.annotations.*;
 import jnr.ffi.mapper.*;
+import jnr.ffi.util.Annotations;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -33,6 +34,7 @@ import java.util.*;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 final class InvokerUtil {
 
@@ -142,7 +144,7 @@ final class InvokerUtil {
         } else {
             List<Annotation> all = new ArrayList<Annotation>(a);
             all.addAll(b);
-            return annotationCollection(all);
+            return sortedAnnotationCollection(all);
         }
     }
 
@@ -162,7 +164,7 @@ final class InvokerUtil {
                     continue;
                 }
 
-                return mergeAnnotations(annotationCollection(m.getAnnotations()), annotationCollection(baseMethod.getAnnotations()));
+                return mergeAnnotations(Annotations.sortedAnnotationCollection(m.getAnnotations()), Annotations.sortedAnnotationCollection(baseMethod.getAnnotations()));
             }
 
             return emptyAnnotations;
@@ -176,7 +178,7 @@ final class InvokerUtil {
     @SuppressWarnings("unchecked")
     static Collection<Annotation> getConverterMethodAnnotations(Class converterClass, String methodName, Class... parameterClasses) {
         try {
-            return annotationCollection(converterClass.getMethod(methodName).getAnnotations());
+            return Annotations.sortedAnnotationCollection(converterClass.getMethod(methodName).getAnnotations());
         } catch (NoSuchMethodException ignored) {
             return emptyAnnotations;
         } catch (Throwable e) {
@@ -186,7 +188,7 @@ final class InvokerUtil {
 
     static Collection<Annotation> getAnnotations(ToNativeConverter toNativeConverter) {
         if (toNativeConverter != null) {
-            Collection<Annotation> classAnnotations = annotationCollection(toNativeConverter.getClass().getAnnotations());
+            Collection<Annotation> classAnnotations = Annotations.sortedAnnotationCollection(toNativeConverter.getClass().getAnnotations());
             Collection<Annotation> toNativeAnnotations = getToNativeMethodAnnotations(toNativeConverter.getClass(), toNativeConverter.nativeType());
             Collection<Annotation> nativeTypeAnnotations = getConverterMethodAnnotations(toNativeConverter.getClass(), "nativeType");
             return mergeAnnotations(classAnnotations, mergeAnnotations(nativeTypeAnnotations, toNativeAnnotations));
@@ -198,7 +200,7 @@ final class InvokerUtil {
 
     static Collection<Annotation> getAnnotations(FromNativeConverter fromNativeConverter) {
         if (fromNativeConverter != null) {
-            Collection<Annotation> classAnnotations = annotationCollection(fromNativeConverter.getClass().getAnnotations());
+            Collection<Annotation> classAnnotations = Annotations.sortedAnnotationCollection(fromNativeConverter.getClass().getAnnotations());
             Collection<Annotation> fromNativeAnnotations = getConverterMethodAnnotations(fromNativeConverter.getClass(), "fromNative", fromNativeConverter.nativeType(), FromNativeContext.class);
             Collection<Annotation> nativeTypeAnnotations = getConverterMethodAnnotations(fromNativeConverter.getClass(), "nativeType");
             return mergeAnnotations(classAnnotations, mergeAnnotations(nativeTypeAnnotations, fromNativeAnnotations));
@@ -232,7 +234,7 @@ final class InvokerUtil {
         ParameterType[] parameterTypes = new ParameterType[javaParameterTypes.length];
 
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
-            Collection<Annotation> annotations = annotationCollection(parameterAnnotations[pidx]);
+            Collection<Annotation> annotations = Annotations.sortedAnnotationCollection(parameterAnnotations[pidx]);
             ToNativeContext toNativeContext = new MethodParameterContext(m, pidx, annotations);
             ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(javaParameterTypes[pidx], toNativeContext);
             Collection<Annotation> converterAnnotations = getAnnotations(toNativeConverter);
@@ -350,33 +352,4 @@ final class InvokerUtil {
                                         boolean requiresErrno, CallingConvention convention) {
         return new Function(address, getCallContext(resultType, parameterTypes, convention, requiresErrno));
     }
-
-
-    static Collection<Annotation> annotationCollection(Annotation[] annotations) {
-        if (annotations.length > 1) {
-            Arrays.sort(annotations, AnnotationComparator.INSTANCE);
-            return Collections.unmodifiableList(Arrays.asList(annotations));
-
-        } else if (annotations.length > 0) {
-            return Collections.singletonList(annotations[0]);
-
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
-    static Collection<Annotation> annotationCollection(Collection<Annotation> annotations) {
-        ArrayList<Annotation> ary = new ArrayList<Annotation>(annotations);
-        Collections.sort(ary, AnnotationComparator.INSTANCE);
-        return ary;
-    }
-
-    private static final class AnnotationComparator implements Comparator<Annotation> {
-        static final Comparator<Annotation> INSTANCE = new AnnotationComparator();
-
-        public int compare(Annotation o1, Annotation o2) {
-            return o1.annotationType().getName().compareTo(o2.annotationType().getName());
-        }
-    }
-
 }

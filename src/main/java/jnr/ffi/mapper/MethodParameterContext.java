@@ -22,6 +22,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+
 /**
  * Holds context for a method parameter java->native conversion.
  */
@@ -45,7 +47,7 @@ public final class MethodParameterContext implements ToNativeContext {
     public MethodParameterContext(Method method, int parameterIndex, Collection<Annotation> annotations) {
         this.method = method;
         this.parameterIndex = parameterIndex;
-        this.annotations = annotations;
+        this.annotations = sortedAnnotationCollection(annotations);
     }
 
     public Method getMethod() {
@@ -62,9 +64,29 @@ public final class MethodParameterContext implements ToNativeContext {
 
     private Collection<Annotation> buildAnnotationCollection() {
         if (annotationArray != null) {
-            return annotations = Util.annotationCollection(annotationArray);
+            return annotations = sortedAnnotationCollection(annotationArray);
         } else {
-            return annotations = Util.annotationCollection(annotationArray = method.getParameterAnnotations()[parameterIndex]);
+            return annotations = sortedAnnotationCollection(annotationArray = method.getParameterAnnotations()[parameterIndex]);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MethodParameterContext that = (MethodParameterContext) o;
+
+        return parameterIndex == that.parameterIndex
+                && method.equals(that.method)
+                && getAnnotations().equals(that.getAnnotations());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = method.hashCode();
+        result = 31 * result + parameterIndex;
+        result = 31 * result + getAnnotations().hashCode();
+        return result;
     }
 }

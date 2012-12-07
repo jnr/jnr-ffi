@@ -26,7 +26,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
-import static jnr.ffi.provider.jffi.InvokerUtil.annotationCollection;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 /**
  *
@@ -36,7 +36,7 @@ final class ClosureUtil {
     }
 
     static ToNativeType getResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
-        Collection<Annotation> annotations = annotationCollection(m.getAnnotations());
+        Collection<Annotation> annotations = sortedAnnotationCollection(m.getAnnotations());
         ToNativeConverter converter = typeMapper.getToNativeConverter(m.getReturnType(), new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
@@ -44,7 +44,7 @@ final class ClosureUtil {
     }
 
     static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
-        Collection<Annotation> annotations = annotationCollection(m.getParameterAnnotations()[idx]);
+        Collection<Annotation> annotations = sortedAnnotationCollection(m.getParameterAnnotations()[idx]);
         Class declaredJavaClass = m.getParameterTypes()[idx];
         FromNativeConverter converter = typeMapper.getFromNativeConverter(declaredJavaClass, new SimpleNativeContext(annotations));
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;

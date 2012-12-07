@@ -22,6 +22,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+
 /**
  *
  */
@@ -38,6 +40,6 @@ public class MethodResultContext implements FromNativeContext {
     }
 
     public Collection<Annotation> getAnnotations() {
-        return annotations != null ? annotations : (annotations = Util.annotationCollection(method.getAnnotations()));
+        return annotations != null ? annotations : (annotations = sortedAnnotationCollection(method.getAnnotations()));
     }
 }

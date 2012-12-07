@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.InvokerUtil.*;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 import static org.objectweb.asm.Opcodes.*;
 
 public class AsmLibraryLoader extends LibraryLoader {
@@ -101,7 +102,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             if (Variable.class.isAssignableFrom(m.getReturnType())) {
                 continue;
             }
-            Collection<Annotation> annotations = annotationCollection(m.getAnnotations());
+            Collection<Annotation> annotations = sortedAnnotationCollection(m.getAnnotations());
             String functionName = functionMapper.mapFunctionName(m.getName(), new NativeFunctionMapperContext(library, annotations));
 
             // Allow individual methods to set the calling convention to stdcall
@@ -130,7 +131,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 String functionName = functionMapper.mapFunctionName(m.getName(), null);
                 try {
                     variableAccessorGenerator.generate(builder, interfaceClass, m.getName(),
-                            library.findSymbolAddress(functionName), (Class) variableType, annotationCollection(m.getAnnotations()),
+                            library.findSymbolAddress(functionName), (Class) variableType, sortedAnnotationCollection(m.getAnnotations()),
                             typeMapper);
 
                 } catch (SymbolNotFoundError ex) {
