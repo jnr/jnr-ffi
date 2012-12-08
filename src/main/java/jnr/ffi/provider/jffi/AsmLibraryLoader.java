@@ -51,22 +51,23 @@ public class AsmLibraryLoader extends LibraryLoader {
 
     private final NativeRuntime runtime = NativeRuntime.getInstance();
 
-    static AsmClassLoader getCurrentClassLoader() {
-        return classLoader.get();
-    }
-
     @Override
     <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         AsmClassLoader oldClassLoader = classLoader.get();
-        classLoader.set(new AsmClassLoader(interfaceClass.getClassLoader()));
+
+        // Only create a new class loader if this was not a recursive call (i.e. loading a library as a result of loading another library)
+        if (oldClassLoader == null) {
+            classLoader.set(new AsmClassLoader(interfaceClass.getClassLoader()));
+        }
         try {
-            return generateInterfaceImpl(library, interfaceClass, libraryOptions);
+            return generateInterfaceImpl(library, interfaceClass, libraryOptions, classLoader.get());
         } finally {
-            classLoader.set(oldClassLoader);
+            if (oldClassLoader == null) classLoader.remove();
         }
     }
 
-    private <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    private <T> T generateInterfaceImpl(final NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
+                                        AsmClassLoader classLoader) {
 
         boolean debug = DEBUG && !interfaceClass.isAnnotationPresent(NoTrace.class);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -94,7 +95,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             typeMapper = new NullTypeMapper();
         }
 
-        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper))));
+        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper), classLoader)));
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         StubCompiler compiler = StubCompiler.newCompiler();
@@ -143,7 +144,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 try {
                     variableAccessorGenerator.generate(builder, interfaceClass, m.getName(),
                             library.findSymbolAddress(functionName), (Class) variableType, sortedAnnotationCollection(m.getAnnotations()),
-                            typeMapper);
+                            typeMapper, classLoader);
 
                 } catch (SymbolNotFoundError ex) {
                     String errorFieldName = "error_" + uniqueId.incrementAndGet();
@@ -179,7 +180,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new ClassReader(bytes).accept(trace, 0);
             }
 
-            Class<T> implClass = classLoader.get().defineClass(builder.getClassNamePath().replace("/", "."), bytes);
+            Class<T> implClass = classLoader.defineClass(builder.getClassNamePath().replace("/", "."), bytes);
             Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Object[].class);
             T result = cons.newInstance(library, builder.getObjectFieldValues());
 

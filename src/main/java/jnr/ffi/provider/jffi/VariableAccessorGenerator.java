@@ -29,14 +29,14 @@ public class VariableAccessorGenerator {
 
     public void generate(AsmBuilder builder, Class interfaceClass, String variableName, long address,
                          Class javaType, Collection<Annotation> annotations,
-                         SignatureTypeMapper typeMapper) {
+                         SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
         SimpleNativeContext context = new SimpleNativeContext(annotations);
         SignatureType signatureType = DefaultSignatureType.create(javaType, (FromNativeContext) context);
         FromNativeConverter fromNativeConverter = typeMapper.getFromNativeConverter(signatureType, context);
         ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(signatureType, context);
 
         Variable variableAccessor = buildVariableAccessor(address, interfaceClass, javaType, annotations,
-                toNativeConverter, fromNativeConverter);
+                toNativeConverter, fromNativeConverter, classLoader);
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL,
                 variableName, sig(Variable.class), null, null);
         mv.start();
@@ -48,7 +48,8 @@ public class VariableAccessorGenerator {
     }
 
     Variable buildVariableAccessor(long address, Class interfaceClass, Class javaType, Collection<Annotation> annotations,
-                                   ToNativeConverter toNativeConverter, FromNativeConverter fromNativeConverter) {
+                                   ToNativeConverter toNativeConverter, FromNativeConverter fromNativeConverter,
+                                   AsmClassLoader classLoader) {
         boolean debug = AsmLibraryLoader.DEBUG && !hasAnnotation(annotations, NoTrace.class);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
@@ -129,7 +130,7 @@ public class VariableAccessorGenerator {
                 new ClassReader(bytes).accept(trace, 0);
             }
 
-            Class<Variable> implClass = AsmLibraryLoader.getCurrentClassLoader().defineClass(builder.getClassNamePath().replace("/", "."), bytes);
+            Class<Variable> implClass = classLoader.defineClass(builder.getClassNamePath().replace("/", "."), bytes);
             Constructor<Variable> cons = implClass.getDeclaredConstructor(Object[].class);
             return cons.newInstance(new Object[] { builder.getObjectFieldValues() });
         } catch (Throwable ex) {

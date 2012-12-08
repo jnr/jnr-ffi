@@ -44,12 +44,12 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
 
     static final Map<Class<? extends Struct>, Class<? extends StructByReferenceFromNativeConverter>> converterClasses
             = new ConcurrentHashMap<Class<? extends Struct>, Class<? extends StructByReferenceFromNativeConverter>>();
-    static StructByReferenceFromNativeConverter newStructByReferenceConverter(Class<? extends Struct> structClass, int flags) {
+    static StructByReferenceFromNativeConverter newStructByReferenceConverter(Class<? extends Struct> structClass, int flags, AsmClassLoader classLoader) {
         Class<? extends StructByReferenceFromNativeConverter> converterClass = converterClasses.get(structClass);
         if (converterClass == null) {
             synchronized (converterClasses) {
                 if ((converterClass = converterClasses.get(structClass)) == null) {
-                    converterClasses.put(structClass, converterClass = newStructByReferenceClass(structClass));
+                    converterClasses.put(structClass, converterClass = newStructByReferenceClass(structClass, classLoader));
                 }
             }
         }
@@ -69,7 +69,7 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
 
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
-    static Class<? extends StructByReferenceFromNativeConverter> newStructByReferenceClass(Class<? extends Struct> structClass) {
+    static Class<? extends StructByReferenceFromNativeConverter> newStructByReferenceClass(Class<? extends Struct> structClass, AsmClassLoader classLoader) {
 
         try {
             Constructor<? extends Struct> cons = structClass.asSubclass(Struct.class).getConstructor(jnr.ffi.Runtime.class);
@@ -153,7 +153,7 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
                 new ClassReader(bytes).accept(trace, 0);
             }
 
-            return AsmLibraryLoader.getCurrentClassLoader().defineClass(className.replace("/", "."), bytes);
+            return classLoader.defineClass(className.replace("/", "."), bytes);
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }

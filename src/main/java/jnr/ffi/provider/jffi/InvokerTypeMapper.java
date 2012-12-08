@@ -19,9 +19,11 @@ import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 final class InvokerTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
+    private final AsmClassLoader classLoader;
 
-    public InvokerTypeMapper(NativeClosureManager closureManager) {
+    public InvokerTypeMapper(NativeClosureManager closureManager, AsmClassLoader classLoader) {
         this.closureManager = closureManager;
+        this.classLoader = classLoader;
     }
 
     public FromNativeConverter getFromNativeConverter(SignatureType signatureType, FromNativeContext fromNativeContext) {
@@ -32,10 +34,10 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
 
         } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
             return StructByReferenceFromNativeConverter.newStructByReferenceConverter(signatureType.getDeclaredType().asSubclass(Struct.class),
-                    ParameterFlags.parse(fromNativeContext.getAnnotations()));
+                    ParameterFlags.parse(fromNativeContext.getAnnotations()), classLoader);
 
         } else if (closureManager != null && isDelegate(signatureType.getDeclaredType())) {
-            return ClosureFromNativeConverter.getInstance(signatureType, AsmLibraryLoader.getCurrentClassLoader(), this);
+            return ClosureFromNativeConverter.getInstance(signatureType, classLoader, this);
 
         } else if (NativeLong.class == signatureType.getDeclaredType()) {
             return NativeLongConverter.INSTANCE;
