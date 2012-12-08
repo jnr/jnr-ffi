@@ -377,45 +377,6 @@ final class AsmUtil {
         return getNativeArrayFlags(ParameterFlags.parse(annotations));
     }
 
-    static Class getNativeClass(NativeType nativeType) {
-        switch (nativeType) {
-            case SCHAR:
-            case UCHAR:
-                return byte.class;
-
-            case SSHORT:
-            case USHORT:
-                return short.class;
-
-            case SINT:
-            case UINT:
-                return int.class;
-
-            case SLONG:
-            case ULONG:
-                return sizeof(nativeType) == 4 ? int.class : long.class;
-
-            case SLONGLONG:
-            case ULONGLONG:
-                return long.class;
-
-            case FLOAT:
-                return float.class;
-
-            case DOUBLE:
-                return double.class;
-
-            case ADDRESS:
-                return sizeof(nativeType) == 4 ? int.class : long.class;
-
-            case VOID:
-                return void.class;
-
-            default:
-                throw new IllegalArgumentException("unsupported native type: " + nativeType);
-        }
-    }
-
     static LocalVariable[] getParameterVariables(ParameterType[] parameterTypes) {
         LocalVariable[] lvars = new LocalVariable[parameterTypes.length];
         int lvar = 1;
