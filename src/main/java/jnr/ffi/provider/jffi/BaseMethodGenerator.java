@@ -71,9 +71,9 @@ abstract class BaseMethodGenerator implements MethodGenerator {
         return parameter;
     }
 
-    static boolean isPostInvokeRequired(LocalVariable[] converted) {
-        for (int i = 0; i < converted.length; ++i) {
-            if (converted[i] != null) {
+    static boolean isPostInvokeRequired(ParameterType[] parameterTypes) {
+        for (ParameterType parameterType : parameterTypes) {
+            if (parameterType.toNativeConverter instanceof ToNativeConverter.PostInvocation) {
                 return true;
             }
         }
@@ -85,7 +85,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
                            final ParameterType[] parameterTypes,
                       final LocalVariable[] parameters, final LocalVariable[] converted, final Runnable sessionCleanup) {
         final Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());
-        if (isPostInvokeRequired(converted) || sessionCleanup != null) {
+        if (isPostInvokeRequired(parameterTypes) || sessionCleanup != null) {
             tryfinally(mv, new Runnable() {
                         public void run() {
                             emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
