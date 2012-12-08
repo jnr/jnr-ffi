@@ -74,7 +74,7 @@ public class CachingTypeMapperTest {
         @Override
         public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
             FromNativeConverter converter;
-            if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getFromNativeConverter(type.getDeclaredType(), context)) != null) {
+            if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getFromNativeConverter(type, context)) != null) {
                  return converter;
             } else {
                 return null;
@@ -84,7 +84,7 @@ public class CachingTypeMapperTest {
         @Override
         public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
             ToNativeConverter converter;
-            if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getToNativeConverter(type.getDeclaredType(), context)) != null) {
+            if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getToNativeConverter(type, context)) != null) {
                 return converter;
 
             } else if (long[].class == type.getDeclaredType()) {

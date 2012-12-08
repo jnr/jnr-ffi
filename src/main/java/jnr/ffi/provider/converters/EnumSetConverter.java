@@ -21,22 +21,12 @@ public final class EnumSetConverter implements DataConverter<EnumSet<? extends E
         this.allValues = EnumSet.allOf(enumClass);
     }
 
-    public static ToNativeConverter<EnumSet<? extends Enum>, Integer> getToNativeConverter(Class javaType, ToNativeContext toNativeContext) {
-        if (!(toNativeContext instanceof MethodParameterContext)) {
-            return null;
-        }
-        Method method = ((MethodParameterContext) toNativeContext).getMethod();
-        Type parameterTypes = method.getGenericParameterTypes()[((MethodParameterContext) toNativeContext).getParameterIndex()];
-        return getInstance(parameterTypes);
+    public static ToNativeConverter<EnumSet<? extends Enum>, Integer> getToNativeConverter(SignatureType type, ToNativeContext toNativeContext) {
+        return getInstance(type.getGenericType());
     }
 
-
-    public static FromNativeConverter<EnumSet<? extends Enum>, Integer> getFromNativeConverter(Class javaType, FromNativeContext fromNativeContext) {
-        if (!(fromNativeContext instanceof MethodResultContext)) {
-            return null;
-        }
-        Method method = ((MethodResultContext) fromNativeContext).getMethod();
-        return getInstance(method.getGenericReturnType());
+    public static FromNativeConverter<EnumSet<? extends Enum>, Integer> getFromNativeConverter(SignatureType type, FromNativeContext fromNativeContext) {
+        return getInstance(type.getGenericType());
     }
 
     @SuppressWarnings("unchecked")

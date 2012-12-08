@@ -52,7 +52,7 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
         } else if (String.class == signatureType.getDeclaredType() || CharSequence.class == signatureType.getDeclaredType()) {
             return StringResultConverter.getInstance(Charset.defaultCharset());
 
-        } else if ((Set.class == signatureType.getDeclaredType() || EnumSet.class == signatureType.getDeclaredType()) && (converter = EnumSetConverter.getFromNativeConverter(signatureType.getDeclaredType(), fromNativeContext)) != null) {
+        } else if ((Set.class == signatureType.getDeclaredType() || EnumSet.class == signatureType.getDeclaredType()) && (converter = EnumSetConverter.getFromNativeConverter(signatureType, fromNativeContext)) != null) {
             return converter;
 
         } else {
@@ -68,7 +68,7 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
         if (Enum.class.isAssignableFrom(javaType)) {
             return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
 
-        } else if (Set.class.isAssignableFrom(javaType) && (converter = EnumSetConverter.getToNativeConverter(javaType, context)) != null) {
+        } else if (Set.class.isAssignableFrom(javaType) && (converter = EnumSetConverter.getToNativeConverter(signatureType, context)) != null) {
             return converter;
 
         } else if (isDelegate(javaType)) {
