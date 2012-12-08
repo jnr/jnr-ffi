@@ -32,10 +32,12 @@ final class NativeClosureManager implements ClosureManager {
     private volatile Map<Class<?>, NativeClosureFactory> factories = new IdentityHashMap<Class<?>, NativeClosureFactory>();
     private final NativeRuntime runtime;
     private final SignatureTypeMapper typeMapper;
+    private final AsmClassLoader classLoader;
 
-    NativeClosureManager(NativeRuntime runtime, SignatureTypeMapper typeMapper) {
+    NativeClosureManager(NativeRuntime runtime, SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
         this.runtime = runtime;
         this.typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new ClosureTypeMapper()));
+        this.classLoader = classLoader;
     }
 
     <T> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
@@ -66,7 +68,7 @@ final class NativeClosureManager implements ClosureManager {
         }
 
 
-        factory = NativeClosureFactory.newClosureFactory(runtime, closureClass, typeMapper);
+        factory = NativeClosureFactory.newClosureFactory(runtime, closureClass, typeMapper, classLoader);
         Map<Class<?>, NativeClosureFactory> factories = new IdentityHashMap<Class<?>, NativeClosureFactory>();
         factories.putAll(this.factories);
         factories.put(closureClass, factory);

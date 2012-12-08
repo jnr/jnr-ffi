@@ -68,11 +68,11 @@ public abstract class NativeClosureProxy {
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
     static Factory newProxyFactory(NativeRuntime runtime, Method callMethod,
-                            ToNativeType resultType, FromNativeType[] parameterTypes) {
+                            ToNativeType resultType, FromNativeType[] parameterTypes, AsmClassLoader classLoader) {
         final String closureProxyClassName = p(NativeClosureProxy.class) + "$$impl$$" + nextClassID.getAndIncrement();
         final ClassWriter closureClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         final ClassVisitor closureClassVisitor = DEBUG ? AsmUtil.newCheckClassAdapter(closureClassWriter) : closureClassWriter;
-        AsmBuilder builder = new AsmBuilder(closureProxyClassName, closureClassVisitor);
+        AsmBuilder builder = new AsmBuilder(closureProxyClassName, closureClassVisitor, classLoader);
 
         closureClassVisitor.visit(V1_6, ACC_PUBLIC | ACC_FINAL, closureProxyClassName, null, p(NativeClosureProxy.class),
                 new String[]{ });
@@ -191,8 +191,7 @@ public abstract class NativeClosureProxy {
             if (cl == null) {
                 cl = ClassLoader.getSystemClassLoader();
             }
-            AsmClassLoader asm = new AsmClassLoader(cl);
-            Class<? extends NativeClosureProxy> klass = asm.defineClass(c(closureProxyClassName), closureImpBytes);
+            Class<? extends NativeClosureProxy> klass = builder.getClassLoader().defineClass(c(closureProxyClassName), closureImpBytes);
             Constructor<? extends NativeClosureProxy> constructor
                     = klass.getConstructor(NativeRuntime.class, Object[].class);
 

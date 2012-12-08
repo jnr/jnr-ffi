@@ -86,7 +86,7 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         ClassVisitor cv = AsmLibraryLoader.DEBUG ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         final String className = p(closureClass) + "$jnr$fromNativeConverter$" + nextClassID.getAndIncrement();
-        AsmBuilder builder = new AsmBuilder(className, cv);
+        AsmBuilder builder = new AsmBuilder(className, cv, classLoader);
 
         cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractClosurePointer.class),
                 new String[] { p(closureClass) } );

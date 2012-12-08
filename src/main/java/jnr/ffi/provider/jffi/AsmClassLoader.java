@@ -18,7 +18,14 @@
 
 package jnr.ffi.provider.jffi;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+
 final class AsmClassLoader extends ClassLoader {
+    private final ConcurrentMap<String, Class> definedClasses = new ConcurrentHashMap<String, Class>();
 
     public AsmClassLoader() {
     }
@@ -30,7 +37,17 @@ final class AsmClassLoader extends ClassLoader {
 
     public Class defineClass(String name, byte[] b) {
         Class klass = defineClass(name, b, 0, b.length);
+        definedClasses.putIfAbsent(name, klass);
         resolveClass(klass);
         return klass;
+    }
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        Class klass = definedClasses.get(name);
+        if (klass != null) {
+            return klass;
+        }
+        return super.findClass(name);
     }
 }

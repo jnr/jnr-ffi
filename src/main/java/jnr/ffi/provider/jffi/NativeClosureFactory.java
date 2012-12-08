@@ -58,7 +58,8 @@ public final class NativeClosureFactory<T> {
         this.callContext = callContext;
     }
 
-    static <T> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass, SignatureTypeMapper typeMapper) {
+    static <T> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass,
+                                                      SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
 
         Method callMethod = null;
         for (Method m : closureClass.getMethods()) {
@@ -80,7 +81,7 @@ public final class NativeClosureFactory<T> {
         ToNativeType resultType = getResultType(runtime, callMethod, typeMapper);
 
         return new NativeClosureFactory(runtime, getCallContext(resultType, parameterSigTypes, getNativeCallingConvention(callMethod), false),
-                NativeClosureProxy.newProxyFactory(runtime, callMethod, resultType, parameterSigTypes));
+                NativeClosureProxy.newProxyFactory(runtime, callMethod, resultType, parameterSigTypes, classLoader));
     }
 
     private void expunge(ClosureReference ref, Integer key) {

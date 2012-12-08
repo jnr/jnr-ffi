@@ -43,6 +43,7 @@ import java.nio.Buffer;
 import java.util.Collection;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
 
 final class AsmUtil {
@@ -486,7 +487,7 @@ final class AsmUtil {
     static void emitToNativeConversion(AsmBuilder builder, SkinnyMethodAdapter mv, ToNativeType toNativeType) {
         ToNativeConverter parameterConverter = toNativeType.toNativeConverter;
         if (parameterConverter != null) {
-            Method toNativeMethod = getToNativeMethod(toNativeType);
+            Method toNativeMethod = getToNativeMethod(toNativeType, builder.getClassLoader());
 
             if (toNativeType.getDeclaredType().isPrimitive()) {
                 boxValue(mv, getBoxedClass(toNativeType.getDeclaredType()), toNativeType.getDeclaredType());
@@ -532,7 +533,7 @@ final class AsmUtil {
             convertPrimitive(mv, nativeClass, unboxedType(fromNativeConverter.nativeType()), fromNativeType.nativeType);
             boxValue(mv, fromNativeConverter.nativeType(), nativeClass);
 
-            Method fromNativeMethod = getFromNativeMethod(fromNativeType);
+            Method fromNativeMethod = getFromNativeMethod(fromNativeType, builder.getClassLoader());
             getfield(mv, builder, builder.getFromNativeConverterField(fromNativeConverter));
             mv.swap();
             if (fromNativeType.fromNativeContext != null) {
@@ -567,7 +568,7 @@ final class AsmUtil {
         }
     }
 
-    static Method getToNativeMethod(ToNativeType toNativeType) {
+    static Method getToNativeMethod(ToNativeType toNativeType, AsmClassLoader classLoader) {
         ToNativeConverter toNativeConverter = toNativeType.toNativeConverter;
         if (toNativeConverter == null) {
             return null;
@@ -583,13 +584,14 @@ final class AsmUtil {
                             && methodParameterTypes.length == 2
                             && methodParameterTypes[0].isAssignableFrom(toNativeType.getDeclaredType())
                             && methodParameterTypes[1] == ToNativeContext.class
-                            && methodIsAccessible(method)) {
+                            && methodIsAccessible(method)
+                            && classIsVisible(classLoader, method.getDeclaringClass())) {
                         return method;
                     }
                 }
             }
             Method method = toNativeConverterClass.getMethod("toNative", Object.class, ToNativeContext.class);
-            return methodIsAccessible(method)
+            return methodIsAccessible(method) && classIsVisible(classLoader, method.getDeclaringClass())
                     ? method : ToNativeConverter.class.getDeclaredMethod("toNative", Object.class, ToNativeContext.class);
 
         } catch (NoSuchMethodException nsme) {
@@ -602,7 +604,7 @@ final class AsmUtil {
     }
 
 
-    static Method getFromNativeMethod(FromNativeType fromNativeType) {
+    static Method getFromNativeMethod(FromNativeType fromNativeType, AsmClassLoader classLoader) {
         FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
         if (fromNativeConverter == null) {
             return null;
@@ -621,13 +623,14 @@ final class AsmUtil {
                             && methodParameterTypes.length == 2
                             && methodParameterTypes[0].isAssignableFrom(fromNativeConverter.nativeType())
                             && methodParameterTypes[1] == FromNativeContext.class
-                            && methodIsAccessible(method)) {
+                            && methodIsAccessible(method)
+                            && classIsVisible(classLoader, method.getDeclaringClass())) {
                         return method;
                     }
                 }
             }
             Method method = fromNativeConverterClass.getMethod("fromNative", Object.class, FromNativeContext.class);
-            return methodIsAccessible(method)
+            return methodIsAccessible(method) && classIsVisible(classLoader, method.getDeclaringClass())
                     ? method : FromNativeConverter.class.getDeclaredMethod("fromNative", Object.class, FromNativeContext.class);
 
         } catch (NoSuchMethodException nsme) {
@@ -642,5 +645,15 @@ final class AsmUtil {
     static boolean methodIsAccessible(Method method) {
         return Modifier.isPublic(method.getModifiers()) && Modifier.isPublic(method.getDeclaringClass().getModifiers());
     }
+
+    private static boolean classIsVisible(ClassLoader classLoader, Class klass) {
+        try {
+            return classLoader.loadClass(klass.getName()) == klass;
+
+        } catch (ClassNotFoundException cnfe) {
+            return false;
+        }
+    }
+
 
 }

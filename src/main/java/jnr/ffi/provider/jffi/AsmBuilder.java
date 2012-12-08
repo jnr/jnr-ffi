@@ -25,6 +25,7 @@ import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 class AsmBuilder {
     private final String classNamePath;
     private final ClassVisitor classVisitor;
+    private final AsmClassLoader classLoader;
 
     private final ObjectNameGenerator functionId = new ObjectNameGenerator("functionAddress");
     private final ObjectNameGenerator contextId = new ObjectNameGenerator("callContext");
@@ -47,9 +48,10 @@ class AsmBuilder {
     private final Map<Object, ObjectField> genericObjects = new IdentityHashMap<Object, ObjectField>();
     private final List<ObjectField> objectFields = new ArrayList<ObjectField>();
 
-    AsmBuilder(String classNamePath, ClassVisitor classVisitor) {
+    AsmBuilder(String classNamePath, ClassVisitor classVisitor, AsmClassLoader classLoader) {
         this.classNamePath = classNamePath;
         this.classVisitor = classVisitor;
+        this.classLoader = classLoader;
     }
 
     public String getClassNamePath() {
@@ -60,6 +62,9 @@ class AsmBuilder {
         return classVisitor;
     }
 
+    public AsmClassLoader getClassLoader() {
+        return classLoader;
+    }
 
     private static final class ObjectNameGenerator {
         private final String baseName;
