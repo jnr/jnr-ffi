@@ -38,10 +38,6 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
         }
     }
 
-    FastNumericMethodGenerator(BufferMethodGenerator bufgen) {
-        super(bufgen);
-    }
-
     public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
         final int parameterCount = parameterTypes.length;
 

@@ -20,11 +20,6 @@ import static jnr.ffi.provider.jffi.NumberUtil.*;
  *
  */
 abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
-    private final BufferMethodGenerator bufgen;
-
-    public AbstractFastNumericMethodGenerator(BufferMethodGenerator bufgen) {
-        this.bufgen = bufgen;
-    }
 
     public void generate(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, final ResultType resultType, final ParameterType[] parameterTypes,
                          boolean ignoreError) {

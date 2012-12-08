@@ -85,16 +85,15 @@ public class AsmLibraryLoader extends LibraryLoader {
         typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper))));
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
-        BufferMethodGenerator bufgen = new BufferMethodGenerator();
         StubCompiler compiler = StubCompiler.newCompiler();
 
         final MethodGenerator[] generators = {
                 !interfaceClass.isAnnotationPresent(NoX86.class)
-                    ? new X86MethodGenerator(compiler, bufgen) : new NotImplMethodGenerator(),
-                new FastIntMethodGenerator(bufgen),
-                new FastLongMethodGenerator(bufgen),
-                new FastNumericMethodGenerator(bufgen),
-                bufgen
+                    ? new X86MethodGenerator(compiler) : new NotImplMethodGenerator(),
+                new FastIntMethodGenerator(),
+                new FastLongMethodGenerator(),
+                new FastNumericMethodGenerator(),
+                new BufferMethodGenerator()
         };
 
 

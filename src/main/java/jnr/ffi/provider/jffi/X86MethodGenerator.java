@@ -24,11 +24,9 @@ import static org.objectweb.asm.Opcodes.*;
 class X86MethodGenerator implements MethodGenerator {
     private final AtomicLong nextMethodID = new AtomicLong(0);
     private final StubCompiler compiler;
-    private final BufferMethodGenerator bufgen;
 
-    X86MethodGenerator(StubCompiler compiler, BufferMethodGenerator bufgen) {
+    X86MethodGenerator(StubCompiler compiler) {
         this.compiler = compiler;
-        this.bufgen = bufgen;
     }
 
     public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {

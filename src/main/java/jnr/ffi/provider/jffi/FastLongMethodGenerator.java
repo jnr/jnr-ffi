@@ -33,10 +33,6 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
         }
     }
 
-    public FastLongMethodGenerator(BufferMethodGenerator bufgen) {
-        super(bufgen);
-    }
-
     @Override
     String getInvokerMethodName(ResultType resultType, ParameterType[] parameterTypes, boolean ignoreErrno) {
         final int parameterCount = parameterTypes.length;
