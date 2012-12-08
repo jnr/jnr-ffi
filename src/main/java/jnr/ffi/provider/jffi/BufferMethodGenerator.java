@@ -90,7 +90,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
     @Override
     void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
-        generateBufferInvocation(builder, mv, localVariableAllocator, function, resultType, parameterTypes);
+        generateBufferInvocation(builder, mv, localVariableAllocator, function.getCallContext(), resultType, parameterTypes);
     }
 
     public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
@@ -123,7 +123,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         return false;
     }
 
-    void generateBufferInvocation(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, final ResultType resultType, final ParameterType[] parameterTypes) {
+    void generateBufferInvocation(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, CallContext callContext, final ResultType resultType, final ParameterType[] parameterTypes) {
         // [ stack contains: Invoker, Function ]
         final boolean sessionRequired = isSessionRequired(parameterTypes);
         final LocalVariable session = localVariableAllocator.allocate(InvocationSession.class);
@@ -137,7 +137,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
 
         // Create a new InvocationBuffer
         mv.aload(0);
-        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(function), ci(CallContext.class));
+        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(callContext), ci(CallContext.class));
         mv.invokestatic(AsmRuntime.class, "newHeapInvocationBuffer", HeapInvocationBuffer.class, CallContext.class);
         // [ stack contains: Invoker, Function, HeapInvocationBuffer ]
 

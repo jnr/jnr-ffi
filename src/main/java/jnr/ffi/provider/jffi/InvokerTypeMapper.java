@@ -35,16 +35,7 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
                     ParameterFlags.parse(fromNativeContext.getAnnotations()));
 
         } else if (closureManager != null && isDelegate(signatureType.getDeclaredType())) {
-            final Class closureType = signatureType.getDeclaredType();
-            return new FromNativeConverter() {
-                public Object fromNative(Object nativeValue, FromNativeContext context) {
-                    throw new UnsupportedOperationException("cannot convert to " + closureType);
-                }
-
-                public Class nativeType() {
-                    return Pointer.class;
-                }
-            };
+            return ClosureFromNativeConverter.getInstance(signatureType, AsmLibraryLoader.getCurrentClassLoader(), this);
 
         } else if (NativeLong.class == signatureType.getDeclaredType()) {
             return NativeLongConverter.INSTANCE;

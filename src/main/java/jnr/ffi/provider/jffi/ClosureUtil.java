@@ -18,10 +18,12 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
+import jnr.ffi.annotations.Delegate;
 import jnr.ffi.mapper.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 
 import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
@@ -52,5 +54,22 @@ final class ClosureUtil {
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
         return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
+    }
+
+
+    static Method getDelegateMethod(Class closureClass) {
+        Method callMethod = null;
+        for (Method m : closureClass.getMethods()) {
+            if (m.isAnnotationPresent(Delegate.class) && Modifier.isPublic(m.getModifiers())
+                    && !Modifier.isStatic(m.getModifiers())) {
+                callMethod = m;
+                break;
+            }
+        }
+        if (callMethod == null) {
+            throw new NoSuchMethodError("no public non-static delegate method defined in " + closureClass.getName());
+        }
+
+        return callMethod;
     }
 }

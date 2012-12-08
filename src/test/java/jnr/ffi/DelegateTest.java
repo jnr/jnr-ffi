@@ -147,6 +147,8 @@ public class DelegateTest {
             @Delegate public void call(int a1);
         }
         Pointer ret_pointer(ReusableCallable callable);
+        public CallableVrV ret_pointer(CallableVrV callable);
+        public CallableIrV ret_pointer(CallableIrV callable);
     }
     @Test
     public void closureVrV() {
@@ -389,6 +391,40 @@ public class DelegateTest {
         }
 //        assertEquals("not same native address for Callable instance", p1, p2);
     }
+
+    @Test public void callFunctionPointerVrV() {
+        final boolean[] called = { false };
+        TestLib.CallableVrV javaClosure = new TestLib.CallableVrV() {
+            @Override
+            public void call() {
+                called[0] = true;
+            }
+        };
+
+        TestLib.CallableVrV callable = lib.ret_pointer(javaClosure);
+        callable.call();
+        assertTrue(called[0]);
+    }
+
+    @Test public void callFunctionPointerIrV() {
+        final boolean[] called = { false };
+        final int[] values = { 0 };
+        final int MAGIC = 0xdeadbeef;
+        TestLib.CallableIrV javaClosure = new TestLib.CallableIrV() {
+            @Override
+            public void call(int i) {
+                called[0] = true;
+                values[0] = i;
+            }
+        };
+
+        TestLib.CallableIrV callable = lib.ret_pointer(javaClosure);
+        callable.call(MAGIC);
+        assertEquals(MAGIC, values[0]);
+        assertTrue(called[0]);
+
+    }
+
 
 //    @Test
 //    public void closureLrV() {

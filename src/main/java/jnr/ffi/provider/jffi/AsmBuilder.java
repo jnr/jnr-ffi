@@ -90,6 +90,10 @@ class AsmBuilder {
         return getField(callContextMap, function.getCallContext(), CallContext.class, contextId).name;
     }
 
+    String getCallContextFieldName(CallContext callContext) {
+        return getField(callContextMap, callContext, CallContext.class, contextId).name;
+    }
+
     String getFunctionAddressFieldName(Function function) {
         return getField(functionAddresses, function.getFunctionAddress(), long.class, functionId).name;
     }

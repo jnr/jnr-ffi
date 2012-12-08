@@ -89,6 +89,11 @@ final class NativeClosureManager implements ClosureManager {
         }
 
         public Pointer toNative(T value, ToNativeContext context) {
+            // If passing down a function pointer, don't re-wrap it
+            if (value instanceof ClosureFromNativeConverter.AbstractClosurePointer) {
+                return (ClosureFromNativeConverter.AbstractClosurePointer) value;
+            }
+
             NativeClosureFactory.ClosureReference ref = closureReference;
             // Fast path - same delegate as last call to this site - just re-use the native closure
             if (ref != null && ref.getCallable() == value) {
