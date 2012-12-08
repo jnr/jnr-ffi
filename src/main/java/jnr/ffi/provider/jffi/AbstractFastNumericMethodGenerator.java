@@ -27,18 +27,13 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
          final Class nativeIntType = getInvokerType();
         final LocalVariable objCount = localVariableAllocator.allocate(int.class);
         final LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
-        LocalVariable[] pointers = new LocalVariable[parameterTypes.length];
         LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
         final LocalVariable[] converted = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
         // Load, convert, and un-box parameters
         for (int i = 0; i < parameterTypes.length; ++i) {
-            loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
-            if (parameterTypes[i].toNativeConverter instanceof ToNativeConverter.PostInvocation) {
-                mv.dup();
-                mv.astore(converted[i] = localVariableAllocator.allocate(Object.class));
-            }
+            converted[i] = loadAndConvertParameter(builder, mv, localVariableAllocator, parameters[i], parameterTypes[i]);
 
             Class javaParameterType = parameterTypes[i].effectiveJavaType();
             ToNativeOp op = ToNativeOp.get(parameterTypes[i]);
@@ -53,20 +48,9 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                     mv.istore(objCount);
                 }
 
-                if (parameterTypes[i].toNativeConverter != null) {
-                    // Save the current pointer parameter (result of type conversion above)
-                    pointers[i] = localVariableAllocator.allocate(Object.class);
-                    mv.astore(pointers[i]);
-                    mv.aload(pointers[i]);
-                } else {
-                    // avoid the save/load of an extra local var if no parameter conversion took place
-                    pointers[i] = parameters[i];
-                }
-
                 emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations());
 
-                strategies[i] = localVariableAllocator.allocate(ObjectParameterStrategy.class);
-                mv.astore(strategies[i]);
+                mv.astore(strategies[i] = localVariableAllocator.allocate(ObjectParameterStrategy.class));
                 mv.aload(strategies[i]);
 
                 mv.getfield(p(PointerParameterStrategy.class), "objectCount", ci(int.class));
@@ -74,14 +58,13 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
                 mv.iadd();
                 mv.istore(objCount);
 
-                if (CharSequence.class.isAssignableFrom(javaParameterType)
-                    || javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
+                if (javaParameterType.isArray() && javaParameterType.getComponentType().isPrimitive()) {
                     // heap objects are always address == 0, no need to call getAddress()
                     if (int.class == nativeIntType) mv.iconst_0(); else mv.lconst_0();
                 } else {
                     // Get the native address (will return zero for heap objects)
                     mv.aload(strategies[i]);
-                    mv.aload(pointers[i]);
+                    mv.aload(converted[i]);
                     mv.invokevirtual(PointerParameterStrategy.class, "address", long.class, Object.class);
                     narrow(mv, long.class, nativeIntType);
                 }
@@ -149,8 +132,8 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             mv.iload(objCount);
             // Need to load all the converters onto the stack
             for (int i = 0; i < parameterTypes.length; i++) {
-                if (pointers[i] != null) {
-                    mv.aload(pointers[i]);
+                if (strategies[i] != null) {
+                    mv.aload(converted[i]);
                     mv.aload(strategies[i]);
                     mv.aload(0);
 

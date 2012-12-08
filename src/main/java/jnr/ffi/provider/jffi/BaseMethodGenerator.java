@@ -55,10 +55,20 @@ abstract class BaseMethodGenerator implements MethodGenerator {
     abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes,
                            boolean ignoreError);
 
-    static void loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariable parameter,
-                                       ToNativeType parameterType) {
+    static LocalVariable loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv,
+                                                 LocalVariableAllocator localVariableAllocator,
+                                                 LocalVariable parameter, ToNativeType parameterType) {
         AsmUtil.load(mv, parameterType.getDeclaredType(), parameter);
         emitToNativeConversion(builder, mv, parameterType);
+
+        if (parameterType.toNativeConverter != null) {
+            LocalVariable converted = localVariableAllocator.allocate(parameterType.toNativeConverter.nativeType());
+            mv.astore(converted);
+            mv.aload(converted);
+            return converted;
+        }
+
+        return parameter;
     }
 
     static boolean isPostInvokeRequired(LocalVariable[] converted) {

@@ -151,12 +151,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             if (isSessionRequired(parameterTypes[i])) {
                 mv.aload(session);
             }
-            loadAndConvertParameter(builder, mv, parameters[i], parameterTypes[i]);
-
-            if (parameterTypes[i].toNativeConverter != null) {
-                mv.astore(converted[i] = localVariableAllocator.allocate(parameterTypes[i].effectiveJavaType()));
-                mv.aload(converted[i]);
-            }
+            converted[i] = loadAndConvertParameter(builder, mv, localVariableAllocator, parameters[i], parameterTypes[i]);
 
             final Class javaParameterType = parameterTypes[i].effectiveJavaType();
             ToNativeOp op = ToNativeOp.get(parameterTypes[i]);
