@@ -1,8 +1,6 @@
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.NativeType;
-import jnr.ffi.Pointer;
-import jnr.ffi.Variable;
+import jnr.ffi.*;
 import jnr.ffi.mapper.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -25,7 +23,12 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class VariableAccessorGenerator {
     private final AtomicLong nextClassID = new AtomicLong(0);
+    private final jnr.ffi.Runtime runtime;
     static final Map<NativeType, PointerOp> pointerOperations;
+
+    public VariableAccessorGenerator(jnr.ffi.Runtime runtime) {
+        this.runtime = runtime;
+    }
 
     public void generate(AsmBuilder builder, Class interfaceClass, String variableName, long address,
                          Class javaType, Collection<Annotation> annotations,
@@ -35,7 +38,7 @@ public class VariableAccessorGenerator {
         FromNativeConverter fromNativeConverter = typeMapper.getFromNativeConverter(signatureType, context);
         ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(signatureType, context);
 
-        Variable variableAccessor = buildVariableAccessor(address, interfaceClass, javaType, annotations,
+        Variable variableAccessor = buildVariableAccessor(builder.getRuntime(), address, interfaceClass, javaType, annotations,
                 toNativeConverter, fromNativeConverter, classLoader);
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL,
                 variableName, sig(Variable.class), null, null);
@@ -47,14 +50,14 @@ public class VariableAccessorGenerator {
         mv.visitEnd();
     }
 
-    Variable buildVariableAccessor(long address, Class interfaceClass, Class javaType, Collection<Annotation> annotations,
+    Variable buildVariableAccessor(jnr.ffi.Runtime runtime, long address, Class interfaceClass, Class javaType, Collection<Annotation> annotations,
                                    ToNativeConverter toNativeConverter, FromNativeConverter fromNativeConverter,
                                    AsmClassLoader classLoader) {
         boolean debug = AsmLibraryLoader.DEBUG && !hasAnnotation(annotations, NoTrace.class);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
-        AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$VariableAccessor$$" + nextClassID.getAndIncrement(), cv, classLoader);
+        AsmBuilder builder = new AsmBuilder(runtime, p(interfaceClass) + "$VariableAccessor$$" + nextClassID.getAndIncrement(), cv, classLoader);
         cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(Object.class),
                 new String[] { p(Variable.class) });
 
@@ -63,7 +66,7 @@ public class VariableAccessorGenerator {
                 null, null);
 
         Class boxedType = toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
-        NativeType nativeType = getNativeType(NativeRuntime.getInstance(), boxedType, annotations);
+        NativeType nativeType = getNativeType(runtime, boxedType, annotations);
         ToNativeType toNativeType = new ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
         FromNativeType fromNativeType = new FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
         PointerOp pointerOp = pointerOperations.get(nativeType);
@@ -73,7 +76,7 @@ public class VariableAccessorGenerator {
 
         set.start();
         set.aload(0);
-        Pointer pointer = DirectMemoryIO.wrap(NativeRuntime.getInstance(), address);
+        Pointer pointer = DirectMemoryIO.wrap(runtime, address);
         set.getfield(builder.getClassNamePath(), builder.getObjectFieldName(pointer, Pointer.class), ci(Pointer.class));
         set.lconst_0();
 

@@ -29,21 +29,17 @@ public final class ArrayMemoryIO extends AbstractArrayMemoryIO {
         super(runtime, size);
     }
 
-    public ArrayMemoryIO(int size) {
-        super(NativeRuntime.getInstance(), size);
-    }
-
     public ArrayMemoryIO(Runtime runtime, byte[] bytes, int off, int len) {
         super(runtime, bytes, off, len);
     }
 
     public Pointer getPointer(long offset) {
-        return MemoryUtil.newPointer(getAddress(offset));
+        return MemoryUtil.newPointer(getRuntime(), getAddress(offset));
     }
 
     @Override
     public Pointer getPointer(long offset, long size) {
-        return MemoryUtil.newPointer(getAddress(offset), size);
+        return MemoryUtil.newPointer(getRuntime(), getAddress(offset), size);
     }
 
     @Override

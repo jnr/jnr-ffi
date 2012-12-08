@@ -27,9 +27,11 @@ import static org.objectweb.asm.Opcodes.*;
 @FromNativeConverter.NoContext
 @FromNativeConverter.Cacheable
 abstract public class StructByReferenceFromNativeConverter implements FromNativeConverter<Struct, Pointer> {
+    private final jnr.ffi.Runtime runtime;
     private final int flags;
 
-    protected StructByReferenceFromNativeConverter(int flags) {
+    protected StructByReferenceFromNativeConverter(jnr.ffi.Runtime runtime, int flags) {
+        this.runtime = runtime;
         this.flags = flags;
     }
 
@@ -39,12 +41,12 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
 
     // getRuntime() is called from generated code
     protected final jnr.ffi.Runtime getRuntime() {
-        return NativeRuntime.getInstance();
+        return runtime;
     }
 
     static final Map<Class<? extends Struct>, Class<? extends StructByReferenceFromNativeConverter>> converterClasses
             = new ConcurrentHashMap<Class<? extends Struct>, Class<? extends StructByReferenceFromNativeConverter>>();
-    static StructByReferenceFromNativeConverter newStructByReferenceConverter(Class<? extends Struct> structClass, int flags, AsmClassLoader classLoader) {
+    static StructByReferenceFromNativeConverter newStructByReferenceConverter(jnr.ffi.Runtime runtime, Class<? extends Struct> structClass, int flags, AsmClassLoader classLoader) {
         Class<? extends StructByReferenceFromNativeConverter> converterClass = converterClasses.get(structClass);
         if (converterClass == null) {
             synchronized (converterClasses) {
@@ -54,7 +56,7 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
             }
         }
         try {
-            return converterClass.getConstructor(int.class).newInstance(flags);
+            return converterClass.getConstructor(jnr.ffi.Runtime.class, int.class).newInstance(runtime, flags);
 
         } catch (NoSuchMethodException nsme) {
             throw new RuntimeException(nsme);
@@ -93,12 +95,13 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
         cv.visitAnnotation(ci(FromNativeConverter.NoContext.class), true);
 
         // Create the constructor to set the instance fields
-        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>", sig(void.class, int.class), null, null);
+        SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>", sig(void.class, jnr.ffi.Runtime.class, int.class), null, null);
         init.start();
         // Invoke the super class constructor as super(Library)
         init.aload(0);
-        init.iload(1);
-        init.invokespecial(p(StructByReferenceFromNativeConverter.class), "<init>", sig(void.class, int.class));
+        init.aload(1);
+        init.iload(2);
+        init.invokespecial(p(StructByReferenceFromNativeConverter.class), "<init>", sig(void.class, jnr.ffi.Runtime.class, int.class));
         init.voidreturn();
         init.visitMaxs(10, 10);
         init.visitEnd();

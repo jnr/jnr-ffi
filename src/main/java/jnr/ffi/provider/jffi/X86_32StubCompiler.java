@@ -20,7 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
-import jnr.ffi.NativeType;
+import jnr.ffi.*;
 import jnr.x86asm.Asm;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.Mem;
@@ -33,6 +33,10 @@ import static jnr.x86asm.Asm.*;
  * Stub compiler for i386 unix
  */
 final class X86_32StubCompiler extends AbstractX86StubCompiler {
+
+    X86_32StubCompiler(jnr.ffi.Runtime runtime) {
+        super(runtime);
+    }
 
     boolean canCompile(ResultType returnType, ParameterType[] parameterTypes, CallingConvention convention) {
 

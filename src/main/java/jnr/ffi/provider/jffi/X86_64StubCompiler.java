@@ -20,7 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
-import jnr.ffi.NativeType;
+import jnr.ffi.*;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.REG;
 import jnr.x86asm.Register;
@@ -32,7 +32,10 @@ import static jnr.x86asm.Asm.*;
  * Compilers method trampoline stubs for x86_64 
  */
 final class X86_64StubCompiler extends AbstractX86StubCompiler {
-    
+
+    X86_64StubCompiler(jnr.ffi.Runtime runtime) {
+        super(runtime);
+    }
 
     boolean canCompile(ResultType returnType, ParameterType[] parameterTypes, CallingConvention convention) {
 

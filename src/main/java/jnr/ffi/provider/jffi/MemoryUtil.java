@@ -22,19 +22,17 @@ import jnr.ffi.provider.BoundedMemoryIO;
 import jnr.ffi.provider.NullMemoryIO;
 
 public final class MemoryUtil {
-    static final NullMemoryIO NULL = new NullMemoryIO(NativeRuntime.getInstance());
-
     private MemoryUtil() {}
 
-    static jnr.ffi.Pointer newPointer(long ptr) {
-        return ptr != 0 ? new DirectMemoryIO(NativeRuntime.getInstance(), ptr) : null;
+    static jnr.ffi.Pointer newPointer(jnr.ffi.Runtime runtime, long ptr) {
+        return ptr != 0 ? new DirectMemoryIO(runtime, ptr) : null;
     }
 
-    static jnr.ffi.Pointer newPointer(int ptr) {
-        return ptr != 0 ? new DirectMemoryIO(NativeRuntime.getInstance(), ptr) : null;
+    static jnr.ffi.Pointer newPointer(jnr.ffi.Runtime runtime, int ptr) {
+        return ptr != 0 ? new DirectMemoryIO(runtime, ptr) : null;
     }
     
-    static jnr.ffi.Pointer newPointer(long ptr, long size) {
-        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(NativeRuntime.getInstance(), ptr), 0, size) : null;
+    static jnr.ffi.Pointer newPointer(jnr.ffi.Runtime runtime, long ptr, long size) {
+        return ptr != 0 ? new BoundedMemoryIO(new DirectMemoryIO(runtime, ptr), 0, size) : null;
     }
 }

@@ -39,14 +39,6 @@ class DirectMemoryIO extends AbstractMemoryIO {
         this.address = (long) address & 0xffffffffL;
     }
 
-    DirectMemoryIO(long address) {
-        this(NativeRuntime.getInstance(), address);
-    }
-
-    DirectMemoryIO(int address) {
-        this(NativeRuntime.getInstance(), address);
-    }
-
     public final long address() {
         return address;
     }
@@ -188,11 +180,11 @@ class DirectMemoryIO extends AbstractMemoryIO {
     }
 
     public Pointer getPointer(long offset) {
-        return MemoryUtil.newPointer(IO.getAddress(address + offset));
+        return MemoryUtil.newPointer(getRuntime(), IO.getAddress(address + offset));
     }
     
     public Pointer getPointer(long offset, long size) {
-        return MemoryUtil.newPointer(IO.getAddress(this.address + offset), size);
+        return MemoryUtil.newPointer(getRuntime(), IO.getAddress(this.address + offset), size);
     }
 
     public void putPointer(long offset, Pointer value) {

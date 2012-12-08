@@ -29,15 +29,17 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         return Pointer.class;
     }
 
-    public static FromNativeConverter<?, Pointer> getInstance(SignatureType type, AsmClassLoader classLoader, SignatureTypeMapper typeMapper) {
-        return newClosureConverter(classLoader, type.getDeclaredType(), typeMapper);
+    public static FromNativeConverter<?, Pointer> getInstance(jnr.ffi.Runtime runtime, SignatureType type, AsmClassLoader classLoader, SignatureTypeMapper typeMapper) {
+        return newClosureConverter(runtime, classLoader, type.getDeclaredType(), typeMapper);
     }
 
     public static final class ProxyConverter extends ClosureFromNativeConverter {
+        private final jnr.ffi.Runtime runtime;
         private final Constructor closureConstructor;
         private final Object[] initFields;
 
-        public ProxyConverter(Constructor closureConstructor, Object[] initFields) {
+        public ProxyConverter(jnr.ffi.Runtime runtime, Constructor closureConstructor, Object[] initFields) {
+            this.runtime = runtime;
             this.closureConstructor = closureConstructor;
             this.initFields = initFields.clone();
         }
@@ -45,7 +47,7 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         @Override
         public Object fromNative(Pointer nativeValue, FromNativeContext context) {
             try {
-                return closureConstructor.newInstance(NativeRuntime.getInstance(), nativeValue.address(), initFields);
+                return closureConstructor.newInstance(runtime, nativeValue.address(), initFields);
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
@@ -79,25 +81,25 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
 
 
     private static final AtomicLong nextClassID = new AtomicLong(0);
-    private static FromNativeConverter newClosureConverter(AsmClassLoader classLoader, Class closureClass,
+    private static FromNativeConverter newClosureConverter(jnr.ffi.Runtime runtime, AsmClassLoader classLoader, Class closureClass,
                                                                         SignatureTypeMapper typeMapper) {
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = AsmLibraryLoader.DEBUG ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         final String className = p(closureClass) + "$jnr$fromNativeConverter$" + nextClassID.getAndIncrement();
-        AsmBuilder builder = new AsmBuilder(className, cv, classLoader);
+        AsmBuilder builder = new AsmBuilder(runtime, className, cv, classLoader);
 
         cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractClosurePointer.class),
                 new String[] { p(closureClass) } );
 
         cv.visitAnnotation(ci(FromNativeConverter.NoContext.class), true);
 
-        generateInvocation(builder, closureClass, typeMapper);
+        generateInvocation(runtime, builder, closureClass, typeMapper);
 
         // Create the constructor to set the instance fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
-                sig(void.class, NativeRuntime.class, long.class, Object[].class), null, null);
+                sig(void.class, jnr.ffi.Runtime.class, long.class, Object[].class), null, null);
         init.start();
         // Invoke the super class constructor as super(functionAddress)
         init.aload(0);
@@ -111,7 +113,7 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
 
         Class implClass = loadClass(classLoader, className, cw);
         try {
-            return new ProxyConverter(implClass.getConstructor(NativeRuntime.class, long.class, Object[].class), builder.getObjectFieldValues());
+            return new ProxyConverter(runtime, implClass.getConstructor(jnr.ffi.Runtime.class, long.class, Object[].class), builder.getObjectFieldValues());
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }
@@ -131,8 +133,7 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         }
     }
 
-    private static void generateInvocation(AsmBuilder builder, Class closureClass, SignatureTypeMapper typeMapper) {
-        NativeRuntime runtime = NativeRuntime.getInstance();
+    private static void generateInvocation(jnr.ffi.Runtime runtime, AsmBuilder builder, Class closureClass, SignatureTypeMapper typeMapper) {
         Method closureMethod = getDelegateMethod(closureClass);
 
         FromNativeContext resultContext = new MethodResultContext(closureMethod);

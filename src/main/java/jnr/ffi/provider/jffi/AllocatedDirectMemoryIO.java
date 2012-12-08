@@ -33,9 +33,6 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
             throw new OutOfMemoryError("Failed to allocate " + size + " bytes");
         }
     }
-    public AllocatedDirectMemoryIO(int size, boolean clear) {
-        this(NativeRuntime.getInstance(), size, clear);
-    }
 
     @Override
     public long size() {

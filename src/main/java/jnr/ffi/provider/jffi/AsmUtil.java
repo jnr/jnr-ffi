@@ -330,7 +330,7 @@ final class AsmUtil {
         }
     }
 
-    static void boxValue(SkinnyMethodAdapter mv, Class boxedType, Class unboxedType) {
+    static void boxValue(AsmBuilder builder, SkinnyMethodAdapter mv, Class boxedType, Class unboxedType) {
         if (boxedType == unboxedType || boxedType.isPrimitive()) {
 
         } else if (Boolean.class.isAssignableFrom(boxedType)) {
@@ -338,7 +338,8 @@ final class AsmUtil {
             mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
 
         } else if (Pointer.class.isAssignableFrom(boxedType)) {
-            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, unboxedType);
+            getfield(mv, builder, builder.getRuntimeField());
+            mv.invokestatic(AsmRuntime.class, "pointerValue", Pointer.class, unboxedType, jnr.ffi.Runtime.class);
 
         } else if (Address.class == boxedType) {
             mv.invokestatic(boxedType, "valueOf", boxedType, unboxedType);
@@ -438,7 +439,7 @@ final class AsmUtil {
         }
     }
 
-    static void emitReturn(SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
+    static void emitReturn(AsmBuilder builder, SkinnyMethodAdapter mv, Class returnType, Class nativeIntType) {
         if (returnType.isPrimitive()) {
 
             if (long.class == returnType) {
@@ -458,7 +459,7 @@ final class AsmUtil {
             }
 
         } else {
-            boxValue(mv, returnType, nativeIntType);
+            boxValue(builder, mv, returnType, nativeIntType);
             mv.areturn();
         }
     }
@@ -490,7 +491,7 @@ final class AsmUtil {
             Method toNativeMethod = getToNativeMethod(toNativeType, builder.getClassLoader());
 
             if (toNativeType.getDeclaredType().isPrimitive()) {
-                boxValue(mv, getBoxedClass(toNativeType.getDeclaredType()), toNativeType.getDeclaredType());
+                boxValue(builder, mv, getBoxedClass(toNativeType.getDeclaredType()), toNativeType.getDeclaredType());
             }
             if (!toNativeMethod.getParameterTypes()[0].isAssignableFrom(getBoxedClass(toNativeType.getDeclaredType()))) {
                 mv.checkcast(toNativeMethod.getParameterTypes()[0]);
@@ -531,7 +532,7 @@ final class AsmUtil {
         FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
         if (fromNativeConverter != null) {
             convertPrimitive(mv, nativeClass, unboxedType(fromNativeConverter.nativeType()), fromNativeType.nativeType);
-            boxValue(mv, fromNativeConverter.nativeType(), nativeClass);
+            boxValue(builder, mv, fromNativeConverter.nativeType(), nativeClass);
 
             Method fromNativeMethod = getFromNativeMethod(fromNativeType, builder.getClassLoader());
             getfield(mv, builder, builder.getFromNativeConverterField(fromNativeConverter));
@@ -563,7 +564,7 @@ final class AsmUtil {
         } else if (!fromNativeType.getDeclaredType().isPrimitive()) {
             Class unboxedType = unboxedType(fromNativeType.getDeclaredType());
             convertPrimitive(mv, nativeClass, unboxedType, fromNativeType.nativeType);
-            boxValue(mv, fromNativeType.getDeclaredType(), unboxedType);
+            boxValue(builder, mv, fromNativeType.getDeclaredType(), unboxedType);
 
         }
     }

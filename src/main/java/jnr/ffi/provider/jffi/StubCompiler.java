@@ -32,17 +32,17 @@ abstract class StubCompiler {
     static final boolean hasPageManager = hasPageManager();
     static final boolean hasAssembler = hasAssembler();
     
-    public static StubCompiler newCompiler() {
+    public static StubCompiler newCompiler(jnr.ffi.Runtime runtime) {
         if (errnoFunctionAddress != 0 && hasPageManager && hasAssembler) {
             switch (Platform.getPlatform().getCPU()) {
                 case I386:
                     if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
-                        return new X86_32StubCompiler();
+                        return new X86_32StubCompiler(runtime);
                     }
                     break;
                 case X86_64:
                     if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
-                        return new X86_64StubCompiler();
+                        return new X86_64StubCompiler(runtime);
                     }
                     break;
             }

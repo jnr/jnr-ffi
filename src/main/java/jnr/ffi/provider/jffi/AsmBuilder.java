@@ -3,7 +3,8 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.ObjectParameterInfo;
-import jnr.ffi.Variable;
+import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeContext;
@@ -23,6 +24,7 @@ import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
  *
  */
 class AsmBuilder {
+    private final jnr.ffi.Runtime runtime;
     private final String classNamePath;
     private final ClassVisitor classVisitor;
     private final AsmClassLoader classLoader;
@@ -48,7 +50,8 @@ class AsmBuilder {
     private final Map<Object, ObjectField> genericObjects = new IdentityHashMap<Object, ObjectField>();
     private final List<ObjectField> objectFields = new ArrayList<ObjectField>();
 
-    AsmBuilder(String classNamePath, ClassVisitor classVisitor, AsmClassLoader classLoader) {
+    AsmBuilder(jnr.ffi.Runtime runtime, String classNamePath, ClassVisitor classVisitor, AsmClassLoader classLoader) {
+        this.runtime = runtime;
         this.classNamePath = classNamePath;
         this.classVisitor = classVisitor;
         this.classLoader = classLoader;
@@ -64,6 +67,10 @@ class AsmBuilder {
 
     public AsmClassLoader getClassLoader() {
         return classLoader;
+    }
+
+    public jnr.ffi.Runtime getRuntime() {
+        return runtime;
     }
 
     private static final class ObjectNameGenerator {
@@ -103,6 +110,9 @@ class AsmBuilder {
         return getField(functionAddresses, function.getFunctionAddress(), long.class, functionId).name;
     }
 
+    ObjectField getRuntimeField() {
+        return getObjectField(runtime, runtime.getClass());
+    }
 
     String getFromNativeConverterName(FromNativeConverter converter) {
         return getFromNativeConverterField(converter).name;
@@ -139,6 +149,10 @@ class AsmBuilder {
 
     String getObjectFieldName(Object obj, Class klass) {
         return getField(genericObjects, obj, klass, genericObjectId).name;
+    }
+
+    ObjectField getObjectField(Object obj, Class klass) {
+        return getField(genericObjects, obj, klass, genericObjectId);
     }
 
     String getVariableName(Variable variableAccessor) {

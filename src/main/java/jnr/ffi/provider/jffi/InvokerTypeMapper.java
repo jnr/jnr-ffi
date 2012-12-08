@@ -1,8 +1,6 @@
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.NativeLong;
-import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
+import jnr.ffi.*;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.converters.EnumConverter;
@@ -20,8 +18,10 @@ import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 final class InvokerTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
     private final AsmClassLoader classLoader;
+    private final jnr.ffi.Runtime runtime;
 
-    public InvokerTypeMapper(NativeClosureManager closureManager, AsmClassLoader classLoader) {
+    public InvokerTypeMapper(jnr.ffi.Runtime runtime, NativeClosureManager closureManager, AsmClassLoader classLoader) {
+        this.runtime = runtime;
         this.closureManager = closureManager;
         this.classLoader = classLoader;
     }
@@ -33,11 +33,11 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
             return EnumConverter.getInstance(signatureType.getDeclaredType().asSubclass(Enum.class));
 
         } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
-            return StructByReferenceFromNativeConverter.newStructByReferenceConverter(signatureType.getDeclaredType().asSubclass(Struct.class),
+            return StructByReferenceFromNativeConverter.newStructByReferenceConverter(runtime, signatureType.getDeclaredType().asSubclass(Struct.class),
                     ParameterFlags.parse(fromNativeContext.getAnnotations()), classLoader);
 
         } else if (closureManager != null && isDelegate(signatureType.getDeclaredType())) {
-            return ClosureFromNativeConverter.getInstance(signatureType, classLoader, this);
+            return ClosureFromNativeConverter.getInstance(runtime, signatureType, classLoader, this);
 
         } else if (NativeLong.class == signatureType.getDeclaredType()) {
             return NativeLongConverter.INSTANCE;
@@ -68,7 +68,7 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
             return closureManager.newClosureSite(javaType);
 
         } else if (ByReference.class.isAssignableFrom(javaType)) {
-            return new ByReferenceParameterConverter(ParameterFlags.parse(context.getAnnotations()));
+            return new ByReferenceParameterConverter(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Struct.class.isAssignableFrom(javaType)) {
             return new StructByReferenceToNativeConverter(ParameterFlags.parse(context.getAnnotations()));
@@ -77,55 +77,55 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
             return NativeLongConverter.INSTANCE;
 
         } else if (StringBuilder.class.isAssignableFrom(javaType)) {
-            return StringBuilderParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return StringBuilderParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (StringBuffer.class.isAssignableFrom(javaType)) {
-            return StringBufferParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return StringBufferParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (CharSequence.class.isAssignableFrom(javaType)) {
-            return CharSequenceParameterConverter.getInstance(NativeRuntime.getInstance(), Charset.defaultCharset());
+            return CharSequenceParameterConverter.getInstance(runtime, Charset.defaultCharset());
 
         } else if (Byte[].class.isAssignableFrom(javaType)) {
-            return BoxedByteArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return BoxedByteArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Short[].class.isAssignableFrom(javaType)) {
-            return BoxedShortArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return BoxedShortArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Integer[].class.isAssignableFrom(javaType)) {
-            return BoxedIntegerArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return BoxedIntegerArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Long[].class.isAssignableFrom(javaType)) {
-            return sizeof(getNativeType(NativeRuntime.getInstance(), javaType.getComponentType(), context.getAnnotations())) == 4
-                ? BoxedLong32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
-                : BoxedLong64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return sizeof(getNativeType(runtime, javaType.getComponentType(), context.getAnnotations())) == 4
+                ? BoxedLong32ArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()))
+                : BoxedLong64ArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (NativeLong[].class.isAssignableFrom(javaType)) {
-            return sizeof(getNativeType(NativeRuntime.getInstance(), javaType.getComponentType(), context.getAnnotations())) == 4
-                    ? NativeLong32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
-                    : NativeLong64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return sizeof(getNativeType(runtime, javaType.getComponentType(), context.getAnnotations())) == 4
+                    ? NativeLong32ArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()))
+                    : NativeLong64ArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Float[].class.isAssignableFrom(javaType)) {
-            return BoxedFloatArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return BoxedFloatArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Double[].class.isAssignableFrom(javaType)) {
-            return BoxedDoubleArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return BoxedDoubleArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (Boolean[].class.isAssignableFrom(javaType)) {
-            return BoxedBooleanArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return BoxedBooleanArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (javaType.isArray() && Pointer.class.isAssignableFrom(javaType.getComponentType())) {
-            return NativeRuntime.getInstance().addressSize() == 4
-                    ? Pointer32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()))
-                    : Pointer64ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return runtime.addressSize() == 4
+                    ? Pointer32ArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()))
+                    : Pointer64ArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
-        } else if (long[].class.isAssignableFrom(javaType) && sizeof(getNativeType(NativeRuntime.getInstance(), javaType.getComponentType(), context.getAnnotations())) == 4) {
-            return Long32ArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+        } else if (long[].class.isAssignableFrom(javaType) && sizeof(getNativeType(runtime, javaType.getComponentType(), context.getAnnotations())) == 4) {
+            return Long32ArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else if (javaType.isArray() && Struct.class.isAssignableFrom(javaType.getComponentType())) {
-            return StructArrayParameterConverter.getInstance(NativeRuntime.getInstance(), javaType.getComponentType(), ParameterFlags.parse(context.getAnnotations()));
+            return StructArrayParameterConverter.getInstance(runtime, javaType.getComponentType(), ParameterFlags.parse(context.getAnnotations()));
 
         } else if (javaType.isArray() && String.class.isAssignableFrom(javaType.getComponentType())) {
-            return StringArrayParameterConverter.getInstance(NativeRuntime.getInstance(), ParameterFlags.parse(context.getAnnotations()));
+            return StringArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
 
         } else {
             return null;

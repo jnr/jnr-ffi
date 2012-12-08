@@ -43,7 +43,7 @@ import static jnr.ffi.provider.jffi.InvokerUtil.getNativeCallingConvention;
  *
  */
 public final class NativeClosureFactory<T> {
-    private final NativeRuntime runtime;
+    private final jnr.ffi.Runtime runtime;
     private final ConcurrentMap<Integer, ClosureReference> closures = new ConcurrentHashMap<Integer, ClosureReference>();
     private final CallContext callContext;
     private final NativeClosureProxy.Factory closureProxyFactory;
@@ -51,14 +51,14 @@ public final class NativeClosureFactory<T> {
     private ClosureMagazine currentMagazine;
 
 
-    protected NativeClosureFactory(NativeRuntime runtime, CallContext callContext,
+    protected NativeClosureFactory(jnr.ffi.Runtime runtime, CallContext callContext,
                                    NativeClosureProxy.Factory closureProxyFactory) {
         this.runtime = runtime;
         this.closureProxyFactory = closureProxyFactory;
         this.callContext = callContext;
     }
 
-    static <T> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass,
+    static <T> NativeClosureFactory newClosureFactory(jnr.ffi.Runtime runtime, Class<T> closureClass,
                                                       SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
 
         Method callMethod = null;

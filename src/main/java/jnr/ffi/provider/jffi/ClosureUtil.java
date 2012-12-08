@@ -35,7 +35,7 @@ final class ClosureUtil {
     private ClosureUtil() {
     }
 
-    static ToNativeType getResultType(NativeRuntime runtime, Method m, SignatureTypeMapper typeMapper) {
+    static ToNativeType getResultType(jnr.ffi.Runtime runtime, Method m, SignatureTypeMapper typeMapper) {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getAnnotations());
         ToNativeContext context = new SimpleNativeContext(annotations);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), context);
@@ -45,7 +45,7 @@ final class ClosureUtil {
         return new ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
     }
 
-    static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, SignatureTypeMapper typeMapper) {
+    static FromNativeType getParameterType(jnr.ffi.Runtime runtime, Method m, int idx, SignatureTypeMapper typeMapper) {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getParameterAnnotations()[idx]);
         Class declaredJavaClass = m.getParameterTypes()[idx];
         FromNativeContext context = new SimpleNativeContext(annotations);

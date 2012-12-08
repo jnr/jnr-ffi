@@ -73,7 +73,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
-        AsmBuilder builder = new AsmBuilder(p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement(), cv, classLoader);
+        AsmBuilder builder = new AsmBuilder(runtime, p(interfaceClass) + "$jaffl$" + nextClassID.getAndIncrement(), cv, classLoader);
 
         cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(AbstractAsmLibraryInterface.class),
                 new String[] { p(interfaceClass) });
@@ -95,10 +95,10 @@ public class AsmLibraryLoader extends LibraryLoader {
             typeMapper = new NullTypeMapper();
         }
 
-        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper, classLoader), classLoader)));
+        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(runtime, new NativeClosureManager(runtime, typeMapper, classLoader), classLoader)));
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
-        StubCompiler compiler = StubCompiler.newCompiler();
+        StubCompiler compiler = StubCompiler.newCompiler(runtime);
 
         final MethodGenerator[] generators = {
                 !interfaceClass.isAnnotationPresent(NoX86.class)
@@ -133,7 +133,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
 
         // generate global variable accessors
-        VariableAccessorGenerator variableAccessorGenerator = new VariableAccessorGenerator();
+        VariableAccessorGenerator variableAccessorGenerator = new VariableAccessorGenerator(runtime);
         for (Method m : interfaceClass.getMethods()) {
             if (Variable.class == m.getReturnType()) {
                 java.lang.reflect.Type variableType = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0];
@@ -157,15 +157,16 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         // Create the constructor to set the instance fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
-                sig(void.class, NativeLibrary.class, Object[].class),
+                sig(void.class, jnr.ffi.Runtime.class, NativeLibrary.class, Object[].class),
                 null, null);
         init.start();
         // Invoke the super class constructor as super(Library)
         init.aload(0);
         init.aload(1);
-        init.invokespecial(p(AbstractAsmLibraryInterface.class), "<init>", sig(void.class, NativeLibrary.class));
+        init.aload(2);
+        init.invokespecial(p(AbstractAsmLibraryInterface.class), "<init>", sig(void.class, jnr.ffi.Runtime.class, NativeLibrary.class));
 
-        builder.emitFieldInitialization(init, 2);
+        builder.emitFieldInitialization(init, 3);
 
         init.voidreturn();
         init.visitMaxs(10, 10);
@@ -181,8 +182,8 @@ public class AsmLibraryLoader extends LibraryLoader {
             }
 
             Class<T> implClass = classLoader.defineClass(builder.getClassNamePath().replace("/", "."), bytes);
-            Constructor<T> cons = implClass.getDeclaredConstructor(NativeLibrary.class, Object[].class);
-            T result = cons.newInstance(library, builder.getObjectFieldValues());
+            Constructor<T> cons = implClass.getDeclaredConstructor(jnr.ffi.Runtime.class, NativeLibrary.class, Object[].class);
+            T result = cons.newInstance(runtime, library, builder.getObjectFieldValues());
 
             // Attach any native method stubs - we have to delay this until the
             // implementation class is loaded for it to work.

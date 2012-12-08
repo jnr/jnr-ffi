@@ -25,7 +25,7 @@ import jnr.ffi.provider.IntPointer;
 import java.nio.ByteBuffer;
 
 public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
-    private final NativeRuntime runtime;
+    private final jnr.ffi.Runtime runtime;
     private final long addressMask;
 
     public NativeMemoryManager(NativeRuntime runtime) {

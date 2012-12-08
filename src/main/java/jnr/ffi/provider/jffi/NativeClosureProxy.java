@@ -22,7 +22,7 @@ import static org.objectweb.asm.Opcodes.*;
  *
  */
 public abstract class NativeClosureProxy {
-    protected final NativeRuntime runtime;
+    protected final jnr.ffi.Runtime runtime;
     volatile Reference<?> closureReference;
 
     protected NativeClosureProxy(NativeRuntime runtime) {
@@ -38,12 +38,12 @@ public abstract class NativeClosureProxy {
     }
 
     static class Factory {
-        private NativeRuntime runtime;
-        private Constructor<? extends NativeClosureProxy> constructor;
-        private Object[] objectFields;
-        private Method invokeMethod;
+        private final jnr.ffi.Runtime runtime;
+        private final Constructor<? extends NativeClosureProxy> constructor;
+        private final Object[] objectFields;
+        private final Method invokeMethod;
 
-        Factory(NativeRuntime runtime, Constructor<? extends NativeClosureProxy> constructor,
+        Factory(jnr.ffi.Runtime runtime, Constructor<? extends NativeClosureProxy> constructor,
                 Method invokeMethod, Object[] objectFields) {
             this.runtime = runtime;
             this.constructor = constructor;
@@ -67,12 +67,12 @@ public abstract class NativeClosureProxy {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
-    static Factory newProxyFactory(NativeRuntime runtime, Method callMethod,
+    static Factory newProxyFactory(jnr.ffi.Runtime runtime, Method callMethod,
                             ToNativeType resultType, FromNativeType[] parameterTypes, AsmClassLoader classLoader) {
         final String closureProxyClassName = p(NativeClosureProxy.class) + "$$impl$$" + nextClassID.getAndIncrement();
         final ClassWriter closureClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         final ClassVisitor closureClassVisitor = DEBUG ? AsmUtil.newCheckClassAdapter(closureClassWriter) : closureClassWriter;
-        AsmBuilder builder = new AsmBuilder(closureProxyClassName, closureClassVisitor, classLoader);
+        AsmBuilder builder = new AsmBuilder(runtime, closureProxyClassName, closureClassVisitor, classLoader);
 
         closureClassVisitor.visit(V1_6, ACC_PUBLIC | ACC_FINAL, closureProxyClassName, null, p(NativeClosureProxy.class),
                 new String[]{ });

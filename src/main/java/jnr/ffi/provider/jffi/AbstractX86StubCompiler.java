@@ -22,7 +22,8 @@ import com.kenai.jffi.MemoryIO;
 import com.kenai.jffi.NativeMethod;
 import com.kenai.jffi.NativeMethods;
 import com.kenai.jffi.PageManager;
-import jnr.ffi.Platform;
+import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.x86asm.Assembler;
 
 import java.io.PrintStream;
@@ -37,6 +38,15 @@ import java.util.logging.Logger;
  */
 abstract class AbstractX86StubCompiler extends StubCompiler {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
+    private final jnr.ffi.Runtime runtime;
+
+    protected AbstractX86StubCompiler(jnr.ffi.Runtime runtime) {
+        this.runtime = runtime;
+    }
+
+    public final Runtime getRuntime() {
+        return runtime;
+    }
 
     private static final class StaticDataHolder {
         // Keep a reference from the loaded class to the pages holding the code for that class.
@@ -128,7 +138,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
                 disassembler.setMode(Platform.getNativePlatform().getCPU() == Platform.CPU.I386
                         ? X86Disassembler.Mode.I386 : X86Disassembler.Mode.X86_64);
                 disassembler.setSyntax(X86Disassembler.Syntax.INTEL);
-                disassembler.setInputBuffer(MemoryUtil.newPointer(fn), asm.offset());
+                disassembler.setInputBuffer(MemoryUtil.newPointer(runtime, fn), asm.offset());
                 while (disassembler.disassemble()) {
                     dbg.printf("%8x: %s\n", disassembler.offset(), disassembler.insn());
                 }

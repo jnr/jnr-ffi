@@ -26,16 +26,16 @@ import java.nio.ByteBuffer;
 
 public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
 
-    public ByteBufferMemoryIO(NativeRuntime runtime, ByteBuffer buffer) {
+    public ByteBufferMemoryIO(jnr.ffi.Runtime runtime, ByteBuffer buffer) {
         super(runtime, buffer);
     }
 
     public Pointer getPointer(long offset) {
-        return MemoryUtil.newPointer(getAddress(offset));
+        return MemoryUtil.newPointer(getRuntime(), getAddress(offset));
     }
 
     public Pointer getPointer(long offset, long size) {
-        return MemoryUtil.newPointer(getAddress(offset), size);
+        return MemoryUtil.newPointer(getRuntime(), getAddress(offset), size);
     }
     
     public void putPointer(long offset, Pointer value) {

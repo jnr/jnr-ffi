@@ -30,11 +30,11 @@ import java.util.Map;
  */
 final class NativeClosureManager implements ClosureManager {
     private volatile Map<Class<?>, NativeClosureFactory> factories = new IdentityHashMap<Class<?>, NativeClosureFactory>();
-    private final NativeRuntime runtime;
+    private final jnr.ffi.Runtime runtime;
     private final SignatureTypeMapper typeMapper;
     private final AsmClassLoader classLoader;
 
-    NativeClosureManager(NativeRuntime runtime, SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
+    NativeClosureManager(jnr.ffi.Runtime runtime, SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
         this.runtime = runtime;
         this.typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new ClosureTypeMapper()));
         this.classLoader = classLoader;

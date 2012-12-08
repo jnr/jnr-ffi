@@ -52,12 +52,12 @@ public final class AsmRuntime {
         return new HeapInvocationBuffer(callContext, objCount);
     }
 
-    public static Pointer pointerValue(long ptr) {
-        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
+    public static Pointer pointerValue(long ptr, jnr.ffi.Runtime runtime) {
+        return ptr != 0 ? new DirectMemoryIO(runtime, ptr) : null;
     }
 
-    public static Pointer pointerValue(int ptr) {
-        return ptr != 0 ? new DirectMemoryIO(ptr) : null;
+    public static Pointer pointerValue(int ptr, jnr.ffi.Runtime runtime) {
+        return ptr != 0 ? new DirectMemoryIO(runtime, ptr) : null;
     }
 
     public static boolean isDirect(Pointer ptr) {
