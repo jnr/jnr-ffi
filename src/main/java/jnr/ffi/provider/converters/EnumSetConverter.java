@@ -48,7 +48,7 @@ public final class EnumSetConverter implements DataConverter<EnumSet<? extends E
         }
 
         Type enumType = ((ParameterizedType) parameterizedType).getActualTypeArguments()[0];
-        if (!(enumType instanceof Class)) {
+        if (!(enumType instanceof Class) || !Enum.class.isAssignableFrom((Class) enumType)) {
             return null;
         }
 
