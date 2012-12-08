@@ -3,8 +3,6 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.provider.ParameterFlags;
 import org.objectweb.asm.Label;
 
 import java.lang.annotation.Annotation;
@@ -21,7 +19,7 @@ import static jnr.ffi.provider.jffi.NumberUtil.*;
  */
 abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
-    public void generate(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, final ResultType resultType, final ParameterType[] parameterTypes,
+    public void generate(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, CallContext callContext, final ResultType resultType, final ParameterType[] parameterTypes,
                          boolean ignoreError) {
         // [ stack contains: Invoker, Function ]
          final Class nativeIntType = getInvokerType();

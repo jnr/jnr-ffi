@@ -89,8 +89,8 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     }
 
     @Override
-    void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
-        generateBufferInvocation(builder, mv, localVariableAllocator, function.getCallContext(), resultType, parameterTypes);
+    void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, CallContext callContext, ResultType resultType, ParameterType[] parameterTypes, boolean ignoreError) {
+        generateBufferInvocation(builder, mv, localVariableAllocator, callContext, resultType, parameterTypes);
     }
 
     public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {

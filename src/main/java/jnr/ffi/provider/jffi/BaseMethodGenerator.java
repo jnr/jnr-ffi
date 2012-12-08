@@ -39,20 +39,20 @@ abstract class BaseMethodGenerator implements MethodGenerator {
 
         // retrieve the call context and function address
         mv.aload(0);
-        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(function), ci(CallContext.class));
+        mv.getfield(builder.getClassNamePath(), builder.getCallContextFieldName(function.getCallContext()), ci(CallContext.class));
 
         mv.aload(0);
         mv.getfield(builder.getClassNamePath(), builder.getFunctionAddressFieldName(function), ci(long.class));
 
         LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
 
-        generate(builder, mv, localVariableAllocator, function, resultType, parameterTypes, ignoreError);
+        generate(builder, mv, localVariableAllocator, function.getCallContext(), resultType, parameterTypes, ignoreError);
 
         mv.visitMaxs(100, localVariableAllocator.getSpaceUsed());
         mv.visitEnd();
     }
 
-    abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, Function function, ResultType resultType, ParameterType[] parameterTypes,
+    abstract void generate(AsmBuilder builder, SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, CallContext callContext, ResultType resultType, ParameterType[] parameterTypes,
                            boolean ignoreError);
 
     static LocalVariable loadAndConvertParameter(AsmBuilder builder, SkinnyMethodAdapter mv,

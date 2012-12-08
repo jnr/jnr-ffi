@@ -88,7 +88,7 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         final String className = p(closureClass) + "$jnr$fromNativeConverter$" + nextClassID.getAndIncrement();
         AsmBuilder builder = new AsmBuilder(className, cv);
 
-        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractClosurePointer.class),
+        cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractClosurePointer.class),
                 new String[] { p(closureClass) } );
 
         cv.visitAnnotation(ci(FromNativeConverter.NoContext.class), true);
@@ -169,8 +169,18 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         mv.aload(0);
         mv.getfield(p(AbstractClosurePointer.class), "functionAddress", ci(long.class));
 
-        BufferMethodGenerator generator = new BufferMethodGenerator();
-        generator.generateBufferInvocation(builder, mv, localVariableAllocator, callContext, resultType, parameterTypes);
+        final BaseMethodGenerator[] generators = {
+                new FastIntMethodGenerator(),
+                new FastLongMethodGenerator(),
+                new FastNumericMethodGenerator(),
+                new BufferMethodGenerator()
+        };
+
+        for (BaseMethodGenerator generator : generators) {
+            if (generator.isSupported(resultType, parameterTypes, callingConvention)) {
+                generator.generate(builder, mv, localVariableAllocator, callContext, resultType, parameterTypes, false);
+            }
+        }
 
         mv.visitMaxs(100, 10 + localVariableAllocator.getSpaceUsed());
         mv.visitEnd();
