@@ -1,8 +1,10 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
+import jnr.ffi.mapper.SignatureType;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.Collection;
 
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
@@ -10,7 +12,7 @@ import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 /**
  *
  */
-abstract class SigType {
+abstract class SigType implements SignatureType {
     private final Class javaType, convertedType;
     private final Collection<Annotation> annotations;
     final NativeType nativeType;
@@ -22,7 +24,7 @@ abstract class SigType {
         this.nativeType = nativeType;
     }
 
-    final Class getDeclaredType() {
+    public final Class getDeclaredType() {
         return javaType;
     }
 
@@ -36,6 +38,15 @@ abstract class SigType {
 
     final Collection<Annotation> annotations() {
         return annotations;
+    }
+
+    public final Collection<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    @Override
+    public Type getGenericType() {
+        return getDeclaredType();
     }
 
     public final String toString() {

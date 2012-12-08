@@ -80,8 +80,20 @@ public class AsmLibraryLoader extends LibraryLoader {
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
-        TypeMapper typeMapper = libraryOptions.containsKey(LibraryOption.TypeMapper)
-                ? (TypeMapper) libraryOptions.get(LibraryOption.TypeMapper) : NullTypeMapper.INSTANCE;
+        SignatureTypeMapper typeMapper;
+        if (libraryOptions.containsKey(LibraryOption.TypeMapper)) {
+            Object tm = libraryOptions.get(LibraryOption.TypeMapper);
+            if (tm instanceof SignatureTypeMapper) {
+                typeMapper = (SignatureTypeMapper) tm;
+            } else if (tm instanceof TypeMapper) {
+                typeMapper = new SignatureTypeMapperAdapter((TypeMapper) tm);
+            } else {
+                throw new IllegalArgumentException("TypeMapper option is not a valid TypeMapper instance");
+            }
+        } else {
+            typeMapper = new NullTypeMapper();
+        }
+
         typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper))));
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 

@@ -17,28 +17,28 @@ import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
-final class InvokerTypeMapper implements TypeMapper {
+final class InvokerTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
 
     public InvokerTypeMapper(NativeClosureManager closureManager) {
         this.closureManager = closureManager;
     }
 
-    public FromNativeConverter getFromNativeConverter(Class javaType, FromNativeContext fromNativeContext) {
+    public FromNativeConverter getFromNativeConverter(SignatureType signatureType, FromNativeContext fromNativeContext) {
         FromNativeConverter converter;
 
-        if (Enum.class.isAssignableFrom(javaType)) {
-            return EnumConverter.getInstance(javaType.asSubclass(Enum.class));
+        if (Enum.class.isAssignableFrom(signatureType.getDeclaredType())) {
+            return EnumConverter.getInstance(signatureType.getDeclaredType().asSubclass(Enum.class));
 
-        } else if (Struct.class.isAssignableFrom(javaType)) {
-            return StructByReferenceFromNativeConverter.newStructByReferenceConverter(javaType.asSubclass(Struct.class),
+        } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
+            return StructByReferenceFromNativeConverter.newStructByReferenceConverter(signatureType.getDeclaredType().asSubclass(Struct.class),
                     ParameterFlags.parse(fromNativeContext.getAnnotations()));
 
-        } else if (closureManager != null && isDelegate(javaType)) {
-            final Class type = javaType;
+        } else if (closureManager != null && isDelegate(signatureType.getDeclaredType())) {
+            final Class closureType = signatureType.getDeclaredType();
             return new FromNativeConverter() {
                 public Object fromNative(Object nativeValue, FromNativeContext context) {
-                    throw new UnsupportedOperationException("cannot convert to " + type);
+                    throw new UnsupportedOperationException("cannot convert to " + closureType);
                 }
 
                 public Class nativeType() {
@@ -46,13 +46,13 @@ final class InvokerTypeMapper implements TypeMapper {
                 }
             };
 
-        } else if (NativeLong.class == javaType) {
+        } else if (NativeLong.class == signatureType.getDeclaredType()) {
             return NativeLongConverter.INSTANCE;
 
-        } else if (String.class == javaType || CharSequence.class == javaType) {
+        } else if (String.class == signatureType.getDeclaredType() || CharSequence.class == signatureType.getDeclaredType()) {
             return StringResultConverter.getInstance(Charset.defaultCharset());
 
-        } else if ((Set.class == javaType || EnumSet.class == javaType) && (converter = EnumSetConverter.getFromNativeConverter(javaType, fromNativeContext)) != null) {
+        } else if ((Set.class == signatureType.getDeclaredType() || EnumSet.class == signatureType.getDeclaredType()) && (converter = EnumSetConverter.getFromNativeConverter(signatureType.getDeclaredType(), fromNativeContext)) != null) {
             return converter;
 
         } else {
@@ -61,7 +61,8 @@ final class InvokerTypeMapper implements TypeMapper {
 
     }
 
-    public ToNativeConverter getToNativeConverter(Class javaType, ToNativeContext context) {
+    public ToNativeConverter getToNativeConverter(SignatureType signatureType, ToNativeContext context) {
+        Class javaType = signatureType.getDeclaredType();
         ToNativeConverter converter;
 
         if (Enum.class.isAssignableFrom(javaType)) {

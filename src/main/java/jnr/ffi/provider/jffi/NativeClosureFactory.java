@@ -24,6 +24,7 @@ import com.kenai.jffi.ClosureMagazine;
 import com.kenai.jffi.ClosureManager;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.Delegate;
+import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.util.ref.FinalizableWeakReference;
 
@@ -57,7 +58,7 @@ public final class NativeClosureFactory<T> {
         this.callContext = callContext;
     }
 
-    static <T> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass, TypeMapper typeMapper) {
+    static <T> NativeClosureFactory newClosureFactory(NativeRuntime runtime, Class<T> closureClass, SignatureTypeMapper typeMapper) {
 
         Method callMethod = null;
         for (Method m : closureClass.getMethods()) {

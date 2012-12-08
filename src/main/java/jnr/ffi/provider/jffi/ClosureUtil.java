@@ -18,9 +18,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -35,18 +33,22 @@ final class ClosureUtil {
     private ClosureUtil() {
     }
 
-    static ToNativeType getResultType(NativeRuntime runtime, Method m, TypeMapper typeMapper) {
+    static ToNativeType getResultType(NativeRuntime runtime, Method m, SignatureTypeMapper typeMapper) {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getAnnotations());
-        ToNativeConverter converter = typeMapper.getToNativeConverter(m.getReturnType(), new SimpleNativeContext(annotations));
+        ToNativeContext context = new SimpleNativeContext(annotations);
+        SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), context);
+        ToNativeConverter converter = typeMapper.getToNativeConverter(signatureType, context);
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
         return new ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
     }
 
-    static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, TypeMapper typeMapper) {
+    static FromNativeType getParameterType(NativeRuntime runtime, Method m, int idx, SignatureTypeMapper typeMapper) {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getParameterAnnotations()[idx]);
         Class declaredJavaClass = m.getParameterTypes()[idx];
-        FromNativeConverter converter = typeMapper.getFromNativeConverter(declaredJavaClass, new SimpleNativeContext(annotations));
+        FromNativeContext context = new SimpleNativeContext(annotations);
+        SignatureType signatureType = DefaultSignatureType.create(declaredJavaClass, context);
+        FromNativeConverter converter = typeMapper.getFromNativeConverter(signatureType, context);
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
         return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);

@@ -19,10 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Pointer;
-import jnr.ffi.mapper.CachingTypeMapper;
-import jnr.ffi.mapper.ToNativeContext;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.*;
 import jnr.ffi.provider.ClosureManager;
 
 import java.util.IdentityHashMap;
@@ -34,9 +31,9 @@ import java.util.Map;
 final class NativeClosureManager implements ClosureManager {
     private volatile Map<Class<?>, NativeClosureFactory> factories = new IdentityHashMap<Class<?>, NativeClosureFactory>();
     private final NativeRuntime runtime;
-    private final TypeMapper typeMapper;
+    private final SignatureTypeMapper typeMapper;
 
-    NativeClosureManager(NativeRuntime runtime, TypeMapper typeMapper) {
+    NativeClosureManager(NativeRuntime runtime, SignatureTypeMapper typeMapper) {
         this.runtime = runtime;
         this.typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new ClosureTypeMapper()));
     }

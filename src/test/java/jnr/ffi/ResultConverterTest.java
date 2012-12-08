@@ -1,9 +1,5 @@
 package jnr.ffi;
 
-import jnr.ffi.LibraryOption;
-import jnr.ffi.Pointer;
-import jnr.ffi.Runtime;
-import jnr.ffi.Library;
 import jnr.ffi.mapper.*;
 
 import java.lang.annotation.Annotation;
@@ -57,14 +53,14 @@ public class ResultConverterTest {
 
     static final TypeMapper mapper = new TypeMapper() {
 
-        public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
+        public FromNativeConverter getFromNativeConverter(Class type) {
             if (TestType.class == type) {
                 return new TestTypeResultConverter();
             }
             return null;
         }
 
-        public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
+        public ToNativeConverter getToNativeConverter(Class type) {
             return null;
         }
     };
@@ -127,10 +123,10 @@ public class ResultConverterTest {
         }
     }
 
-    static final TypeMapper posixTypeMapper = new TypeMapper() {
+    static final SignatureTypeMapper posixTypeMapper = new SignatureTypeMapper() {
 
-        public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
-            if (int.class == type) {
+        public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
+            if (int.class == type.getDeclaredType()) {
                 for (Annotation a : context.getAnnotations()) {
                     if (a instanceof PosixError) {
                         return new PosixErrorConverter();
@@ -141,7 +137,7 @@ public class ResultConverterTest {
             return null;
         }
 
-        public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
+        public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
             return null;
         }
     };

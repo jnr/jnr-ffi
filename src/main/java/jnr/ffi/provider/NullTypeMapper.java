@@ -23,15 +23,23 @@ import jnr.ffi.mapper.*;
 /**
  * An instance of {@link TypeMapper} which always returns null
  */
-public class NullTypeMapper implements TypeMapper {
-    public static final TypeMapper INSTANCE = new NullTypeMapper();
+public class NullTypeMapper implements TypeMapper, SignatureTypeMapper {
     
-    public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
+    public FromNativeConverter getFromNativeConverter(Class type) {
         return null;
     }
 
-    public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
+    public ToNativeConverter getToNativeConverter(Class type) {
         return null;
     }
 
+    @Override
+    public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
+        return null;
+    }
+
+    @Override
+    public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
+        return null;
+    }
 }

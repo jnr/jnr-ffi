@@ -70,11 +70,11 @@ public class CachingTypeMapperTest {
         }
     }
 
-    private static final class TestTypeMapper implements TypeMapper {
+    private static final class TestTypeMapper implements SignatureTypeMapper {
         @Override
-        public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
+        public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
             FromNativeConverter converter;
-            if (type == Set.class && (converter = EnumSetConverter.getFromNativeConverter(type, context)) != null) {
+            if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getFromNativeConverter(type.getDeclaredType(), context)) != null) {
                  return converter;
             } else {
                 return null;
@@ -82,15 +82,15 @@ public class CachingTypeMapperTest {
         }
 
         @Override
-        public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
+        public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
             ToNativeConverter converter;
-            if (type == Set.class && (converter = EnumSetConverter.getToNativeConverter(type, context)) != null) {
+            if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getToNativeConverter(type.getDeclaredType(), context)) != null) {
                 return converter;
 
-            } else if (long[].class == type) {
+            } else if (long[].class == type.getDeclaredType()) {
                 return new LongArrayParameterConverter();
 
-            } else if (int[].class == type) {
+            } else if (int[].class == type.getDeclaredType()) {
                 return new IntArrayParameterConverter();
 
             } else {
@@ -99,26 +99,26 @@ public class CachingTypeMapperTest {
         }
     }
 
-    private static final class CountingTypeMapper implements TypeMapper {
+    private static final class CountingTypeMapper implements SignatureTypeMapper {
         private final Map<Class, Integer> fromConverterStats = new HashMap<Class, Integer>();
         private final Map<Class, Integer> toConverterStats = new HashMap<Class, Integer>();
-        private final TypeMapper typeMapper;
+        private final SignatureTypeMapper typeMapper;
 
-        CountingTypeMapper(TypeMapper typeMapper) {
+        CountingTypeMapper(SignatureTypeMapper typeMapper) {
             this.typeMapper = typeMapper;
         }
 
         @Override
-        public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
-            Integer count = fromConverterStats.get(type);
-            fromConverterStats.put(type, count != null ? count + 1 : 1);
+        public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
+            Integer count = fromConverterStats.get(type.getDeclaredType());
+            fromConverterStats.put(type.getDeclaredType(), count != null ? count + 1 : 1);
             return typeMapper.getFromNativeConverter(type, context);
         }
 
         @Override
-        public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
-            Integer count = toConverterStats.get(type);
-            toConverterStats.put(type, count != null ? count + 1 : 1);
+        public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
+            Integer count = toConverterStats.get(type.getDeclaredType());
+            toConverterStats.put(type.getDeclaredType(), count != null ? count + 1 : 1);
             return typeMapper.getToNativeConverter(type, context);
         }
 
@@ -133,18 +133,22 @@ public class CachingTypeMapperTest {
         }
     }
 
-    private TypeMapper defaultTypeMapper;
+    private SignatureTypeMapper defaultTypeMapper;
     @Before
     public void setUp() {
         defaultTypeMapper = new CachingTypeMapper(new TestTypeMapper());
     }
 
-    private ToNativeConverter getToNativeConverter(TypeMapper typeMapper, Method m, int parameterIndex) {
-        return typeMapper.getToNativeConverter(m.getParameterTypes()[parameterIndex], new MethodParameterContext(m, parameterIndex));
+    private ToNativeConverter getToNativeConverter(SignatureTypeMapper typeMapper, Method m, int parameterIndex) {
+        ToNativeContext toNativeContext = new MethodParameterContext(m, parameterIndex);
+        SignatureType signatureType = DefaultSignatureType.create(m.getParameterTypes()[parameterIndex], toNativeContext);
+        return typeMapper.getToNativeConverter(signatureType, toNativeContext);
     }
 
-    private FromNativeConverter getFromNativeConverter(TypeMapper typeMapper, Method m) {
-        return typeMapper.getFromNativeConverter(m.getReturnType(), new MethodResultContext(m));
+    private FromNativeConverter getFromNativeConverter(SignatureTypeMapper typeMapper, Method m) {
+        FromNativeContext fromNativeContext = new MethodResultContext(m);
+        SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), fromNativeContext);
+        return typeMapper.getFromNativeConverter(signatureType, fromNativeContext);
     }
 
 
@@ -155,7 +159,7 @@ public class CachingTypeMapperTest {
     @Test public void sameResultTypeHasSameConverter() {
         FromNativeConverter converter;
         assertNotNull(converter = getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset1a")));
-        assertSame(converter,  getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset1b")));
+        assertSame(converter, getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset1b")));
     }
 
     @Test public void differentEnumSet() {
@@ -164,7 +168,7 @@ public class CachingTypeMapperTest {
         assertSame(converter1,  getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset1b")));
         FromNativeConverter converter2;
         assertNotNull(converter2 = getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset2a")));
-        assertSame(converter2,  getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset2b")));
+        assertSame(converter2, getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset2b")));
         assertNotSame(converter1, converter2);
     }
 
@@ -184,7 +188,7 @@ public class CachingTypeMapperTest {
 
     @Test public void uncacheableConverter() {
         CountingTypeMapper counter;
-        TypeMapper typeMapper = new CachingTypeMapper(counter = new CountingTypeMapper(new TestTypeMapper()));
+        SignatureTypeMapper typeMapper = new CachingTypeMapper(counter = new CountingTypeMapper(new TestTypeMapper()));
         ToNativeConverter converter1, converter2;
         Method m = getLibMethod("int_array_params", int[].class, int[].class);
         assertNotNull(converter1 = getToNativeConverter(typeMapper, m, 0));
@@ -196,7 +200,7 @@ public class CachingTypeMapperTest {
 
     @Test public void converterIsCached() {
         CountingTypeMapper counter;
-        TypeMapper typeMapper = new CachingTypeMapper(counter = new CountingTypeMapper(new TestTypeMapper()));
+        SignatureTypeMapper typeMapper = new CachingTypeMapper(counter = new CountingTypeMapper(new TestTypeMapper()));
         FromNativeConverter converter1;
         assertNotNull(converter1 = getFromNativeConverter(typeMapper, getLibMethod("ret_enumset1a")));
         assertEquals(1, counter.getFromNativeCount(Set.class));

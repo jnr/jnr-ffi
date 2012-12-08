@@ -18,7 +18,6 @@ import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
 import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
-import static jnr.ffi.provider.jffi.NumberUtil.widen;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
@@ -30,10 +29,11 @@ public class VariableAccessorGenerator {
 
     public void generate(AsmBuilder builder, Class interfaceClass, String variableName, long address,
                          Class javaType, Collection<Annotation> annotations,
-                         TypeMapper typeMapper) {
+                         SignatureTypeMapper typeMapper) {
         SimpleNativeContext context = new SimpleNativeContext(annotations);
-        FromNativeConverter fromNativeConverter = typeMapper.getFromNativeConverter(javaType, context);
-        ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(javaType, context);
+        SignatureType signatureType = DefaultSignatureType.create(javaType, (FromNativeContext) context);
+        FromNativeConverter fromNativeConverter = typeMapper.getFromNativeConverter(signatureType, context);
+        ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(signatureType, context);
 
         Variable variableAccessor = buildVariableAccessor(address, interfaceClass, javaType, annotations,
                 toNativeConverter, fromNativeConverter);

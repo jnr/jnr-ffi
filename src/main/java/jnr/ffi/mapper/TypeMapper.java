@@ -19,6 +19,6 @@
 package jnr.ffi.mapper;
 
 public interface TypeMapper {
-    public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context);
-    public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context);
+    public FromNativeConverter getFromNativeConverter(Class type);
+    public ToNativeConverter getToNativeConverter(Class type);
 }

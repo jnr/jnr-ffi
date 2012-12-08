@@ -227,7 +227,7 @@ final class InvokerUtil {
         return new ParameterType(type, nativeType, annotations, toNativeConverter, toNativeContext);
     }
 
-    static ParameterType[] getParameterTypes(NativeRuntime runtime, TypeMapper typeMapper,
+    static ParameterType[] getParameterTypes(NativeRuntime runtime, SignatureTypeMapper typeMapper,
                                              Method m) {
         final Class[] javaParameterTypes = m.getParameterTypes();
         final Annotation[][] parameterAnnotations = m.getParameterAnnotations();
@@ -236,7 +236,8 @@ final class InvokerUtil {
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
             Collection<Annotation> annotations = Annotations.sortedAnnotationCollection(parameterAnnotations[pidx]);
             ToNativeContext toNativeContext = new MethodParameterContext(m, pidx, annotations);
-            ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(javaParameterTypes[pidx], toNativeContext);
+            SignatureType signatureType = DefaultSignatureType.create(javaParameterTypes[pidx], toNativeContext);
+            ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(signatureType, toNativeContext);
             Collection<Annotation> converterAnnotations = getAnnotations(toNativeConverter);
             Collection<Annotation> allAnnotations = mergeAnnotations(annotations, converterAnnotations);
 
@@ -328,10 +329,11 @@ final class InvokerUtil {
     }
 
 
-    static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, TypeMapper typeMapper, MethodGenerator[] generators) {
+    static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, SignatureTypeMapper typeMapper, MethodGenerator[] generators) {
         FromNativeContext resultContext = new MethodResultContext(m);
+        SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), resultContext);
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                resultContext.getAnnotations(), typeMapper.getFromNativeConverter(m.getReturnType(), resultContext),
+                resultContext.getAnnotations(), typeMapper.getFromNativeConverter(signatureType, resultContext),
                 resultContext);
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, m);

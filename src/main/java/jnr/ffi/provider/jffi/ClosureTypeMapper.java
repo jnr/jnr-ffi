@@ -8,12 +8,12 @@ import jnr.ffi.provider.converters.StringResultConverter;
 
 import java.nio.charset.Charset;
 
-final class ClosureTypeMapper implements TypeMapper {
-    public FromNativeConverter getFromNativeConverter(Class type, FromNativeContext context) {
-        if (Enum.class.isAssignableFrom(type)) {
-            return EnumConverter.getInstance(type.asSubclass(Enum.class));
+final class ClosureTypeMapper implements SignatureTypeMapper {
+    public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
+        if (Enum.class.isAssignableFrom(type.getDeclaredType())) {
+            return EnumConverter.getInstance(type.getDeclaredType().asSubclass(Enum.class));
 
-        } else if (CharSequence.class.isAssignableFrom(type)) {
+        } else if (CharSequence.class.isAssignableFrom(type.getDeclaredType())) {
             return StringResultConverter.getInstance(Charset.defaultCharset());
 
         } else {
@@ -21,11 +21,11 @@ final class ClosureTypeMapper implements TypeMapper {
         }
     }
 
-    public ToNativeConverter getToNativeConverter(Class type, ToNativeContext context) {
-        if (Enum.class.isAssignableFrom(type)) {
-            return EnumConverter.getInstance(type.asSubclass(Enum.class));
+    public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
+        if (Enum.class.isAssignableFrom(type.getDeclaredType())) {
+            return EnumConverter.getInstance(type.getDeclaredType().asSubclass(Enum.class));
 
-        } else if (Struct.class.isAssignableFrom(type)) {
+        } else if (Struct.class.isAssignableFrom(type.getDeclaredType())) {
             return new StructByReferenceToNativeConverter(ParameterFlags.parse(context.getAnnotations()));
 
 
