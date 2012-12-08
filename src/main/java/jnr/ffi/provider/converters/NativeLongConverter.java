@@ -9,6 +9,8 @@ import jnr.ffi.mapper.*;
 
 @ToNativeConverter.NoContext
 @FromNativeConverter.NoContext
+@ToNativeConverter.Cacheable
+@FromNativeConverter.Cacheable
 public final class NativeLongConverter extends AbstractDataConverter<NativeLong, Long> {
     public static final DataConverter INSTANCE = new NativeLongConverter();
 

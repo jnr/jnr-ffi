@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
  * Converts a Pointer[] array to a long[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class StructArrayParameterConverter implements ToNativeConverter<Struct[], Pointer> {
     protected final jnr.ffi.Runtime runtime;
     protected final int parameterFlags;

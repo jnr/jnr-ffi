@@ -12,6 +12,8 @@ import java.nio.charset.Charset;
 /**
  * Converts a CharSequence (e.g. String) to a primitive byte[] array parameter
  */
+@ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class CharSequenceParameterConverter implements ToNativeConverter<CharSequence, byte[]> {
     private static final ToNativeConverter<CharSequence, byte[]> DEFAULT = new CharSequenceParameterConverter(Charset.defaultCharset());
     private final Charset charset;
@@ -25,7 +27,6 @@ public class CharSequenceParameterConverter implements ToNativeConverter<CharSeq
     }
 
     @Override
-    @NoContext
     public byte[] toNative(CharSequence string, ToNativeContext context) {
         if (string == null) {
             return null;

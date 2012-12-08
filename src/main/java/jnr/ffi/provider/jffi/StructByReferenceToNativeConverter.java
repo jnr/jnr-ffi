@@ -6,6 +6,7 @@ import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public final class StructByReferenceToNativeConverter implements ToNativeConverter<Struct, Pointer> {
     private final int flags;
 

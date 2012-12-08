@@ -11,6 +11,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Pointer[] array to a long[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class Pointer64ArrayParameterConverter implements ToNativeConverter<Pointer[], long[]> {
     protected final jnr.ffi.Runtime runtime;
     protected final int parameterFlags;

@@ -9,6 +9,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a NativeLong[] array to a primitive int[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class NativeLong32ArrayParameterConverter implements ToNativeConverter<NativeLong[], int[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

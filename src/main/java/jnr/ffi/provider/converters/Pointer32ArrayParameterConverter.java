@@ -10,6 +10,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Pointer[] array to a int[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class Pointer32ArrayParameterConverter implements ToNativeConverter<Pointer[], int[]> {
     protected final jnr.ffi.Runtime runtime;
     protected final int parameterFlags;

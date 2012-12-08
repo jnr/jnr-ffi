@@ -24,6 +24,8 @@ import jnr.ffi.util.EnumMapper;
 
 @ToNativeConverter.NoContext
 @FromNativeConverter.NoContext
+@ToNativeConverter.Cacheable
+@FromNativeConverter.Cacheable
 public final class EnumConverter implements DataConverter<Enum, Integer> {
     private final EnumMapper mapper;
 

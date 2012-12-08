@@ -18,6 +18,8 @@
 
 package jnr.ffi.mapper;
 
+import jnr.ffi.Pointer;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -37,5 +39,10 @@ public interface ToNativeConverter<J, N> {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.TYPE, ElementType.METHOD})
     public static @interface NoContext {
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public static @interface Cacheable {
     }
 }

@@ -18,6 +18,7 @@ import java.util.List;
  * Converts a String[] array to a Pointer parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class StringArrayParameterConverter implements ToNativeConverter<String[], Pointer> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

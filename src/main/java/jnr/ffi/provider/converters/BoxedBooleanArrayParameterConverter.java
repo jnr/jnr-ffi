@@ -8,6 +8,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Boolean[] array to a primitive boolean[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class BoxedBooleanArrayParameterConverter implements ToNativeConverter<Boolean[], boolean[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

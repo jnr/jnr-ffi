@@ -8,6 +8,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Float[] array to a float[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class BoxedFloatArrayParameterConverter implements ToNativeConverter<Float[], float[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

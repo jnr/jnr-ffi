@@ -25,6 +25,7 @@ import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static org.objectweb.asm.Opcodes.*;
 
 @FromNativeConverter.NoContext
+@FromNativeConverter.Cacheable
 abstract public class StructByReferenceFromNativeConverter implements FromNativeConverter<Struct, Pointer> {
     private final int flags;
 

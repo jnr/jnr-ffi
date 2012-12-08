@@ -11,6 +11,8 @@ public final class CachingTypeMapper implements TypeMapper {
     private final TypeMapper mapper;
     private volatile Map<Signature, ToNativeConverter> toNativeConverterMap = Collections.emptyMap();
     private volatile Map<Signature, FromNativeConverter> fromNativeConverterMap = Collections.emptyMap();
+    private static final DataConverter NO_DATA_CONVERTER = new InvalidDataConverter();
+    private static final DataConverter DO_NOT_CACHE = new InvalidDataConverter();
 
     public CachingTypeMapper(TypeMapper mapper) {
         this.mapper = mapper;
@@ -55,8 +57,14 @@ public final class CachingTypeMapper implements TypeMapper {
         Signature signature = new Signature(klazz, context.getAnnotations(), genericType);
         FromNativeConverter fromNativeConverter = fromNativeConverterMap.get(signature);
 
-        return fromNativeConverter != null
-                ? (fromNativeConverter != NoDataConverter.INSTANCE ? fromNativeConverter : null) : lookupAndCacheFromNativeConverter(signature, context);
+        if (fromNativeConverter == DO_NOT_CACHE) {
+            return mapper.getFromNativeConverter(klazz, context);
+
+        } else if (fromNativeConverter == NO_DATA_CONVERTER) {
+            return null;
+        }
+
+        return fromNativeConverter != null ? fromNativeConverter : lookupAndCacheFromNativeConverter(signature, context);
     }
 
     public final ToNativeConverter getToNativeConverter(Class klazz, ToNativeContext context) {
@@ -68,59 +76,75 @@ public final class CachingTypeMapper implements TypeMapper {
 
         Signature signature = new Signature(klazz, context.getAnnotations(), genericType);
         ToNativeConverter toNativeConverter = toNativeConverterMap.get(signature);
-        return toNativeConverter != null
-                ? (toNativeConverter != NoDataConverter.INSTANCE ? toNativeConverter : null) : lookupAndCacheToNativeConverter(signature, context);
+        if (toNativeConverter == DO_NOT_CACHE) {
+            return mapper.getToNativeConverter(klazz, context);
+
+        } else if (toNativeConverter == NO_DATA_CONVERTER) {
+            return null;
+        }
+
+        return toNativeConverter != null ? toNativeConverter : lookupAndCacheToNativeConverter(signature, context);
     }
 
     private synchronized FromNativeConverter lookupAndCacheFromNativeConverter(Signature signature, FromNativeContext context) {
         FromNativeConverter fromNativeConverter = fromNativeConverterMap.get(signature);
         if (fromNativeConverter == null) {
             fromNativeConverter = mapper.getFromNativeConverter(signature.klass, context);
-            if (fromNativeConverter == null) fromNativeConverter = NoDataConverter.INSTANCE;
+            FromNativeConverter converterForCaching = fromNativeConverter;
+            if (fromNativeConverter == null) {
+                converterForCaching = NO_DATA_CONVERTER;
 
-            Map<Signature, FromNativeConverter> m
-                    = new HashMap<Signature, FromNativeConverter>(fromNativeConverterMap.size() + 1);
+            } else if (!fromNativeConverter.getClass().isAnnotationPresent(FromNativeConverter.Cacheable.class)) {
+                converterForCaching = DO_NOT_CACHE;
+            }
+
+            Map<Signature, FromNativeConverter> m = new HashMap<Signature, FromNativeConverter>(fromNativeConverterMap.size() + 1);
             m.putAll(fromNativeConverterMap);
-            m.put(signature, fromNativeConverter);
+            m.put(signature, converterForCaching);
             fromNativeConverterMap = Collections.unmodifiableMap(m);
         }
 
-        return fromNativeConverter != NoDataConverter.INSTANCE ? fromNativeConverter : null;
+        return fromNativeConverter != NO_DATA_CONVERTER ? fromNativeConverter : null;
     }
 
     private synchronized ToNativeConverter lookupAndCacheToNativeConverter(Signature signature, ToNativeContext context) {
         ToNativeConverter toNativeConverter = toNativeConverterMap.get(signature);
         if (toNativeConverter == null) {
             toNativeConverter = mapper.getToNativeConverter(signature.klass, context);
-            if (toNativeConverter == null) toNativeConverter = NoDataConverter.INSTANCE;
+            ToNativeConverter converterForCaching = toNativeConverter;
+            if (toNativeConverter == null) {
+                converterForCaching = NO_DATA_CONVERTER;
 
-            Map<Signature, ToNativeConverter> m
-                    = new HashMap<Signature, ToNativeConverter>(toNativeConverterMap.size() + 1);
+            } else if (!toNativeConverter.getClass().isAnnotationPresent(ToNativeConverter.Cacheable.class)) {
+                converterForCaching = DO_NOT_CACHE;
+            }
+
+            Map<Signature, ToNativeConverter> m = new HashMap<Signature, ToNativeConverter>(toNativeConverterMap.size() + 1);
             m.putAll(toNativeConverterMap);
-            m.put(signature, toNativeConverter);
+            m.put(signature, converterForCaching);
             toNativeConverterMap = Collections.unmodifiableMap(m);
         }
 
-        
-        return toNativeConverter != NoDataConverter.INSTANCE ? toNativeConverter : null;
+
+        return toNativeConverter != NO_DATA_CONVERTER ? toNativeConverter : null;
     }
 
-    private static final class NoDataConverter implements DataConverter {
-        static DataConverter INSTANCE = new NoDataConverter();
+    private static final class InvalidDataConverter implements DataConverter {
+
 
         @Override
         public Object fromNative(Object nativeValue, FromNativeContext context) {
-            return null;
+            throw new RuntimeException("should not be called");
         }
 
         @Override
         public Object toNative(Object value, ToNativeContext context) {
-            return null;
+            throw new RuntimeException("should not be called");
         }
 
         @Override
         public Class nativeType() {
-            return void.class;
+            throw new RuntimeException("should not be called");
         }
     }
 }

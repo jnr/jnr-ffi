@@ -8,6 +8,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Double[] array to a double[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class BoxedDoubleArrayParameterConverter implements ToNativeConverter<Double[], double[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

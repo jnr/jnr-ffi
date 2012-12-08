@@ -8,6 +8,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a long[] array to a primitive int[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class Long32ArrayParameterConverter implements ToNativeConverter<long[], int[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

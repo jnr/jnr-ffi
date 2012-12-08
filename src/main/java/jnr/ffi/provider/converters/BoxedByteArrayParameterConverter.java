@@ -8,6 +8,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Byte[] array to a byte[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class BoxedByteArrayParameterConverter implements ToNativeConverter<Byte[], byte[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

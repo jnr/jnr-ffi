@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
  * Converts a native pointer result into a java String
  */
 @FromNativeConverter.NoContext
+@FromNativeConverter.Cacheable
 public class StringResultConverter implements FromNativeConverter<String, Pointer> {
     private static final FromNativeConverter DEFAULT = new StringResultConverter(Charset.defaultCharset());
     private final Charset charset;

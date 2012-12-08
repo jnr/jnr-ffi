@@ -12,6 +12,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class StringBufferParameterConverter implements ToNativeConverter<StringBuffer, Pointer>, ToNativeConverter.PostInvocation<StringBuffer, Pointer> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

@@ -9,6 +9,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Long[] array to a primitive 64bit long[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class BoxedLong64ArrayParameterConverter implements ToNativeConverter<Long[], long[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

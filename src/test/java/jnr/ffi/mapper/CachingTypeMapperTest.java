@@ -32,6 +32,7 @@ public class CachingTypeMapperTest {
         public Set<Integer> ret_intset();
         public void enumset_param(Set<Enum1> enums);
         public void annotated_params(@In long[] in, @Out long[] out);
+        public void int_array_params(int[] in, int[] out);
         public void intset_param(Set<Integer> bitfield);
     }
 
@@ -43,9 +44,23 @@ public class CachingTypeMapperTest {
         }
     }
 
+    @ToNativeConverter.Cacheable
     private static final class LongArrayParameterConverter implements ToNativeConverter<long[], Pointer> {
         @Override
         public Pointer toNative(long[] value, ToNativeContext context) {
+            return null;
+        }
+
+        @Override
+        public Class<Pointer> nativeType() {
+            return Pointer.class;
+        }
+    }
+
+    // Do not mark as cacheable
+    private static final class IntArrayParameterConverter implements ToNativeConverter<int[], Pointer> {
+        @Override
+        public Pointer toNative(int[] value, ToNativeContext context) {
             return null;
         }
 
@@ -74,6 +89,9 @@ public class CachingTypeMapperTest {
 
             } else if (long[].class == type) {
                 return new LongArrayParameterConverter();
+
+            } else if (int[].class == type) {
+                return new IntArrayParameterConverter();
 
             } else {
                 return null;
@@ -161,6 +179,18 @@ public class CachingTypeMapperTest {
         Method m = getLibMethod("annotated_params", long[].class, long[].class);
         assertNotNull(converter1 = getToNativeConverter(defaultTypeMapper, m, 0));
         assertNotNull(converter2 = getToNativeConverter(defaultTypeMapper, m, 1));
+        assertNotSame(converter1, converter2);
+    }
+
+    @Test public void uncacheableConverter() {
+        CountingTypeMapper counter;
+        TypeMapper typeMapper = new CachingTypeMapper(counter = new CountingTypeMapper(new TestTypeMapper()));
+        ToNativeConverter converter1, converter2;
+        Method m = getLibMethod("int_array_params", int[].class, int[].class);
+        assertNotNull(converter1 = getToNativeConverter(typeMapper, m, 0));
+        assertEquals(1, counter.getToNativeCount(int[].class));
+        assertNotNull(converter2 = getToNativeConverter(typeMapper, m, 1));
+        assertEquals(2, counter.getToNativeCount(int[].class));
         assertNotSame(converter1, converter2);
     }
 

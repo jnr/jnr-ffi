@@ -12,6 +12,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class StringBuilderParameterConverter implements ToNativeConverter<StringBuilder, Pointer>, ToNativeConverter.PostInvocation<StringBuilder, Pointer> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

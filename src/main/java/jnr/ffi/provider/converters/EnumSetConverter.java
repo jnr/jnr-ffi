@@ -8,6 +8,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.EnumSet;
 
+@FromNativeConverter.Cacheable
+@ToNativeConverter.Cacheable
 public final class EnumSetConverter implements DataConverter<EnumSet<? extends Enum>, Integer> {
     private final Class<? extends Enum> enumClass;
     private final EnumMapper enumMapper;

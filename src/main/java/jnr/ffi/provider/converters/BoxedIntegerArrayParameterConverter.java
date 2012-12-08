@@ -8,6 +8,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Integer[] array to a primitive int[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class BoxedIntegerArrayParameterConverter implements ToNativeConverter<Integer[], int[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;

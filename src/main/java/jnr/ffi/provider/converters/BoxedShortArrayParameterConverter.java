@@ -8,6 +8,7 @@ import jnr.ffi.provider.ParameterFlags;
  * Converts a Short[] array to a primitive short[] array parameter
  */
 @ToNativeConverter.NoContext
+@ToNativeConverter.Cacheable
 public class BoxedShortArrayParameterConverter implements ToNativeConverter<Short[], short[]> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;
