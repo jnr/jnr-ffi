@@ -9,6 +9,7 @@ import jnr.ffi.Pointer;
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
+import static jnr.ffi.provider.jffi.Util.getBooleanProperty;
 
 /**
  *

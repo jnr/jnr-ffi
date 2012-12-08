@@ -16,12 +16,14 @@ import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitPostInvoke;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.NumberUtil.*;
+import static jnr.ffi.provider.jffi.Util.getBooleanProperty;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
  *
  */
 class X86MethodGenerator implements MethodGenerator {
+    private static final boolean ENABLED = getBooleanProperty("jnr.ffi.x86asm.enabled", true);
     private final AtomicLong nextMethodID = new AtomicLong(0);
     private final StubCompiler compiler;
 
@@ -30,7 +32,7 @@ class X86MethodGenerator implements MethodGenerator {
     }
 
     public boolean isSupported(ResultType resultType, ParameterType[] parameterTypes, CallingConvention callingConvention) {
-        if (!Boolean.valueOf(System.getProperty("jnr.ffi.x86asm.enabled", "true"))) {
+        if (!ENABLED) {
             return false;
         }
 

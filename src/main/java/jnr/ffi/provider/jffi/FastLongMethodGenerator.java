@@ -8,6 +8,7 @@ import jnr.ffi.NativeType;
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.FastIntMethodGenerator.isFastIntType;
+import static jnr.ffi.provider.jffi.Util.getBooleanProperty;
 
 /**
  *

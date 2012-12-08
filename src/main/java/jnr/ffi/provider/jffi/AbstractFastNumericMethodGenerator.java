@@ -232,8 +232,4 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
     abstract String getInvokerSignature(int parameterCount, Class nativeIntType);
     abstract Class getInvokerType();
-
-    static boolean getBooleanProperty(String propertyName, boolean defaultValue) {
-        return Boolean.valueOf(System.getProperty(propertyName, Boolean.valueOf(defaultValue).toString()));
-    }
 }
