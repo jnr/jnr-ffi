@@ -59,18 +59,8 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         protected final long functionAddress;
 
         protected AbstractClosurePointer(jnr.ffi.Runtime runtime, long functionAddress) {
-            super(runtime);
+            super(runtime, functionAddress, true);
             this.functionAddress = functionAddress;
-        }
-
-        @Override
-        public final boolean isDirect() {
-            return true;
-        }
-
-        @Override
-        public final long address() {
-            return functionAddress;
         }
 
         @Override

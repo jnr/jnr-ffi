@@ -1,5 +1,7 @@
 package jnr.ffi.provider.jffi;
 
+import jnr.ffi.Pointer;
+
 /**
  *
  */
@@ -8,6 +10,6 @@ final class DirectMemoryParameterStrategy extends AbstractDirectPointerParameter
 
     @Override
     public final long address(Object o) {
-        return ((DirectMemoryIO) o).address;
+        return ((Pointer) o).address();
     }
 }

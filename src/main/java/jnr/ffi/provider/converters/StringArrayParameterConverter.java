@@ -1,6 +1,7 @@
 package jnr.ffi.provider.converters;
 
 import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InAccessibleMemoryIO;
@@ -40,7 +41,7 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
             return null;
         }
 
-        StringArray stringArray = new StringArray(runtime, array.length + 1);
+        StringArray stringArray = StringArray.allocate(runtime, array.length + 1);
         if (ParameterFlags.isIn(parameterFlags)) {
             for (int i = 0; i < array.length; i++) {
                 stringArray.put(i, array[i]);
@@ -76,9 +77,9 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
         private List<Pointer> stringMemory;
         private final Charset charset = Charset.defaultCharset();
 
-        private StringArray(jnr.ffi.Runtime runtime, int capacity) {
-            super(runtime);
-            this.memory = Memory.allocateDirect(runtime, capacity * runtime.addressSize());
+        private StringArray(Pointer memory, int capacity) {
+            super(memory.getRuntime(), memory.address(), memory.isDirect());
+            this.memory = memory;
             this.stringMemory = new ArrayList<Pointer>(capacity);
         }
 
@@ -100,18 +101,14 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
         }
 
         @Override
-        public boolean isDirect() {
-            return memory.isDirect();
-        }
-
-        @Override
-        public long address() {
-            return memory.address();
-        }
-
-        @Override
         public long size() {
             return memory.size();
         }
+
+        static StringArray allocate(Runtime runtime, int capacity) {
+            Pointer memory = Memory.allocateDirect(runtime, capacity * runtime.addressSize());
+            return new StringArray(memory, capacity);
+        }
+
     }
 }

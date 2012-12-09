@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
 
     public ByteBufferMemoryIO(jnr.ffi.Runtime runtime, ByteBuffer buffer) {
-        super(runtime, buffer);
+        super(runtime, buffer, address(buffer));
     }
 
     public Pointer getPointer(long offset) {
@@ -42,9 +42,7 @@ public class ByteBufferMemoryIO extends AbstractBufferMemoryIO {
         putAddress(offset, value != null ? value.address() : 0L);
     }
 
-
-    @Override
-    public long address() {
+    private static long address(ByteBuffer buffer) {
         if (buffer.isDirect()) {
             long address = MemoryIO.getInstance().getDirectBufferAddress(buffer);
             return address != 0L ? address + buffer.position() : 0L;

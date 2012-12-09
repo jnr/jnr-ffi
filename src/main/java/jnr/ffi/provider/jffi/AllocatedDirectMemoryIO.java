@@ -29,7 +29,7 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
     public AllocatedDirectMemoryIO(Runtime runtime, int size, boolean clear) {
         super(runtime, IO.allocateMemory(size, clear));
         this.size = size;
-        if (address == 0L) {
+        if (address() == 0L) {
             throw new OutOfMemoryError("Failed to allocate " + size + " bytes");
         }
     }
@@ -48,19 +48,19 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
     public boolean equals(Object obj) {
         if (obj instanceof AllocatedDirectMemoryIO) {
             AllocatedDirectMemoryIO mem = (AllocatedDirectMemoryIO) obj;
-            return mem.size == size && mem.address() == address;
+            return mem.size == size && mem.address() == address();
         }
         
         return super.equals(obj);
     }
 
     public String toString() {
-        return String.format(getClass().getName() + " address=%x size=%d", address, size());
+        return String.format(getClass().getName() + " address=%x size=%d", address(), size());
     }
 
     public final void dispose() {
         if (allocated.getAndSet(false)) {
-            IO.freeMemory(address);
+            IO.freeMemory(address());
         }
     }
 
@@ -68,7 +68,7 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
     protected void finalize() throws Throwable {
         try {
             if (allocated.getAndSet(false)) {
-                IO.freeMemory(address);
+                IO.freeMemory(address());
             }
         } finally {
             super.finalize();

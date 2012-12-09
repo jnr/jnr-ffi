@@ -32,7 +32,7 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     protected final int offset, length;
 
     protected AbstractArrayMemoryIO(Runtime runtime, byte[] buffer, int offset, int length) {
-        super(runtime);
+        super(runtime, 0, false);
         this.io = ArrayIO.getArrayIO(runtime);
         this.buffer = buffer;
         this.offset = offset;
@@ -74,14 +74,6 @@ public abstract class AbstractArrayMemoryIO extends AbstractMemoryIO {
     @Override
     public final boolean hasArray() {
         return true;
-    }
-
-    public final boolean isDirect() {
-        return false;
-    }
-
-    public final long address() {
-        return 0;
     }
 
     public final long size() {

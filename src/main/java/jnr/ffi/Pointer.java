@@ -32,6 +32,10 @@ import java.util.List;
  * as a memory address.  See {@link #isDirect()} for more information.
  */
 abstract public class Pointer {
+    private final Runtime runtime;
+    private final long address;
+    private final boolean isDirect;
+
     /**
      * Wraps a native address in a {@link Pointer} instance.
      *
@@ -90,6 +94,12 @@ abstract public class Pointer {
         return runtime.getMemoryManager().newOpaquePointer(address);
     }
 
+    protected Pointer(Runtime runtime, long address, boolean direct) {
+        this.runtime = runtime;
+        this.address = address;
+        isDirect = direct;
+    }
+
     /**
      * Indicates whether or not this memory object represents a native memory address.
      *
@@ -110,7 +120,9 @@ abstract public class Pointer {
      *
      * @return true if, and only if, this memory object represents a native address.
      */
-    abstract public boolean isDirect();
+    public final boolean isDirect() {
+        return isDirect;
+    }
 
     /**
      * Gets the native address of this memory object (optional operation).
@@ -118,7 +130,18 @@ abstract public class Pointer {
      * @return the native address of this memory object.  If this object is not
      * a native memory address, an address of zero is returned.
      */
-    abstract public long address();
+    public final long address() {
+        return address;
+    }
+
+    /**
+     * Gets the {@link Runtime} this {@code Pointer} instance belongs to.
+     *
+     * @return the {@code Runtime} instance of this {@code Pointer}.
+     */
+    public final Runtime getRuntime() {
+        return runtime;
+    }
 
     /**
      * Gets the size of this memory object in bytes (optional operation).
@@ -158,13 +181,6 @@ abstract public class Pointer {
      * @return The length of the backing array used
      */
     abstract public int arrayLength();
-
-    /**
-     * Gets the {@link Runtime} this {@code Pointer} instance belongs to.
-     *
-     * @return the {@code Runtime} instance of this {@code Pointer}.
-     */
-    abstract public Runtime getRuntime();
 
     /**
      * Reads an {@code byte} (8 bit) value at the given offset.

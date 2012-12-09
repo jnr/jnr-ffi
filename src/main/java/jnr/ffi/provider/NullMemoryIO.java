@@ -24,19 +24,11 @@ public final class NullMemoryIO extends InAccessibleMemoryIO {
     private static final String msg = "attempted access to a NULL memory address";
 
     public NullMemoryIO(Runtime runtime) {
-        super(runtime);
+        super(runtime, 0, true);
     }
 
     protected final NullPointerException error() {
         return new NullPointerException(msg);
-    }
-
-    public final boolean isDirect() {
-        return true;
-    }
-
-    public long address() {
-        return 0;
     }
 
     public long size() {

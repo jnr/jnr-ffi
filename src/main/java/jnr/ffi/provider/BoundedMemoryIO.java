@@ -30,18 +30,10 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
     private final Pointer io;
 
     public BoundedMemoryIO(Pointer parent, long offset, long size) {
-        super(parent.getRuntime());
+        super(parent.getRuntime(), parent.address() != 0L ? parent.address() + offset : 0L, parent.isDirect());
         this.io = parent;
         this.base = offset;
         this.size = size;
-    }
-
-    public boolean isDirect() {
-        return getDelegatedMemoryIO().isDirect();
-    }
-    
-    public long address() {
-        return getDelegatedMemoryIO().address() + base;
     }
 
     public long size() {

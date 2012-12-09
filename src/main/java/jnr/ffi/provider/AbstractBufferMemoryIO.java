@@ -31,14 +31,11 @@ abstract public class AbstractBufferMemoryIO extends AbstractMemoryIO {
 
     protected final ByteBuffer buffer;
 
-    public AbstractBufferMemoryIO(Runtime runtime, ByteBuffer buffer) {
-        super(runtime);
+    public AbstractBufferMemoryIO(Runtime runtime, ByteBuffer buffer, long address) {
+        super(runtime, address, buffer.isDirect());
         this.buffer = buffer;
     }
 
-    public final boolean isDirect() {
-        return buffer.isDirect();
-    }
 
     public long size() {
         return buffer.remaining();

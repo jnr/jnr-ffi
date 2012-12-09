@@ -31,18 +31,9 @@ public class ShareMemoryIO extends AbstractMemoryIO implements DelegatingMemoryI
     private final long base;
 
     public ShareMemoryIO(Pointer parent, long offset) {
-        super(parent.getRuntime());
+        super(parent.getRuntime(), parent.address() != 0L ? parent.address() + offset : 0L, parent.isDirect());
         this.ptr = parent;
         this.base = offset;
-    }
-
-    public final boolean isDirect() {
-        return ptr.isDirect();
-    }
-
-    @Override
-    public long address() {
-        return ptr.address() + base;
     }
 
     public long size() {

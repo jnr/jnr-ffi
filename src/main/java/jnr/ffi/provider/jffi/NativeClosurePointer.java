@@ -29,19 +29,9 @@ class NativeClosurePointer extends InAccessibleMemoryIO {
 
 
     public NativeClosurePointer(jnr.ffi.Runtime runtime, com.kenai.jffi.Closure.Handle handle, NativeClosureProxy proxy) {
-        super(runtime);
+        super(runtime, handle.getAddress(), true);
         this.handle = handle;
         this.proxy = proxy;
-    }
-
-    @Override
-    public boolean isDirect() {
-        return true;
-    }
-
-    @Override
-    public long address() {
-        return handle.getAddress();
     }
 
     @Override

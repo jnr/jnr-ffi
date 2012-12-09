@@ -29,22 +29,17 @@ import java.nio.ByteBuffer;
  * Base implementations of some MemoryIO operations.
  */
 abstract public class AbstractMemoryIO extends Pointer {
-    private final Runtime runtime;
-    
+
     protected static void checkBounds(long size, long off, long len) {
         if ((off | len | (off + len) | (size - (off + len))) < 0) {
             throw new IndexOutOfBoundsException();
         }
     }
 
-    protected AbstractMemoryIO(Runtime runtime) {
-        this.runtime = runtime;
+    protected AbstractMemoryIO(Runtime runtime, long address, boolean isDirect) {
+        super(runtime, address, isDirect);
     }
 
-    public final Runtime getRuntime() {
-        return runtime;
-    }
-    
     public int indexOf(long offset, byte value) {
         return indexOf(offset, value, Integer.MAX_VALUE);
     }

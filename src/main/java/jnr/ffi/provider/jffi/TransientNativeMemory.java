@@ -76,7 +76,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
     public boolean equals(Object obj) {
         if (obj instanceof TransientNativeMemory) {
             TransientNativeMemory mem = (TransientNativeMemory) obj;
-            return mem.size == size && mem.address() == address;
+            return mem.size == size && mem.address() == address();
         }
 
         return super.equals(obj);
@@ -84,7 +84,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
 
 
     public String toString() {
-        return String.format(getClass().getName() + " address=%x size=%d", address, size());
+        return String.format(getClass().getName() + " address=%x size=%d", address(), size());
     }
 
     public final void dispose() { /* not-implemented */ }

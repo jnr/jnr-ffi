@@ -26,8 +26,8 @@ import java.nio.charset.Charset;
 abstract public class InAccessibleMemoryIO extends AbstractMemoryIO {
     private static final String msg = "attempted access to inaccessible memory";
 
-    protected InAccessibleMemoryIO(Runtime runtime) {
-        super(runtime);
+    protected InAccessibleMemoryIO(Runtime runtime, long address, boolean isDirect) {
+        super(runtime, address, isDirect);
     }
 
     protected RuntimeException error() {
