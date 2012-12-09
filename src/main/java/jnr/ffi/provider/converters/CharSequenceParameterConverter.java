@@ -10,15 +10,15 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 /**
- * Converts a CharSequence (e.g. String) to a primitive byte[] array parameter
+ * Converts a CharSequence (e.g. String) to a primitive ByteBuffer array parameter
  */
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
-public class CharSequenceParameterConverter implements ToNativeConverter<CharSequence, byte[]> {
-    private static final ToNativeConverter<CharSequence, byte[]> DEFAULT = new CharSequenceParameterConverter(Charset.defaultCharset());
+public class CharSequenceParameterConverter implements ToNativeConverter<CharSequence, ByteBuffer> {
+    private static final ToNativeConverter<CharSequence, ByteBuffer> DEFAULT = new CharSequenceParameterConverter(Charset.defaultCharset());
     private final Charset charset;
 
-    public static ToNativeConverter<CharSequence, byte[]> getInstance(jnr.ffi.Runtime runtime, Charset charset) {
+    public static ToNativeConverter<CharSequence, ByteBuffer> getInstance(jnr.ffi.Runtime runtime, Charset charset) {
         return Charset.defaultCharset().equals(charset) ? DEFAULT : new CharSequenceParameterConverter(charset);
     }
 
@@ -27,26 +27,26 @@ public class CharSequenceParameterConverter implements ToNativeConverter<CharSeq
     }
 
     @Override
-    public byte[] toNative(CharSequence string, ToNativeContext context) {
+    public ByteBuffer toNative(CharSequence string, ToNativeContext context) {
         if (string == null) {
             return null;
         }
 
         ByteBuffer byteBuffer = charset.encode(CharBuffer.wrap(string));
-        return byteBuffer.hasArray() && byteBuffer.arrayOffset() == 0 ? byteBuffer.array() : copyOf(byteBuffer);
+        return byteBuffer.hasArray() || byteBuffer.isDirect() ? byteBuffer : copyOf(byteBuffer);
     }
 
-    private byte[] copyOf(ByteBuffer byteBuffer) {
-        // Have to copy to a fresh byte[] array to ensure the first byte starts at index == 0
+    private ByteBuffer copyOf(ByteBuffer byteBuffer) {
+        // Have to copy to a fresh array backed ByteBuffer to ensure it can be passed down to the native code
         byte[] bytes = new byte[byteBuffer.remaining()];
         byteBuffer.get(bytes);
-        return bytes;
+        return ByteBuffer.wrap(bytes);
     }
 
     @Override
     @In
     @NulTerminate
-    public Class<byte[]> nativeType() {
-        return byte[].class;
+    public Class<ByteBuffer> nativeType() {
+        return ByteBuffer.class;
     }
 }
