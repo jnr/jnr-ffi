@@ -10,7 +10,7 @@ import java.util.Collection;
 /**
  *
  */
-class FromNativeType extends SigType {
+class FromNativeType extends SigType implements jnr.ffi.mapper.FromNativeType {
     final FromNativeConverter fromNativeConverter;
     final FromNativeContext fromNativeContext;
 
@@ -19,5 +19,10 @@ class FromNativeType extends SigType {
         super(javaType, nativeType, annotations, fromNativeConverter != null ? fromNativeConverter.nativeType() : javaType);
         this.fromNativeConverter = fromNativeConverter;
         this.fromNativeContext = fromNativeContext;
+    }
+
+    @Override
+    public FromNativeConverter getFromNativeConverter() {
+        return fromNativeConverter;
     }
 }

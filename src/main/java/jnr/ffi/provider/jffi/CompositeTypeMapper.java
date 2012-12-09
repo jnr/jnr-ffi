@@ -1,6 +1,8 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.FromNativeType;
+import jnr.ffi.mapper.ToNativeType;
 
 class CompositeTypeMapper implements SignatureTypeMapper {
     private final SignatureTypeMapper[] signatureTypeMappers;
@@ -9,22 +11,24 @@ class CompositeTypeMapper implements SignatureTypeMapper {
         this.signatureTypeMappers = signatureTypeMappers.clone();
     }
 
-    public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
+    @Override
+    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
         for (SignatureTypeMapper m : signatureTypeMappers) {
-            FromNativeConverter converter = m.getFromNativeConverter(type, context);
-            if (converter != null) {
-                return converter;
+            FromNativeType fromNativeType = m.getFromNativeType(runtime, type, context);
+            if (fromNativeType != null) {
+                return fromNativeType;
             }
         }
 
         return null;
     }
 
-    public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
+    @Override
+    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
         for (SignatureTypeMapper m : signatureTypeMappers) {
-            ToNativeConverter converter = m.getToNativeConverter(type, context);
-            if (converter != null) {
-                return converter;
+            ToNativeType toNativeType = m.getToNativeType(runtime, type, context);
+            if (toNativeType != null) {
+                return toNativeType;
             }
         }
 

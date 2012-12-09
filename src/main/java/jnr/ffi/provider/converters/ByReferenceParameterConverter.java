@@ -14,10 +14,11 @@ import jnr.ffi.provider.jffi.NativeRuntime;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public final class ByReferenceParameterConverter implements ToNativeConverter<ByReference, Pointer>, ToNativeConverter.PostInvocation<ByReference, Pointer> {
-    final NativeRuntime runtime = NativeRuntime.getInstance();
+    private final jnr.ffi.Runtime runtime;
     private final int flags;
 
-    public ByReferenceParameterConverter(int flags) {
+    public ByReferenceParameterConverter(jnr.ffi.Runtime runtime, int flags) {
+        this.runtime = runtime;
         this.flags = flags;
     }
 

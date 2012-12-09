@@ -35,8 +35,10 @@ public class VariableAccessorGenerator {
                          SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
         SimpleNativeContext context = new SimpleNativeContext(annotations);
         SignatureType signatureType = DefaultSignatureType.create(javaType, (FromNativeContext) context);
-        FromNativeConverter fromNativeConverter = typeMapper.getFromNativeConverter(signatureType, context);
-        ToNativeConverter toNativeConverter = typeMapper.getToNativeConverter(signatureType, context);
+        jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(runtime, signatureType, context);
+        FromNativeConverter fromNativeConverter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
+        jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(runtime, signatureType, context);
+        ToNativeConverter toNativeConverter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
 
         Variable variableAccessor = buildVariableAccessor(builder.getRuntime(), address, interfaceClass, javaType, annotations,
                 toNativeConverter, fromNativeConverter, classLoader);

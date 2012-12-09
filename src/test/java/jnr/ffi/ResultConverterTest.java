@@ -123,7 +123,7 @@ public class ResultConverterTest {
         }
     }
 
-    static final SignatureTypeMapper posixTypeMapper = new SignatureTypeMapper() {
+    static final SignatureTypeMapper posixTypeMapper = new AbstractSignatureTypeMapper() {
 
         public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
             if (int.class == type.getDeclaredType()) {

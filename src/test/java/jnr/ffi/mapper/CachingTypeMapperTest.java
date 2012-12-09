@@ -1,7 +1,8 @@
 package jnr.ffi.mapper;
 
 
-import jnr.ffi.Pointer;
+import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.provider.converters.EnumSetConverter;
@@ -71,7 +72,6 @@ public class CachingTypeMapperTest {
     }
 
     private static final class TestTypeMapper implements SignatureTypeMapper {
-        @Override
         public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
             FromNativeConverter converter;
             if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getFromNativeConverter(type, context)) != null) {
@@ -81,7 +81,6 @@ public class CachingTypeMapperTest {
             }
         }
 
-        @Override
         public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
             ToNativeConverter converter;
             if (type.getDeclaredType() == Set.class && (converter = EnumSetConverter.getToNativeConverter(type, context)) != null) {
@@ -97,6 +96,16 @@ public class CachingTypeMapperTest {
                 return null;
             }
         }
+
+        @Override
+        public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+            return FromNativeTypes.create(getFromNativeConverter(type, context));
+        }
+
+        @Override
+        public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+            return ToNativeTypes.create(getToNativeConverter(type, context));
+        }
     }
 
     private static final class CountingTypeMapper implements SignatureTypeMapper {
@@ -108,18 +117,21 @@ public class CachingTypeMapperTest {
             this.typeMapper = typeMapper;
         }
 
-        @Override
-        public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
-            Integer count = fromConverterStats.get(type.getDeclaredType());
-            fromConverterStats.put(type.getDeclaredType(), count != null ? count + 1 : 1);
-            return typeMapper.getFromNativeConverter(type, context);
+        private void incrementCount(Map<Class, Integer> stats, Class type) {
+            Integer count = stats.get(type);
+            stats.put(type, count != null ? count + 1 : 1);
         }
 
         @Override
-        public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
-            Integer count = toConverterStats.get(type.getDeclaredType());
-            toConverterStats.put(type.getDeclaredType(), count != null ? count + 1 : 1);
-            return typeMapper.getToNativeConverter(type, context);
+        public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+            incrementCount(fromConverterStats, type.getDeclaredType());
+            return typeMapper.getFromNativeType(runtime, type, context);
+        }
+
+        @Override
+        public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+            incrementCount(toConverterStats, type.getDeclaredType());
+            return typeMapper.getToNativeType(runtime, type, context);
         }
 
         public int getFromNativeCount(Class type) {
@@ -142,13 +154,15 @@ public class CachingTypeMapperTest {
     private ToNativeConverter getToNativeConverter(SignatureTypeMapper typeMapper, Method m, int parameterIndex) {
         ToNativeContext toNativeContext = new MethodParameterContext(m, parameterIndex);
         SignatureType signatureType = DefaultSignatureType.create(m.getParameterTypes()[parameterIndex], toNativeContext);
-        return typeMapper.getToNativeConverter(signatureType, toNativeContext);
+        ToNativeType toNativeType = typeMapper.getToNativeType(Runtime.getSystemRuntime(), signatureType, toNativeContext);
+        return toNativeType != null ? toNativeType.getToNativeConverter() : null;
     }
 
     private FromNativeConverter getFromNativeConverter(SignatureTypeMapper typeMapper, Method m) {
         FromNativeContext fromNativeContext = new MethodResultContext(m);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), fromNativeContext);
-        return typeMapper.getFromNativeConverter(signatureType, fromNativeContext);
+        FromNativeType fromNativeType = typeMapper.getFromNativeType(Runtime.getSystemRuntime(), signatureType, fromNativeContext);
+        return fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
     }
 
 

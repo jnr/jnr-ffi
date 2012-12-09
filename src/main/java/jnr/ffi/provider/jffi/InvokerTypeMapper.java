@@ -3,6 +3,8 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.*;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.FromNativeType;
+import jnr.ffi.mapper.ToNativeType;
 import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
@@ -15,7 +17,7 @@ import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
-final class InvokerTypeMapper implements SignatureTypeMapper {
+final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
     private final AsmClassLoader classLoader;
     private final jnr.ffi.Runtime runtime;
@@ -130,5 +132,16 @@ final class InvokerTypeMapper implements SignatureTypeMapper {
         } else {
             return null;
         }
+    }
+
+
+    @Override
+    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+        return FromNativeTypes.create(getFromNativeConverter(type, context));
+    }
+
+    @Override
+    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+        return ToNativeTypes.create(getToNativeConverter(type, context));
     }
 }

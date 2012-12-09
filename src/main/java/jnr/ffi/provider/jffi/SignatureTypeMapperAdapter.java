@@ -1,6 +1,8 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.FromNativeType;
+import jnr.ffi.mapper.ToNativeType;
 
 /**
  * Adapts a {@link jnr.ffi.mapper.TypeMapper} to a SignatureTypeMapper
@@ -13,12 +15,12 @@ public class SignatureTypeMapperAdapter implements SignatureTypeMapper {
     }
 
     @Override
-    public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
-        return typeMapper.getFromNativeConverter(type.getDeclaredType());
+    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+        return FromNativeTypes.create(typeMapper.getFromNativeConverter(type.getDeclaredType()));
     }
 
     @Override
-    public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
-        return typeMapper.getToNativeConverter(type.getDeclaredType());
+    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+        return ToNativeTypes.create(typeMapper.getToNativeConverter(type.getDeclaredType()));
     }
 }

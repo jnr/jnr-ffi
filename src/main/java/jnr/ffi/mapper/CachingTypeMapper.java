@@ -5,101 +5,97 @@ import java.util.*;
 /**
  * Caches Class -> native converter lookups.
  */
-public final class CachingTypeMapper implements SignatureTypeMapper {
+public final class CachingTypeMapper extends AbstractSignatureTypeMapper implements SignatureTypeMapper {
     private final SignatureTypeMapper mapper;
-    private volatile Map<SignatureType, ToNativeConverter> toNativeConverterMap = Collections.emptyMap();
-    private volatile Map<SignatureType, FromNativeConverter> fromNativeConverterMap = Collections.emptyMap();
-    private static final DataConverter NO_DATA_CONVERTER = new InvalidDataConverter();
-    private static final DataConverter DO_NOT_CACHE = new InvalidDataConverter();
+    private volatile Map<SignatureType, ToNativeType> toNativeTypeMap = Collections.emptyMap();
+    private volatile Map<SignatureType, FromNativeType> fromNativeTypeMap = Collections.emptyMap();
+    private static final InvalidType UNCACHEABLE_TYPE = new InvalidType();
+    private static final InvalidType NO_TYPE = new InvalidType();
 
     public CachingTypeMapper(SignatureTypeMapper mapper) {
         this.mapper = mapper;
     }
 
-    public final FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
-        FromNativeConverter fromNativeConverter = fromNativeConverterMap.get(type);
+    @Override
+    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+        FromNativeType fromNativeType = fromNativeTypeMap.get(type);
 
-        if (fromNativeConverter == DO_NOT_CACHE) {
-            return mapper.getFromNativeConverter(type, context);
+        if (fromNativeType == UNCACHEABLE_TYPE) {
+            return mapper.getFromNativeType(runtime, type, context);
 
-        } else if (fromNativeConverter == NO_DATA_CONVERTER) {
+        } else if (fromNativeType == NO_TYPE) {
             return null;
         }
 
-        return fromNativeConverter != null ? fromNativeConverter : lookupAndCacheFromNativeConverter(type, context);
+        return fromNativeType != null ? fromNativeType : lookupAndCacheFromNativeType(runtime, type, context);
     }
 
-    public final ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
-        ToNativeConverter toNativeConverter = toNativeConverterMap.get(type);
-        if (toNativeConverter == DO_NOT_CACHE) {
-            return mapper.getToNativeConverter(type, context);
+    @Override
+    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+        ToNativeType toNativeType = toNativeTypeMap.get(type);
+        if (toNativeType == UNCACHEABLE_TYPE) {
+            return mapper.getToNativeType(runtime, type, context);
 
-        } else if (toNativeConverter == NO_DATA_CONVERTER) {
+        } else if (toNativeType == NO_TYPE) {
             return null;
         }
 
-        return toNativeConverter != null ? toNativeConverter : lookupAndCacheToNativeConverter(type, context);
+        return toNativeType != null ? toNativeType : lookupAndCacheToNativeType(runtime, type, context);
     }
 
-    private synchronized FromNativeConverter lookupAndCacheFromNativeConverter(SignatureType signature, FromNativeContext context) {
-        FromNativeConverter fromNativeConverter = fromNativeConverterMap.get(signature);
-        if (fromNativeConverter == null) {
-            fromNativeConverter = mapper.getFromNativeConverter(signature, context);
-            FromNativeConverter converterForCaching = fromNativeConverter;
-            if (fromNativeConverter == null) {
-                converterForCaching = NO_DATA_CONVERTER;
 
-            } else if (!fromNativeConverter.getClass().isAnnotationPresent(FromNativeConverter.Cacheable.class)) {
-                converterForCaching = DO_NOT_CACHE;
+    private synchronized FromNativeType lookupAndCacheFromNativeType(jnr.ffi.Runtime runtime, SignatureType signature, FromNativeContext context) {
+        FromNativeType fromNativeType = fromNativeTypeMap.get(signature);
+        if (fromNativeType == null) {
+            fromNativeType = mapper.getFromNativeType(runtime, signature, context);
+            FromNativeType typeForCaching = fromNativeType;
+            if (fromNativeType == null) {
+                typeForCaching = NO_TYPE;
+
+            } else if (!fromNativeType.getClass().isAnnotationPresent(FromNativeType.Cacheable.class)) {
+                typeForCaching = UNCACHEABLE_TYPE;
             }
 
-            Map<SignatureType, FromNativeConverter> m = new HashMap<SignatureType, FromNativeConverter>(fromNativeConverterMap.size() + 1);
-            m.putAll(fromNativeConverterMap);
-            m.put(signature, converterForCaching);
-            fromNativeConverterMap = Collections.unmodifiableMap(m);
+            Map<SignatureType, FromNativeType> m = new HashMap<SignatureType, FromNativeType>(fromNativeTypeMap.size() + 1);
+            m.putAll(fromNativeTypeMap);
+            m.put(signature, typeForCaching);
+            fromNativeTypeMap = Collections.unmodifiableMap(m);
         }
 
-        return fromNativeConverter != NO_DATA_CONVERTER ? fromNativeConverter : null;
+        return fromNativeType != NO_TYPE ? fromNativeType : null;
     }
 
-    private synchronized ToNativeConverter lookupAndCacheToNativeConverter(SignatureType signature, ToNativeContext context) {
-        ToNativeConverter toNativeConverter = toNativeConverterMap.get(signature);
-        if (toNativeConverter == null) {
-            toNativeConverter = mapper.getToNativeConverter(signature, context);
-            ToNativeConverter converterForCaching = toNativeConverter;
-            if (toNativeConverter == null) {
-                converterForCaching = NO_DATA_CONVERTER;
+    private synchronized ToNativeType lookupAndCacheToNativeType(jnr.ffi.Runtime runtime, SignatureType signature, ToNativeContext context) {
+        ToNativeType toNativeType = toNativeTypeMap.get(signature);
+        if (toNativeType == null) {
+            toNativeType = mapper.getToNativeType(runtime, signature, context);
+            ToNativeType typeForCaching = toNativeType;
+            if (toNativeType == null) {
+                typeForCaching = NO_TYPE;
 
-            } else if (!toNativeConverter.getClass().isAnnotationPresent(ToNativeConverter.Cacheable.class)) {
-                converterForCaching = DO_NOT_CACHE;
+            } else if (!toNativeType.getClass().isAnnotationPresent(ToNativeType.Cacheable.class)) {
+                typeForCaching = UNCACHEABLE_TYPE;
             }
 
-            Map<SignatureType, ToNativeConverter> m = new HashMap<SignatureType, ToNativeConverter>(toNativeConverterMap.size() + 1);
-            m.putAll(toNativeConverterMap);
-            m.put(signature, converterForCaching);
-            toNativeConverterMap = Collections.unmodifiableMap(m);
+            Map<SignatureType, ToNativeType> m = new HashMap<SignatureType, ToNativeType>(toNativeTypeMap.size() + 1);
+            m.putAll(toNativeTypeMap);
+            m.put(signature, typeForCaching);
+            toNativeTypeMap = Collections.unmodifiableMap(m);
         }
 
-
-        return toNativeConverter != NO_DATA_CONVERTER ? toNativeConverter : null;
+        return toNativeType != NO_TYPE ? toNativeType : null;
     }
 
-    private static final class InvalidDataConverter implements DataConverter {
-
-
+    private static final class InvalidType implements ToNativeType, FromNativeType {
         @Override
-        public Object fromNative(Object nativeValue, FromNativeContext context) {
-            throw new RuntimeException("should not be called");
+        public FromNativeConverter getFromNativeConverter() {
+            return null;
         }
 
         @Override
-        public Object toNative(Object value, ToNativeContext context) {
-            throw new RuntimeException("should not be called");
-        }
-
-        @Override
-        public Class nativeType() {
-            throw new RuntimeException("should not be called");
+        public ToNativeConverter getToNativeConverter() {
+            return null;
         }
     }
+
 }

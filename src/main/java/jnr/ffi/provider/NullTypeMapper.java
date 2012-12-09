@@ -18,12 +18,14 @@
 
 package jnr.ffi.provider;
 
+import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.mapper.*;
 
 /**
  * An instance of {@link TypeMapper} which always returns null
  */
-public class NullTypeMapper implements TypeMapper, SignatureTypeMapper {
+public class NullTypeMapper extends AbstractSignatureTypeMapper implements TypeMapper, SignatureTypeMapper {
     
     public FromNativeConverter getFromNativeConverter(Class type) {
         return null;
@@ -34,12 +36,12 @@ public class NullTypeMapper implements TypeMapper, SignatureTypeMapper {
     }
 
     @Override
-    public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
+    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
         return null;
     }
 
     @Override
-    public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
+    public ToNativeType getToNativeType(Runtime runtime, SignatureType type, ToNativeContext context) {
         return null;
     }
 }

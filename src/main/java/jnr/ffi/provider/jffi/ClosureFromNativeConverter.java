@@ -138,9 +138,10 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
 
         FromNativeContext resultContext = new MethodResultContext(closureMethod);
         SignatureType signatureType = DefaultSignatureType.create(closureMethod.getReturnType(), resultContext);
+        jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(runtime, signatureType, resultContext);
+        FromNativeConverter fromNativeConverter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
         ResultType resultType = getResultType(runtime, closureMethod.getReturnType(),
-                resultContext.getAnnotations(), typeMapper.getFromNativeConverter(signatureType, resultContext),
-                resultContext);
+                resultContext.getAnnotations(), fromNativeConverter, resultContext);
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, closureMethod);
 

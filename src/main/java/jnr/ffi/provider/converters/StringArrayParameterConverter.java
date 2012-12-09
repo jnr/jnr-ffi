@@ -92,7 +92,7 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
                 memory.putAddress(idx * getRuntime().addressSize(), 0L);
             } else {
                 ByteBuffer buf = charset.encode(CharBuffer.wrap(str));
-                Pointer ptr = Memory.allocateDirect(NativeRuntime.getInstance(), buf.remaining() + 4, true);
+                Pointer ptr = Memory.allocateDirect(getRuntime(), buf.remaining() + 4, true);
                 ptr.put(0, buf.array(), 0, buf.remaining());
                 stringMemory.add(idx, ptr);
                 memory.putPointer(idx * getRuntime().addressSize(), ptr);

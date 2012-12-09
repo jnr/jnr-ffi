@@ -2,6 +2,8 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Struct;
 import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.FromNativeType;
+import jnr.ffi.mapper.ToNativeType;
 import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.StringResultConverter;
@@ -32,5 +34,15 @@ final class ClosureTypeMapper implements SignatureTypeMapper {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+        return FromNativeTypes.create(getFromNativeConverter(type, context));
+    }
+
+    @Override
+    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+        return ToNativeTypes.create(getToNativeConverter(type, context));
     }
 }
