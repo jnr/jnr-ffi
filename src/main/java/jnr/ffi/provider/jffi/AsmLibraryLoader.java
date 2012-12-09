@@ -95,7 +95,7 @@ public class AsmLibraryLoader extends LibraryLoader {
             typeMapper = new NullTypeMapper();
         }
 
-        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(runtime, new NativeClosureManager(runtime, typeMapper, classLoader), classLoader)));
+        typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper, classLoader), classLoader)));
         com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         StubCompiler compiler = StubCompiler.newCompiler(runtime);

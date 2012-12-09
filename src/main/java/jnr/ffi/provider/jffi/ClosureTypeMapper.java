@@ -11,7 +11,7 @@ import jnr.ffi.provider.converters.StringResultConverter;
 import java.nio.charset.Charset;
 
 final class ClosureTypeMapper implements SignatureTypeMapper {
-    public FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
+    private FromNativeConverter getFromNativeConverter(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
         if (Enum.class.isAssignableFrom(type.getDeclaredType())) {
             return EnumConverter.getInstance(type.getDeclaredType().asSubclass(Enum.class));
 
@@ -23,7 +23,7 @@ final class ClosureTypeMapper implements SignatureTypeMapper {
         }
     }
 
-    public ToNativeConverter getToNativeConverter(SignatureType type, ToNativeContext context) {
+    private ToNativeConverter getToNativeConverter(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
         if (Enum.class.isAssignableFrom(type.getDeclaredType())) {
             return EnumConverter.getInstance(type.getDeclaredType().asSubclass(Enum.class));
 
@@ -38,11 +38,11 @@ final class ClosureTypeMapper implements SignatureTypeMapper {
 
     @Override
     public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
-        return FromNativeTypes.create(getFromNativeConverter(type, context));
+        return FromNativeTypes.create(getFromNativeConverter(runtime, type, context));
     }
 
     @Override
     public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
-        return ToNativeTypes.create(getToNativeConverter(type, context));
+        return ToNativeTypes.create(getToNativeConverter(runtime, type, context));
     }
 }

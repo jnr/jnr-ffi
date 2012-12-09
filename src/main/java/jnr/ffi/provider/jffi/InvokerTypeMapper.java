@@ -20,15 +20,13 @@ import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
     private final AsmClassLoader classLoader;
-    private final jnr.ffi.Runtime runtime;
 
-    public InvokerTypeMapper(jnr.ffi.Runtime runtime, NativeClosureManager closureManager, AsmClassLoader classLoader) {
-        this.runtime = runtime;
+    public InvokerTypeMapper(NativeClosureManager closureManager, AsmClassLoader classLoader) {
         this.closureManager = closureManager;
         this.classLoader = classLoader;
     }
 
-    public FromNativeConverter getFromNativeConverter(SignatureType signatureType, FromNativeContext fromNativeContext) {
+    public FromNativeConverter getFromNativeConverter(jnr.ffi.Runtime runtime, SignatureType signatureType, FromNativeContext fromNativeContext) {
         FromNativeConverter converter;
 
         if (Enum.class.isAssignableFrom(signatureType.getDeclaredType())) {
@@ -56,7 +54,7 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
 
     }
 
-    public ToNativeConverter getToNativeConverter(SignatureType signatureType, ToNativeContext context) {
+    public ToNativeConverter getToNativeConverter(jnr.ffi.Runtime runtime, SignatureType signatureType, ToNativeContext context) {
         Class javaType = signatureType.getDeclaredType();
         ToNativeConverter converter;
 
@@ -137,11 +135,11 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
 
     @Override
     public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
-        return FromNativeTypes.create(getFromNativeConverter(type, context));
+        return FromNativeTypes.create(getFromNativeConverter(runtime, type, context));
     }
 
     @Override
     public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
-        return ToNativeTypes.create(getToNativeConverter(type, context));
+        return ToNativeTypes.create(getToNativeConverter(runtime, type, context));
     }
 }
