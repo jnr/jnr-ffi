@@ -29,7 +29,7 @@ import java.lang.annotation.RetentionPolicy;
  * immediately after the native function is called, otherwise internal jvm operations
  * may overwrite it before control is returned to java code.
  *
- * <p>Since it is not possible for jaffl to infer in a generic way whether a native
+ * <p>Since it is not possible for jnr-ffi to infer in a generic way whether a native
  * function has succeeded or failed, the C errno value is saved after every native
  * function call - even for the ones that succeed.  This can have a significant
  * performance impact, so for those functions which either don't fail, or for which

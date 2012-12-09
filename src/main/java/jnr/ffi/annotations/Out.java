@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Indicates that the parameter is an OUT parameter.
  * 
  * <p>When a java object is passed to a native function as a pointer
- * (for example {@link com.kenai.jaffl.Pointer}, {@link com.kenai.jaffl.struct.Struct}, {@link java.nio.ByteBuffer}),
+ * (for example {@link jnr.ffi.Pointer}, {@link jnr.ffi.Struct}, {@link java.nio.ByteBuffer}),
  * then a temporary native memory block is allocated, the java data is copied to
  * the temporary memory and the address of the temporary memory is passed to the function.
  * After the function returns, the java data is automatically updated from the

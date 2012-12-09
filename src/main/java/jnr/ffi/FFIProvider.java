@@ -21,7 +21,7 @@ package jnr.ffi;
 import java.util.Map;
 
 /**
- * This class defines the facilities a jaffl FFI provider must provide.
+ * This class defines the facilities a JNR FFI provider must provide.
  */
 public abstract class FFIProvider {
     /**

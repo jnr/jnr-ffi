@@ -23,6 +23,14 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A native memory address.
+ *
+ * This class provides operations on a native memory address.  Most <tt>Pointer</tt>instances will represent direct
+ * memory (that is, a fixed address in the process address space, directly accessible by native code), however,
+ * it is possible to wrap a java <tt>byte</tt> array in a <tt>Pointer</tt>instance to pass to a native function
+ * as a memory address.  See {@link #isDirect()} for more information.
+ */
 abstract public class Pointer {
     /**
      * Wraps a native address in a {@link Pointer} instance.
@@ -113,19 +121,42 @@ abstract public class Pointer {
     abstract public long address();
 
     /**
-     * Gets the size of this memory object (optional operation).
+     * Gets the size of this memory object in bytes (optional operation).
      *
      * @return the size of the memory area this {@code Pointer} points to.  If
      * the size is unknown, {@link java.lang.Long#MAX_VALUE} is returned}.
      */
     abstract public long size();
 
+    /**
+     * Indicates whether this <tt>Pointer</tt> instance is backed by an array.
+     *
+     * @return true if, and only if, this memory object is backed by an array
+     */
     abstract public boolean hasArray();
 
+    /**
+     * Returns the array that backs this pointer.
+     *
+     * @throws {@link java.lang.UnsupportedOperationException} if this pointer does not have a backing array
+     * @return The array that backs this pointer
+     */
     abstract public Object array();
 
+    /**
+     * Returns the offset within this pointer's backing array of the first element.
+     *
+     * @throws {@link java.lang.UnsupportedOperationException} if this pointer does not have a backing array
+     * @return The offset of the first element on the backing array
+     */
     abstract public int arrayOffset();
 
+    /**
+     * Returns the length of this pointer's backing array that is used by this pointer.
+     *
+     * @throws {@link UnsupportedOperationException} if this pointer does not have a backing array
+     * @return The length of the backing array used
+     */
     abstract public int arrayLength();
 
     /**
@@ -292,9 +323,41 @@ abstract public class Pointer {
      * @param value the {@code int} value to be written.
      */
     abstract public void putInt(Type type, long offset, long value);
-    
+
+    /**
+     * Reads a native memory address value at the given offset.
+     * <p>A native address can be either 32 or 64 bits in size, depending
+     * on the cpu architecture.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be read.
+     * @return the native address value contained in the memory at the offset
+     *
+     * @see Address
+     */
     abstract public long getAddress(long offset);
+
+    /**
+     * Writes a native memory address value at the given offset.
+     * <p>A native address can be either 32 or 64 bits in size, depending
+     * on the cpu architecture.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
+     * @param value The native address value to be written.
+     *
+     * @see Address
+     */
     abstract public void putAddress(long offset, long value);
+
+    /**
+     * Writes a native memory address value at the given offset.
+     * <p>A native address can be either 32 or 64 bits in size, depending
+     * on the cpu architecture.
+     *
+     * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
+     * @param value The native address value to be written.
+     *
+     * @see Address
+     */
     abstract public void putAddress(long offset, Address value);
 
     /**

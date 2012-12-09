@@ -32,7 +32,7 @@ import static jnr.ffi.provider.jffi.CodegenUtils.*;
  * @author headius
  */
 public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
-    private final static boolean DEBUG = Boolean.getBoolean("jaffl.compile.dump");
+    private final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private MethodVisitor method;
     
     /** Creates a new instance of SkinnyMethodAdapter */

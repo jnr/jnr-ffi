@@ -25,7 +25,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a {@link com.kenai.jaffl.struct.Struct}} parameter should be
+ * Indicates that a {@link jnr.ffi.Struct}} parameter should be
  * backed by a persistent native memory block.
  * 
  * <p>Without the {@code @Direct} annotation, the native code will allocate a
@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * the call.
  *
  * <p>By using {@code @Direct}, the native memory block is permanently associated
- * with the {@link com.kenai.jaffl.struct.Struct} instance, and will remain allocated
+ * with the {@link jnr.ffi.Struct} instance, and will remain allocated
  * for as long as the {@code Struct} instance remains strongly referenced by java code.
  *
  */

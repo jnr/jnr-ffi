@@ -174,7 +174,7 @@ public abstract class Platform {
     }
 
     private static Platform determinePlatform() {
-        String providerName = System.getProperty("jaffl.provider");
+        String providerName = System.getProperty("jnr.ffi.provider");
         try {
             Class c = Class.forName(providerName + "$Platform");
             return (Platform) c.newInstance();
