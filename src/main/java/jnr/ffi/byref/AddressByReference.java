@@ -27,8 +27,9 @@ import jnr.ffi.Runtime;
  * as a parameter to a function.
  *
  * <p>For example, the following C code,
- * <p><blockquote><pre>
+ * <p><pre>
  * {@code
+ *
  * extern void get_a(void** ap);
  *
  * void* foo(void) {
@@ -38,17 +39,20 @@ import jnr.ffi.Runtime;
  *
  *     return a;
  * }
+ *
  * }
- * </pre></blockquote>
+ * </pre>
  *
  * <p>Would be declared in java as
- * <p><blockquote><pre>
+ * <p><pre>
  * {@code
+ *
  * interface Lib {
  *     void get_a(@Out AddressByReference ap);
  * }
+ *
  * }
- * </pre></blockquote>
+ * </pre>
  * <p>and used like this
  *
  * <p><blockquote><pre>
