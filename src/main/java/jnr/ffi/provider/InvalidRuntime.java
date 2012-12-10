@@ -1,14 +1,15 @@
-package jnr.ffi;
+package jnr.ffi.provider;
 
+import jnr.ffi.*;
 import jnr.ffi.provider.MemoryManager;
 import jnr.ffi.provider.ClosureManager;
 
 import java.nio.ByteOrder;
 
 /**
- * A {@link Runtime} subclass that throws exceptions for all methods
+ * A {@link jnr.ffi.Runtime} subclass that throws exceptions for all methods
  */
-class InvalidRuntime extends Runtime {
+class InvalidRuntime extends jnr.ffi.Runtime {
     private final String message;
     private final Throwable cause;
 

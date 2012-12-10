@@ -1,4 +1,7 @@
-package jnr.ffi;
+package jnr.ffi.provider;
+
+import jnr.ffi.*;
+import jnr.ffi.Runtime;
 
 import java.util.Collection;
 import java.util.Map;
@@ -6,7 +9,7 @@ import java.util.Map;
 final class InvalidProvider extends FFIProvider {
     private final String message;
     private final Throwable cause;
-    private final Runtime runtime;
+    private final jnr.ffi.Runtime runtime;
 
     InvalidProvider(String message, Throwable cause) {
         this.message = message;

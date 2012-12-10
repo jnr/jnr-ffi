@@ -18,6 +18,7 @@
 
 package jnr.ffi;
 
+import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.MemoryManager;
 import jnr.ffi.provider.ClosureManager;
 

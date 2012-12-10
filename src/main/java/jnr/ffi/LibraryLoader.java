@@ -3,6 +3,7 @@ package jnr.ffi;
 import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.FFIProvider;
 
 import java.io.File;
 import java.util.*;

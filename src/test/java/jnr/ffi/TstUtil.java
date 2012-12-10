@@ -1,5 +1,7 @@
 package jnr.ffi;
 
+import jnr.ffi.provider.FFIProvider;
+
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;

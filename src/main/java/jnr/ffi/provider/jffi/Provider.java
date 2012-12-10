@@ -18,13 +18,11 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.LibraryOption;
 import jnr.ffi.Runtime;
+import jnr.ffi.provider.FFIProvider;
 
-import java.util.Map;
 
-
-public final class Provider extends jnr.ffi.FFIProvider {
+public final class Provider extends FFIProvider {
     private final NativeRuntime runtime;
     
     public Provider() {

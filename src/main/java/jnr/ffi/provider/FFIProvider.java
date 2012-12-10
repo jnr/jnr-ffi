@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-package jnr.ffi;
+package jnr.ffi.provider;
+
+import jnr.ffi.*;
 
 /**
  * This class defines the facilities a JNR FFI provider must provide.
@@ -29,14 +31,14 @@ public abstract class FFIProvider {
      *
      * @return an instance of <tt>FFIProvider</tt>
      */
-    static FFIProvider getSystemProvider() {
+    public static FFIProvider getSystemProvider() {
         return SystemProviderSingletonHolder.INSTANCE;
     }
 
     protected FFIProvider() {}
 
     /** Gets the default <tt>Runtime</tt> for this provider */
-    public abstract Runtime getRuntime();
+    public abstract jnr.ffi.Runtime getRuntime();
 
     /**
      *  Creates a new {@link LibraryLoader} instance
@@ -50,8 +52,8 @@ public abstract class FFIProvider {
             String providerName = System.getProperty("jnr.ffi.provider");
             if (providerName == null) {
                 Package pkg = FFIProvider.class.getPackage();
-                String pkgName = pkg != null && pkg.getName() != null ? pkg.getName() : "jnr.ffi";
-                providerName = pkgName + ".provider.jffi.Provider";
+                String pkgName = pkg != null && pkg.getName() != null ? pkg.getName() : "jnr.ffi.provider";
+                providerName = pkgName + ".jffi.Provider";
             }
 
             try {
