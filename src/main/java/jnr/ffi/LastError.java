@@ -19,7 +19,7 @@
 package jnr.ffi;
 
 /**
- * LastError provides access to the unix errno and windows GetLastError() value.
+ * Provides access to the unix errno and windows GetLastError() value.
  */
 public final class LastError {
     private LastError() {}
