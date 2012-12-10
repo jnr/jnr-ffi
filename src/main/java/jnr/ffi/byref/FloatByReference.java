@@ -58,7 +58,7 @@ public final class FloatByReference extends AbstractNumberReference<Float> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(Pointer buffer, long offset) {
+    public void toNative(Pointer buffer, long offset) {
         buffer.putFloat(offset, value);
     }
 
@@ -67,7 +67,7 @@ public final class FloatByReference extends AbstractNumberReference<Float> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(Pointer buffer, long offset) {
+    public void fromNative(Pointer buffer, long offset) {
         this.value = buffer.getFloat(offset);
     }
     

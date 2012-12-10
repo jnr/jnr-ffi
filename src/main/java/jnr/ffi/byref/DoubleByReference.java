@@ -57,7 +57,7 @@ public final class DoubleByReference extends AbstractNumberReference<Double> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(Pointer buffer, long offset) {
+    public void toNative(Pointer buffer, long offset) {
         buffer.putDouble(offset, value);
     }
 
@@ -66,7 +66,7 @@ public final class DoubleByReference extends AbstractNumberReference<Double> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(Pointer buffer, long offset) {
+    public void fromNative(Pointer buffer, long offset) {
         this.value = buffer.getDouble(offset);
     }
     

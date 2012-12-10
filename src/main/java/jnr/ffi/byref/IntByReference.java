@@ -87,7 +87,7 @@ public final class IntByReference extends AbstractNumberReference<Integer> {
      * 
      * @param buffer the native memory buffer
      */
-    public void marshal(Pointer buffer, long offset) {
+    public void toNative(Pointer buffer, long offset) {
         buffer.putInt(offset, value);
     }
 
@@ -96,7 +96,7 @@ public final class IntByReference extends AbstractNumberReference<Integer> {
      * 
      * @param buffer the native memory buffer.
      */
-    public void unmarshal(Pointer buffer, long offset) {
+    public void fromNative(Pointer buffer, long offset) {
         this.value = buffer.getInt(offset);
     }
     

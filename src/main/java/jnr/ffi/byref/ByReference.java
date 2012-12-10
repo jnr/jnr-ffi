@@ -28,6 +28,7 @@ import jnr.ffi.Runtime;
  * <p>For example, the following C code,
  * <p><blockquote><pre>
  * {@code
+ *
  * extern void get_a(int * ap);
  *
  * int foo(void) {
@@ -42,17 +43,23 @@ import jnr.ffi.Runtime;
  * <p>Would be declared in java as
  * <p><blockquote><pre>
  * {@code
+ *
  * interface Lib {
  *     void get_a(@Out IntByReference ap);
  * }
+ *
  * }
  * </pre></blockquote>
  * <p>and used like this
- * <p><blockquote><pre>
+ * <p><pre>
+ *{@code
+ *
  * IntByReference ap = new IntByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.getValue());
- * </pre></blockquote>
+ *
+ * }
+ * </pre>
  * @param <T>
  */
 public interface ByReference<T> {
@@ -68,14 +75,14 @@ public interface ByReference<T> {
      * 
      * @param memory the native memory buffer.
      */
-    void marshal(Pointer memory, long offset);
+    void toNative(Pointer memory, long offset);
     
     /**
      * Copies the java value from native memory
      * 
      * @param memory the native memory buffer.
      */
-    void unmarshal(Pointer memory, long offset);
+    void fromNative(Pointer memory, long offset);
     
     T getValue();
 }

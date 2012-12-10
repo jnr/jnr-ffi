@@ -88,7 +88,7 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
      * 
      * @param memory the native memory buffer
      */
-    public void marshal(Pointer memory, long offset) {
+    public void toNative(Pointer memory, long offset) {
         memory.putNativeLong(offset, value.longValue());
     }
 
@@ -97,7 +97,7 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
      * 
      * @param memory the native memory buffer.
      */
-    public void unmarshal(Pointer memory, long offset) {
+    public void fromNative(Pointer memory, long offset) {
         this.value = NativeLong.valueOf(memory.getNativeLong(offset));
     }
     
