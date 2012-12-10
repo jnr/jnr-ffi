@@ -47,8 +47,8 @@ import jnr.ffi.Runtime;
 public class NumberByReference extends AbstractNumberReference<Number> {
     private final TypeAlias typeAlias;
 
-    public NumberByReference(Number value, TypeAlias typeAlias) {
-        super(value);
+    public NumberByReference(TypeAlias typeAlias, Number value) {
+        super(checkNull(value));
         this.typeAlias = typeAlias;
     }
 
