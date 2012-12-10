@@ -1,14 +1,19 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.mapper;
 
-import jnr.ffi.mapper.*;
-import jnr.ffi.mapper.FromNativeType;
-import jnr.ffi.mapper.ToNativeType;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
-class CompositeTypeMapper implements SignatureTypeMapper {
-    private final SignatureTypeMapper[] signatureTypeMappers;
+public final class CompositeTypeMapper implements SignatureTypeMapper {
+    private final Collection<SignatureTypeMapper> signatureTypeMappers;
 
     public CompositeTypeMapper(SignatureTypeMapper... signatureTypeMappers) {
-        this.signatureTypeMappers = signatureTypeMappers.clone();
+        this.signatureTypeMappers = Collections.unmodifiableList(Arrays.asList(signatureTypeMappers.clone()));
+    }
+
+    public CompositeTypeMapper(Collection<SignatureTypeMapper> signatureTypeMappers) {
+        this.signatureTypeMappers = Collections.unmodifiableList(new ArrayList<SignatureTypeMapper>(signatureTypeMappers));
     }
 
     @Override

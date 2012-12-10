@@ -1,8 +1,4 @@
-package jnr.ffi.provider.jffi;
-
-import jnr.ffi.mapper.*;
-import jnr.ffi.mapper.FromNativeType;
-import jnr.ffi.mapper.ToNativeType;
+package jnr.ffi.mapper;
 
 /**
  * Adapts a {@link jnr.ffi.mapper.TypeMapper} to a SignatureTypeMapper

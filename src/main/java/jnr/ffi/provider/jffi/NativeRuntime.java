@@ -20,8 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.*;
 import jnr.ffi.mapper.DefaultTypeMapper;
-import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapperAdapter;
 import jnr.ffi.provider.AbstractRuntime;
 import jnr.ffi.provider.BadType;
 import jnr.ffi.provider.DefaultObjectReferenceManager;

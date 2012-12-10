@@ -1,8 +1,6 @@
 package jnr.ffi;
 
-import jnr.ffi.mapper.FunctionMapper;
-import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.mapper.*;
 import jnr.ffi.provider.FFIProvider;
 
 import java.io.File;
@@ -29,6 +27,8 @@ import java.util.*;
 public abstract class LibraryLoader {
     private final List<String> searchPaths = new ArrayList<String>();
     private final List<String> libraryNames = new ArrayList<String>();
+    private final List<SignatureTypeMapper> typeMappers = new ArrayList<SignatureTypeMapper>();
+    private final List<FunctionMapper> functionMappers = new ArrayList<FunctionMapper>();
     private final Map<LibraryOption, Object> optionMap = new EnumMap<LibraryOption, Object>(LibraryOption.class);
 
 
@@ -85,36 +85,64 @@ public abstract class LibraryLoader {
      * @return The {@code LibraryLoader} instance.
      */
     public LibraryLoader option(LibraryOption option, Object value) {
-        optionMap.put(option, value);
+        switch (option) {
+            case TypeMapper:
+                if (value instanceof SignatureTypeMapper) {
+                    mapper((SignatureTypeMapper) value);
+
+                } else if (value instanceof TypeMapper) {
+                    mapper((TypeMapper) value);
+
+                } else if (value != null) {
+                    throw new IllegalArgumentException("invalid TypeMapper: " + value.getClass());
+                }
+                break;
+
+            case FunctionMapper:
+                mapper((FunctionMapper) value);
+                break;
+
+            default:
+                optionMap.put(option, value);
+        }
+
         return this;
     }
 
 
     /**
-     * Sets the type mapper to use when resolving method parameter and result types.
+     * Adds a type mapper to use when resolving method parameter and result types.
+     *
+     * Multiple type mappers can be specified by additional calls to this method, and
+     * each mapper will be tried in order until one is successful.
      *
      * @param typeMapper The type mapper to use.
      * @return The {@code LibraryLoader} instance.
      */
     public LibraryLoader mapper(TypeMapper typeMapper) {
-        optionMap.put(LibraryOption.TypeMapper, typeMapper);
+        typeMappers.add(new SignatureTypeMapperAdapter(typeMapper));
         return this;
     }
 
     /**
-     * Sets the type mapper to use when resolving method parameter and result types.
+     * Adds a type mapper to use when resolving method parameter and result types.
+     *
+     * Multiple type mappers can be specified by additional calls to this method, and
+     * each mapper will be tried in order until one is successful.
      *
      * @param typeMapper The type mapper to use.
      * @return The {@code LibraryLoader} instance.
      */
     public LibraryLoader mapper(SignatureTypeMapper typeMapper) {
-        optionMap.put(LibraryOption.TypeMapper, typeMapper);
-
+        typeMappers.add(typeMapper);
         return this;
     }
 
     /**
-     * Sets the function mapper to use when resolving symbols in this library.
+     * Adds a function mapper to use when resolving symbols in this library.
+     *
+     * Multiple function mappers can be specified by additional calls to this method, and
+     * each mapper will be tried in order, until one is successful.
      *
      * @param typeMapper The function mapper to use.
      * @return The {@code LibraryLoader} instance.
@@ -157,6 +185,19 @@ public abstract class LibraryLoader {
         if (libraryNames.isEmpty()) {
             throw new UnsatisfiedLinkError("no library names specified");
         }
+
+        if (!typeMappers.isEmpty()) {
+            SignatureTypeMapper typeMapper = typeMappers.size() > 1
+                    ? new CompositeTypeMapper(typeMappers) : typeMappers.get(0);
+            optionMap.put(LibraryOption.TypeMapper, typeMapper);
+        }
+
+        if (!functionMappers.isEmpty()) {
+            FunctionMapper functionMapper = functionMappers.size() > 1
+                    ? new CompositeFunctionMapper(functionMappers) : functionMappers.get(0);
+            optionMap.put(LibraryOption.FunctionMapper, functionMapper);
+        }
+
         return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
                 Collections.unmodifiableMap(optionMap));
     }
