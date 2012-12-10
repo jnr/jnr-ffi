@@ -1,3 +1,4 @@
 jnr.ffi
 jnr.ffi.byref
+jnr.ffi.mapper
 jnr.ffi.struct
