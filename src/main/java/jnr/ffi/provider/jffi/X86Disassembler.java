@@ -1,6 +1,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.*;
+import jnr.ffi.LibraryLoader;
 import jnr.ffi.mapper.DefaultTypeMapper;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
@@ -34,15 +35,15 @@ class X86Disassembler {
     }
 
     static UDis86 loadUDis86() {
-        List<String> libraryPaths = Arrays.asList("/usr/local/lib", "/opt/local/lib", "/usr/lib");
-        String path = Platform.getNativePlatform().locateLibrary("udis86", libraryPaths);
-        NativeLibrary library = new NativeLibrary(path != null ? path : "udis86");
-        Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
         DefaultTypeMapper typeMapper = new DefaultTypeMapper();
         typeMapper.put(X86Disassembler.class, new X86DisassemblerConverter());
-        options.put(LibraryOption.TypeMapper, typeMapper);
-
-        return new AsmLibraryLoader().loadLibrary(library, UDis86.class, options);
+        return LibraryLoader.create()
+                .library("udis86")
+                .search("/usr/local/lib")
+                .search("/opt/local/lib")
+                .search("/usr/lib")
+                .mapper(typeMapper)
+                .load(UDis86.class);
     }
 
     @ToNativeConverter.NoContext

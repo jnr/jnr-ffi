@@ -18,10 +18,10 @@
 
 package jnr.ffi;
 
-import java.util.Map;
-
 /**
  * This class defines the facilities a JNR FFI provider must provide.
+ *
+ * <strong>You most likely do NOT want to use this class directly</strong>
  */
 public abstract class FFIProvider {
     /**
@@ -37,31 +37,12 @@ public abstract class FFIProvider {
 
     /** Gets the default <tt>Runtime</tt> for this provider */
     public abstract Runtime getRuntime();
-    
-    /**
-     * Loads a native library and links the methods defined in {@code interfaceClass}
-     * to native methods in the library.
-     *
-     * @param libraryName the name of the library to load
-     * @param interfaceClass the interface that describes the native library interface
-     * @param libraryOptions options
-     * @return an instance of {@code interfaceclass} that will call the native methods.
-     */
-    public abstract <T> T loadLibrary(String libraryName, Class<T> interfaceClass,
-            Map<LibraryOption, ?> libraryOptions);
 
     /**
-     * Loads a native library and links the methods defined in {@code interfaceClass}
-     * to native methods in the library.
-     *
-     * @param interfaceClass the interface that describes the native library interface
-     * @param libraryOptions options
-     * @param libraryNames the list of libraries to load
-     * @return an instance of {@code interfaceclass} that will call the native methods.
+     *  Creates a new {@link LibraryLoader} instance
      */
-    public abstract <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
-            String... libraryNames);
-    
+    public abstract LibraryLoader createLibraryLoader();
+
     private static final class SystemProviderSingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();
 

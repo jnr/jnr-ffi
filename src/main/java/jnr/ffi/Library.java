@@ -48,21 +48,22 @@ public final class Library {
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
-     * 
+     *
+     * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
      * @param libraryName the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @return an instance of {@code interfaceclass} that will call the native methods.
      */
     public static <T> T loadLibrary(String libraryName, Class<T> interfaceClass) {
-        final Map<LibraryOption, ?> options = Collections.emptyMap();
-        return loadLibrary(libraryName, interfaceClass, options);
+        return loadLibrary(interfaceClass, libraryName);
     }
 
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
      *
-     * @param libraryName the name of the library to load
+     * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
+     * @param libraryNames the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @return an instance of {@code interfaceclass} that will call the native methods.
      */
@@ -74,7 +75,8 @@ public final class Library {
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
-     * 
+     *
+     * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
      * @param libraryName the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @param libraryOptions options
@@ -82,26 +84,41 @@ public final class Library {
      */
     public static <T> T loadLibrary(String libraryName, Class<T> interfaceClass,
             Map<LibraryOption, ?> libraryOptions) {
-        return FFIProvider.getSystemProvider().loadLibrary(libraryName, interfaceClass, libraryOptions);
+        return loadLibrary(interfaceClass, libraryOptions, libraryName);
     }
 
     /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
      *
-     * @param libraryName the name of the library to load
+     * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
+     * @param libraryNames the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @param libraryOptions options
      * @return an instance of {@code interfaceclass} that will call the native methods.
      */
     public static <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames) {
-        return FFIProvider.getSystemProvider().loadLibrary(interfaceClass, libraryOptions, libraryNames);
+        LibraryLoader loader = LibraryLoader.create();
+
+        for (String libraryName : libraryNames) {
+            loader.library(libraryName);
+            for (String path : getLibraryPath(libraryName)) {
+                loader.search(path);
+            }
+        }
+
+        for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
+            loader.option(option.getKey(), option.getValue());
+        }
+
+        return loader.load(interfaceClass);
     }
     
     /**
      * Adds a custom search path for a library
      *
+     * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
      * @param libraryName the name of the library to search for
      * @param path the path to search for the library in
      */
@@ -117,8 +134,8 @@ public final class Library {
     /**
      * Gets the custom search path for a library.
      *
+     * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
      * @param libraryName The library to retrieve the path for.
-     *
      * @return A <tt>List</tt> of <tt>String</tt> instances.
      */
     public static List<String> getLibraryPath(String libraryName) {
@@ -129,15 +146,12 @@ public final class Library {
         return Collections.emptyList();
     }
 
+    @Deprecated
     public static Library getInstance(String libraryName) {
         return new Library(libraryName);
     }
     
-    /**
-     * Gets the name of this library
-     * 
-     * @return The name of this library as a <tt>String</tt> 
-     */
+    @Deprecated
     public String getName() {
         return name;
     }

@@ -25,13 +25,13 @@ public enum LibraryOption {
     /**
      * Function calls should save the errno/last error after the call.
      * This option can be overridden on individual methods by use of the 
-     * {@link com.googlecode.jffi.annotations.IgnoreError} annotation.
+     * {@link jnr.ffi.annotations.IgnoreError} annotation.
      */
     SaveError,
     /**
      * Function calls should NOT save the errno/last error after the call.
      * This option can be overridden on individual methods by use of the 
-     * {@link com.googlecode.jffi.annotations.SaveError} annotation.
+     * {@link jnr.ffi.annotations.SaveError} annotation.
      */
     IgnoreError,
     

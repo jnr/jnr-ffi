@@ -1,5 +1,6 @@
 package jnr.ffi;
 
+import java.util.Collection;
 import java.util.Map;
 
 final class InvalidProvider extends FFIProvider {
@@ -19,18 +20,14 @@ final class InvalidProvider extends FFIProvider {
     }
 
     @Override
-    public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        throw newLoadError();
-    }
-
-    @Override
-    public <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, String... libraryNames) {
-        throw newLoadError();
-    }
-
-    private UnsatisfiedLinkError newLoadError() {
-        UnsatisfiedLinkError error = new UnsatisfiedLinkError(message);
-        error.initCause(cause);
-        throw error;
+    public LibraryLoader createLibraryLoader() {
+        return new LibraryLoader() {
+            @Override
+            protected <T> T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths, Map<LibraryOption, Object> options) {
+                UnsatisfiedLinkError error = new UnsatisfiedLinkError(message);
+                error.initCause(cause);
+                throw error;
+            }
+        };
     }
 }

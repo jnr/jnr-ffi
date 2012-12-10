@@ -35,26 +35,7 @@ public final class Provider extends jnr.ffi.FFIProvider {
         return runtime;
     }
 
-    @Override
-    public <T> T loadLibrary(String libraryName, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-        return loadLibrary(new NativeLibrary(libraryName), interfaceClass, libraryOptions);
-    }
-
-    @Override
-    public <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, String... libraryNames) {
-        return loadLibrary(new NativeLibrary(libraryNames), interfaceClass, libraryOptions);
-    }
-
-    private <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
-
-        try {
-            return new AsmLibraryLoader().loadLibrary(library, interfaceClass, libraryOptions);
-
-        } catch (RuntimeException ex) {
-            throw ex;
-
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+    public jnr.ffi.LibraryLoader createLibraryLoader() {
+        return new NativeLibraryLoader();
     }
 }

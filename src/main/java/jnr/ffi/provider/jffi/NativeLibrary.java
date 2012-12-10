@@ -25,41 +25,22 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NativeLibrary {
+    private final List<String> libraryNames;
+    private final List<String> searchPaths;
+    
+    private volatile List<com.kenai.jffi.Library> nativeLibraries = Collections.emptyList();
 
-    private final String[] libraryNames;
-    
-    private volatile List<com.kenai.jffi.Library> nativeLibraries = Collections.EMPTY_LIST;
-    
-    NativeLibrary(String name) {
-        this.libraryNames = new String[] { name };
+    NativeLibrary(Collection<String> libraryNames, Collection<String> searchPaths) {
+        this.libraryNames = Collections.unmodifiableList(new ArrayList<String>(libraryNames));
+        this.searchPaths = Collections.unmodifiableList(new ArrayList<String>(searchPaths));
     }
 
-    NativeLibrary(String... names) {
-        this.libraryNames = (String[]) names.clone();
-    }
-
-    public static String locateLibrary(String libraryName) {
+    private String locateLibrary(String libraryName) {
         if (new File(libraryName).isAbsolute()) {
             return libraryName;
         }
-        List<String> searchPath = new LinkedList<String>();
 
-        //
-        // Prepend any custom search paths specifically for this library
-        //
-        searchPath.addAll(0, jnr.ffi.Library.getLibraryPath(libraryName));
-        searchPath.addAll(StaticDataHolder.userLibraryPath);
-        String path = Platform.getNativePlatform().locateLibrary(libraryName, searchPath);
-        return path != null ? path : null;
-    }
-
-    private static List<String> getPropertyPaths(String propName) {
-        String value = System.getProperty(propName);
-        if (value != null) {
-            String[] paths = value.split(File.pathSeparator);
-            return new ArrayList<String>(Arrays.asList(paths));
-        }
-        return Collections.emptyList();
+        return Platform.getNativePlatform().locateLibrary(libraryName, searchPaths);
     }
 
     long getSymbolAddress(String name) {
@@ -107,15 +88,5 @@ public class NativeLibrary {
         }
 
         return Collections.unmodifiableList(libs);
-    }
-
-    private static final class StaticDataHolder {
-        private static final List<String> userLibraryPath = new CopyOnWriteArrayList<String>();
-        static {
-            userLibraryPath.addAll(getPropertyPaths("jnr.ffi.library.path"));
-            userLibraryPath.addAll(getPropertyPaths("jaffl.library.path"));
-            // Add JNA paths for compatibility
-            userLibraryPath.addAll(getPropertyPaths("jna.library.path"));
-        }
     }
 }
