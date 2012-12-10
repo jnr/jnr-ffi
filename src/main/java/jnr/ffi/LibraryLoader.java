@@ -19,10 +19,7 @@ import java.util.*;
  *    int puts(String str);
  * }
  *
- * LibC libc = LibraryLoader.create()
- *     .library("c")
- *     .search("/usr/lib")
- *     .load(LibC.class);
+ * LibC libc = LibraryLoader.create("c").load(LibC.class);
  *
  * libc.puts("Hello, World");
  *
@@ -34,12 +31,28 @@ public abstract class LibraryLoader {
     private final List<String> libraryNames = new ArrayList<String>();
     private final Map<LibraryOption, Object> optionMap = new EnumMap<LibraryOption, Object>(LibraryOption.class);
 
+
+    /**
+     * Creates a new {@code LibraryLoader} instance.
+     *
+     * @return A {@code LibraryLoader} instance.
+     */
     public static LibraryLoader create() {
         return FFIProvider.getSystemProvider().createLibraryLoader();
     }
 
     /**
-     * Adds a library to be loaded.  Multiple libraries can be specified using multiple calls
+     * Creates a new {@code LibraryLoader} instance.  This is equivalent to {@code LibraryLoader.create().library(libraryName)}.
+     *
+     * @param libraryName The name of the library to load.
+     * @return A {@code LibraryLoader} instance.
+     */
+    public static LibraryLoader create(String libraryName) {
+        return FFIProvider.getSystemProvider().createLibraryLoader().library(libraryName);
+    }
+
+    /**
+     * Adds a library to be loaded.  Multiple libraries can be specified using additional calls
      * to this method, and all libraries will be searched to resolve symbols (e.g. functions, variables).
      *
      * @param libraryName The name or path of library to load.
@@ -141,6 +154,9 @@ public abstract class LibraryLoader {
      * @return an instance of {@code interfaceclass} that will call the native methods.
      */
     public <T> T load(Class<T> interfaceClass) {
+        if (libraryNames.isEmpty()) {
+            throw new UnsatisfiedLinkError("no library names specified");
+        }
         return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
                 Collections.unmodifiableMap(optionMap));
     }

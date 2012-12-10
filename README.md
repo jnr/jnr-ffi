@@ -16,7 +16,7 @@ Example
         }
 
         public static void main(String[] args) {
-            LibC libc = LibraryLoader.create().library("c").load(LibC.class);
+            LibC libc = LibraryLoader.create("c").load(LibC.class);
 
             libc.puts("Hello, World");
         }

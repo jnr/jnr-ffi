@@ -28,7 +28,9 @@ public final class TstUtil {
         return loadTestLib(interfaceClass, options);
     }
     public static <T> T loadTestLib(Class<T> interfaceClass, Map<LibraryOption, ?> options) {
-        LibraryLoader loader = provider != null ? provider.createLibraryLoader() : LibraryLoader.create();
+        LibraryLoader loader = provider != null
+                ? provider.createLibraryLoader()
+                : FFIProvider.getSystemProvider().createLibraryLoader();
 
         loader.library(libname);
         for (Map.Entry<LibraryOption, ?> option : options.entrySet()) {

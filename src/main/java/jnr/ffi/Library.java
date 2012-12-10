@@ -18,6 +18,7 @@
 
 package jnr.ffi;
 
+import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 
 import java.io.File;
@@ -99,7 +100,7 @@ public final class Library {
      */
     public static <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames) {
-        LibraryLoader loader = LibraryLoader.create();
+        LibraryLoader loader = FFIProvider.getSystemProvider().createLibraryLoader();
 
         for (String libraryName : libraryNames) {
             loader.library(libraryName);
