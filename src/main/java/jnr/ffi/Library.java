@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- *
+ * @deprecated Use {@link LibraryLoader} instead.
  */
 public final class Library {
     private static final Map<String, List<String>> customSearchPaths
@@ -42,8 +42,15 @@ public final class Library {
         name = libraryName;
     }
 
-    public static Runtime getRuntime(Object obj) {
-        return ((LoadedLibrary) obj).getRuntime();
+    /**
+     * Gets the {@link Runtime} that loaded the library interface.
+     *
+     * @deprecated Use {@link Runtime#getRuntime(Object)}
+     * @param library A library implementation as returned from {@link LibraryLoader#load(Class)}
+     * @return The runtime that loaded the library.
+     */
+    public static Runtime getRuntime(Object library) {
+        return ((LoadedLibrary) library).getRuntime();
     }
 
     /**
