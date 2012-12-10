@@ -19,6 +19,7 @@
 package jnr.ffi;
 
 import jnr.ffi.provider.FFIProvider;
+import jnr.ffi.provider.LoadedLibrary;
 import jnr.ffi.provider.MemoryManager;
 import jnr.ffi.provider.ClosureManager;
 
@@ -29,9 +30,23 @@ import java.nio.ByteOrder;
  */
 public abstract class Runtime {
 
-    /** Gets the global Runtime for the current FFI provider */
+    /**
+     * Gets the global Runtime for the current FFI provider
+     *
+     * @return The system runtime
+     */
     public static Runtime getSystemRuntime() {
         return SingletonHolder.SYSTEM_RUNTIME;
+    }
+
+    /**
+     * Returns the runtime associated with the library instance.
+     *
+     * @param library A loaded library instance as returned from {@link LibraryLoader#load(Class)}
+     * @return The runtime that loaded the library
+     */
+    public static Runtime getRuntime(Object library) {
+        return ((LoadedLibrary) library).getRuntime();
     }
 
     /** singleton holder for the default Runtime */
@@ -39,21 +54,39 @@ public abstract class Runtime {
         public static final Runtime SYSTEM_RUNTIME = FFIProvider.getSystemProvider().getRuntime();
     }
 
-    /** Looks up the runtime-specific that corresponds to the pseudo-type */
+    /**
+     * Looks up the runtime-specific type that corresponds to the pseudo-type
+     *
+     * @return A {@code Type} instance
+     */
     public abstract Type findType(NativeType type);
 
-    /** Looks up the runtime-specific that corresponds to the pseudo-type */
+    /**
+     * Looks up the runtime-specific type that corresponds to the type alias
+     *
+     * @return A {@code Type} instance
+     */
     public abstract Type findType(TypeAlias type);
 
     /** 
-     * Gets the native memory manager instance for this runtime
+     * Gets the native memory manager for this runtime
      *
-     * @return a {@link MemoryManager}
+     * @return The {@link MemoryManager} of the runtime
      */
     public abstract MemoryManager getMemoryManager();
 
+    /**
+     * Gets the native closure manager for this runtime
+     *
+     * @return The {@link ClosureManager} of the runtime
+     */
     public abstract ClosureManager getClosureManager();
 
+    /**
+     * Creates a new {@code ObjectReferenceManager}
+     *
+     * @return A new {@link ObjectReferenceManager}
+     */
     public abstract <T> ObjectReferenceManager<T> newObjectReferenceManager();
 
     /**
@@ -73,7 +106,11 @@ public abstract class Runtime {
      */
     public abstract void setLastError(int error);
 
-    /** Gets the address mask for this runtime */
+    /**
+     * Gets the address mask for this runtime
+     *
+     * @return The address mask for the runtime.
+     */
     public abstract long addressMask();
 
     /**
@@ -91,9 +128,9 @@ public abstract class Runtime {
     public abstract int longSize();
 
     /**
-     * Retrieves this runtime's native byte order.
+     * Gets the native byte order of the runtime.
      *
-     * @return this runtime's byte order
+     * @return The byte order of the runtime
      */
     public abstract ByteOrder byteOrder();
     
