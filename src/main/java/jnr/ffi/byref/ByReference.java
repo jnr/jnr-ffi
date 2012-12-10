@@ -72,17 +72,19 @@ public interface ByReference<T> {
 
     /**
      * Copies the java value to native memory
-     * 
+     *
+     * @param runtime
      * @param memory the native memory buffer.
      */
-    void toNative(Pointer memory, long offset);
+    void toNative(Runtime runtime, Pointer memory, long offset);
     
     /**
      * Copies the java value from native memory
-     * 
+     *
+     * @param runtime
      * @param memory the native memory buffer.
      */
-    void fromNative(Pointer memory, long offset);
+    void fromNative(Runtime runtime, Pointer memory, long offset);
     
     T getValue();
 }

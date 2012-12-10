@@ -73,11 +73,11 @@ public final class PointerByReference extends AbstractReference<Pointer>{
         super(value);
     }
 
-    public final void toNative(Pointer memory, long offset) {
+    public final void toNative(Runtime runtime, Pointer memory, long offset) {
         memory.putPointer(offset, this.value);
     }
 
-    public final void fromNative(Pointer memory, long offset) {
+    public final void fromNative(Runtime runtime, Pointer memory, long offset) {
         this.value = memory.getPointer(offset);
     }
 

@@ -55,19 +55,21 @@ public final class FloatByReference extends AbstractNumberReference<Float> {
     
     /**
      * Copies the float value to native memory
-     * 
+     *
+     * @param runtime
      * @param buffer the native memory buffer
      */
-    public void toNative(Pointer buffer, long offset) {
+    public void toNative(Runtime runtime, Pointer buffer, long offset) {
         buffer.putFloat(offset, value);
     }
 
     /**
      * Copies the float value from native memory
-     * 
+     *
+     * @param runtime
      * @param buffer the native memory buffer.
      */
-    public void fromNative(Pointer buffer, long offset) {
+    public void fromNative(Runtime runtime, Pointer buffer, long offset) {
         this.value = buffer.getFloat(offset);
     }
     

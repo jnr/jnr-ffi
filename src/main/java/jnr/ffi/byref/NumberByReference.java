@@ -1,6 +1,7 @@
 package jnr.ffi.byref;
 
 import jnr.ffi.*;
+import jnr.ffi.Runtime;
 
 /**
  * NumberByReference is used when the address of a primitive integral value must be passed
@@ -62,8 +63,8 @@ public class NumberByReference extends AbstractNumberReference<Number> {
     }
 
     @Override
-    public void toNative(Pointer memory, long offset) {
-        switch (memory.getRuntime().findType(typeAlias).getNativeType()) {
+    public void toNative(Runtime runtime, Pointer memory, long offset) {
+        switch (runtime.findType(typeAlias).getNativeType()) {
             case SCHAR:
             case UCHAR:
                 value = memory.getByte(offset);
@@ -107,8 +108,8 @@ public class NumberByReference extends AbstractNumberReference<Number> {
     }
 
     @Override
-    public void fromNative(Pointer memory, long offset) {
-        switch (memory.getRuntime().findType(typeAlias).getNativeType()) {
+    public void fromNative(Runtime runtime, Pointer memory, long offset) {
+        switch (runtime.findType(typeAlias).getNativeType()) {
             case SCHAR:
             case UCHAR:
                 memory.putByte(offset, value.byteValue());

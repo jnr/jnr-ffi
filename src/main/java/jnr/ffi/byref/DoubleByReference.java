@@ -54,19 +54,21 @@ public final class DoubleByReference extends AbstractNumberReference<Double> {
     
     /**
      * Copies the double value to native memory
-     * 
+     *
+     * @param runtime
      * @param buffer the native memory buffer
      */
-    public void toNative(Pointer buffer, long offset) {
+    public void toNative(Runtime runtime, Pointer buffer, long offset) {
         buffer.putDouble(offset, value);
     }
 
     /**
      * Copies the double value from native memory
-     * 
+     *
+     * @param runtime
      * @param buffer the native memory buffer.
      */
-    public void fromNative(Pointer buffer, long offset) {
+    public void fromNative(Runtime runtime, Pointer buffer, long offset) {
         this.value = buffer.getDouble(offset);
     }
     

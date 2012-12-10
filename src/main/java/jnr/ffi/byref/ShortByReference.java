@@ -83,19 +83,21 @@ public final class ShortByReference extends AbstractNumberReference<Short> {
     
     /**
      * Copies the short value to native memory
-     * 
+     *
+     * @param runtime
      * @param buffer the native memory buffer
      */
-    public void toNative(Pointer buffer, long offset) {
+    public void toNative(Runtime runtime, Pointer buffer, long offset) {
         buffer.putShort(offset, value);
     }
 
     /**
      * Copies the short value from native memory
-     * 
+     *
+     * @param runtime
      * @param buffer the native memory buffer.
      */
-    public void fromNative(Pointer buffer, long offset) {
+    public void fromNative(Runtime runtime, Pointer buffer, long offset) {
         this.value = buffer.getShort(offset);
     }
     

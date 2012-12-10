@@ -23,14 +23,14 @@ public final class ByReferenceParameterConverter implements ToNativeConverter<By
 
     public void postInvoke(ByReference byReference, Pointer pointer, ToNativeContext context) {
         if (ParameterFlags.isOut(flags)) {
-            byReference.fromNative(pointer, 0);
+            byReference.fromNative(runtime, pointer, 0);
         }
     }
 
     public Pointer toNative(ByReference value, ToNativeContext context) {
         Pointer memory =  Memory.allocate(runtime, value.nativeSize(runtime));
         if (ParameterFlags.isIn(flags)) {
-            value.toNative(memory, 0);
+            value.toNative(runtime, memory, 0);
         }
         return memory;
     }

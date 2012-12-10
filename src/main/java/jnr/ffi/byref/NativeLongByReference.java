@@ -85,19 +85,21 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
     
     /**
      * Copies the long value to native memory
-     * 
+     *
+     * @param runtime
      * @param memory the native memory buffer
      */
-    public void toNative(Pointer memory, long offset) {
+    public void toNative(Runtime runtime, Pointer memory, long offset) {
         memory.putNativeLong(offset, value.longValue());
     }
 
     /**
      * Copies the long value from native memory
-     * 
+     *
+     * @param runtime
      * @param memory the native memory buffer.
      */
-    public void fromNative(Pointer memory, long offset) {
+    public void fromNative(Runtime runtime, Pointer memory, long offset) {
         this.value = NativeLong.valueOf(memory.getNativeLong(offset));
     }
     

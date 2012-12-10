@@ -81,19 +81,21 @@ public final class AddressByReference extends AbstractReference<Address> {
     
     /**
      * Copies the address value to native memory
-     * 
+     *
+     * @param runtime
      * @param memory the native memory buffer
      */
-    public void toNative(Pointer memory, long offset) {
+    public void toNative(Runtime runtime, Pointer memory, long offset) {
         memory.putAddress(offset, value.nativeAddress());
     }
 
     /**
      * Copies the address value from native memory
-     * 
+     *
+     * @param runtime
      * @param memory the native memory buffer.
      */
-    public void fromNative(Pointer memory, long offset) {
+    public void fromNative(Runtime runtime, Pointer memory, long offset) {
         value = Address.valueOf(memory.getAddress(offset));
     }
     
