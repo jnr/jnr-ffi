@@ -156,7 +156,6 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
         Pointer.class,
         ByteBuffer.class, CharBuffer.class, ShortBuffer.class, IntBuffer.class, LongBuffer.class, FloatBuffer.class, DoubleBuffer.class,
         Buffer.class, // make sure Buffer is after the more specific (faster execution path) checks
-        CharSequence.class,
         byte[].class, short[].class, char[].class, int[].class, long[].class, float[].class, double[].class, boolean[].class
     )));
 
