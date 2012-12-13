@@ -18,6 +18,29 @@
 
 package jnr.ffi;
 
+/**
+ * Type is the superclass for all internal types used by jnr-ffi.
+ *
+ * <p>
+ *     Use this type to access meta-data about a native type, such as its size or natural alignment.
+ * </p>
+ *
+ * <p>
+ *     To obtain an instance of this class, use {@link jnr.ffi.Runtime#findType(NativeType)} or
+ *     {@link jnr.ffi.Runtime#findType(TypeAlias)}.
+ * </p>
+ * <p>
+ * Example
+ * <pre>
+ * {@code
+ *
+ *    Type pointerType = runtime.findType(NativeType.ADDRESS);
+ *
+ *    System.out.println("The size of a pointer on this platform is " + pointerType.size());
+ * }
+ * </pre>
+ * </p>
+ */
 public abstract class Type {
     /**
      * The size in bytes of this type.

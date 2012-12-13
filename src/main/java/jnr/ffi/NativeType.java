@@ -64,7 +64,7 @@ public enum NativeType {
     /** Single precision floating point.  Equivalent to a C float type.  Usually 4 bytes in size. */
     FLOAT,
 
-    /** Double precision floating point.  Equivalent to a C double type.  Usually 4 bytes in size. */
+    /** Double precision floating point.  Equivalent to a C double type.  Usually 8 bytes in size. */
     DOUBLE,
 
     /** Native struct type */

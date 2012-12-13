@@ -26,7 +26,38 @@ import jnr.ffi.provider.ClosureManager;
 import java.nio.ByteOrder;
 
 /**
- * Accessor for various runtime specific parameters
+ * Access JNR runtime functionality.
+ *
+ * <p>
+ *     This class is needed by many classes to correctly initialize internal data structures, and each library loaded
+ *     has its own instance of this class.
+ * </p>
+ * <p>
+ *     To obtain an instance of this class, use {@link #getRuntime(Object)} on a loaded library.
+ * </p>
+ * <p>
+ *     Example
+ *     <pre>
+ *     {@code
+ *
+ *     public interface LibC {
+ *         public long write(int fd, Pointer data, long len);
+ *     }
+ *
+ *     LibC library = LibraryLoader.create("c").load(LibC.class);
+ *
+ *     byte[] bytes = "Hello, World\n".getBytes("UTF-8");
+ *
+ *     // Use the loaded library's Runtime to allocate memory for the string
+ *     jnr.ffi.Runtime runtime = jnr.ffi.Runtime.getRuntime(library);
+ *     Pointer buffer = Memory.allocateDirect(runtime, bytes.length);
+ *
+ *     // Copy the java string data to the native memory, then write the contents to STDOUT
+ *     buffer.put(0, bytes, 0, bytes.length);
+ *     library.write(1, buffer, bytes.length);
+ *     }
+ *     </pre>
+ * </p>
  */
 public abstract class Runtime {
 
