@@ -401,4 +401,10 @@ public class MemoryIOTest {
             assertEquals("Wrong byte at index " + i, MAGIC[i], dst.getByte(DSTOFF + i));
         }
     }
+
+    @Test public void manyTransientAllocations() {
+        for (int i = 0; i < 100000; i++) {
+            Memory.allocate(runtime, 4);
+        }
+    }
 }

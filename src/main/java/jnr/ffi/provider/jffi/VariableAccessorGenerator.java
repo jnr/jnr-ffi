@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2012 Wayne Meissner
+ *
+ * This file is part of the JNR project.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.*;
@@ -33,6 +51,11 @@ public class VariableAccessorGenerator {
     public void generate(AsmBuilder builder, Class interfaceClass, String variableName, long address,
                          Class javaType, Collection<Annotation> annotations,
                          SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
+
+        if (!NativeLibraryLoader.ASM_ENABLED) {
+            throw new UnsupportedOperationException("asm bytecode generation not supported");
+        }
+
         SimpleNativeContext context = new SimpleNativeContext(annotations);
         SignatureType signatureType = DefaultSignatureType.create(javaType, (FromNativeContext) context);
         jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(runtime, signatureType, context);

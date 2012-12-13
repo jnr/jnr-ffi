@@ -81,7 +81,10 @@ public final class AsmRuntime {
     }
 
     public static PointerParameterStrategy pointerParameterStrategy(Pointer pointer) {
-        if (pointer instanceof DirectMemoryIO) {
+        if (pointer == null) {
+            return NullPointerParameterStrategy.INSTANCE;
+
+        } else if (pointer.isDirect()) {
             return DirectMemoryParameterStrategy.INSTANCE;
 
         } else {
@@ -90,14 +93,7 @@ public final class AsmRuntime {
     }
 
     private static PointerParameterStrategy otherPointerParameterStrategy(Pointer pointer) {
-        if (pointer == null) {
-            return NullPointerParameterStrategy.INSTANCE;
-
-        } else if (pointer.isDirect()) {
-            return pointer instanceof AbstractBufferMemoryIO
-                    ? DirectBufferMemoryParameterStrategy.get(ObjectParameterType.ComponentType.BYTE) : DirectPointerParameterStrategy.INSTANCE;
-
-        } else if (pointer.hasArray()) {
+        if (pointer.hasArray()) {
             return ArrayMemoryParameterStrategy.INSTANCE;
 
         } else {
