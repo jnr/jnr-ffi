@@ -44,7 +44,7 @@ import java.nio.ByteOrder;
  *         public long write(int fd, Pointer data, long len);
  *     }
  *
- *     LibC library = LibraryLoader.create("c").load(LibC.class);
+ *     LibC library = LibraryLoader.create(LibC.class).load("c");
  *
  *     byte[] bytes = "Hello, World\n".getBytes("UTF-8");
  *
@@ -73,7 +73,7 @@ public abstract class Runtime {
     /**
      * Returns the runtime associated with the library instance.
      *
-     * @param library A loaded library instance as returned from {@link LibraryLoader#load(Class)}
+     * @param library A loaded library instance as returned from {@link LibraryLoader#load()}
      * @return The runtime that loaded the library
      */
     public static Runtime getRuntime(Object library) {

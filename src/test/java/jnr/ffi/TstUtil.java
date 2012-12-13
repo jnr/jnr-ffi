@@ -28,16 +28,14 @@ public final class TstUtil {
         return loadTestLib(interfaceClass, options);
     }
     public static <T> T loadTestLib(Class<T> interfaceClass, Map<LibraryOption, ?> options) {
-        LibraryLoader loader = provider != null
-                ? provider.createLibraryLoader()
-                : FFIProvider.getSystemProvider().createLibraryLoader();
+        LibraryLoader<T> loader = (provider != null ? provider : FFIProvider.getSystemProvider()).createLibraryLoader(interfaceClass);
 
         loader.library(libname);
         for (Map.Entry<LibraryOption, ?> option : options.entrySet()) {
             loader.option(option.getKey(), option.getValue());
         }
 
-        return loader.load(interfaceClass);
+        return loader.load();
     }
 
     public static Pointer getDirectBufferPointer(ByteBuffer buf) {

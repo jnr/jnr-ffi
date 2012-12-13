@@ -23,7 +23,7 @@ package jnr.ffi;
  *         public void do_something_with_callback(MyCallback cb, Pointer cb_argument);
  *     }
  *
- *     MyLib lib = LibraryLoader.create("mylib").load(MyLib.class);
+ *     MyLib lib = LibraryLoader.create(MyLib.class).load("mylib");
  *     final ObjectReferenceManager referenceManager = Runtime.getRuntime(lib).newObjectReferenceManager();
  *
  *     MyCallback cb = new MyCallback {

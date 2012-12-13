@@ -46,7 +46,7 @@ public final class Library {
      * Gets the {@link Runtime} that loaded the library interface.
      *
      * @deprecated Use {@link Runtime#getRuntime(Object)}
-     * @param library A library implementation as returned from {@link LibraryLoader#load(Class)}
+     * @param library A library implementation as returned from {@link LibraryLoader#load()}
      * @return The runtime that loaded the library.
      */
     public static Runtime getRuntime(Object library) {
@@ -107,7 +107,7 @@ public final class Library {
      */
     public static <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames) {
-        LibraryLoader loader = FFIProvider.getSystemProvider().createLibraryLoader();
+        LibraryLoader<T> loader = FFIProvider.getSystemProvider().createLibraryLoader(interfaceClass);
 
         for (String libraryName : libraryNames) {
             loader.library(libraryName);
@@ -120,7 +120,7 @@ public final class Library {
             loader.option(option.getKey(), option.getValue());
         }
 
-        return loader.load(interfaceClass);
+        return loader.load();
     }
     
     /**

@@ -43,7 +43,7 @@ public abstract class FFIProvider {
     /**
      *  Creates a new {@link LibraryLoader} instance
      */
-    public abstract LibraryLoader createLibraryLoader();
+    public abstract <T> LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass);
 
     private static final class SystemProviderSingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();

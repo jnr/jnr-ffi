@@ -33,7 +33,7 @@ public final class Provider extends FFIProvider {
         return runtime;
     }
 
-    public jnr.ffi.LibraryLoader createLibraryLoader() {
-        return new NativeLibraryLoader();
+    public <T> jnr.ffi.LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass) {
+        return new NativeLibraryLoader<T>(interfaceClass);
     }
 }

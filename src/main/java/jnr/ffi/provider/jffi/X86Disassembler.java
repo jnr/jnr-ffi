@@ -37,12 +37,13 @@ class X86Disassembler {
     static UDis86 loadUDis86() {
         DefaultTypeMapper typeMapper = new DefaultTypeMapper();
         typeMapper.put(X86Disassembler.class, new X86DisassemblerConverter());
-        return LibraryLoader.create("udis86")
+        return LibraryLoader.create(UDis86.class)
+                .library("udis86")
                 .search("/usr/local/lib")
                 .search("/opt/local/lib")
                 .search("/usr/lib")
                 .mapper(typeMapper)
-                .load(UDis86.class);
+                .load();
     }
 
     @ToNativeConverter.NoContext

@@ -28,10 +28,14 @@ import static jnr.ffi.provider.jffi.Util.getBooleanProperty;
 /**
  *
  */
-class NativeLibraryLoader extends jnr.ffi.LibraryLoader {
+class NativeLibraryLoader<T>  extends jnr.ffi.LibraryLoader<T> {
     static final boolean ASM_ENABLED = getBooleanProperty("jnr.ffi.asm.enabled", true);
 
-    public <T> T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths,
+    NativeLibraryLoader(Class<T> interfaceClass) {
+        super(interfaceClass);
+    }
+
+    public T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths,
                              Map<LibraryOption, Object> options) {
         NativeLibrary nativeLibrary = new NativeLibrary(libraryNames, searchPaths);
 

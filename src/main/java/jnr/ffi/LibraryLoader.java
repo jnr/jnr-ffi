@@ -17,38 +17,34 @@ import java.util.*;
  *    int puts(String str);
  * }
  *
- * LibC libc = LibraryLoader.create("c").load(LibC.class);
+ * LibC libc = LibraryLoader.create(LibC.class).load("c");
  *
  * libc.puts("Hello, World");
  *
  * }
  * </pre></p>
  */
-public abstract class LibraryLoader {
+public abstract class LibraryLoader<T> {
     private final List<String> searchPaths = new ArrayList<String>();
     private final List<String> libraryNames = new ArrayList<String>();
     private final List<SignatureTypeMapper> typeMappers = new ArrayList<SignatureTypeMapper>();
     private final List<FunctionMapper> functionMappers = new ArrayList<FunctionMapper>();
     private final Map<LibraryOption, Object> optionMap = new EnumMap<LibraryOption, Object>(LibraryOption.class);
+    private final Class<T> interfaceClass;
 
 
     /**
      * Creates a new {@code LibraryLoader} instance.
      *
+     * @param interfaceClass the interface that describes the native library functions
      * @return A {@code LibraryLoader} instance.
      */
-    public static LibraryLoader create() {
-        return FFIProvider.getSystemProvider().createLibraryLoader();
+    public static <T> LibraryLoader<T> create(Class<T> interfaceClass) {
+        return FFIProvider.getSystemProvider().createLibraryLoader(interfaceClass);
     }
 
-    /**
-     * Creates a new {@code LibraryLoader} instance.  This is equivalent to {@code LibraryLoader.create().library(libraryName)}.
-     *
-     * @param libraryName The name of the library to load.
-     * @return A {@code LibraryLoader} instance.
-     */
-    public static LibraryLoader create(String libraryName) {
-        return FFIProvider.getSystemProvider().createLibraryLoader().library(libraryName);
+    protected LibraryLoader(Class<T> interfaceClass) {
+        this.interfaceClass = interfaceClass;
     }
 
     /**
@@ -58,7 +54,7 @@ public abstract class LibraryLoader {
      * @param libraryName The name or path of library to load.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader library(String libraryName) {
+    public LibraryLoader<T> library(String libraryName) {
         this.libraryNames.add(libraryName);
         return this;
     }
@@ -70,7 +66,7 @@ public abstract class LibraryLoader {
      * @param path A directory to search.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader search(String path) {
+    public LibraryLoader<T> search(String path) {
         searchPaths.add(path);
         return this;
     }
@@ -84,7 +80,7 @@ public abstract class LibraryLoader {
      * @param value The value for the option.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader option(LibraryOption option, Object value) {
+    public LibraryLoader<T> option(LibraryOption option, Object value) {
         switch (option) {
             case TypeMapper:
                 if (value instanceof SignatureTypeMapper) {
@@ -119,7 +115,7 @@ public abstract class LibraryLoader {
      * @param typeMapper The type mapper to use.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader mapper(TypeMapper typeMapper) {
+    public LibraryLoader<T> mapper(TypeMapper typeMapper) {
         typeMappers.add(new SignatureTypeMapperAdapter(typeMapper));
         return this;
     }
@@ -133,7 +129,7 @@ public abstract class LibraryLoader {
      * @param typeMapper The type mapper to use.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader mapper(SignatureTypeMapper typeMapper) {
+    public LibraryLoader<T> mapper(SignatureTypeMapper typeMapper) {
         typeMappers.add(typeMapper);
         return this;
     }
@@ -147,7 +143,7 @@ public abstract class LibraryLoader {
      * @param typeMapper The function mapper to use.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader mapper(FunctionMapper typeMapper) {
+    public LibraryLoader<T> mapper(FunctionMapper typeMapper) {
         optionMap.put(LibraryOption.FunctionMapper, typeMapper);
         return this;
     }
@@ -160,7 +156,7 @@ public abstract class LibraryLoader {
      *
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader convention(CallingConvention convention) {
+    public LibraryLoader<T> convention(CallingConvention convention) {
         optionMap.put(LibraryOption.CallingConvention, convention);
         return this;
     }
@@ -170,7 +166,7 @@ public abstract class LibraryLoader {
      *
      * @return This {@code LibraryLoader} instance.
      */
-    public final LibraryLoader stdcall() {
+    public final LibraryLoader<T> stdcall() {
         return convention(CallingConvention.STDCALL);
     }
 
@@ -178,10 +174,20 @@ public abstract class LibraryLoader {
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
      *
-     * @param interfaceClass the interface that describes the native library interface
-     * @return an instance of {@code interfaceclass} that will call the native methods.
+     * @param libraryName The name or path of library to load.
+     * @return an implementation of the interface provided to {@link #create(Class)} that will call the native methods.
      */
-    public <T> T load(Class<T> interfaceClass) {
+    public T load(String libraryName) {
+        return library(libraryName).load();
+    }
+
+    /**
+     * Loads a native library and links the methods defined in {@code interfaceClass}
+     * to native methods in the library.
+     *
+     * @return an implementation of the interface provided to {@link #create(Class)} that will call the native methods.
+     */
+    public T load() {
         if (libraryNames.isEmpty()) {
             throw new UnsatisfiedLinkError("no library names specified");
         }
@@ -216,10 +222,9 @@ public abstract class LibraryLoader {
      * @param libraryNames A list of libraries to load & search for symbols
      * @param searchPaths The paths to search for libraries to be loaded
      * @param options The options to apply when loading the library
-     * @param <T> The generic type of the interface
      * @return an instance of {@code interfaceClass} that will call the native methods.
      */
-    protected abstract <T> T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames,
+    protected abstract T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames,
                                          Collection<String> searchPaths, Map<LibraryOption, Object> options);
 
 

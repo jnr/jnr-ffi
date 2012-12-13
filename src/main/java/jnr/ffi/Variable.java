@@ -14,7 +14,7 @@ package jnr.ffi;
  *         public Variable<Long> my_int_var();
  *     }
  *
- *     MyLib lib = LibraryLoader.create("mylib").load(MyLib.class):
+ *     MyLib lib = LibraryLoader.create(MyLib.class).load("mylib"):
  *     System.out.println("native value=" + lib.my_int_var().get())
  *
  *     lib.my_int_var().set(0xdeadbeef);
