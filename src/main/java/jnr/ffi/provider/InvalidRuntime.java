@@ -1,6 +1,7 @@
 package jnr.ffi.provider;
 
 import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
 import jnr.ffi.provider.ClosureManager;
 
@@ -70,6 +71,11 @@ class InvalidRuntime extends jnr.ffi.Runtime {
 
     @Override
     public ByteOrder byteOrder() {
+        throw newLoadError();
+    }
+
+    @Override
+    public boolean isCompatible(Runtime other) {
         throw newLoadError();
     }
 

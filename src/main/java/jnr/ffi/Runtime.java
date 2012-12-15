@@ -164,5 +164,21 @@ public abstract class Runtime {
      * @return The byte order of the runtime
      */
     public abstract ByteOrder byteOrder();
-    
+
+    /**
+     * Indicates whether this <tt>Runtime</tt> instance is compatible with another <tt>Runtime</tt> instance.
+     *
+     * <p>
+     * This is not the same as calling {@link #equals} - this method only indicates whether or not artifacts from the
+     * runtime (e.g. memory addresses) are compatible with artifacts from this one.
+     * </p>
+     *
+     * <p>
+     * This is mostly for internal use.
+     * </p>
+     *
+     * @param other the other runtime to test for compatibility
+     * @return true if the other runtime is compatible with this one
+     */
+    public abstract boolean isCompatible(jnr.ffi.Runtime other);
 }

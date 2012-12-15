@@ -19,6 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.mapper.DefaultTypeMapper;
 import jnr.ffi.mapper.SignatureTypeMapperAdapter;
 import jnr.ffi.provider.AbstractRuntime;
@@ -27,6 +28,7 @@ import jnr.ffi.provider.DefaultObjectReferenceManager;
 
 import java.lang.reflect.Field;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
@@ -134,6 +136,29 @@ public final class NativeRuntime extends AbstractRuntime {
     @Override
     public void setLastError(int error) {
         com.kenai.jffi.LastError.getInstance().set(error);
+    }
+
+    @Override
+    public boolean isCompatible(Runtime other) {
+        return other instanceof NativeRuntime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NativeRuntime that = (NativeRuntime) o;
+
+        return Arrays.equals(aliases, that.aliases) && closureManager.equals(that.closureManager) && mm.equals(that.mm);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mm.hashCode();
+        result = 31 * result + closureManager.hashCode();
+        result = 31 * result + Arrays.hashCode(aliases);
+        return result;
     }
 
     private static final class TypeDelegate extends jnr.ffi.Type {

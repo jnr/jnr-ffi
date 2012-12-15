@@ -71,7 +71,7 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Pointer && ((Pointer) obj).address() == address() && ((Pointer) obj).getRuntime().equals(getRuntime());
+        return obj instanceof Pointer && ((Pointer) obj).address() == address() && ((Pointer) obj).getRuntime().isCompatible(getRuntime());
     }
 
 
