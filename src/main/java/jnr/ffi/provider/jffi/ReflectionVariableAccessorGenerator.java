@@ -46,7 +46,7 @@ class ReflectionVariableAccessorGenerator {
 
         Class javaType = (Class) variableType;
 
-        SimpleNativeContext context = new SimpleNativeContext(annotations);
+        SimpleNativeContext context = new SimpleNativeContext(runtime, annotations);
         SignatureType signatureType = DefaultSignatureType.create(javaType, (FromNativeContext) context);
         jnr.ffi.mapper.FromNativeType mappedFromNativeType = typeMapper.getFromNativeType(runtime, signatureType, context);
         FromNativeConverter fromNativeConverter = mappedFromNativeType != null ? mappedFromNativeType.getFromNativeConverter() : null;

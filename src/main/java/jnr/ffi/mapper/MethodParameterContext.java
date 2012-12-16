@@ -20,7 +20,7 @@ package jnr.ffi.mapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
 
 import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
@@ -28,23 +28,27 @@ import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
  * Holds context for a method parameter java->native conversion.
  */
 public final class MethodParameterContext implements ToNativeContext {
+    private final jnr.ffi.Runtime runtime;
     private final Method method;
     private final int parameterIndex;
     private Collection<Annotation> annotations;
     private Annotation[] annotationArray;
 
-    public MethodParameterContext(Method method, int parameterIndex) {
+    public MethodParameterContext(jnr.ffi.Runtime runtime, Method method, int parameterIndex) {
+        this.runtime = runtime;
         this.method = method;
         this.parameterIndex = parameterIndex;
     }
 
-    public MethodParameterContext(Method method, int parameterIndex, Annotation[] annotationArray) {
+    public MethodParameterContext(jnr.ffi.Runtime runtime, Method method, int parameterIndex, Annotation[] annotationArray) {
+        this.runtime = runtime;
         this.method = method;
         this.parameterIndex = parameterIndex;
         this.annotationArray = annotationArray.clone();
     }
 
-    public MethodParameterContext(Method method, int parameterIndex, Collection<Annotation> annotations) {
+    public MethodParameterContext(jnr.ffi.Runtime runtime, Method method, int parameterIndex, Collection<Annotation> annotations) {
+        this.runtime = runtime;
         this.method = method;
         this.parameterIndex = parameterIndex;
         this.annotations = sortedAnnotationCollection(annotations);
@@ -60,6 +64,10 @@ public final class MethodParameterContext implements ToNativeContext {
 
     public Collection<Annotation> getAnnotations() {
         return annotations != null ? annotations : buildAnnotationCollection();
+    }
+
+    public jnr.ffi.Runtime getRuntime() {
+        return runtime;
     }
 
     private Collection<Annotation> buildAnnotationCollection() {

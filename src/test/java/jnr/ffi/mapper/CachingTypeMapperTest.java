@@ -152,14 +152,14 @@ public class CachingTypeMapperTest {
     }
 
     private ToNativeConverter getToNativeConverter(SignatureTypeMapper typeMapper, Method m, int parameterIndex) {
-        ToNativeContext toNativeContext = new MethodParameterContext(m, parameterIndex);
+        ToNativeContext toNativeContext = new MethodParameterContext(Runtime.getSystemRuntime(), m, parameterIndex);
         SignatureType signatureType = DefaultSignatureType.create(m.getParameterTypes()[parameterIndex], toNativeContext);
         ToNativeType toNativeType = typeMapper.getToNativeType(Runtime.getSystemRuntime(), signatureType, toNativeContext);
         return toNativeType != null ? toNativeType.getToNativeConverter() : null;
     }
 
     private FromNativeConverter getFromNativeConverter(SignatureTypeMapper typeMapper, Method m) {
-        FromNativeContext fromNativeContext = new MethodResultContext(m);
+        FromNativeContext fromNativeContext = new MethodResultContext(Runtime.getSystemRuntime(), m);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), fromNativeContext);
         FromNativeType fromNativeType = typeMapper.getFromNativeType(Runtime.getSystemRuntime(), signatureType, fromNativeContext);
         return fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;

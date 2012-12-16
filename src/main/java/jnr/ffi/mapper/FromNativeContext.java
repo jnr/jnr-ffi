@@ -32,4 +32,11 @@ public interface FromNativeContext {
      * @return a sorted list of annotations for this native type
      */
     public abstract Collection<Annotation> getAnnotations();
+
+    /**
+     * Gets the <tt>Runtime</tt> used for the conversion.
+     *
+     * @return The runtime used for the conversion.
+     */
+    public jnr.ffi.Runtime getRuntime();
 }

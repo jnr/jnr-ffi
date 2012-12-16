@@ -56,7 +56,7 @@ public class VariableAccessorGenerator {
             throw new UnsupportedOperationException("asm bytecode generation not supported");
         }
 
-        SimpleNativeContext context = new SimpleNativeContext(annotations);
+        SimpleNativeContext context = new SimpleNativeContext(builder.getRuntime(), annotations);
         SignatureType signatureType = DefaultSignatureType.create(javaType, (FromNativeContext) context);
         jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(runtime, signatureType, context);
         FromNativeConverter fromNativeConverter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;

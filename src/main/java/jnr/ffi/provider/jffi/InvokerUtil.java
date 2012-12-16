@@ -263,7 +263,7 @@ final class InvokerUtil {
 
         for (int pidx = 0; pidx < javaParameterTypes.length; ++pidx) {
             Collection<Annotation> annotations = Annotations.sortedAnnotationCollection(parameterAnnotations[pidx]);
-            ToNativeContext toNativeContext = new MethodParameterContext(m, pidx, annotations);
+            ToNativeContext toNativeContext = new MethodParameterContext(runtime, m, pidx, annotations);
             SignatureType signatureType = DefaultSignatureType.create(javaParameterTypes[pidx], toNativeContext);
             jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(runtime, signatureType, toNativeContext);
             ToNativeConverter toNativeConverter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
@@ -359,7 +359,7 @@ final class InvokerUtil {
 
 
     static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, SignatureTypeMapper typeMapper, MethodGenerator[] generators) {
-        FromNativeContext resultContext = new MethodResultContext(m);
+        FromNativeContext resultContext = new MethodResultContext(runtime, m);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), resultContext);
         ResultType resultType = getResultType(runtime, m.getReturnType(),
                 resultContext.getAnnotations(), typeMapper.getFromNativeType(runtime, signatureType, resultContext),

@@ -175,7 +175,7 @@ class ReflectionLibraryLoader extends LibraryLoader {
                 return new FunctionNotFoundInvoker(method, functionName);
             }
 
-            FromNativeContext resultContext = new MethodResultContext(method);
+            FromNativeContext resultContext = new MethodResultContext(NativeRuntime.getInstance(), method);
             SignatureType signatureType = DefaultSignatureType.create(method.getReturnType(), resultContext);
             ResultType resultType = getResultType(runtime, method.getReturnType(),
                     resultContext.getAnnotations(), typeMapper.getFromNativeType(runtime, signatureType, resultContext),

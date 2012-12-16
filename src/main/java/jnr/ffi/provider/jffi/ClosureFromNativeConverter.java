@@ -126,7 +126,7 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
     private static void generateInvocation(jnr.ffi.Runtime runtime, AsmBuilder builder, Class closureClass, SignatureTypeMapper typeMapper) {
         Method closureMethod = getDelegateMethod(closureClass);
 
-        FromNativeContext resultContext = new MethodResultContext(closureMethod);
+        FromNativeContext resultContext = new MethodResultContext(runtime, closureMethod);
         SignatureType signatureType = DefaultSignatureType.create(closureMethod.getReturnType(), resultContext);
         jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(runtime, signatureType, resultContext);
         FromNativeConverter fromNativeConverter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;

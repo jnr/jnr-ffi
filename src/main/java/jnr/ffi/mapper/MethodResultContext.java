@@ -18,6 +18,8 @@
 
 package jnr.ffi.mapper;
 
+import jnr.ffi.*;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -28,10 +30,12 @@ import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
  *
  */
 public class MethodResultContext implements FromNativeContext {
+    private final jnr.ffi.Runtime runtime;
     private final Method method;
     private Collection<Annotation> annotations;
 
-    public MethodResultContext(Method method) {
+    public MethodResultContext(jnr.ffi.Runtime runtime, Method method) {
+        this.runtime = runtime;
         this.method = method;
     }
 
@@ -41,5 +45,9 @@ public class MethodResultContext implements FromNativeContext {
 
     public Collection<Annotation> getAnnotations() {
         return annotations != null ? annotations : (annotations = sortedAnnotationCollection(method.getAnnotations()));
+    }
+
+    public jnr.ffi.Runtime getRuntime() {
+        return runtime;
     }
 }
