@@ -103,6 +103,9 @@ public class Finalizer extends Thread {
 
     setDaemon(true);
     setPriority(Thread.MAX_PRIORITY);
+    // Set the context class loader to null in order to avoid
+    // keeping a strong reference to an application classloader.
+    setContextClassLoader(null);
 
     try {
       if (inheritableThreadLocals != null) {
