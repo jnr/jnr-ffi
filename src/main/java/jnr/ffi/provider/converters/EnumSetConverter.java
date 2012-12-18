@@ -7,10 +7,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.EnumSet;
+import java.util.Set;
 
 @FromNativeConverter.Cacheable
 @ToNativeConverter.Cacheable
-public final class EnumSetConverter implements DataConverter<EnumSet<? extends Enum>, Integer> {
+public final class EnumSetConverter implements DataConverter<Set<? extends Enum>, Integer> {
     private final Class<? extends Enum> enumClass;
     private final EnumMapper enumMapper;
     private final EnumSet<? extends Enum> allValues;
@@ -21,11 +22,11 @@ public final class EnumSetConverter implements DataConverter<EnumSet<? extends E
         this.allValues = EnumSet.allOf(enumClass);
     }
 
-    public static ToNativeConverter<EnumSet<? extends Enum>, Integer> getToNativeConverter(SignatureType type, ToNativeContext toNativeContext) {
+    public static ToNativeConverter<Set<? extends Enum>, Integer> getToNativeConverter(SignatureType type, ToNativeContext toNativeContext) {
         return getInstance(type.getGenericType());
     }
 
-    public static FromNativeConverter<EnumSet<? extends Enum>, Integer> getFromNativeConverter(SignatureType type, FromNativeContext fromNativeContext) {
+    public static FromNativeConverter<Set<? extends Enum>, Integer> getFromNativeConverter(SignatureType type, FromNativeContext fromNativeContext) {
         return getInstance(type.getGenericType());
     }
 
@@ -49,7 +50,7 @@ public final class EnumSetConverter implements DataConverter<EnumSet<? extends E
 
     @Override
     @SuppressWarnings("unchecked")
-    public EnumSet fromNative(Integer nativeValue, FromNativeContext context) {
+    public Set fromNative(Integer nativeValue, FromNativeContext context) {
         EnumSet enums = EnumSet.noneOf(enumClass);
         for (Enum e : allValues) {
             int enumValue = enumMapper.intValue(e);
@@ -63,7 +64,7 @@ public final class EnumSetConverter implements DataConverter<EnumSet<? extends E
 
     @Override
     @SuppressWarnings("unchecked")
-    public Integer toNative(EnumSet<? extends Enum> value, ToNativeContext context) {
+    public Integer toNative(Set<? extends Enum> value, ToNativeContext context) {
         int intValue = 0;
         for (Enum e : value) {
             intValue |= enumMapper.intValue(e);
