@@ -1,18 +1,17 @@
 package jnr.ffi.provider.converters;
 
-import jnr.ffi.*;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.provider.jffi.ArrayMemoryIO;
 import jnr.ffi.util.BufferUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
+@ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
-public class StringBuilderParameterConverter implements ToNativeConverter<StringBuilder, Pointer>, ToNativeConverter.PostInvocation<StringBuilder, Pointer> {
+public class StringBuilderParameterConverter implements ToNativeConverter<StringBuilder, ByteBuffer>, ToNativeConverter.PostInvocation<StringBuilder, ByteBuffer> {
     private final Charset charset;
     private final int parameterFlags;
 
@@ -21,8 +20,8 @@ public class StringBuilderParameterConverter implements ToNativeConverter<String
         this.parameterFlags = parameterFlags;
     }
 
-    public Class<Pointer> nativeType() {
-        return Pointer.class;
+    public Class<ByteBuffer> nativeType() {
+        return ByteBuffer.class;
     }
 
     public static StringBuilderParameterConverter getInstance(int parameterFlags, ToNativeContext toNativeContext) {
@@ -33,7 +32,7 @@ public class StringBuilderParameterConverter implements ToNativeConverter<String
         return new StringBuilderParameterConverter(charset, parameterFlags);
     }
 
-    public Pointer toNative(StringBuilder parameter, ToNativeContext context) {
+    public ByteBuffer toNative(StringBuilder parameter, ToNativeContext context) {
         if (parameter == null) {
             return null;
 
@@ -43,25 +42,23 @@ public class StringBuilderParameterConverter implements ToNativeConverter<String
                     : ByteBuffer.allocate(parameter.capacity() + 1);
 
             if ((ParameterFlags.isOut(parameterFlags) && buf.capacity() < parameter.capacity() + 1) || !buf.hasArray()) {
-                ArrayMemoryIO aio = new ArrayMemoryIO(context.getRuntime(), parameter.capacity() + 1);
-                buf.get(aio.array(), aio.arrayOffset(), buf.limit());
-
-                return aio;
+                byte[] array = new byte[parameter.capacity() + 1];
+                buf.get(array, 0, buf.remaining());
+                return ByteBuffer.wrap(array);
 
             } else {
-                return new ArrayMemoryIO(context.getRuntime(), buf.array(), buf.arrayOffset(), buf.limit());
+                return buf;
             }
         }
     }
 
-    public void postInvoke(StringBuilder stringBuilder, Pointer pointer, ToNativeContext context) {
+    public void postInvoke(StringBuilder stringBuilder, ByteBuffer buf, ToNativeContext context) {
         //
         // Copy the string back out if its an OUT parameter
         //
-        if (ParameterFlags.isOut(parameterFlags) && stringBuilder != null && pointer != null) {
-            ArrayMemoryIO aio = (ArrayMemoryIO) pointer;
-            final ByteBuffer tmp = ByteBuffer.wrap(aio.array(), aio.arrayOffset(), aio.arrayLength());
-            stringBuilder.delete(0, stringBuilder.length()).append(BufferUtil.getCharSequence(tmp, charset));
+        if (ParameterFlags.isOut(parameterFlags) && stringBuilder != null && buf != null) {
+            buf.limit(buf.capacity());
+            stringBuilder.delete(0, stringBuilder.length()).append(BufferUtil.getCharSequence(buf, charset));
         }
     }
 }
