@@ -77,13 +77,13 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
             return NativeLongConverter.INSTANCE;
 
         } else if (StringBuilder.class.isAssignableFrom(javaType)) {
-            return StringBuilderParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
+            return StringBuilderParameterConverter.getInstance(ParameterFlags.parse(context.getAnnotations()), context);
 
         } else if (StringBuffer.class.isAssignableFrom(javaType)) {
-            return StringBufferParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));
+            return StringBufferParameterConverter.getInstance(ParameterFlags.parse(context.getAnnotations()), context);
 
         } else if (CharSequence.class.isAssignableFrom(javaType)) {
-            return CharSequenceParameterConverter.getInstance(runtime, Charset.defaultCharset());
+            return CharSequenceParameterConverter.getInstance(context);
 
         } else if (Byte[].class.isAssignableFrom(javaType)) {
             return BoxedByteArrayParameterConverter.getInstance(runtime, ParameterFlags.parse(context.getAnnotations()));

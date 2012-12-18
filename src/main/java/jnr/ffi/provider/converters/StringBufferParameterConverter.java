@@ -11,14 +11,13 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
-@ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class StringBufferParameterConverter implements ToNativeConverter<StringBuffer, Pointer>, ToNativeConverter.PostInvocation<StringBuffer, Pointer> {
-    private final jnr.ffi.Runtime runtime;
+    private final Charset charset;
     private final int parameterFlags;
 
-    private StringBufferParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    private StringBufferParameterConverter(Charset charset, int parameterFlags) {
+        this.charset = charset;
         this.parameterFlags = parameterFlags;
     }
 
@@ -26,8 +25,12 @@ public class StringBufferParameterConverter implements ToNativeConverter<StringB
         return Pointer.class;
     }
 
-    public static StringBufferParameterConverter getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return new StringBufferParameterConverter(runtime, parameterFlags);
+    public static StringBufferParameterConverter getInstance(int parameterFlags, ToNativeContext toNativeContext) {
+        return new StringBufferParameterConverter(Charset.defaultCharset(), parameterFlags);
+    }
+
+    public static StringBufferParameterConverter getInstance(Charset charset, int parameterFlags, ToNativeContext toNativeContext) {
+        return new StringBufferParameterConverter(charset, parameterFlags);
     }
 
     public Pointer toNative(StringBuffer parameter, ToNativeContext context) {
@@ -36,17 +39,17 @@ public class StringBufferParameterConverter implements ToNativeConverter<StringB
 
         } else {
             ByteBuffer buf = ParameterFlags.isIn(parameterFlags)
-                    ? Charset.defaultCharset().encode(CharBuffer.wrap(parameter))
+                    ? charset.encode(CharBuffer.wrap(parameter))
                     : ByteBuffer.allocate(parameter.capacity() + 1);
 
             if ((ParameterFlags.isOut(parameterFlags) && buf.capacity() < parameter.capacity() + 1) || !buf.hasArray()) {
-                ArrayMemoryIO aio = new ArrayMemoryIO(runtime, parameter.capacity() + 1);
+                ArrayMemoryIO aio = new ArrayMemoryIO(context.getRuntime(), parameter.capacity() + 1);
                 buf.get(aio.array(), aio.arrayOffset(), buf.limit());
 
                 return aio;
 
             } else {
-                return new ArrayMemoryIO(runtime, buf.array(), buf.arrayOffset(), buf.limit());
+                return new ArrayMemoryIO(context.getRuntime(), buf.array(), buf.arrayOffset(), buf.limit());
             }
         }
     }
@@ -58,7 +61,7 @@ public class StringBufferParameterConverter implements ToNativeConverter<StringB
         if (ParameterFlags.isOut(parameterFlags) && stringBuffer != null && pointer != null) {
             ArrayMemoryIO aio = (ArrayMemoryIO) pointer;
             final ByteBuffer tmp = ByteBuffer.wrap(aio.array(), aio.arrayOffset(), aio.arrayLength());
-            stringBuffer.delete(0, stringBuffer.length()).append(BufferUtil.getCharSequence(tmp, Charset.defaultCharset()));
+            stringBuffer.delete(0, stringBuffer.length()).append(BufferUtil.getCharSequence(tmp, charset));
         }
     }
 }

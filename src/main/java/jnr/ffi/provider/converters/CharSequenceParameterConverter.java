@@ -18,8 +18,13 @@ public class CharSequenceParameterConverter implements ToNativeConverter<CharSeq
     private static final ToNativeConverter<CharSequence, ByteBuffer> DEFAULT = new CharSequenceParameterConverter(Charset.defaultCharset());
     private final Charset charset;
 
-    public static ToNativeConverter<CharSequence, ByteBuffer> getInstance(jnr.ffi.Runtime runtime, Charset charset) {
+
+    public static ToNativeConverter<CharSequence, ByteBuffer> getInstance(Charset charset, ToNativeContext toNativeContext) {
         return Charset.defaultCharset().equals(charset) ? DEFAULT : new CharSequenceParameterConverter(charset);
+    }
+
+    public static ToNativeConverter<CharSequence, ByteBuffer> getInstance(ToNativeContext toNativeContext) {
+        return new CharSequenceParameterConverter(Charset.defaultCharset());
     }
 
     private CharSequenceParameterConverter(Charset charset) {
