@@ -18,8 +18,6 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.*;
-import jnr.ffi.Runtime;
 import jnr.ffi.mapper.*;
 
 /**
@@ -36,12 +34,12 @@ public class NullTypeMapper extends AbstractSignatureTypeMapper implements TypeM
     }
 
     @Override
-    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+    public FromNativeType getFromNativeType(SignatureType type, FromNativeContext context) {
         return null;
     }
 
     @Override
-    public ToNativeType getToNativeType(Runtime runtime, SignatureType type, ToNativeContext context) {
+    public ToNativeType getToNativeType(SignatureType type, ToNativeContext context) {
         return null;
     }
 }

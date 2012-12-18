@@ -17,37 +17,37 @@ public final class CachingTypeMapper extends AbstractSignatureTypeMapper impleme
     }
 
     @Override
-    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+    public FromNativeType getFromNativeType(SignatureType type, FromNativeContext context) {
         FromNativeType fromNativeType = fromNativeTypeMap.get(type);
 
         if (fromNativeType == UNCACHEABLE_TYPE) {
-            return mapper.getFromNativeType(runtime, type, context);
+            return mapper.getFromNativeType(type, context);
 
         } else if (fromNativeType == NO_TYPE) {
             return null;
         }
 
-        return fromNativeType != null ? fromNativeType : lookupAndCacheFromNativeType(runtime, type, context);
+        return fromNativeType != null ? fromNativeType : lookupAndCacheFromNativeType(type, context);
     }
 
     @Override
-    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+    public ToNativeType getToNativeType(SignatureType type, ToNativeContext context) {
         ToNativeType toNativeType = toNativeTypeMap.get(type);
         if (toNativeType == UNCACHEABLE_TYPE) {
-            return mapper.getToNativeType(runtime, type, context);
+            return mapper.getToNativeType(type, context);
 
         } else if (toNativeType == NO_TYPE) {
             return null;
         }
 
-        return toNativeType != null ? toNativeType : lookupAndCacheToNativeType(runtime, type, context);
+        return toNativeType != null ? toNativeType : lookupAndCacheToNativeType(type, context);
     }
 
 
-    private synchronized FromNativeType lookupAndCacheFromNativeType(jnr.ffi.Runtime runtime, SignatureType signature, FromNativeContext context) {
+    private synchronized FromNativeType lookupAndCacheFromNativeType(SignatureType signature, FromNativeContext context) {
         FromNativeType fromNativeType = fromNativeTypeMap.get(signature);
         if (fromNativeType == null) {
-            fromNativeType = mapper.getFromNativeType(runtime, signature, context);
+            fromNativeType = mapper.getFromNativeType(signature, context);
             FromNativeType typeForCaching = fromNativeType;
             if (fromNativeType == null) {
                 typeForCaching = NO_TYPE;
@@ -65,10 +65,10 @@ public final class CachingTypeMapper extends AbstractSignatureTypeMapper impleme
         return fromNativeType != NO_TYPE ? fromNativeType : null;
     }
 
-    private synchronized ToNativeType lookupAndCacheToNativeType(jnr.ffi.Runtime runtime, SignatureType signature, ToNativeContext context) {
+    private synchronized ToNativeType lookupAndCacheToNativeType(SignatureType signature, ToNativeContext context) {
         ToNativeType toNativeType = toNativeTypeMap.get(signature);
         if (toNativeType == null) {
-            toNativeType = mapper.getToNativeType(runtime, signature, context);
+            toNativeType = mapper.getToNativeType(signature, context);
             ToNativeType typeForCaching = toNativeType;
             if (toNativeType == null) {
                 typeForCaching = NO_TYPE;

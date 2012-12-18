@@ -39,7 +39,7 @@ final class ClosureUtil {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getAnnotations());
         ToNativeContext context = new SimpleNativeContext(runtime, annotations);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), context);
-        jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(runtime, signatureType, context);
+        jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(signatureType, context);
         ToNativeConverter converter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
@@ -51,7 +51,7 @@ final class ClosureUtil {
         Class declaredJavaClass = m.getParameterTypes()[idx];
         FromNativeContext context = new SimpleNativeContext(runtime, annotations);
         SignatureType signatureType = DefaultSignatureType.create(declaredJavaClass, context);
-        jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(runtime, signatureType, context);
+        jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(signatureType, context);
         FromNativeConverter converter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);

@@ -25,7 +25,6 @@ import jnr.ffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.annotations.*;
 import jnr.ffi.mapper.*;
-import jnr.ffi.mapper.FromNativeType;
 import jnr.ffi.util.Annotations;
 
 import java.lang.annotation.Annotation;
@@ -265,7 +264,7 @@ final class InvokerUtil {
             Collection<Annotation> annotations = Annotations.sortedAnnotationCollection(parameterAnnotations[pidx]);
             ToNativeContext toNativeContext = new MethodParameterContext(runtime, m, pidx, annotations);
             SignatureType signatureType = DefaultSignatureType.create(javaParameterTypes[pidx], toNativeContext);
-            jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(runtime, signatureType, toNativeContext);
+            jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(signatureType, toNativeContext);
             ToNativeConverter toNativeConverter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
             Collection<Annotation> converterAnnotations = getAnnotations(toNativeConverter);
             Collection<Annotation> allAnnotations = mergeAnnotations(annotations, converterAnnotations);
@@ -362,7 +361,7 @@ final class InvokerUtil {
         FromNativeContext resultContext = new MethodResultContext(runtime, m);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), resultContext);
         ResultType resultType = getResultType(runtime, m.getReturnType(),
-                resultContext.getAnnotations(), typeMapper.getFromNativeType(runtime, signatureType, resultContext),
+                resultContext.getAnnotations(), typeMapper.getFromNativeType(signatureType, resultContext),
                 resultContext);
 
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, m);

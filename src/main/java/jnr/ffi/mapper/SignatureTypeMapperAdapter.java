@@ -11,12 +11,12 @@ public class SignatureTypeMapperAdapter implements SignatureTypeMapper {
     }
 
     @Override
-    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+    public FromNativeType getFromNativeType(SignatureType type, FromNativeContext context) {
         return FromNativeTypes.create(typeMapper.getFromNativeConverter(type.getDeclaredType()));
     }
 
     @Override
-    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+    public ToNativeType getToNativeType(SignatureType type, ToNativeContext context) {
         return ToNativeTypes.create(typeMapper.getToNativeConverter(type.getDeclaredType()));
     }
 }

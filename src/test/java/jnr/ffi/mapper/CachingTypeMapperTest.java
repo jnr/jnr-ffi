@@ -98,12 +98,12 @@ public class CachingTypeMapperTest {
         }
 
         @Override
-        public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+        public FromNativeType getFromNativeType(SignatureType type, FromNativeContext context) {
             return FromNativeTypes.create(getFromNativeConverter(type, context));
         }
 
         @Override
-        public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+        public ToNativeType getToNativeType(SignatureType type, ToNativeContext context) {
             return ToNativeTypes.create(getToNativeConverter(type, context));
         }
     }
@@ -123,15 +123,15 @@ public class CachingTypeMapperTest {
         }
 
         @Override
-        public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+        public FromNativeType getFromNativeType(SignatureType type, FromNativeContext context) {
             incrementCount(fromConverterStats, type.getDeclaredType());
-            return typeMapper.getFromNativeType(runtime, type, context);
+            return typeMapper.getFromNativeType(type, context);
         }
 
         @Override
-        public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+        public ToNativeType getToNativeType(SignatureType type, ToNativeContext context) {
             incrementCount(toConverterStats, type.getDeclaredType());
-            return typeMapper.getToNativeType(runtime, type, context);
+            return typeMapper.getToNativeType(type, context);
         }
 
         public int getFromNativeCount(Class type) {
@@ -154,14 +154,14 @@ public class CachingTypeMapperTest {
     private ToNativeConverter getToNativeConverter(SignatureTypeMapper typeMapper, Method m, int parameterIndex) {
         ToNativeContext toNativeContext = new MethodParameterContext(Runtime.getSystemRuntime(), m, parameterIndex);
         SignatureType signatureType = DefaultSignatureType.create(m.getParameterTypes()[parameterIndex], toNativeContext);
-        ToNativeType toNativeType = typeMapper.getToNativeType(Runtime.getSystemRuntime(), signatureType, toNativeContext);
+        ToNativeType toNativeType = typeMapper.getToNativeType(signatureType, toNativeContext);
         return toNativeType != null ? toNativeType.getToNativeConverter() : null;
     }
 
     private FromNativeConverter getFromNativeConverter(SignatureTypeMapper typeMapper, Method m) {
         FromNativeContext fromNativeContext = new MethodResultContext(Runtime.getSystemRuntime(), m);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), fromNativeContext);
-        FromNativeType fromNativeType = typeMapper.getFromNativeType(Runtime.getSystemRuntime(), signatureType, fromNativeContext);
+        FromNativeType fromNativeType = typeMapper.getFromNativeType(signatureType, fromNativeContext);
         return fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
     }
 

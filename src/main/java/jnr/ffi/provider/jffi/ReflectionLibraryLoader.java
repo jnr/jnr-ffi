@@ -29,7 +29,6 @@ import jnr.ffi.provider.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.util.*;
 
@@ -178,7 +177,7 @@ class ReflectionLibraryLoader extends LibraryLoader {
             FromNativeContext resultContext = new MethodResultContext(NativeRuntime.getInstance(), method);
             SignatureType signatureType = DefaultSignatureType.create(method.getReturnType(), resultContext);
             ResultType resultType = getResultType(runtime, method.getReturnType(),
-                    resultContext.getAnnotations(), typeMapper.getFromNativeType(runtime, signatureType, resultContext),
+                    resultContext.getAnnotations(), typeMapper.getFromNativeType(signatureType, resultContext),
                     resultContext);
 
             ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, method);

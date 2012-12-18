@@ -17,9 +17,9 @@ public final class CompositeTypeMapper implements SignatureTypeMapper {
     }
 
     @Override
-    public FromNativeType getFromNativeType(jnr.ffi.Runtime runtime, SignatureType type, FromNativeContext context) {
+    public FromNativeType getFromNativeType(SignatureType type, FromNativeContext context) {
         for (SignatureTypeMapper m : signatureTypeMappers) {
-            FromNativeType fromNativeType = m.getFromNativeType(runtime, type, context);
+            FromNativeType fromNativeType = m.getFromNativeType(type, context);
             if (fromNativeType != null) {
                 return fromNativeType;
             }
@@ -29,9 +29,9 @@ public final class CompositeTypeMapper implements SignatureTypeMapper {
     }
 
     @Override
-    public ToNativeType getToNativeType(jnr.ffi.Runtime runtime, SignatureType type, ToNativeContext context) {
+    public ToNativeType getToNativeType(SignatureType type, ToNativeContext context) {
         for (SignatureTypeMapper m : signatureTypeMappers) {
-            ToNativeType toNativeType = m.getToNativeType(runtime, type, context);
+            ToNativeType toNativeType = m.getToNativeType(type, context);
             if (toNativeType != null) {
                 return toNativeType;
             }
