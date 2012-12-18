@@ -10,17 +10,18 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class BoxedDoubleArrayParameterConverter implements ToNativeConverter<Double[], double[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final ToNativeConverter<Double[], double[]> IN = new BoxedDoubleArrayParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<Double[], double[]> OUT = new BoxedDoubleArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<Double[], double[]> INOUT = new BoxedDoubleArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
+
     private final int parameterFlags;
 
-    public static ToNativeConverter<Double[], double[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-            ? new BoxedDoubleArrayParameterConverter(runtime, parameterFlags)
-            : new BoxedDoubleArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<Double[], double[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    BoxedDoubleArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    BoxedDoubleArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -40,8 +41,8 @@ public class BoxedDoubleArrayParameterConverter implements ToNativeConverter<Dou
     }
 
     public static final class Out extends BoxedDoubleArrayParameterConverter implements PostInvocation<Double[], double[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

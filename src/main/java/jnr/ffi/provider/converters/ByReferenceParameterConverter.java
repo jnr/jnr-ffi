@@ -10,32 +10,48 @@ import jnr.ffi.provider.ParameterFlags;
 /**
  *
  */
-@ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
-public final class ByReferenceParameterConverter implements ToNativeConverter<ByReference, Pointer>, ToNativeConverter.PostInvocation<ByReference, Pointer> {
-    private final jnr.ffi.Runtime runtime;
-    private final int flags;
+public class ByReferenceParameterConverter implements ToNativeConverter<ByReference, Pointer> {
+    private static final ToNativeConverter<ByReference, Pointer> IN = new ByReferenceParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<ByReference, Pointer> OUT = new ByReferenceParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<ByReference, Pointer> INOUT = new ByReferenceParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
+    private final int parameterFlags;
 
-    public ByReferenceParameterConverter(jnr.ffi.Runtime runtime, int flags) {
-        this.runtime = runtime;
-        this.flags = flags;
+    private ByReferenceParameterConverter(int parameterFlags) {
+        this.parameterFlags = parameterFlags;
     }
 
-    public void postInvoke(ByReference byReference, Pointer pointer, ToNativeContext context) {
-        if (ParameterFlags.isOut(flags)) {
-            byReference.fromNative(runtime, pointer, 0);
-        }
+    public static ToNativeConverter<ByReference, Pointer> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
     public Pointer toNative(ByReference value, ToNativeContext context) {
-        Pointer memory =  Memory.allocate(runtime, value.nativeSize(runtime));
-        if (ParameterFlags.isIn(flags)) {
-            value.toNative(runtime, memory, 0);
+        if (value == null) {
+            return null;
         }
+
+        Pointer memory =  Memory.allocate(context.getRuntime(), value.nativeSize(context.getRuntime()));
+        if (ParameterFlags.isIn(parameterFlags)) {
+            value.toNative(context.getRuntime(), memory, 0);
+        }
+
         return memory;
     }
 
     public Class<Pointer> nativeType() {
         return Pointer.class;
+    }
+
+    public static final class Out extends ByReferenceParameterConverter implements ToNativeConverter.PostInvocation<ByReference, Pointer> {
+        public Out(int parameterFlags) {
+            super(parameterFlags);
+        }
+
+        public void postInvoke(ByReference byReference, Pointer pointer, ToNativeContext context) {
+            if (byReference != null && pointer != null) {
+                byReference.fromNative(context.getRuntime(), pointer, 0);
+            }
+        }
     }
 }

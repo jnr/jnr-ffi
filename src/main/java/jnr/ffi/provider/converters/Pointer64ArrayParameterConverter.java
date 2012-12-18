@@ -16,10 +16,11 @@ public class Pointer64ArrayParameterConverter implements ToNativeConverter<Point
     protected final jnr.ffi.Runtime runtime;
     protected final int parameterFlags;
 
-    public static ToNativeConverter<Pointer[], long[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
+    public static ToNativeConverter<Pointer[], long[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
         return !ParameterFlags.isOut(parameterFlags)
-                ? new Pointer64ArrayParameterConverter(runtime, parameterFlags)
-                : new Pointer64ArrayParameterConverter.Out(runtime, parameterFlags);
+                ? new Pointer64ArrayParameterConverter(toNativeContext.getRuntime(), parameterFlags)
+                : new Pointer64ArrayParameterConverter.Out(toNativeContext.getRuntime(), parameterFlags);
     }
 
     Pointer64ArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {

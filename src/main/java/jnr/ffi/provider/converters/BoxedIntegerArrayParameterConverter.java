@@ -10,17 +10,18 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class BoxedIntegerArrayParameterConverter implements ToNativeConverter<Integer[], int[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final ToNativeConverter<Integer[], int[]> IN = new BoxedIntegerArrayParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<Integer[], int[]> OUT = new BoxedIntegerArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<Integer[], int[]> INOUT = new BoxedIntegerArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
+
     private final int parameterFlags;
 
-    public static ToNativeConverter<Integer[], int[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-                ? new BoxedIntegerArrayParameterConverter(runtime, parameterFlags)
-                : new BoxedIntegerArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<Integer[], int[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    public BoxedIntegerArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    public BoxedIntegerArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -40,8 +41,8 @@ public class BoxedIntegerArrayParameterConverter implements ToNativeConverter<In
     }
 
     public static final class Out extends BoxedIntegerArrayParameterConverter implements PostInvocation<Integer[], int[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

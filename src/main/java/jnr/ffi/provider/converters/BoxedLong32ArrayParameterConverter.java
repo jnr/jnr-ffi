@@ -10,17 +10,18 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class BoxedLong32ArrayParameterConverter implements ToNativeConverter<Long[], int[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final ToNativeConverter<Long[], int[]> IN = new BoxedLong32ArrayParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<Long[], int[]> OUT = new BoxedLong32ArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<Long[], int[]> INOUT = new BoxedLong32ArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
+
     private final int parameterFlags;
 
-    public static ToNativeConverter<Long[], int[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-                ? new BoxedLong32ArrayParameterConverter(runtime, parameterFlags)
-                : new BoxedLong32ArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<Long[], int[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    public BoxedLong32ArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    public BoxedLong32ArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -40,8 +41,8 @@ public class BoxedLong32ArrayParameterConverter implements ToNativeConverter<Lon
     }
 
     public static final class Out extends BoxedLong32ArrayParameterConverter implements PostInvocation<Long[], int[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

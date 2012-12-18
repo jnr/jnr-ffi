@@ -10,17 +10,17 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class BoxedByteArrayParameterConverter implements ToNativeConverter<Byte[], byte[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final ToNativeConverter<Byte[], byte[]> IN = new BoxedByteArrayParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<Byte[], byte[]> OUT = new BoxedByteArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<Byte[], byte[]> INOUT = new BoxedByteArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
     private final int parameterFlags;
 
-    public static ToNativeConverter<Byte[], byte[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-            ? new BoxedByteArrayParameterConverter(runtime, parameterFlags)
-            : new BoxedByteArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<Byte[], byte[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    BoxedByteArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    BoxedByteArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -40,8 +40,8 @@ public class BoxedByteArrayParameterConverter implements ToNativeConverter<Byte[
     }
 
     public static final class Out extends BoxedByteArrayParameterConverter implements PostInvocation<Byte[], byte[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

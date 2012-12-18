@@ -12,7 +12,11 @@ import jnr.ffi.mapper.*;
 @ToNativeConverter.Cacheable
 @FromNativeConverter.Cacheable
 public final class NativeLongConverter extends AbstractDataConverter<NativeLong, Long> {
-    public static final DataConverter INSTANCE = new NativeLongConverter();
+    private static final DataConverter INSTANCE = new NativeLongConverter();
+
+    public static DataConverter<NativeLong, Long> getInstance() {
+        return INSTANCE;
+    }
 
     public Class<Long> nativeType() {
         return Long.class;

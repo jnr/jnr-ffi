@@ -10,17 +10,18 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class BoxedFloatArrayParameterConverter implements ToNativeConverter<Float[], float[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final ToNativeConverter<Float[], float[]> IN = new BoxedFloatArrayParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<Float[], float[]> OUT = new BoxedFloatArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<Float[], float[]> INOUT = new BoxedFloatArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
+
     private final int parameterFlags;
 
-    public static ToNativeConverter<Float[], float[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-            ? new BoxedFloatArrayParameterConverter(runtime, parameterFlags)
-            : new BoxedFloatArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<Float[], float[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    BoxedFloatArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    BoxedFloatArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -40,8 +41,8 @@ public class BoxedFloatArrayParameterConverter implements ToNativeConverter<Floa
     }
 
     public static final class Out extends BoxedFloatArrayParameterConverter implements PostInvocation<Float[], float[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

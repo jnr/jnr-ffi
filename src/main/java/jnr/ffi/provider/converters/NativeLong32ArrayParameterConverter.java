@@ -11,17 +11,18 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class NativeLong32ArrayParameterConverter implements ToNativeConverter<NativeLong[], int[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final ToNativeConverter<NativeLong[], int[]> IN = new NativeLong32ArrayParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<NativeLong[], int[]> OUT = new NativeLong32ArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<NativeLong[], int[]> INOUT = new NativeLong32ArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
+
     private final int parameterFlags;
 
-    public static ToNativeConverter<NativeLong[], int[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-                ? new NativeLong32ArrayParameterConverter(runtime, parameterFlags)
-                : new NativeLong32ArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<NativeLong[], int[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    NativeLong32ArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    NativeLong32ArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -41,8 +42,8 @@ public class NativeLong32ArrayParameterConverter implements ToNativeConverter<Na
     }
 
     public static final class Out extends NativeLong32ArrayParameterConverter implements PostInvocation<NativeLong[], int[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

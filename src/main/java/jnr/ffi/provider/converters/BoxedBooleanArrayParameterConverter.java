@@ -10,17 +10,17 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class BoxedBooleanArrayParameterConverter implements ToNativeConverter<Boolean[], boolean[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final ToNativeConverter<Boolean[], boolean[]> IN = new BoxedBooleanArrayParameterConverter(ParameterFlags.IN);
+    private static final ToNativeConverter<Boolean[], boolean[]> OUT = new BoxedBooleanArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final ToNativeConverter<Boolean[], boolean[]> INOUT = new BoxedBooleanArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
     private final int parameterFlags;
 
-    public static ToNativeConverter<Boolean[], boolean[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-                ? new BoxedBooleanArrayParameterConverter(runtime, parameterFlags)
-                : new BoxedBooleanArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<Boolean[], boolean[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    public BoxedBooleanArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    public BoxedBooleanArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -40,8 +40,8 @@ public class BoxedBooleanArrayParameterConverter implements ToNativeConverter<Bo
     }
 
     public static final class Out extends BoxedBooleanArrayParameterConverter implements PostInvocation<Boolean[], boolean[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

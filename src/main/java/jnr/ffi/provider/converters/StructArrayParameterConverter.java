@@ -20,10 +20,11 @@ public class StructArrayParameterConverter implements ToNativeConverter<Struct[]
     protected final jnr.ffi.Runtime runtime;
     protected final int parameterFlags;
 
-    public static ToNativeConverter<Struct[], Pointer> getInstance(jnr.ffi.Runtime runtime, Class structClass, int parameterFlags) {
+    public static ToNativeConverter<Struct[], Pointer> getInstance(ToNativeContext toNativeContext, Class structClass) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
         return !ParameterFlags.isOut(parameterFlags)
-                ? new StructArrayParameterConverter(runtime, parameterFlags)
-                : new StructArrayParameterConverter.Out(runtime, structClass.asSubclass(Struct.class), parameterFlags);
+                ? new StructArrayParameterConverter(toNativeContext.getRuntime(), parameterFlags)
+                : new StructArrayParameterConverter.Out(toNativeContext.getRuntime(), structClass.asSubclass(Struct.class), parameterFlags);
     }
 
     StructArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
@@ -57,7 +58,7 @@ public class StructArrayParameterConverter implements ToNativeConverter<Struct[]
             try {
                 cons = structClass.getConstructor(jnr.ffi.Runtime.class);
             } catch (NoSuchMethodException nsme) {
-                throw new RuntimeException("jnr.ffi.Struct subclass has no constructor that accepts jnr.ffi.Runtime");
+                throw new RuntimeException(structClass.getName() + " has no constructor that accepts jnr.ffi.Runtime");
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }

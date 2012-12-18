@@ -24,10 +24,11 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;
 
-    public static ToNativeConverter<String[], Pointer> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
+    public static ToNativeConverter<String[], Pointer> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
         return !ParameterFlags.isOut(parameterFlags)
-            ? new StringArrayParameterConverter(runtime, parameterFlags)
-            : new StringArrayParameterConverter.Out(runtime, parameterFlags);
+                ? new StringArrayParameterConverter(toNativeContext.getRuntime(), parameterFlags)
+                : new StringArrayParameterConverter.Out(toNativeContext.getRuntime(), parameterFlags);
     }
 
     StringArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
@@ -77,8 +78,8 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
         private List<Pointer> stringMemory;
         private final Charset charset = Charset.defaultCharset();
 
-        private StringArray(Pointer memory, int capacity) {
-            super(memory.getRuntime(), memory.address(), memory.isDirect());
+        private StringArray(Runtime runtime, Pointer memory, int capacity) {
+            super(runtime, memory.address(), memory.isDirect());
             this.memory = memory;
             this.stringMemory = new ArrayList<Pointer>(capacity);
         }
@@ -107,7 +108,7 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
 
         static StringArray allocate(Runtime runtime, int capacity) {
             Pointer memory = Memory.allocateDirect(runtime, capacity * runtime.addressSize());
-            return new StringArray(memory, capacity);
+            return new StringArray(runtime, memory, capacity);
         }
 
     }

@@ -10,17 +10,18 @@ import jnr.ffi.provider.ParameterFlags;
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
 public class Long32ArrayParameterConverter implements ToNativeConverter<long[], int[]> {
-    private final jnr.ffi.Runtime runtime;
+    private static final Long32ArrayParameterConverter IN = new Long32ArrayParameterConverter(ParameterFlags.IN);
+    private static final Long32ArrayParameterConverter OUT = new Long32ArrayParameterConverter.Out(ParameterFlags.OUT);
+    private static final Long32ArrayParameterConverter INOUT = new Long32ArrayParameterConverter.Out(ParameterFlags.IN | ParameterFlags.OUT);
+
     private final int parameterFlags;
 
-    public static ToNativeConverter<long[], int[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
-        return !ParameterFlags.isOut(parameterFlags)
-                ? new Long32ArrayParameterConverter(runtime, parameterFlags)
-                : new Long32ArrayParameterConverter.Out(runtime, parameterFlags);
+    public static ToNativeConverter<long[], int[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
+        return ParameterFlags.isOut(parameterFlags) ? ParameterFlags.isIn(parameterFlags) ? INOUT : OUT : IN;
     }
 
-    public Long32ArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
-        this.runtime = runtime;
+    private Long32ArrayParameterConverter(int parameterFlags) {
         this.parameterFlags = parameterFlags;
     }
 
@@ -41,8 +42,8 @@ public class Long32ArrayParameterConverter implements ToNativeConverter<long[], 
     }
 
     public static final class Out extends Long32ArrayParameterConverter implements PostInvocation<long[], int[]> {
-        Out(jnr.ffi.Runtime runtime, int parameterFlags) {
-            super(runtime, parameterFlags);
+        Out(int parameterFlags) {
+            super(parameterFlags);
         }
 
         @Override

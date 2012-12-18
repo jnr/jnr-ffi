@@ -15,10 +15,11 @@ public class Pointer32ArrayParameterConverter implements ToNativeConverter<Point
     protected final jnr.ffi.Runtime runtime;
     protected final int parameterFlags;
 
-    public static ToNativeConverter<Pointer[], int[]> getInstance(jnr.ffi.Runtime runtime, int parameterFlags) {
+    public static ToNativeConverter<Pointer[], int[]> getInstance(ToNativeContext toNativeContext) {
+        int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
         return !ParameterFlags.isOut(parameterFlags)
-            ? new Pointer32ArrayParameterConverter(runtime, parameterFlags)
-            : new Pointer32ArrayParameterConverter.Out(runtime, parameterFlags);
+                ? new Pointer32ArrayParameterConverter(toNativeContext.getRuntime(), parameterFlags)
+                : new Pointer32ArrayParameterConverter.Out(toNativeContext.getRuntime(), parameterFlags);
     }
 
     Pointer32ArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
