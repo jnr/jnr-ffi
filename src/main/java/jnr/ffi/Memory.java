@@ -51,6 +51,30 @@ public final class Memory {
     }
 
     /**
+     * Allocates a new block of java memory and wraps it in a {@link Pointer}
+     * accessor.
+     *
+     * @param type The type to allocate memory for.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static Pointer allocate(Runtime runtime, Type type) {
+        return runtime.getMemoryManager().allocate(type.size());
+    }
+
+    /**
+     * Allocates a new block of java memory and wraps it in a {@link Pointer}
+     * accessor.
+     *
+     * @param type The type alias to allocate memory for.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static Pointer allocate(Runtime runtime, TypeAlias type) {
+        return runtime.getMemoryManager().allocate(runtime.findType(type).size());
+    }
+
+    /**
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
@@ -78,6 +102,18 @@ public final class Memory {
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param type The type alias to allocate memory for.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static Pointer allocateDirect(Runtime runtime, TypeAlias type) {
+        return runtime.getMemoryManager().allocateDirect(runtime.findType(type).size());
+    }
+
+    /**
+     * Allocates a new block of native memory and wraps it in a {@link Pointer}
+     * accessor.
+     *
      * @param size The size in bytes of memory to allocate.
      * @param clear Whether the memory contents should be cleared, or left as
      * random data.
@@ -98,6 +134,19 @@ public final class Memory {
      * @return a {@code Pointer} instance that can access the memory.
      */
     public static Pointer allocateTemporary(Runtime runtime, NativeType type) {
+        return runtime.getMemoryManager().allocateTemporary(runtime.findType(type).size(), true);
+    }
+
+    /**
+     * Allocates a new block of transient native memory and wraps it in a {@link Pointer}
+     * accessor.  The memory returned by this method should not be passed to native methods
+     * that store the address for later use, as it may change each time it is passed to native code.
+     *
+     * @param type The type alias to allocate memory for.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static Pointer allocateTemporary(Runtime runtime, TypeAlias type) {
         return runtime.getMemoryManager().allocateTemporary(runtime.findType(type).size(), true);
     }
     
