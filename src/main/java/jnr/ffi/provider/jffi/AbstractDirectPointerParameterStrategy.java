@@ -11,16 +11,16 @@ abstract class AbstractDirectPointerParameterStrategy extends PointerParameterSt
 
     @Override
     public Object object(Object o) {
-        throw new RuntimeException("no array");
+        throw new UnsupportedOperationException("no array");
     }
 
     @Override
     public int offset(Object o) {
-        throw new RuntimeException("no array");
+        throw new UnsupportedOperationException("no array");
     }
 
     @Override
     public int length(Object o) {
-        throw new RuntimeException("no array");
+        throw new UnsupportedOperationException("no array");
     }
 }
