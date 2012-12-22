@@ -8,7 +8,7 @@ import java.util.EnumSet;
 /**
  *
  */
-final class HeapBufferParameterStrategy extends PointerParameterStrategy {
+final class HeapBufferParameterStrategy extends ParameterStrategy {
 
     public HeapBufferParameterStrategy(ObjectParameterType.ComponentType componentType) {
         super(HEAP, ObjectParameterType.create(ObjectParameterType.ARRAY, componentType));
@@ -45,7 +45,7 @@ final class HeapBufferParameterStrategy extends PointerParameterStrategy {
         }
     }
 
-    static PointerParameterStrategy get(ObjectParameterType.ComponentType componentType) {
+    static HeapBufferParameterStrategy get(ObjectParameterType.ComponentType componentType) {
         return heapBufferStrategies[componentType.ordinal()];
     }
 

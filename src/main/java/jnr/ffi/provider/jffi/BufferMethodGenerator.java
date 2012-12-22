@@ -3,12 +3,13 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.InvocationSession;
+import org.objectweb.asm.Label;
 
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitParameterStrategyLookup;
 import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.hasPointerParameterStrategy;
 import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
@@ -159,11 +160,11 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
                 emitPrimitiveOp(mv, parameterTypes[i], op);
 
             } else if (hasPointerParameterStrategy(javaParameterType)) {
-                mv.dup();
-                emitPointerParameterStrategyLookup(mv, javaParameterType, parameterTypes[i].annotations());
+                emitParameterStrategyLookup(mv, javaParameterType);
                 mv.astore(strategies[i] = localVariableAllocator.allocate(PointerParameterStrategy.class));
-                mv.aload(strategies[i]);
 
+                mv.aload(converted[i]);
+                mv.aload(strategies[i]);
                 mv.pushInt(AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations()));
                 mv.invokevirtual(HeapInvocationBuffer.class, "putObject", void.class, Object.class, ObjectParameterStrategy.class, int.class);
 

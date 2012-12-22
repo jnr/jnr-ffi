@@ -80,12 +80,25 @@ public final class AsmRuntime {
         return ptr != null ? ptr.intValue() : 0;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(Pointer pointer) {
-        if (pointer == null) {
-            return NullPointerParameterStrategy.INSTANCE;
+    public static long longValue(Buffer ptr) {
+        return ptr != null && ptr.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0L;
+    }
 
-        } else if (pointer.isDirect()) {
-            return DirectMemoryParameterStrategy.INSTANCE;
+    public static int intValue(Buffer ptr) {
+        return ptr != null && ptr.isDirect()  ? (int) MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0;
+    }
+
+    public static ParameterStrategy nullParameterStrategy() {
+        return NullObjectParameterStrategy.NULL;
+    }
+
+    public static PointerParameterStrategy directPointerParameterStrategy() {
+        return PointerParameterStrategy.DIRECT;
+    }
+
+    public static PointerParameterStrategy pointerParameterStrategy(Pointer pointer) {
+        if (pointer == null || pointer.isDirect()) {
+            return PointerParameterStrategy.DIRECT;
 
         } else {
             return otherPointerParameterStrategy(pointer);
@@ -94,29 +107,26 @@ public final class AsmRuntime {
 
     private static PointerParameterStrategy otherPointerParameterStrategy(Pointer pointer) {
         if (pointer.hasArray()) {
-            return ArrayMemoryParameterStrategy.INSTANCE;
+            return PointerParameterStrategy.HEAP;
 
         } else {
             throw new RuntimeException("cannot convert " + pointer.getClass() + " to native");
         }
     }
 
-    public static PointerParameterStrategy bufferParameterStrategy(Buffer buffer, ObjectParameterType.ComponentType componentType) {
-        if (buffer == null) {
-            return NullPointerParameterStrategy.INSTANCE;
-
-        } else if (buffer.isDirect()) {
-            return DirectBufferParameterStrategy.get(componentType);
+    public static BufferParameterStrategy bufferParameterStrategy(Buffer buffer, ObjectParameterType.ComponentType componentType) {
+        if (buffer == null || buffer.isDirect()) {
+            return BufferParameterStrategy.direct(componentType);
 
         } else if (buffer.hasArray()) {
-            return HeapBufferParameterStrategy.get(componentType);
+            return BufferParameterStrategy.heap(componentType);
 
         } else {
             throw new IllegalArgumentException("cannot marshal non-direct, non-array Buffer");
         }
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(Buffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(Buffer buffer) {
         if (buffer instanceof ByteBuffer) {
             return bufferParameterStrategy(buffer, ObjectParameterType.BYTE);
 
@@ -139,70 +149,70 @@ public final class AsmRuntime {
             return bufferParameterStrategy(buffer, ObjectParameterType.DOUBLE);
 
         } else if (buffer == null) {
-                return NullPointerParameterStrategy.INSTANCE;
+                return BufferParameterStrategy.direct(ObjectParameterType.BYTE);
 
         } else {
             throw new IllegalArgumentException("unsupported java.nio.Buffer subclass: " + buffer.getClass());
         }
     }
-    public static PointerParameterStrategy pointerParameterStrategy(ByteBuffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(ByteBuffer buffer) {
         return bufferParameterStrategy(buffer, ObjectParameterType.BYTE);
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(ShortBuffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(ShortBuffer buffer) {
         return bufferParameterStrategy(buffer, ObjectParameterType.SHORT);
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(CharBuffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(CharBuffer buffer) {
         return bufferParameterStrategy(buffer, ObjectParameterType.CHAR);
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(IntBuffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(IntBuffer buffer) {
         return bufferParameterStrategy(buffer, ObjectParameterType.INT);
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(LongBuffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(LongBuffer buffer) {
         return bufferParameterStrategy(buffer, ObjectParameterType.LONG);
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(FloatBuffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(FloatBuffer buffer) {
         return bufferParameterStrategy(buffer, ObjectParameterType.FLOAT);
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(DoubleBuffer buffer) {
+    public static BufferParameterStrategy pointerParameterStrategy(DoubleBuffer buffer) {
         return bufferParameterStrategy(buffer, ObjectParameterType.DOUBLE);
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(byte[] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.BYTE : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(byte[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.BYTE : NullObjectParameterStrategy.NULL;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(short[] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.SHORT : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(short[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.SHORT : NullObjectParameterStrategy.NULL;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(char[] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.CHAR : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(char[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.CHAR : NullObjectParameterStrategy.NULL;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(int[] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.INT : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(int[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.INT : NullObjectParameterStrategy.NULL;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(long[] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.LONG : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(long[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.LONG : NullObjectParameterStrategy.NULL;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(float[] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.FLOAT : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(float[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.FLOAT : NullObjectParameterStrategy.NULL;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(double[] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.DOUBLE : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(double[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.DOUBLE : NullObjectParameterStrategy.NULL;
     }
 
-    public static PointerParameterStrategy pointerParameterStrategy(boolean [] array) {
-        return array != null ? PrimitiveArrayParameterStrategy.BOOLEAN : NullPointerParameterStrategy.INSTANCE;
+    public static ParameterStrategy pointerParameterStrategy(boolean[] array) {
+        return array != null ? PrimitiveArrayParameterStrategy.BOOLEAN : NullObjectParameterStrategy.NULL;
     }
 
     public static void postInvoke(ToNativeConverter.PostInvocation postInvocation, Object j, Object n, ToNativeContext context) {

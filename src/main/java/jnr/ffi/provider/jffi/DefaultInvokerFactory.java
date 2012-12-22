@@ -386,7 +386,7 @@ final class DefaultInvokerFactory {
         }
 
         public final void marshal(InvocationSession session, HeapInvocationBuffer buffer, Object parameter) {
-            buffer.putObject(parameter, parameter != null ? strategy : NullPointerParameterStrategy.INSTANCE, flags);
+            buffer.putObject(parameter, parameter != null ? strategy : NullObjectParameterStrategy.NULL, flags);
         }
     }
 

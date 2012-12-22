@@ -9,7 +9,7 @@ import java.util.EnumSet;
 /**
  *
  */
-final class DirectBufferParameterStrategy extends PointerParameterStrategy {
+final class DirectBufferParameterStrategy extends ParameterStrategy {
     private final int shift;
 
     public DirectBufferParameterStrategy(ObjectParameterType.ComponentType componentType) {
@@ -20,7 +20,7 @@ final class DirectBufferParameterStrategy extends PointerParameterStrategy {
     @Override
     public long address(Object o) {
         Buffer buffer = (Buffer) o;
-        return MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << shift);
+        return o != null ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << shift) : 0L;
     }
 
     @Override
@@ -69,7 +69,7 @@ final class DirectBufferParameterStrategy extends PointerParameterStrategy {
         }
     }
 
-    static PointerParameterStrategy get(ObjectParameterType.ComponentType componentType) {
+    static DirectBufferParameterStrategy get(ObjectParameterType.ComponentType componentType) {
         return directBufferStrategies[componentType.ordinal()];
     }
 

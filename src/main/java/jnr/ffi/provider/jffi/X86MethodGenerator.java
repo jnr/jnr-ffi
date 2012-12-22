@@ -7,8 +7,7 @@ import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitPointerParameterStrategyLookup;
-import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.hasPointerParameterStrategy;
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.*;
 import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitEpilogue;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
@@ -125,7 +124,6 @@ class X86MethodGenerator implements MethodGenerator {
         LocalVariableAllocator localVariableAllocator = new LocalVariableAllocator(parameterTypes);
         final LocalVariable objCount = localVariableAllocator.allocate(int.class);
         final LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
-        LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
         final LocalVariable[] converted = new LocalVariable[parameterTypes.length];
         int pointerCount = 0;
 
@@ -140,28 +138,7 @@ class X86MethodGenerator implements MethodGenerator {
                 toNativeOp.emitPrimitive(mv, nativeParameterClass, parameterTypes[i].nativeType);
 
             } else if (hasPointerParameterStrategy(javaParameterClass)) {
-
-                // Initialize the objectCount local var
-                if (pointerCount++ < 1) {
-                    mv.pushInt(0);
-                    mv.istore(objCount);
-                }
-
-                emitPointerParameterStrategyLookup(mv, javaParameterClass, parameterTypes[i].annotations());
-
-                mv.astore(strategies[i] = localVariableAllocator.allocate(ObjectParameterStrategy.class));
-                mv.aload(strategies[i]);
-
-                mv.getfield(p(PointerParameterStrategy.class), "objectCount", ci(int.class));
-                mv.iload(objCount);
-                mv.iadd();
-                mv.istore(objCount);
-
-                // Get the native address (will return zero for heap objects)
-                mv.aload(strategies[i]);
-                mv.aload(converted[i]);
-                mv.invokevirtual(PointerParameterStrategy.class, "address", long.class, Object.class);
-                narrow(mv, long.class, nativeParameterClass);
+                pointerCount = emitDirectCheck(mv, javaParameterClass, nativeParameterClass, converted[i], objCount, pointerCount);
 
             } else if (!javaParameterClass.isPrimitive()) {
                 throw new IllegalArgumentException("unsupported type " + javaParameterClass);
@@ -227,14 +204,20 @@ class X86MethodGenerator implements MethodGenerator {
             mv.iload(objCount);
             // Need to load all the converters onto the stack
             for (int i = 0; i < parameterTypes.length; i++) {
-                if (strategies[i] != null) {
+                LocalVariable[] strategies = new LocalVariable[parameterTypes.length];
+                Class javaParameterType = parameterTypes[i].effectiveJavaType();
+                if (hasPointerParameterStrategy(javaParameterType)) {
+                    mv.aload(converted[i]);
+                    emitParameterStrategyLookup(mv, javaParameterType);
+                    mv.astore(strategies[i] = localVariableAllocator.allocate(ParameterStrategy.class));
+
                     mv.aload(converted[i]);
                     mv.aload(strategies[i]);
-                    mv.aload(0);
 
                     ObjectParameterInfo info = ObjectParameterInfo.create(i,
                             AsmUtil.getNativeArrayFlags(parameterTypes[i].annotations()));
 
+                    mv.aload(0);
                     mv.getfield(builder.getClassNamePath(), builder.getObjectParameterInfoName(info),
                             ci(ObjectParameterInfo.class));
                 }

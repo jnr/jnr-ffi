@@ -46,17 +46,17 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     @Override
     public Object array() {
-        return null;
+        throw new UnsupportedOperationException("no array");
     }
 
     @Override
     public int arrayOffset() {
-        return 0;
+        throw new UnsupportedOperationException("no array");
     }
 
     @Override
     public int arrayLength() {
-        return 0;
+        throw new UnsupportedOperationException("no array");
     }
 
     public String toString() {

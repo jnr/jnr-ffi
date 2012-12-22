@@ -5,7 +5,7 @@ import com.kenai.jffi.ObjectParameterType;
 /**
  *
  */
-abstract class PrimitiveArrayParameterStrategy extends PointerParameterStrategy {
+abstract public class PrimitiveArrayParameterStrategy extends ParameterStrategy {
     static final PrimitiveArrayParameterStrategy BYTE = new PrimitiveArrayParameterStrategy(ObjectParameterType.BYTE) {
         public int length(Object o) {
             return ((byte[]) o).length;

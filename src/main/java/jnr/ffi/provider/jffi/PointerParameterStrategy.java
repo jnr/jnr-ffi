@@ -1,29 +1,40 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.ObjectParameterStrategy;
 import com.kenai.jffi.ObjectParameterType;
+import jnr.ffi.Pointer;
 
 /**
  *
  */
-abstract public class PointerParameterStrategy extends ObjectParameterStrategy {
-    /* objectCount is accessed directly from asm code - do not change */
-    public final int objectCount;
+public final class PointerParameterStrategy extends ParameterStrategy {
+    public static final PointerParameterStrategy DIRECT = new PointerParameterStrategy(StrategyType.DIRECT);
+    public static final PointerParameterStrategy HEAP = new PointerParameterStrategy(StrategyType.HEAP);
 
-    protected PointerParameterStrategy(StrategyType type) {
-        super(type);
-        objectCount = type == HEAP ? 1 : 0;
+    PointerParameterStrategy(StrategyType type) {
+        super(type, ObjectParameterType.create(ObjectParameterType.ARRAY, ObjectParameterType.BYTE));
     }
 
-    protected PointerParameterStrategy(StrategyType type, ObjectParameterType parameterType) {
-        super(type, parameterType);
-        objectCount = type == HEAP ? 1 : 0;
+    @Override
+    public long address(Object o) {
+        return address((Pointer) o);
     }
 
-
-    public long getAddress(Object o) {
-        return address(o);
+    public long address(Pointer pointer) {
+        return pointer != null ? pointer.address() : 0L;
     }
 
-    public abstract long address(Object o);
+    @Override
+    public Object object(Object o) {
+        return ((Pointer) o).array();
+    }
+
+    @Override
+    public int offset(Object o) {
+        return ((Pointer) o).arrayOffset();
+    }
+
+    @Override
+    public int length(Object o) {
+        return ((Pointer) o).arrayLength();
+    }
 }
