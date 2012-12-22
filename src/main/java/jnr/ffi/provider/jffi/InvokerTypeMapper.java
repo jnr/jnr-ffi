@@ -43,7 +43,7 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
             return NativeLongConverter.getInstance();
 
         } else if (String.class == signatureType.getDeclaredType() || CharSequence.class == signatureType.getDeclaredType()) {
-            return StringResultConverter.getInstance(Charset.defaultCharset());
+            return StringResultConverter.getInstance(fromNativeContext);
 
         } else if ((Set.class == signatureType.getDeclaredType() || EnumSet.class == signatureType.getDeclaredType()) && (converter = EnumSetConverter.getFromNativeConverter(signatureType, fromNativeContext)) != null) {
             return converter;

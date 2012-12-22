@@ -1,13 +1,18 @@
 package jnr.ffi.provider.converters;
 
+import jnr.ffi.annotations.Encoding;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.NulTerminate;
+import jnr.ffi.mapper.MethodParameterContext;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 
+import java.lang.annotation.Annotation;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Converts a CharSequence (e.g. String) to a primitive ByteBuffer array parameter
@@ -24,7 +29,39 @@ public class CharSequenceParameterConverter implements ToNativeConverter<CharSeq
     }
 
     public static ToNativeConverter<CharSequence, ByteBuffer> getInstance(ToNativeContext toNativeContext) {
-        return new CharSequenceParameterConverter(Charset.defaultCharset());
+        Charset charset = Charset.defaultCharset();
+
+        if (toNativeContext instanceof MethodParameterContext) {
+            // See if the interface class has a global @Encoding declaration
+            Charset cs = getEncodingCharset(Arrays.asList(((MethodParameterContext) toNativeContext).getMethod().getDeclaringClass().getAnnotations()));
+            if (cs != null) {
+                charset = cs;
+            }
+
+            // Allow each method to override the default
+            cs = getEncodingCharset(Arrays.asList(((MethodParameterContext) toNativeContext).getMethod().getAnnotations()));
+            if (cs != null) {
+                charset = cs;
+            }
+        }
+
+        // Override on a per-parameter basis
+        Charset cs = getEncodingCharset(toNativeContext.getAnnotations());
+        if (cs != null) {
+            charset = cs;
+        }
+
+        return getInstance(charset, toNativeContext);
+    }
+
+    private static Charset getEncodingCharset(Collection<Annotation> annotations) {
+        for (Annotation a : annotations) {
+            if (a instanceof Encoding) {
+                return Charset.forName(((Encoding) a).charset());
+            }
+        }
+
+        return null;
     }
 
     private CharSequenceParameterConverter(Charset charset) {

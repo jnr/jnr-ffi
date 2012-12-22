@@ -16,7 +16,7 @@ final class ClosureTypeMapper implements SignatureTypeMapper {
             return EnumConverter.getInstance(type.getDeclaredType().asSubclass(Enum.class));
 
         } else if (CharSequence.class.isAssignableFrom(type.getDeclaredType())) {
-            return StringResultConverter.getInstance(Charset.defaultCharset());
+            return StringResultConverter.getInstance(context);
 
         } else {
             return null;
