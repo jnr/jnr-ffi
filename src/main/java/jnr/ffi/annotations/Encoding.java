@@ -28,5 +28,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = { ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE })
 public @interface Encoding {
-    String charset();
+    String value();
 }

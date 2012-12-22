@@ -57,7 +57,7 @@ public class CharSequenceParameterConverter implements ToNativeConverter<CharSeq
     private static Charset getEncodingCharset(Collection<Annotation> annotations) {
         for (Annotation a : annotations) {
             if (a instanceof Encoding) {
-                return Charset.forName(((Encoding) a).charset());
+                return Charset.forName(((Encoding) a).value());
             }
         }
 

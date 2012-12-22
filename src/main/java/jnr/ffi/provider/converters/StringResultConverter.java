@@ -5,7 +5,6 @@ import jnr.ffi.annotations.Encoding;
 import jnr.ffi.mapper.*;
 
 import java.lang.annotation.Annotation;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,14 +33,14 @@ public class StringResultConverter implements FromNativeConverter<String, Pointe
             // See if the interface class has a global @Encoding declaration
             Encoding e = getEncoding(Arrays.asList(((MethodResultContext) fromNativeContext).getMethod().getDeclaringClass().getAnnotations()));
             if (e != null) {
-                charset = Charset.forName(e.charset());
+                charset = Charset.forName(e.value());
             }
         }
 
         // Allow each method to override the default
         Encoding e = getEncoding(fromNativeContext.getAnnotations());
         if (e != null) {
-            charset = Charset.forName(e.charset());
+            charset = Charset.forName(e.value());
         }
 
         return getInstance(charset);
