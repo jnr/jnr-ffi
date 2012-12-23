@@ -74,7 +74,7 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
             return ByReferenceParameterConverter.getInstance(context);
 
         } else if (Struct.class.isAssignableFrom(javaType)) {
-            return new StructByReferenceToNativeConverter(ParameterFlags.parse(context.getAnnotations()));
+            return StructByReferenceToNativeConverter.getInstance(context);
 
         } else if (NativeLong.class.isAssignableFrom(javaType)) {
             return NativeLongConverter.getInstance();

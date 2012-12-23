@@ -7,8 +7,7 @@ import jnr.ffi.mapper.ToNativeType;
 import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.StringResultConverter;
-
-import java.nio.charset.Charset;
+import jnr.ffi.provider.converters.StructByReferenceToNativeConverter;
 
 final class ClosureTypeMapper implements SignatureTypeMapper {
     private FromNativeConverter getFromNativeConverter(SignatureType type, FromNativeContext context) {
@@ -28,7 +27,7 @@ final class ClosureTypeMapper implements SignatureTypeMapper {
             return EnumConverter.getInstance(type.getDeclaredType().asSubclass(Enum.class));
 
         } else if (Struct.class.isAssignableFrom(type.getDeclaredType())) {
-            return new StructByReferenceToNativeConverter(ParameterFlags.parse(context.getAnnotations()));
+            return StructByReferenceToNativeConverter.getInstance(context);
 
 
         } else {
