@@ -101,7 +101,7 @@ final class DefaultInvokerFactory {
     static Marshaller getMarshaller(ParameterType parameterType) {
         Marshaller marshaller = getMarshaller(parameterType.effectiveJavaType(), parameterType.nativeType, parameterType.getAnnotations());
         return parameterType.toNativeConverter != null
-            ? new ToNativeConverterMarshaller(parameterType.toNativeConverter, marshaller)
+            ? new ToNativeConverterMarshaller(parameterType.getToNativeConverter(), parameterType.toNativeContext, marshaller)
             : marshaller;
     }
 
@@ -409,12 +409,13 @@ final class DefaultInvokerFactory {
 
     static class ToNativeConverterMarshaller implements Marshaller {
         private final ToNativeConverter converter;
-        private final ToNativeContext context = null;
+        private final ToNativeContext context;
         private final Marshaller marshaller;
         private final boolean isPostInvokeRequired;
 
-        public ToNativeConverterMarshaller(ToNativeConverter converter, Marshaller marshaller) {
-            this.converter = converter;
+        public ToNativeConverterMarshaller(ToNativeConverter toNativeConverter, ToNativeContext toNativeContext, Marshaller marshaller) {
+            this.converter = toNativeConverter;
+            this.context = toNativeContext;
             this.marshaller = marshaller;
             this.isPostInvokeRequired = converter instanceof ToNativeConverter.PostInvocation;
         }

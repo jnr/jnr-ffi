@@ -33,8 +33,12 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
             return EnumConverter.getInstance(signatureType.getDeclaredType().asSubclass(Enum.class));
 
         } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
-            return StructByReferenceFromNativeConverter.newStructByReferenceConverter(fromNativeContext.getRuntime(), signatureType.getDeclaredType().asSubclass(Struct.class),
-                    ParameterFlags.parse(fromNativeContext.getAnnotations()), classLoader);
+            if (NativeLibraryLoader.ASM_ENABLED) {
+                return StructByReferenceFromNativeConverter.newStructByReferenceConverter(fromNativeContext.getRuntime(), signatureType.getDeclaredType().asSubclass(Struct.class),
+                        ParameterFlags.parse(fromNativeContext.getAnnotations()), classLoader);
+            } else {
+                return jnr.ffi.provider.converters.StructByReferenceFromNativeConverter.getInstance(signatureType.getDeclaredType(), fromNativeContext);
+            }
 
         } else if (closureManager != null && isDelegate(signatureType.getDeclaredType())) {
             return ClosureFromNativeConverter.getInstance(fromNativeContext.getRuntime(), signatureType, classLoader, this);
