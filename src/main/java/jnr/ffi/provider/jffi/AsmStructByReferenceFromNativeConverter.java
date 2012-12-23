@@ -11,7 +11,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 
 import java.io.PrintWriter;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -26,11 +25,11 @@ import static org.objectweb.asm.Opcodes.*;
 
 @FromNativeConverter.NoContext
 @FromNativeConverter.Cacheable
-abstract public class StructByReferenceFromNativeConverter implements FromNativeConverter<Struct, Pointer> {
+abstract public class AsmStructByReferenceFromNativeConverter implements FromNativeConverter<Struct, Pointer> {
     private final jnr.ffi.Runtime runtime;
     private final int flags;
 
-    protected StructByReferenceFromNativeConverter(jnr.ffi.Runtime runtime, int flags) {
+    protected AsmStructByReferenceFromNativeConverter(jnr.ffi.Runtime runtime, int flags) {
         this.runtime = runtime;
         this.flags = flags;
     }
@@ -44,10 +43,10 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
         return runtime;
     }
 
-    static final Map<Class<? extends Struct>, Class<? extends StructByReferenceFromNativeConverter>> converterClasses
-            = new ConcurrentHashMap<Class<? extends Struct>, Class<? extends StructByReferenceFromNativeConverter>>();
-    static StructByReferenceFromNativeConverter newStructByReferenceConverter(jnr.ffi.Runtime runtime, Class<? extends Struct> structClass, int flags, AsmClassLoader classLoader) {
-        Class<? extends StructByReferenceFromNativeConverter> converterClass = converterClasses.get(structClass);
+    static final Map<Class<? extends Struct>, Class<? extends AsmStructByReferenceFromNativeConverter>> converterClasses
+            = new ConcurrentHashMap<Class<? extends Struct>, Class<? extends AsmStructByReferenceFromNativeConverter>>();
+    static AsmStructByReferenceFromNativeConverter newStructByReferenceConverter(jnr.ffi.Runtime runtime, Class<? extends Struct> structClass, int flags, AsmClassLoader classLoader) {
+        Class<? extends AsmStructByReferenceFromNativeConverter> converterClass = converterClasses.get(structClass);
         if (converterClass == null) {
             synchronized (converterClasses) {
                 if ((converterClass = converterClasses.get(structClass)) == null) {
@@ -71,7 +70,7 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
 
     private static final AtomicLong nextClassID = new AtomicLong(0);
 
-    static Class<? extends StructByReferenceFromNativeConverter> newStructByReferenceClass(Class<? extends Struct> structClass, AsmClassLoader classLoader) {
+    static Class<? extends AsmStructByReferenceFromNativeConverter> newStructByReferenceClass(Class<? extends Struct> structClass, AsmClassLoader classLoader) {
 
         try {
             Constructor<? extends Struct> cons = structClass.asSubclass(Struct.class).getConstructor(jnr.ffi.Runtime.class);
@@ -89,7 +88,7 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
 
         final String className = p(structClass) + "$jnr$fromNativeConverter$" + nextClassID.getAndIncrement();
 
-        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(StructByReferenceFromNativeConverter.class),
+        cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AsmStructByReferenceFromNativeConverter.class),
                 new String[0]);
 
         cv.visitAnnotation(ci(FromNativeConverter.NoContext.class), true);
@@ -101,7 +100,7 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
         init.aload(0);
         init.aload(1);
         init.iload(2);
-        init.invokespecial(p(StructByReferenceFromNativeConverter.class), "<init>", sig(void.class, jnr.ffi.Runtime.class, int.class));
+        init.invokespecial(p(AsmStructByReferenceFromNativeConverter.class), "<init>", sig(void.class, jnr.ffi.Runtime.class, int.class));
         init.voidreturn();
         init.visitMaxs(10, 10);
         init.visitEnd();
@@ -118,7 +117,7 @@ abstract public class StructByReferenceFromNativeConverter implements FromNative
         fromNative.newobj(p(structClass));
         fromNative.dup();
         fromNative.aload(0);
-        fromNative.invokevirtual(p(StructByReferenceFromNativeConverter.class), "getRuntime", sig(Runtime.class));
+        fromNative.invokevirtual(p(AsmStructByReferenceFromNativeConverter.class), "getRuntime", sig(Runtime.class));
         fromNative.invokespecial(structClass, "<init>", void.class, jnr.ffi.Runtime.class);
 
         // associate the memory with the struct and return the struct

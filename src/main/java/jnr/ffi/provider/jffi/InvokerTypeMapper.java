@@ -9,7 +9,6 @@ import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
 
-import java.nio.charset.Charset;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -34,7 +33,7 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
 
         } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
             if (NativeLibraryLoader.ASM_ENABLED) {
-                return StructByReferenceFromNativeConverter.newStructByReferenceConverter(fromNativeContext.getRuntime(), signatureType.getDeclaredType().asSubclass(Struct.class),
+                return AsmStructByReferenceFromNativeConverter.newStructByReferenceConverter(fromNativeContext.getRuntime(), signatureType.getDeclaredType().asSubclass(Struct.class),
                         ParameterFlags.parse(fromNativeContext.getAnnotations()), classLoader);
             } else {
                 return jnr.ffi.provider.converters.StructByReferenceFromNativeConverter.getInstance(signatureType.getDeclaredType(), fromNativeContext);
