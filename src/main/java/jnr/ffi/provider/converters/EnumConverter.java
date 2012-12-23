@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010 Wayne Meissner
+ * Copyright (C) 2012 Wayne Meissner
  *
  * This file is part of the JNR project.
  *
