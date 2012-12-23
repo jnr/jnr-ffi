@@ -120,7 +120,7 @@ public final class BufferUtil {
         if (buf.hasArray()) {
             byte[] array = buf.array();
             int begin = buf.arrayOffset() + buf.position();
-            int end = begin + buf.limit();
+            int end = buf.arrayOffset() + buf.limit();
             for (int offset = 0; offset < end && offset > -1; ++offset) {
                 if (array[begin + offset] == value) {
                     return offset;
@@ -131,6 +131,27 @@ public final class BufferUtil {
             for (int offset = 0; offset < buf.limit(); ++offset) {
                 if (buf.get(begin + offset) == value) {
                     return offset;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static int indexOf(ByteBuffer buf, int offset, byte value) {
+        if (buf.hasArray()) {
+            byte[] array = buf.array();
+            int begin = buf.arrayOffset() + buf.position() + offset;
+            int end = buf.arrayOffset() + buf.limit();
+            for (int idx = 0; idx < end && idx > -1; ++idx) {
+                if (array[begin + idx] == value) {
+                    return idx;
+                }
+            }
+        } else {
+            int begin = buf.position();
+            for (int idx = 0; idx < buf.limit(); ++idx) {
+                if (buf.get(begin + idx) == value) {
+                    return idx;
                 }
             }
         }

@@ -5,9 +5,15 @@ import jnr.ffi.annotations.Encoding;
 import jnr.ffi.mapper.*;
 
 import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.Arrays;
 import java.util.Collection;
+
+import static jnr.ffi.provider.converters.StringUtil.getDecoder;
 
 /**
  * Converts a native pointer result into a java String
@@ -16,10 +22,13 @@ import java.util.Collection;
 @FromNativeConverter.Cacheable
 public class StringResultConverter implements FromNativeConverter<String, Pointer> {
     private static final FromNativeConverter<String, Pointer> DEFAULT = new StringResultConverter(Charset.defaultCharset());
+    private final ThreadLocal<Reference<CharsetDecoder>> localDecoder = new ThreadLocal<Reference<CharsetDecoder>>();
     private final Charset charset;
+    private final int terminatorWidth;
 
     private StringResultConverter(Charset charset) {
         this.charset = charset;
+        this.terminatorWidth = StringUtil.terminatorWidth(charset);
     }
 
     public static FromNativeConverter<String, Pointer> getInstance(Charset cs) {
@@ -47,8 +56,28 @@ public class StringResultConverter implements FromNativeConverter<String, Pointe
     }
 
     @Override
-    public String fromNative(Pointer nativeValue, FromNativeContext context) {
-        return nativeValue != null ? nativeValue.getString(0, Integer.MAX_VALUE, charset) : null;
+    public String fromNative(Pointer pointer, FromNativeContext context) {
+        if (pointer == null) {
+            return null;
+        }
+
+        Search: for (int idx = 0; ; ) {
+            idx += pointer.indexOf(idx, (byte) 0);
+            for (int tcount = 1; tcount < terminatorWidth; tcount++) {
+                if (pointer.getByte(idx + tcount) != 0) {
+                    idx += tcount;
+                    continue Search;
+                }
+            }
+
+            byte[] bytes = new byte[idx];
+            pointer.get(0, bytes, 0, bytes.length);
+            try {
+                return getDecoder(charset, localDecoder).reset().decode(ByteBuffer.wrap(bytes)).toString();
+            } catch (CharacterCodingException cce) {
+                throw new RuntimeException(cce);
+            }
+        }
     }
 
     @Override

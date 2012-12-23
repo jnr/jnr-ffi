@@ -8,11 +8,15 @@ import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 
 import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.*;
 import java.util.Arrays;
 import java.util.Collection;
+
+import static jnr.ffi.provider.converters.StringUtil.getEncoder;
+import static jnr.ffi.provider.converters.StringUtil.throwException;
 
 /**
  * Converts a CharSequence (e.g. String) to a primitive ByteBuffer array parameter
@@ -21,6 +25,8 @@ import java.util.Collection;
 @ToNativeConverter.Cacheable
 public class CharSequenceParameterConverter implements ToNativeConverter<CharSequence, ByteBuffer> {
     private static final ToNativeConverter<CharSequence, ByteBuffer> DEFAULT = new CharSequenceParameterConverter(Charset.defaultCharset());
+    private final ThreadLocal<Reference<CharsetEncoder>> localEncoder = new ThreadLocal<Reference<CharsetEncoder>>();
+
     private final Charset charset;
 
 
@@ -74,15 +80,35 @@ public class CharSequenceParameterConverter implements ToNativeConverter<CharSeq
             return null;
         }
 
-        ByteBuffer byteBuffer = charset.encode(CharBuffer.wrap(string));
-        return byteBuffer.hasArray() || byteBuffer.isDirect() ? byteBuffer : copyOf(byteBuffer);
-    }
+        CharsetEncoder encoder = getEncoder(charset, localEncoder);
+        ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[(int) (string.length() * encoder.averageBytesPerChar()) + 4]);
+        CharBuffer charBuffer = CharBuffer.wrap(string);
 
-    private ByteBuffer copyOf(ByteBuffer byteBuffer) {
-        // Have to copy to a fresh array backed ByteBuffer to ensure it can be passed down to the native code
-        byte[] bytes = new byte[byteBuffer.remaining()];
-        byteBuffer.get(bytes);
-        return ByteBuffer.wrap(bytes);
+        encoder.reset();
+        while (charBuffer.hasRemaining()) {
+            CoderResult result = encoder.encode(charBuffer, byteBuffer, true);
+
+            if (result.isUnderflow() && (result = encoder.flush(byteBuffer)).isUnderflow()) {
+                break;
+
+            } else if (result.isOverflow()) {
+                // Output buffer is full; expand and continue encoding
+                ByteBuffer buf = ByteBuffer.wrap(new byte[byteBuffer.capacity() * 2]);
+                byteBuffer.flip();
+                buf.put(byteBuffer);
+                byteBuffer = buf;
+
+            } else {
+                throwException(result);
+            }
+        }
+
+        // ensure native memory is NUL terminated (assume max wchar_t 4 byte termination needed)
+        byteBuffer.position(byteBuffer.position() + 4);
+
+        byteBuffer.flip();
+
+        return byteBuffer;
     }
 
     @Override
