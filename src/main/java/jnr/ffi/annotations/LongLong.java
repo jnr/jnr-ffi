@@ -18,6 +18,8 @@
 
 package jnr.ffi.annotations;
 
+import jnr.ffi.TypeAlias;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -29,6 +31,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = { ElementType.PARAMETER, ElementType.METHOD })
+@TypeDefinition(alias = TypeAlias.int64_t)
 public @interface LongLong {
 
 }
