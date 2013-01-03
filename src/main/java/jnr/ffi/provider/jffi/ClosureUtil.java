@@ -42,7 +42,7 @@ final class ClosureUtil {
         jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(signatureType, context);
         ToNativeConverter converter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
-        NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
+        NativeType nativeType = Types.getType(runtime, javaClass, annotations).getNativeType();
         return new ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
     }
 
@@ -54,7 +54,7 @@ final class ClosureUtil {
         jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(signatureType, context);
         FromNativeConverter converter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
-        NativeType nativeType = InvokerUtil.getNativeType(runtime, javaClass, annotations);
+        NativeType nativeType = Types.getType(runtime, javaClass, annotations).getNativeType();
         return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
     }
 

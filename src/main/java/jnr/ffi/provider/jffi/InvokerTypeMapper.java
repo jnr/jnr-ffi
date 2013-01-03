@@ -1,11 +1,12 @@
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.*;
+import jnr.ffi.NativeLong;
+import jnr.ffi.Pointer;
+import jnr.ffi.Struct;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.mapper.FromNativeType;
 import jnr.ffi.mapper.ToNativeType;
-import jnr.ffi.provider.converters.EnumConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
 
@@ -13,8 +14,6 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
-import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
@@ -98,12 +97,12 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
             return BoxedIntegerArrayParameterConverter.getInstance(context);
 
         } else if (Long[].class.isAssignableFrom(javaType)) {
-            return sizeof(getNativeType(context.getRuntime(), javaType.getComponentType(), context.getAnnotations())) == 4
+            return Types.getType(context.getRuntime(), javaType.getComponentType(), context.getAnnotations()).size() == 4
                 ? BoxedLong32ArrayParameterConverter.getInstance(context)
                 : BoxedLong64ArrayParameterConverter.getInstance(context);
 
         } else if (NativeLong[].class.isAssignableFrom(javaType)) {
-            return sizeof(getNativeType(context.getRuntime(), javaType.getComponentType(), context.getAnnotations())) == 4
+            return Types.getType(context.getRuntime(), javaType.getComponentType(), context.getAnnotations()).size() == 4
                     ? NativeLong32ArrayParameterConverter.getInstance(context)
                     : NativeLong64ArrayParameterConverter.getInstance(context);
 
@@ -121,7 +120,7 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
                     ? Pointer32ArrayParameterConverter.getInstance(context)
                     : Pointer64ArrayParameterConverter.getInstance(context);
 
-        } else if (long[].class.isAssignableFrom(javaType) && sizeof(getNativeType(context.getRuntime(), javaType.getComponentType(), context.getAnnotations())) == 4) {
+        } else if (long[].class.isAssignableFrom(javaType) && Types.getType(context.getRuntime(), javaType.getComponentType(), context.getAnnotations()).size() == 4) {
             return Long32ArrayParameterConverter.getInstance(context);
 
         } else if (javaType.isArray() && Struct.class.isAssignableFrom(javaType.getComponentType())) {

@@ -38,18 +38,6 @@ import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 final class InvokerUtil {
 
-    static NativeType getAliasedNativeType(jnr.ffi.Runtime runtime, Class type, Collection<Annotation> annotations) {
-        for (Annotation a : annotations) {
-            TypeDefinition typedef = a.annotationType().getAnnotation(TypeDefinition.class);
-            if (typedef != null) {
-                return nativeType(runtime.findType(typedef.alias()));
-            }
-        }
-
-        return null;
-    }
-
-
     public static boolean requiresErrno(Method method) {
         boolean saveError = true;
         for (Annotation a : method.getAnnotations()) {
@@ -215,64 +203,13 @@ final class InvokerUtil {
         return CallingConvention.DEFAULT;
     }
 
-    static NativeType getNativeType(jnr.ffi.Runtime runtime, Class type, Collection<Annotation> annotations) {
-        NativeType aliasedType = getAliasedNativeType(runtime, type, annotations);
-        if (aliasedType != null) {
-            return aliasedType;
-
-        } else if (Void.class.isAssignableFrom(type) || void.class == type) {
-            return NativeType.VOID;
-
-        } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
-            return NativeType.SINT;
-
-        } else if (Byte.class.isAssignableFrom(type) || byte.class == type) {
-            return NativeType.SCHAR;
-
-        } else if (Short.class.isAssignableFrom(type) || short.class == type) {
-            return NativeType.SSHORT;
-
-        } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
-            return NativeType.SINT;
-
-        } else if (Long.class.isAssignableFrom(type) || long.class == type) {
-            return hasAnnotation(annotations, LongLong.class) ? NativeType.SLONGLONG : NativeType.SLONG;
-
-        } else if (Float.class.isAssignableFrom(type) || float.class == type) {
-            return NativeType.FLOAT;
-
-        } else if (Double.class.isAssignableFrom(type) || double.class == type) {
-            return NativeType.DOUBLE;
-
-        } else if (Pointer.class.isAssignableFrom(type)) {
-            return NativeType.ADDRESS;
-
-        } else if (Address.class.isAssignableFrom(type)) {
-            return sizeof(NativeType.ADDRESS) == 4 ? NativeType.SINT : NativeType.SLONGLONG;
-
-        } else if (Buffer.class.isAssignableFrom(type)) {
-            return NativeType.ADDRESS;
-
-        } else if (CharSequence.class.isAssignableFrom(type)) {
-            return NativeType.ADDRESS;
-
-        } else if (type.isArray()) {
-            return NativeType.ADDRESS;
-
-        } else if (isDelegate(type)) {
-            return NativeType.ADDRESS;
-
-        } else {
-            throw new IllegalArgumentException("unsupported type: " + type);
-        }
-    }
-
+    
     static NativeType getMethodParameterNativeType(jnr.ffi.Runtime runtime, Class parameterClass, Collection<Annotation> annotations) {
-        return getNativeType(runtime, parameterClass, annotations);
+        return Types.getType(runtime, parameterClass, annotations).getNativeType();
     }
 
-    static NativeType getMethodResultNativeType(jnr.ffi.Runtime runtime, Class parameterClass, Collection<Annotation> annotations) {
-        return getNativeType(runtime, parameterClass, annotations);
+    static NativeType getMethodResultNativeType(jnr.ffi.Runtime runtime, Class resultClass, Collection<Annotation> annotations) {
+        return Types.getType(runtime, resultClass, annotations).getNativeType();
     }
 
 

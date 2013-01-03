@@ -18,15 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.Platform;
 import jnr.ffi.NativeType;
-import jnr.ffi.annotations.LongLong;
-
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-
-import static jnr.ffi.provider.jffi.InvokerUtil.getAliasedNativeType;
-import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 
 public final class NumberUtil {
     private NumberUtil() {}

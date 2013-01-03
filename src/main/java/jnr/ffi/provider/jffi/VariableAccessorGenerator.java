@@ -18,7 +18,9 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.*;
+import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
+import jnr.ffi.Variable;
 import jnr.ffi.mapper.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -27,12 +29,15 @@ import org.objectweb.asm.ClassWriter;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
+import static jnr.ffi.provider.jffi.AsmUtil.emitFromNativeConversion;
+import static jnr.ffi.provider.jffi.AsmUtil.emitToNativeConversion;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
 import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 import static org.objectweb.asm.Opcodes.*;
 
@@ -91,7 +96,7 @@ public class VariableAccessorGenerator {
                 null, null);
 
         Class boxedType = toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
-        NativeType nativeType = getNativeType(runtime, boxedType, annotations);
+        NativeType nativeType = Types.getType(runtime, boxedType, annotations).getNativeType();
         ToNativeType toNativeType = new ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
         FromNativeType fromNativeType = new FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
         PointerOp pointerOp = pointerOperations.get(nativeType);

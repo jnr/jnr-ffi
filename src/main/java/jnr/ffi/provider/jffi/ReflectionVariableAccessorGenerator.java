@@ -30,7 +30,6 @@ import java.util.Collection;
 
 import static jnr.ffi.provider.jffi.DefaultInvokerFactory.getNumberDataConverter;
 import static jnr.ffi.provider.jffi.DefaultInvokerFactory.getNumberResultConverter;
-import static jnr.ffi.provider.jffi.InvokerUtil.getNativeType;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 /**
@@ -55,7 +54,7 @@ class ReflectionVariableAccessorGenerator {
 
 
         Class boxedType = toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
-        NativeType nativeType = getNativeType(runtime, boxedType, annotations);
+        NativeType nativeType = Types.getType(runtime, boxedType, annotations).getNativeType();
         ToNativeType toNativeType = new ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
         FromNativeType fromNativeType = new FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
         Variable variable;
