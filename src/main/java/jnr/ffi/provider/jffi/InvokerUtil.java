@@ -129,99 +129,18 @@ final class InvokerUtil {
     }
 
 
-    private static final Collection<Annotation> emptyAnnotations = Collections.emptyList();
-
-    private static final Collection<Annotation> mergeAnnotations(Collection<Annotation> a, Collection<Annotation> b) {
-        if (a.isEmpty() && b.isEmpty()) {
-            return emptyAnnotations;
-
-        } else if (!a.isEmpty() && b.isEmpty()) {
-            return a;
-
-        } else if (a.isEmpty() && !b.isEmpty()) {
-            return b;
-
-        } else {
-            List<Annotation> all = new ArrayList<Annotation>(a);
-            all.addAll(b);
-            return sortedAnnotationCollection(all);
-        }
-    }
-
-    static Collection<Annotation> getToNativeMethodAnnotations(Class converterClass, Class resultClass) {
-        try {
-            final Method baseMethod = converterClass.getMethod("toNative", Object.class, ToNativeContext.class);
-            for (Method m : converterClass.getMethods()) {
-                if (!m.getName().equals("toNative")) {
-                    continue;
-                }
-                if (!resultClass.isAssignableFrom(m.getReturnType())) {
-                    continue;
-                }
-
-                Class[] methodParameterTypes = m.getParameterTypes();
-                if (methodParameterTypes.length != 2 || !methodParameterTypes[1].isAssignableFrom(ToNativeContext.class)) {
-                    continue;
-                }
-
-                return mergeAnnotations(Annotations.sortedAnnotationCollection(m.getAnnotations()), Annotations.sortedAnnotationCollection(baseMethod.getAnnotations()));
-            }
-
-            return emptyAnnotations;
-        } catch (SecurityException se) {
-            return emptyAnnotations;
-        } catch (NoSuchMethodException ignored) {
-            return emptyAnnotations;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static Collection<Annotation> getConverterMethodAnnotations(Class converterClass, String methodName, Class... parameterClasses) {
-        try {
-            return Annotations.sortedAnnotationCollection(converterClass.getMethod(methodName).getAnnotations());
-        } catch (NoSuchMethodException ignored) {
-            return emptyAnnotations;
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static Collection<Annotation> getAnnotations(ToNativeConverter toNativeConverter) {
-        if (toNativeConverter != null) {
-            Collection<Annotation> classAnnotations = Annotations.sortedAnnotationCollection(toNativeConverter.getClass().getAnnotations());
-            Collection<Annotation> toNativeAnnotations = getToNativeMethodAnnotations(toNativeConverter.getClass(), toNativeConverter.nativeType());
-            Collection<Annotation> nativeTypeAnnotations = getConverterMethodAnnotations(toNativeConverter.getClass(), "nativeType");
-            return mergeAnnotations(classAnnotations, mergeAnnotations(nativeTypeAnnotations, toNativeAnnotations));
-
-        } else {
-            return emptyAnnotations;
-        }
-    }
-
-    static Collection<Annotation> getAnnotations(FromNativeConverter fromNativeConverter) {
-        if (fromNativeConverter != null) {
-            Collection<Annotation> classAnnotations = Annotations.sortedAnnotationCollection(fromNativeConverter.getClass().getAnnotations());
-            Collection<Annotation> fromNativeAnnotations = getConverterMethodAnnotations(fromNativeConverter.getClass(), "fromNative", fromNativeConverter.nativeType(), FromNativeContext.class);
-            Collection<Annotation> nativeTypeAnnotations = getConverterMethodAnnotations(fromNativeConverter.getClass(), "nativeType");
-            return mergeAnnotations(classAnnotations, mergeAnnotations(nativeTypeAnnotations, fromNativeAnnotations));
-
-        } else {
-            return emptyAnnotations;
-        }
-    }
-
     static Collection<Annotation> getAnnotations(jnr.ffi.mapper.FromNativeType fromNativeType) {
-        return fromNativeType != null ? getAnnotations(fromNativeType.getFromNativeConverter()) : emptyAnnotations;
+        return fromNativeType != null ? ConverterMetaData.getAnnotations(fromNativeType.getFromNativeConverter()) : Annotations.EMPTY_ANNOTATIONS;
     }
 
     static Collection<Annotation> getAnnotations(jnr.ffi.mapper.ToNativeType toNativeType) {
-        return toNativeType != null ? getAnnotations(toNativeType.getToNativeConverter()) : emptyAnnotations;
+        return toNativeType != null ? ConverterMetaData.getAnnotations(toNativeType.getToNativeConverter()) : Annotations.EMPTY_ANNOTATIONS;
     }
 
     static ResultType getResultType(jnr.ffi.Runtime runtime, Class type, Collection<Annotation> annotations,
                                     FromNativeConverter fromNativeConverter, FromNativeContext fromNativeContext) {
-        Collection<Annotation> converterAnnotations = getAnnotations(fromNativeConverter);
-        Collection<Annotation> allAnnotations = mergeAnnotations(annotations, converterAnnotations);
+        Collection<Annotation> converterAnnotations = ConverterMetaData.getAnnotations(fromNativeConverter);
+        Collection<Annotation> allAnnotations = Annotations.mergeAnnotations(annotations, converterAnnotations);
         NativeType nativeType = getMethodResultNativeType(runtime,
                 fromNativeConverter != null ? fromNativeConverter.nativeType() : type, allAnnotations);
         boolean useContext = fromNativeConverter != null && !hasAnnotation(converterAnnotations, FromNativeConverter.NoContext.class);
@@ -231,7 +150,7 @@ final class InvokerUtil {
     static ResultType getResultType(jnr.ffi.Runtime runtime, Class type, Collection<Annotation> annotations, 
                                     jnr.ffi.mapper.FromNativeType fromNativeType, FromNativeContext fromNativeContext) {
         Collection<Annotation> converterAnnotations = getAnnotations(fromNativeType);
-        Collection<Annotation> allAnnotations = mergeAnnotations(annotations, converterAnnotations);
+        Collection<Annotation> allAnnotations = Annotations.mergeAnnotations(annotations, converterAnnotations);
         FromNativeConverter fromNativeConverter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
         NativeType nativeType = getMethodResultNativeType(runtime,
                 fromNativeConverter != null ? fromNativeConverter.nativeType() : type, allAnnotations);
@@ -266,8 +185,8 @@ final class InvokerUtil {
             SignatureType signatureType = DefaultSignatureType.create(javaParameterTypes[pidx], toNativeContext);
             jnr.ffi.mapper.ToNativeType toNativeType = typeMapper.getToNativeType(signatureType, toNativeContext);
             ToNativeConverter toNativeConverter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
-            Collection<Annotation> converterAnnotations = getAnnotations(toNativeConverter);
-            Collection<Annotation> allAnnotations = mergeAnnotations(annotations, converterAnnotations);
+            Collection<Annotation> converterAnnotations = ConverterMetaData.getAnnotations(toNativeConverter);
+            Collection<Annotation> allAnnotations = Annotations.mergeAnnotations(annotations, converterAnnotations);
 
             boolean contextRequired = toNativeConverter != null && !hasAnnotation(converterAnnotations, ToNativeConverter.NoContext.class);
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],

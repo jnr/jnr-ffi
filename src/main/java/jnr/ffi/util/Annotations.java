@@ -7,6 +7,8 @@ import java.util.*;
  * Utilities for collections of annotations
  */
 public final class Annotations {
+    public static final Collection<Annotation> EMPTY_ANNOTATIONS = Collections.emptyList();
+
     private Annotations() {}
 
     public static Collection<Annotation> sortedAnnotationCollection(Annotation[] annotations) {
@@ -31,5 +33,36 @@ public final class Annotations {
         sorted.addAll(annotations);
 
         return Collections.unmodifiableSortedSet(sorted);
+    }
+
+    public static final Collection<Annotation> mergeAnnotations(Collection<Annotation> a, Collection<Annotation> b) {
+        if (a.isEmpty() && b.isEmpty()) {
+            return EMPTY_ANNOTATIONS;
+
+        } else if (!a.isEmpty() && b.isEmpty()) {
+            return a;
+
+        } else if (a.isEmpty() && !b.isEmpty()) {
+            return b;
+
+        } else {
+            List<Annotation> all = new ArrayList<Annotation>(a);
+            all.addAll(b);
+            return sortedAnnotationCollection(all);
+        }
+    }
+
+    public static final Collection<Annotation> mergeAnnotations(Collection<Annotation>... collections) {
+        int totalLength = 0;
+        for (Collection<Annotation> c : collections) {
+            totalLength += c.size();
+        }
+
+        List<Annotation> all = new ArrayList<Annotation>(totalLength);
+        for (Collection<Annotation> c : collections) {
+            all.addAll(c);
+        }
+        
+        return sortedAnnotationCollection(all);
     }
 }
