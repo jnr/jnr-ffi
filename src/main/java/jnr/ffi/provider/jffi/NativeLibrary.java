@@ -20,9 +20,11 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Platform;
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NativeLibrary {
     private final List<String> libraryNames;
@@ -74,11 +76,11 @@ public class NativeLibrary {
         for (String libraryName : libraryNames) {
             com.kenai.jffi.Library lib;
             
-            lib = com.kenai.jffi.Library.getCachedInstance(libraryName, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.GLOBAL);
+            lib = openLibrary(libraryName);
             if (lib == null) {
                 String path;
                 if (libraryName != null && (path = locateLibrary(libraryName)) != null && !libraryName.equals(path)) {
-                    lib = com.kenai.jffi.Library.getCachedInstance(path, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.GLOBAL);
+                    lib = openLibrary(path);
                 }
             }
             if (lib == null) {
@@ -88,5 +90,52 @@ public class NativeLibrary {
         }
 
         return Collections.unmodifiableList(libs);
+    }
+
+    private static final Pattern BAD_ELF = Pattern.compile("(.*): invalid ELF header");
+    private static final Pattern ELF_GROUP = Pattern.compile("GROUP\\s*\\(\\s*(\\S*).*\\)");
+
+    private static com.kenai.jffi.Library openLibrary(String path) {
+        com.kenai.jffi.Library lib;
+
+        lib = com.kenai.jffi.Library.getCachedInstance(path, com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.GLOBAL);
+        if (lib != null) {
+            return lib;
+        }
+        
+        // If dlopen() fails with 'invalid ELF header', then it is likely to be a ld script - parse it for the real library path
+        Matcher badElf = BAD_ELF.matcher(com.kenai.jffi.Library.getLastError());
+        if (badElf.lookingAt()) {
+            File f = new File(badElf.group(1));
+            if (f.isFile() && f.length() < (4 * 1024)) {
+                Matcher sharedObject = ELF_GROUP.matcher(readAll(f));
+                if (sharedObject.lookingAt()) {
+                    return com.kenai.jffi.Library.getCachedInstance(sharedObject.group(1), com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.GLOBAL);
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    private static String readAll(File f) {
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        
+        } finally {
+            if (br != null) try { br.close(); } catch (IOException e) { throw new RuntimeException(e); }
+        }
     }
 }
