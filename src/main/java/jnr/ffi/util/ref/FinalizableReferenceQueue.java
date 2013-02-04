@@ -126,9 +126,12 @@ public class FinalizableReferenceQueue {
    * no-op if the background thread was created successfully.
    */
   void cleanUp() {
-    if (threadStarted) {
-      return;
+    if (!threadStarted) {
+      pollReferenceQueue();
     }
+  }
+  
+  private void pollReferenceQueue() {
 
     Reference<?> reference;
     while ((reference = queue.poll()) != null) {
