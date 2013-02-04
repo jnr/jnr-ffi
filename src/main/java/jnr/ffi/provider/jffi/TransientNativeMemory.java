@@ -1,8 +1,10 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.PageManager;
-import jnr.ffi.util.ref.FinalizableWeakReference;
+import jnr.ffi.util.ref.FinalizablePhantomReference;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,7 +28,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
         }
 
         Magazine magazine = currentMagazine.get();
-        Sentinel sentinel = magazine != null ? magazine.get() : null;
+        Sentinel sentinel = magazine != null ? magazine.sentinel() : null;
         long address;
 
         if (sentinel == null || (address = magazine.allocate(size, align)) == 0) {
@@ -91,10 +93,12 @@ public class TransientNativeMemory extends DirectMemoryIO {
 
 
     private static final class Sentinel {}
+    
     /**
      * Holder for a group of memory allocations.
      */
-    private static final class Magazine extends FinalizableWeakReference<Sentinel> {
+    private static final class Magazine extends FinalizablePhantomReference<Sentinel> {
+        private final Reference<Sentinel> sentinelReference;
         private final PageManager pm;
         private final long page;
         private final long end;
@@ -103,10 +107,15 @@ public class TransientNativeMemory extends DirectMemoryIO {
 
         Magazine(Sentinel sentinel, PageManager pm, long page, int pageCount) {
             super(sentinel, NativeFinalizer.getInstance().getFinalizerQueue());
+            this.sentinelReference = new WeakReference<Sentinel>(sentinel);
             this.pm = pm;
             this.memory = this.page = page;
             this.pageCount = pageCount;
             this.end = memory + (pageCount * pm.pageSize());
+        }
+        
+        Sentinel sentinel() {
+            return sentinelReference.get();
         }
 
         long allocate(int size, int align) {
