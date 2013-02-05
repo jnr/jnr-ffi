@@ -2,6 +2,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.PageManager;
 import jnr.ffi.util.ref.FinalizablePhantomReference;
+import jnr.ffi.util.ref.FinalizableReferenceQueue;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -42,6 +43,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
 
                 // No available pages; trigger a full GC to reclaim some memory
                 System.gc();
+                FinalizableReferenceQueue.cleanUpAll(); 
             } while (true);
 
             referenceSet.put(magazine = new Magazine(sentinel = new Sentinel(), pm, memory, PAGES_PER_MAGAZINE), Boolean.TRUE);
