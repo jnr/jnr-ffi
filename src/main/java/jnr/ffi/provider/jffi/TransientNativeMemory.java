@@ -22,8 +22,12 @@ public class TransientNativeMemory extends DirectMemoryIO {
 
     private final Sentinel sentinel;
     private final int size;
-
+    
     public static DirectMemoryIO allocate(jnr.ffi.Runtime runtime, int size, int align, boolean clear) {
+        if (size < 0) {
+            throw new IllegalArgumentException("negative size: " + size);
+        }
+
         if (size > 256) { /* Only use the transient allocator for small, short lived allocations */
             return new AllocatedDirectMemoryIO(runtime, size, clear);
         }
