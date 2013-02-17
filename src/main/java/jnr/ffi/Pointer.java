@@ -143,6 +143,19 @@ abstract public class Pointer {
         return runtime;
     }
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getName());
+        sb.append(String.format("[address=%#x", address()));
+        if (size() != Long.MAX_VALUE) {
+            sb.append(String.format(" size=%d", size()));
+        }
+
+        sb.append(']');
+        
+        return sb.toString();
+    }
+
     /**
      * Gets the size of this memory object in bytes (optional operation).
      *

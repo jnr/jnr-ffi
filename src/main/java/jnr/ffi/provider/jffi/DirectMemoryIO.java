@@ -59,10 +59,6 @@ class DirectMemoryIO extends AbstractMemoryIO {
         throw new UnsupportedOperationException("no array");
     }
 
-    public String toString() {
-        return String.format(getClass().getName() + "[address=%x]", address());
-    }
-
     @Override
     public int hashCode() {
         return (int) ((address() << 32L) ^ address());
