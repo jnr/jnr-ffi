@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi.platform.powerpc.linux;
+package jnr.ffi.provider.jffi.platform.ppc.linux;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;

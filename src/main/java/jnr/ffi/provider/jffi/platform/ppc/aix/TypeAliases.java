@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi.platform.powerpc.aix;
+package jnr.ffi.provider.jffi.platform.ppc.aix;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;
