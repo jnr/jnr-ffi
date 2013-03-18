@@ -22,6 +22,7 @@ public class StringArrayTest {
     public static interface TestLib {
         String ptr_return_array_element(@In String[] array, int index);
         void ptr_set_array_element(@Out String[] array, int index, Pointer value);
+        String ptr_return_array_element(@In CharSequence[] array, int index);
     }
     
     static TestLib testlib;
@@ -54,6 +55,13 @@ public class StringArrayTest {
         String result = testlib.ptr_return_array_element(strings, 1);
         assertNull("last element of string array was not null", result);
     }
+
+    @Test public void lastElementOfCharSequenceArrayShouldBeNull() {
+        CharSequence[] strings = { "test" };
+        String result = testlib.ptr_return_array_element(strings, 1);
+        assertNull("last element of string array was not null", result);
+    }
+
 
     @Test public void firstElementOfStringArrayShouldNotBeNull() {
         final String MAGIC = "test";

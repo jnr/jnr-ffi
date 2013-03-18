@@ -24,8 +24,6 @@ import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.InAccessibleMemoryIO;
 import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.provider.jffi.NativeRuntime;
-import jnr.ffi.provider.jffi.TransientNativeMemory;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -34,28 +32,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Converts a String[] array to a Pointer parameter
+ * Converts a CharSequence[] array to a Pointer parameter
  */
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable
-public class StringArrayParameterConverter implements ToNativeConverter<String[], Pointer> {
+public class CharSequenceArrayParameterConverter implements ToNativeConverter<CharSequence[], Pointer> {
     private final jnr.ffi.Runtime runtime;
     private final int parameterFlags;
 
-    public static ToNativeConverter<String[], Pointer> getInstance(ToNativeContext toNativeContext) {
+    public static ToNativeConverter<CharSequence[], Pointer> getInstance(ToNativeContext toNativeContext) {
         int parameterFlags = ParameterFlags.parse(toNativeContext.getAnnotations());
         return !ParameterFlags.isOut(parameterFlags)
-                ? new StringArrayParameterConverter(toNativeContext.getRuntime(), parameterFlags)
-                : new StringArrayParameterConverter.Out(toNativeContext.getRuntime(), parameterFlags);
+                ? new CharSequenceArrayParameterConverter(toNativeContext.getRuntime(), parameterFlags)
+                : new CharSequenceArrayParameterConverter.Out(toNativeContext.getRuntime(), parameterFlags);
     }
 
-    StringArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
+    CharSequenceArrayParameterConverter(jnr.ffi.Runtime runtime, int parameterFlags) {
         this.runtime = runtime;
         this.parameterFlags = parameterFlags;
     }
 
     @Override
-    public Pointer toNative(String[] array, ToNativeContext context) {
+    public Pointer toNative(CharSequence[] array, ToNativeContext context) {
         if (array == null) {
             return null;
         }
@@ -70,13 +68,13 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
         return stringArray;
     }
 
-    public static final class Out extends StringArrayParameterConverter implements PostInvocation<String[], Pointer> {
+    public static final class Out extends CharSequenceArrayParameterConverter implements PostInvocation<CharSequence[], Pointer> {
         Out(jnr.ffi.Runtime runtime, int parameterFlags) {
             super(runtime, parameterFlags);
         }
 
         @Override
-        public void postInvoke(String[] array, Pointer primitive, ToNativeContext context) {
+        public void postInvoke(CharSequence[] array, Pointer primitive, ToNativeContext context) {
             if (array != null && primitive != null) {
                 StringArray stringArray = (StringArray) primitive;
                 for (int i = 0; i < array.length; i++) {
@@ -107,7 +105,7 @@ public class StringArrayParameterConverter implements ToNativeConverter<String[]
             return ptr != null ? ptr.getString(0) : null;
         }
 
-        void put(int idx, String str) {
+        void put(int idx, CharSequence str) {
             if (str == null) {
                 memory.putAddress(idx * getRuntime().addressSize(), 0L);
             } else {

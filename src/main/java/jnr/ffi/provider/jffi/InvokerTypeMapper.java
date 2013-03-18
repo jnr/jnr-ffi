@@ -126,8 +126,8 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
         } else if (javaType.isArray() && Struct.class.isAssignableFrom(javaType.getComponentType())) {
             return StructArrayParameterConverter.getInstance(context, javaType.getComponentType());
 
-        } else if (javaType.isArray() && String.class.isAssignableFrom(javaType.getComponentType())) {
-            return StringArrayParameterConverter.getInstance(context);
+        } else if (javaType.isArray() && CharSequence.class.isAssignableFrom(javaType.getComponentType())) {
+            return CharSequenceArrayParameterConverter.getInstance(context);
 
         } else {
             return null;
