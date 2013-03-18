@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi.platform.powerpc.darwin;
+package jnr.ffi.provider.jffi.platform.ppc.darwin;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;
