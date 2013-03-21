@@ -75,8 +75,8 @@ public class ResultConverterTest {
         Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
         options.put(LibraryOption.TypeMapper, mapper);
         System.setProperty("jaffl.compiler.dump", "true");
-        testlib = Library.loadLibrary("c", TestLib.class, options);
-        runtime = Library.getRuntime(testlib);
+        testlib = TstUtil.loadTestLib(TestLib.class, options);
+        runtime = Runtime.getRuntime(testlib);
     }
 
     @AfterClass

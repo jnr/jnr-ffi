@@ -74,7 +74,7 @@ public class PointerByReferenceTest {
     
     @Test public void inOnlyReferenceSet() {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
-        Runtime runtime = Library.getRuntime(lib);
+        Runtime runtime = Runtime.getRuntime(lib);
 
         final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
         
@@ -84,7 +84,7 @@ public class PointerByReferenceTest {
 
     @Test public void inOnlyIntReferenceNotWritten() {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
-        Runtime runtime = Library.getRuntime(lib);
+        Runtime runtime = Runtime.getRuntime(lib);
 
         final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
 
@@ -96,7 +96,7 @@ public class PointerByReferenceTest {
 
     @Test public void outOnlyIntReferenceNotRead() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
-        Runtime runtime = Library.getRuntime(lib);
+        Runtime runtime = Runtime.getRuntime(lib);
 
         final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
 
@@ -106,7 +106,7 @@ public class PointerByReferenceTest {
 
     @Test public void outOnlyIntReferenceGet() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
-        Runtime runtime = Library.getRuntime(lib);
+        Runtime runtime = Runtime.getRuntime(lib);
 
         final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
 

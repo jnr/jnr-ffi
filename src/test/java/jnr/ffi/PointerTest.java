@@ -74,7 +74,7 @@ public class PointerTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
-        runtime = Library.getRuntime(testlib);
+        runtime = Runtime.getRuntime(testlib);
 //        libc = Library.loadLibrary("c", Libc.class);
     }
 
@@ -292,9 +292,9 @@ public class PointerTest {
         long[] v = { 1, 2, 3, 4, 5 };
         for (int i  = 0; i < p.length; ++i) {
             if ((i % 2) == 0) {
-                p[i] = Memory.allocate(Library.getRuntime(testlib), 8);
+                p[i] = Memory.allocate(Runtime.getRuntime(testlib), 8);
             } else {
-                p[i] = Memory.allocateDirect(Library.getRuntime(testlib), 8);
+                p[i] = Memory.allocateDirect(Runtime.getRuntime(testlib), 8);
             }
             p[i].putLongLong(0, v[i]);
         }
@@ -310,9 +310,9 @@ public class PointerTest {
         long[] v = { 1, 2, 3, 4, 5, 6};
         for (int i  = 0; i < p.length; ++i) {
             if ((i % 2) == 0) {
-                p[i] = Memory.allocate(Library.getRuntime(testlib), 8);
+                p[i] = Memory.allocate(Runtime.getRuntime(testlib), 8);
             } else {
-                p[i] = Memory.allocateDirect(Library.getRuntime(testlib), 8);
+                p[i] = Memory.allocateDirect(Runtime.getRuntime(testlib), 8);
             }
             p[i].putLongLong(0, v[i]);
         }
@@ -323,7 +323,7 @@ public class PointerTest {
     }
 
     @Test public void nullTerminatedStringArray() {
-        Runtime runtime = Library.getRuntime(testlib);
+        Runtime runtime = Runtime.getRuntime(testlib);
         Pointer[] array = new Pointer[10];
         String[] in = new String[array.length];
         for (int i = 0; i < array.length; i++) {
@@ -337,7 +337,7 @@ public class PointerTest {
     }
 
     @Test public void nullTerminatedPointerArray() {
-        Runtime runtime = Library.getRuntime(testlib);
+        Runtime runtime = Runtime.getRuntime(testlib);
         Pointer[] array = new Pointer[10];
         String[] in = new String[array.length];
         for (int i = 0; i < array.length; i++) {

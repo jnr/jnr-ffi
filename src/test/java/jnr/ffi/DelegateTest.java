@@ -314,7 +314,7 @@ public class DelegateTest {
                 val[0] = a1;
             }
         };
-        TestLib.ClosureStruct s = new TestLib.ClosureStruct(Library.getRuntime(lib));
+        TestLib.ClosureStruct s = new TestLib.ClosureStruct(Runtime.getRuntime(lib));
         s.function.set(closure);
         lib.testStructClosureIrV(s, MAGIC);
         assertTrue("Callable not called", called[0]);
