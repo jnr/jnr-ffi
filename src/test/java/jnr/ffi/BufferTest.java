@@ -77,7 +77,7 @@ public class BufferTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         lib = TstUtil.loadTestLib(TestLib.class);
-        runtime = Library.getRuntime(lib);
+        runtime = Runtime.getRuntime(lib);
     }
 
     @AfterClass

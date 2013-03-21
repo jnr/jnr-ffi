@@ -2,6 +2,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.*;
 import jnr.ffi.LibraryLoader;
+import jnr.ffi.Runtime;
 import jnr.ffi.mapper.DefaultTypeMapper;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
@@ -71,7 +72,7 @@ class X86Disassembler {
 
     private X86Disassembler(UDis86 udis86) {
         this.udis86 = udis86;
-        this.ud = Memory.allocateDirect(Library.getRuntime(udis86), 1024, true);
+        this.ud = Memory.allocateDirect(Runtime.getRuntime(udis86), 1024, true);
         this.udis86.ud_init(this.ud);
     }
 

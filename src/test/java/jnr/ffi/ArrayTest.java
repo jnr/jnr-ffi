@@ -26,6 +26,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.lang.*;
+
 import static org.junit.Assert.*;
 
 
@@ -151,7 +154,7 @@ public class ArrayTest {
     
     @Test
     public void setLong32ByReference() {
-        if (Library.getRuntime(testlib).longSize() == 4) {
+        if (Runtime.getRuntime(testlib).longSize() == 4) {
             
             final long MAGIC = 0x12345678L;
             long[] ref = {0L};
