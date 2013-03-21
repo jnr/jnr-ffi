@@ -56,7 +56,7 @@ public class LastErrorTest {
     
     @Test public void testLastError() {
         TestLib lib = TstUtil.loadTestLib(TestLib.class);
-        Runtime runtime = Library.getRuntime(lib);
+        Runtime runtime = Runtime.getRuntime(lib);
 
         final int MAGIC = 0xdeadbeef;
         lib.setLastError(MAGIC);

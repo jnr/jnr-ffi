@@ -30,7 +30,7 @@ public class StringArrayTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
-        runtime = Library.getRuntime(testlib);
+        runtime = Runtime.getRuntime(testlib);
     }
 
     @AfterClass
