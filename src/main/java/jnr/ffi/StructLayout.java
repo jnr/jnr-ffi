@@ -411,11 +411,11 @@ public class StructLayout extends Type {
     }
 
     public abstract class IntegerAlias extends NumberField {
-        IntegerAlias(TypeAlias type) {
+        protected IntegerAlias(TypeAlias type) {
             super(getRuntime().findType(type));
         }
 
-        IntegerAlias(TypeAlias type, Offset offset) {
+        protected IntegerAlias(TypeAlias type, Offset offset) {
             super(getRuntime().findType(type), offset);
         }
 
