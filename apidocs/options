@@ -7,7 +7,7 @@
 '/Users/wayne/src/jaffl/src/main/java'
 -author
 -bottom
-'Copyright &#169; 2012. All Rights Reserved.'
+'Copyright &#169; 2013. All Rights Reserved.'
 -charset
 'UTF-8'
 -d
@@ -15,10 +15,10 @@
 -docencoding
 'UTF-8'
 -doctitle
-'jnr-ffi 0.8.0-SNAPSHOT API'
+'jnr-ffi 1.0.4-SNAPSHOT API'
 -linkoffline
 'http://download.oracle.com/javase/6/docs/api' '/Users/wayne/src/jaffl/target/javadoc-bundle-options'
 -use
 -version
 -windowtitle
-'jnr-ffi 0.8.0-SNAPSHOT API'
+'jnr-ffi 1.0.4-SNAPSHOT API'
