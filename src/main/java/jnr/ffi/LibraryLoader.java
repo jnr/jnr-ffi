@@ -2,8 +2,13 @@ package jnr.ffi;
 
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.FFIProvider;
+import jnr.ffi.provider.LoadedLibrary;
+import jnr.ffi.provider.NativeInvocationHandler;
 
 import java.io.File;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.*;
 
 /**
@@ -31,6 +36,7 @@ public abstract class LibraryLoader<T> {
     private final List<FunctionMapper> functionMappers = new ArrayList<FunctionMapper>();
     private final Map<LibraryOption, Object> optionMap = new EnumMap<LibraryOption, Object>(LibraryOption.class);
     private final Class<T> interfaceClass;
+    private boolean failImmediately = false;
 
 
     /**
@@ -171,6 +177,20 @@ public abstract class LibraryLoader<T> {
     }
 
     /**
+     * Turns off lazy propagation of load failures.  By default, {@link jnr.ffi.LibraryLoader#load()} will not fail 
+     * immediately if any libraries cannot be loaded - instead, it will create an instance of the library interface 
+     * that re-throws any load errors when invoked.
+     * 
+     * Calling this method will make {@link jnr.ffi.LibraryLoader#load()} throw errors immediately.
+     *
+     * @return This {@code LibraryLoader} instance.
+     */
+    public final LibraryLoader<T> failImmediately() {
+        failImmediately = true;
+        return this;
+    }
+
+    /**
      * Loads a native library and links the methods defined in {@code interfaceClass}
      * to native methods in the library.
      *
@@ -204,8 +224,31 @@ public abstract class LibraryLoader<T> {
             optionMap.put(LibraryOption.FunctionMapper, functionMapper);
         }
 
-        return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
+        try {
+            return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
                 Collections.unmodifiableMap(optionMap));
+        
+        } catch (LinkageError error) {
+            if (failImmediately) throw error;
+            return createErrorProxy(error);
+        
+        } catch (Exception ex) {
+            RuntimeException re = ex instanceof RuntimeException ? (RuntimeException) ex : new RuntimeException(ex);
+            if (failImmediately) throw re;
+            
+            return createErrorProxy(re);
+        }
+    }
+    
+    private T createErrorProxy(final Throwable ex) {
+        return interfaceClass.cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+            new Class[] { interfaceClass, LoadedLibrary.class },
+            new InvocationHandler() {
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    throw ex;
+                }
+            })
+        );
     }
 
     private Collection<String> getSearchPaths() {

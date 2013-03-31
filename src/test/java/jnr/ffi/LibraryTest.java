@@ -63,4 +63,9 @@ public class LibraryTest {
         // This just forces the library to really load and call a function
         lib.setLastError(0);
     }
+
+    @Test(expected = UnsatisfiedLinkError.class)
+    public void badLibrarynameShouldThrowULE() {
+        Library.loadLibrary(TestLib.class, "non-existant-library");
+    }
 }

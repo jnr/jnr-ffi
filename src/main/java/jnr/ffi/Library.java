@@ -120,7 +120,7 @@ public final class Library {
             loader.option(option.getKey(), option.getValue());
         }
 
-        return loader.load();
+        return loader.failImmediately().load();
     }
     
     /**
