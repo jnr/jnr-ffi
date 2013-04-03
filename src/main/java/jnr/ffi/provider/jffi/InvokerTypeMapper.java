@@ -18,10 +18,13 @@ import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
     private final AsmClassLoader classLoader;
+    private final AsmStructByReferenceResultConverterCache structResultConverterCache;
+    
 
     public InvokerTypeMapper(NativeClosureManager closureManager, AsmClassLoader classLoader) {
         this.closureManager = closureManager;
         this.classLoader = classLoader;
+        this.structResultConverterCache = new AsmStructByReferenceResultConverterCache(classLoader);
     }
 
     public FromNativeConverter getFromNativeConverter(SignatureType signatureType, FromNativeContext fromNativeContext) {
@@ -32,8 +35,9 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
 
         } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
             if (NativeLibraryLoader.ASM_ENABLED) {
-                return AsmStructByReferenceFromNativeConverter.newStructByReferenceConverter(fromNativeContext.getRuntime(), signatureType.getDeclaredType().asSubclass(Struct.class),
-                        ParameterFlags.parse(fromNativeContext.getAnnotations()), classLoader);
+                return structResultConverterCache.get(fromNativeContext.getRuntime(), 
+                        signatureType.getDeclaredType().asSubclass(Struct.class),
+                        ParameterFlags.parse(fromNativeContext.getAnnotations()));
             } else {
                 return jnr.ffi.provider.converters.StructByReferenceFromNativeConverter.getInstance(signatureType.getDeclaredType(), fromNativeContext);
             }

@@ -18,9 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.CodegenUtils.ci;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static org.objectweb.asm.Opcodes.*;
 
 @FromNativeConverter.NoContext
@@ -42,20 +40,12 @@ abstract public class AsmStructByReferenceFromNativeConverter implements FromNat
     protected final jnr.ffi.Runtime getRuntime() {
         return runtime;
     }
-
+    
     static final Map<Class<? extends Struct>, Class<? extends AsmStructByReferenceFromNativeConverter>> converterClasses
             = new ConcurrentHashMap<Class<? extends Struct>, Class<? extends AsmStructByReferenceFromNativeConverter>>();
     static AsmStructByReferenceFromNativeConverter newStructByReferenceConverter(jnr.ffi.Runtime runtime, Class<? extends Struct> structClass, int flags, AsmClassLoader classLoader) {
-        Class<? extends AsmStructByReferenceFromNativeConverter> converterClass = converterClasses.get(structClass);
-        if (converterClass == null) {
-            synchronized (converterClasses) {
-                if ((converterClass = converterClasses.get(structClass)) == null) {
-                    converterClasses.put(structClass, converterClass = newStructByReferenceClass(structClass, classLoader));
-                }
-            }
-        }
         try {
-            return converterClass.getConstructor(jnr.ffi.Runtime.class, int.class).newInstance(runtime, flags);
+            return newStructByReferenceClass(structClass, classLoader).getConstructor(jnr.ffi.Runtime.class, int.class).newInstance(runtime, flags);
 
         } catch (NoSuchMethodException nsme) {
             throw new RuntimeException(nsme);
@@ -86,7 +76,7 @@ abstract public class AsmStructByReferenceFromNativeConverter implements FromNat
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = AsmLibraryLoader.DEBUG ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
-        final String className = p(structClass) + "$jnr$fromNativeConverter$" + nextClassID.getAndIncrement();
+        final String className = p(structClass) + "$$jnr$$StructByReferenceFromNativeConverter$$" + nextClassID.getAndIncrement();
 
         cv.visit(V1_5, ACC_PUBLIC | ACC_FINAL, className, null, p(AsmStructByReferenceFromNativeConverter.class),
                 new String[0]);
