@@ -21,10 +21,10 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
     private final StructByReferenceResultConverterFactory structResultConverterFactory;
     
 
-    public InvokerTypeMapper(NativeClosureManager closureManager, AsmClassLoader classLoader) {
+    public InvokerTypeMapper(NativeClosureManager closureManager, AsmClassLoader classLoader, boolean asmEnabled) {
         this.closureManager = closureManager;
         this.classLoader = classLoader;
-        this.structResultConverterFactory = new StructByReferenceResultConverterFactory(classLoader);
+        this.structResultConverterFactory = new StructByReferenceResultConverterFactory(classLoader, asmEnabled);
     }
 
     public FromNativeConverter getFromNativeConverter(SignatureType signatureType, FromNativeContext fromNativeContext) {
