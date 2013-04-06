@@ -1,9 +1,9 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Type;
+import jnr.ffi.CallingConvention;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;

@@ -1,9 +1,12 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
+import com.kenai.jffi.CallContext;
+import com.kenai.jffi.HeapInvocationBuffer;
+import com.kenai.jffi.Invoker;
+import com.kenai.jffi.ObjectParameterStrategy;
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.InvocationSession;
-import org.objectweb.asm.Label;
+import jnr.ffi.CallingConvention;
 
 import java.util.Collections;
 import java.util.EnumMap;

@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
+import jnr.ffi.CallingConvention;
 import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;

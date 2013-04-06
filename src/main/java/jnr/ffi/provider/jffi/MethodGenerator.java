@@ -1,7 +1,7 @@
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
+import jnr.ffi.CallingConvention;
 
 /**
  *

@@ -19,22 +19,18 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
+import com.kenai.jffi.Function;
 import jnr.ffi.*;
-import jnr.ffi.annotations.StdCall;
 import jnr.ffi.mapper.*;
-import jnr.ffi.provider.IdentityFunctionMapper;
-import jnr.ffi.provider.NullTypeMapper;
+import jnr.ffi.provider.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import java.io.PrintWriter;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -96,7 +92,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         }
 
         typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper, classLoader), classLoader, NativeLibraryLoader.ASM_ENABLED)));
-        com.kenai.jffi.CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
+        CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         StubCompiler compiler = StubCompiler.newCompiler(runtime);
 
@@ -108,22 +104,54 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new FastNumericMethodGenerator(),
                 new BufferMethodGenerator()
         };
+        
+        InterfaceScanner scanner = new InterfaceScanner(interfaceClass, typeMapper, libraryCallingConvention);
 
+        for (NativeFunction function : scanner.functions()) {
+            String functionName = functionMapper.mapFunctionName(function.name(), new NativeFunctionMapperContext(library, function.annotations()));
 
-        for (Method m : interfaceClass.getMethods()) {
-            if (Variable.class.isAssignableFrom(m.getReturnType())) {
-                continue;
-            }
-            Collection<Annotation> annotations = sortedAnnotationCollection(m.getAnnotations());
-            String functionName = functionMapper.mapFunctionName(m.getName(), new NativeFunctionMapperContext(library, annotations));
-
-            // Allow individual methods to set the calling convention to stdcall
-            CallingConvention callingConvention = m.isAnnotationPresent(StdCall.class)
-                    ? CallingConvention.STDCALL : libraryCallingConvention;
-            boolean saveErrno = InvokerUtil.requiresErrno(m);
             try {
-                generateFunctionInvocation(runtime, builder, m, library.findSymbolAddress(functionName),
-                        callingConvention, saveErrno, typeMapper, generators);
+                long functionAddress = library.findSymbolAddress(functionName);
+                
+                FromNativeContext resultContext = new MethodResultContext(runtime, function.getMethod());
+                SignatureType signatureType = DefaultSignatureType.create(function.getMethod().getReturnType(), resultContext);
+                ResultType resultType = getResultType(runtime, function.getMethod().getReturnType(),
+                        resultContext.getAnnotations(), typeMapper.getFromNativeType(signatureType, resultContext),
+                        resultContext);
+
+                ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, function.getMethod());
+
+                Function jffiFunction = new Function(functionAddress, 
+                        getCallContext(resultType, parameterTypes,function.convention(), function.isErrnoRequired())); 
+
+                for (MethodGenerator g : generators) {
+                    if (g.isSupported(resultType, parameterTypes, function.convention())) {
+                        g.generate(builder, function.getMethod().getName(), jffiFunction, resultType, parameterTypes, !function.isErrnoRequired());
+                        break;
+                    }
+                }
+
+            } catch (SymbolNotFoundError ex) {
+                String errorFieldName = "error_" + uniqueId.incrementAndGet();
+                cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
+                generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, 
+                        function.getMethod().getReturnType(), function.getMethod().getParameterTypes());
+            }
+        }
+
+        // generate global variable accessors
+        VariableAccessorGenerator variableAccessorGenerator = new VariableAccessorGenerator(runtime);
+        for (NativeVariable v : scanner.variables()) {
+            Method m = v.getMethod();
+            java.lang.reflect.Type variableType = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0];
+            if (!(variableType instanceof Class)) {
+                throw new IllegalArgumentException("unsupported variable class: " + variableType);
+            }
+            String functionName = functionMapper.mapFunctionName(m.getName(), null);
+            try {
+                variableAccessorGenerator.generate(builder, interfaceClass, m.getName(),
+                        library.findSymbolAddress(functionName), (Class) variableType, sortedAnnotationCollection(m.getAnnotations()),
+                        typeMapper, classLoader);
 
             } catch (SymbolNotFoundError ex) {
                 String errorFieldName = "error_" + uniqueId.incrementAndGet();
@@ -131,29 +159,6 @@ public class AsmLibraryLoader extends LibraryLoader {
                 generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, m.getReturnType(), m.getParameterTypes());
             }
         }
-
-        // generate global variable accessors
-        VariableAccessorGenerator variableAccessorGenerator = new VariableAccessorGenerator(runtime);
-        for (Method m : interfaceClass.getMethods()) {
-            if (Variable.class == m.getReturnType()) {
-                java.lang.reflect.Type variableType = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0];
-                if (!(variableType instanceof Class)) {
-                    throw new IllegalArgumentException("unsupported variable class: " + variableType);
-                }
-                String functionName = functionMapper.mapFunctionName(m.getName(), null);
-                try {
-                    variableAccessorGenerator.generate(builder, interfaceClass, m.getName(),
-                            library.findSymbolAddress(functionName), (Class) variableType, sortedAnnotationCollection(m.getAnnotations()),
-                            typeMapper, classLoader);
-
-                } catch (SymbolNotFoundError ex) {
-                    String errorFieldName = "error_" + uniqueId.incrementAndGet();
-                    cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
-                    generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, m.getReturnType(), m.getParameterTypes());
-                }
-            }
-        }
-
 
         // Create the constructor to set the instance fields
         SkinnyMethodAdapter init = new SkinnyMethodAdapter(cv, ACC_PUBLIC, "<init>",
@@ -195,13 +200,6 @@ public class AsmLibraryLoader extends LibraryLoader {
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    private static com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
-        if (interfaceClass.isAnnotationPresent(StdCall.class)) {
-            return com.kenai.jffi.CallingConvention.STDCALL;
-        }
-        return InvokerUtil.getCallingConvention(options);
     }
 
     private void generateFunctionNotFound(ClassVisitor cv, String className, String errorFieldName, String functionName,

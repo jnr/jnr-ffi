@@ -18,23 +18,24 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
-import com.kenai.jffi.CallingConvention;
+import com.kenai.jffi.CallContext;
+import com.kenai.jffi.CallContextCache;
 import com.kenai.jffi.Type;
-import jnr.ffi.*;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.LibraryOption;
 import jnr.ffi.NativeType;
-import jnr.ffi.annotations.*;
+import jnr.ffi.annotations.IgnoreError;
+import jnr.ffi.annotations.SaveError;
+import jnr.ffi.annotations.StdCall;
 import jnr.ffi.mapper.*;
 import jnr.ffi.util.Annotations;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.nio.Buffer;
-import java.util.*;
-
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
-import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 
 final class InvokerUtil {
 
@@ -50,25 +51,32 @@ final class InvokerUtil {
         return saveError;
     }
 
-    public static com.kenai.jffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
+    public static jnr.ffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
         Object convention = libraryOptions.get(LibraryOption.CallingConvention);
 
         // If someone passed in the jffi calling convention, just use it.
         if (convention instanceof com.kenai.jffi.CallingConvention) {
-            return (com.kenai.jffi.CallingConvention) convention;
+            return com.kenai.jffi.CallingConvention.DEFAULT.equals(convention) ? jnr.ffi.CallingConvention.DEFAULT : jnr.ffi.CallingConvention.STDCALL;
         }
         
         if (convention instanceof jnr.ffi.CallingConvention) switch ((jnr.ffi.CallingConvention) convention) {
             case DEFAULT:
-                return com.kenai.jffi.CallingConvention.DEFAULT;
+                return jnr.ffi.CallingConvention.DEFAULT;
             case STDCALL:
-                return com.kenai.jffi.CallingConvention.STDCALL;
+                return jnr.ffi.CallingConvention.STDCALL;
 
         } else if (convention != null) {
             throw new IllegalArgumentException("unknown calling convention: " + convention);
         }
 
-        return com.kenai.jffi.CallingConvention.DEFAULT;
+        return jnr.ffi.CallingConvention.DEFAULT;
+    }
+
+    public static jnr.ffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
+        if (interfaceClass.isAnnotationPresent(StdCall.class)) {
+            return jnr.ffi.CallingConvention.STDCALL;
+        }
+        return InvokerUtil.getCallingConvention(options);
     }
 
     public static boolean hasAnnotation(Collection<Annotation> annotations, Class<? extends Annotation> annotationClass) {
@@ -184,7 +192,7 @@ final class InvokerUtil {
         return parameterTypes;
     }
 
-    static CallContext getCallContext(SigType resultType, SigType[] parameterTypes, com.kenai.jffi.CallingConvention convention, boolean requiresErrno) {
+    static CallContext getCallContext(SigType resultType, SigType[] parameterTypes, jnr.ffi.CallingConvention convention, boolean requiresErrno) {
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
 
         for (int i = 0; i < nativeParamTypes.length; ++i) {
@@ -192,10 +200,11 @@ final class InvokerUtil {
         }
 
         return CallContextCache.getInstance().getCallContext(jffiType(resultType.nativeType),
-                nativeParamTypes, convention, requiresErrno);
+                nativeParamTypes, jffiConvention(convention), requiresErrno);
     }
 
-    public static com.kenai.jffi.CallingConvention getNativeCallingConvention(Method m) {
+
+    public static jnr.ffi.CallingConvention getNativeCallingConvention(Method m) {
         if (m.isAnnotationPresent(StdCall.class) || m.getDeclaringClass().isAnnotationPresent(StdCall.class)) {
             return CallingConvention.STDCALL;
         }
@@ -211,31 +220,8 @@ final class InvokerUtil {
     static NativeType getMethodResultNativeType(jnr.ffi.Runtime runtime, Class resultClass, Collection<Annotation> annotations) {
         return Types.getType(runtime, resultClass, annotations).getNativeType();
     }
-
-
-    static void generateFunctionInvocation(NativeRuntime runtime, AsmBuilder builder, Method m, long functionAddress, CallingConvention callingConvention, boolean saveErrno, SignatureTypeMapper typeMapper, MethodGenerator[] generators) {
-        FromNativeContext resultContext = new MethodResultContext(runtime, m);
-        SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), resultContext);
-        ResultType resultType = getResultType(runtime, m.getReturnType(),
-                resultContext.getAnnotations(), typeMapper.getFromNativeType(signatureType, resultContext),
-                resultContext);
-
-        ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, m);
-
-        Function function = getFunction(functionAddress,
-                resultType, parameterTypes, saveErrno, callingConvention);
-
-        for (MethodGenerator g : generators) {
-            if (g.isSupported(resultType, parameterTypes, callingConvention)) {
-                g.generate(builder, m.getName(), function, resultType, parameterTypes, !saveErrno);
-                break;
-            }
-        }
-    }
-
-
-    private static Function getFunction(long address, ResultType resultType, ParameterType[] parameterTypes,
-                                        boolean requiresErrno, CallingConvention convention) {
-        return new Function(address, getCallContext(resultType, parameterTypes, convention, requiresErrno));
+    
+    public static final com.kenai.jffi.CallingConvention jffiConvention(jnr.ffi.CallingConvention callingConvention) {
+        return callingConvention == jnr.ffi.CallingConvention.DEFAULT ? com.kenai.jffi.CallingConvention.DEFAULT : com.kenai.jffi.CallingConvention.STDCALL;
     }
 }

@@ -1,12 +1,11 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
+import jnr.ffi.CallingConvention;
 
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static jnr.ffi.provider.jffi.Util.getBooleanProperty;

@@ -1,8 +1,8 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Platform;
+import jnr.ffi.CallingConvention;
 import jnr.ffi.NativeType;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;

@@ -18,10 +18,11 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.CallingConvention;
 import com.kenai.jffi.Function;
-import jnr.ffi.*;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.LibraryOption;
 import jnr.ffi.Runtime;
+import jnr.ffi.Variable;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.annotations.Synchronized;
 import jnr.ffi.mapper.*;
@@ -30,10 +31,12 @@ import jnr.ffi.provider.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 import static jnr.ffi.provider.jffi.InvokerUtil.*;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 /**
@@ -46,15 +49,6 @@ class ReflectionLibraryLoader extends LibraryLoader {
         return interfaceClass.cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(),
                 new Class[]{ interfaceClass, LoadedLibrary.class }, new NativeInvocationHandler(new LazyLoader<T>(library, interfaceClass, libraryOptions))));
     }
-
-
-    private static com.kenai.jffi.CallingConvention getCallingConvention(Class interfaceClass, Map<LibraryOption, ?> options) {
-        if (interfaceClass.isAnnotationPresent(StdCall.class)) {
-            return com.kenai.jffi.CallingConvention.STDCALL;
-        }
-        return InvokerUtil.getCallingConvention(options);
-    }
-
 
     private static final class SynchronizedInvoker implements Invoker {
         private final Invoker invoker;
@@ -104,7 +98,7 @@ class ReflectionLibraryLoader extends LibraryLoader {
         private final AsmClassLoader classLoader = new AsmClassLoader();
         private final SignatureTypeMapper typeMapper;
         private final FunctionMapper functionMapper;
-        private final com.kenai.jffi.CallingConvention libraryCallingConvention;
+        private final jnr.ffi.CallingConvention libraryCallingConvention;
 
         private final boolean libraryIsSynchronized;
 

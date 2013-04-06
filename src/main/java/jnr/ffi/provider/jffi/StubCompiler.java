@@ -19,6 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.*;
+import jnr.ffi.CallingConvention;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.CPU;
 

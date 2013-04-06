@@ -1,7 +1,7 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
-import com.kenai.jffi.CallingConvention;
+import jnr.ffi.CallingConvention;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.mapper.*;
