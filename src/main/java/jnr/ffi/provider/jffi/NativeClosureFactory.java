@@ -25,7 +25,8 @@ import com.kenai.jffi.ClosureManager;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.FromNativeType;
+import jnr.ffi.provider.ToNativeType;
 import jnr.ffi.util.ref.FinalizableWeakReference;
 
 import java.lang.reflect.Method;

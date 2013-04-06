@@ -3,9 +3,10 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
 import org.objectweb.asm.Label;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.*;
@@ -37,7 +38,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
             Class javaParameterType = parameterTypes[i].effectiveJavaType();
             ToNativeOp op = ToNativeOp.get(parameterTypes[i]);
             if (op != null && op.isPrimitive()) {
-                op.emitPrimitive(mv, getInvokerType(), parameterTypes[i].nativeType);
+                op.emitPrimitive(mv, getInvokerType(), parameterTypes[i].getNativeType());
 
             } else if (hasPointerParameterStrategy(javaParameterType)) {
                 pointerCount = emitDirectCheck(mv, javaParameterType, nativeIntType, converted[i], objCount, pointerCount);
@@ -78,7 +79,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
         // box and/or narrow/widen the return value if needed
         final Class unboxedResultType = unboxedReturnType(javaReturnType);
-        convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.nativeType);
+        convertPrimitive(mv, nativeReturnType, unboxedResultType, resultType.getNativeType());
         emitEpilogue(builder, mv, resultType, parameterTypes, parameters, converted, null);
 
         /* --  method returns above - below is an alternative path -- */

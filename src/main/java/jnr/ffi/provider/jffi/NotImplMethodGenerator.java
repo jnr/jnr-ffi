@@ -2,6 +2,8 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Function;
 import jnr.ffi.CallingConvention;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
 
 /**
  *

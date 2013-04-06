@@ -1,5 +1,7 @@
 package jnr.ffi.provider.jffi;
 
+import jnr.ffi.provider.SigType;
+
 /**
  *
  */

@@ -55,8 +55,8 @@ class ReflectionVariableAccessorGenerator {
 
         Class boxedType = toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
         NativeType nativeType = Types.getType(runtime, boxedType, annotations).getNativeType();
-        ToNativeType toNativeType = new ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
-        FromNativeType fromNativeType = new FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
+        jnr.ffi.provider.ToNativeType toNativeType = new jnr.ffi.provider.ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
+        jnr.ffi.provider.FromNativeType fromNativeType = new jnr.ffi.provider.FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
         Variable variable;
         Pointer memory = MemoryUtil.newPointer(runtime, symbolAddress);
         variable = getNativeVariableAccessor(memory, toNativeType, fromNativeType);
@@ -72,13 +72,13 @@ class ReflectionVariableAccessorGenerator {
         return new ConvertingVariable(nativeVariable, toNativeConverter, fromNativeConverter);
     }
 
-    static Variable getNativeVariableAccessor(Pointer memory, ToNativeType toNativeType, FromNativeType fromNativeType) {
+    static Variable getNativeVariableAccessor(Pointer memory, jnr.ffi.provider.ToNativeType toNativeType, jnr.ffi.provider.FromNativeType fromNativeType) {
         if (Pointer.class == toNativeType.effectiveJavaType()) {
             return new PointerVariable(memory);
 
         } else if (Number.class.isAssignableFrom(toNativeType.effectiveJavaType())) {
-            return new NumberVariable(memory, getPointerOp(toNativeType.nativeType),
-                    getNumberDataConverter(toNativeType.nativeType), getNumberResultConverter(fromNativeType));
+            return new NumberVariable(memory, getPointerOp(toNativeType.getNativeType()),
+                    getNumberDataConverter(toNativeType.getNativeType()), getNumberResultConverter(fromNativeType));
 
         } else {
             throw new UnsupportedOperationException("unsupported variable type: " + toNativeType.effectiveJavaType());

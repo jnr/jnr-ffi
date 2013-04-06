@@ -27,7 +27,7 @@ import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.mapper.*;
-import jnr.ffi.provider.InvocationSession;
+import jnr.ffi.provider.*;
 
 import java.lang.annotation.Annotation;
 import java.nio.*;
@@ -46,8 +46,8 @@ final class DefaultInvokerFactory {
         }
 
         FunctionInvoker invoker = getFunctionInvoker(resultType);
-        if (resultType.fromNativeConverter != null) {
-            invoker = new ConvertingInvoker(resultType.fromNativeConverter, resultType.fromNativeContext, invoker);
+        if (resultType.getFromNativeConverter() != null) {
+            invoker = new ConvertingInvoker(resultType.getFromNativeConverter(), resultType.getFromNativeContext(), invoker);
         }
 
         return new DefaultInvoker(runtime, nativeLibrary, function, invoker, marshallers);
@@ -63,7 +63,7 @@ final class DefaultInvokerFactory {
 
         } else if (Number.class.isAssignableFrom(returnType) || returnType.isPrimitive()) {
             return new ConvertingInvoker(getNumberResultConverter(resultType), null,
-                    new ConvertingInvoker(getNumberDataConverter(resultType.nativeType), null, getNumberFunctionInvoker(resultType.nativeType)));
+                    new ConvertingInvoker(getNumberDataConverter(resultType.getNativeType()), null, getNumberFunctionInvoker(resultType.getNativeType())));
 
         } else if (Pointer.class.isAssignableFrom(returnType)) {
             return PointerInvoker.INSTANCE;
@@ -99,9 +99,9 @@ final class DefaultInvokerFactory {
     }
 
     static Marshaller getMarshaller(ParameterType parameterType) {
-        Marshaller marshaller = getMarshaller(parameterType.effectiveJavaType(), parameterType.nativeType, parameterType.getAnnotations());
-        return parameterType.toNativeConverter != null
-            ? new ToNativeConverterMarshaller(parameterType.getToNativeConverter(), parameterType.toNativeContext, marshaller)
+        Marshaller marshaller = getMarshaller(parameterType.effectiveJavaType(), parameterType.getNativeType(), parameterType.getAnnotations());
+        return parameterType.getToNativeConverter() != null
+            ? new ToNativeConverterMarshaller(parameterType.getToNativeConverter(), parameterType.getToNativeContext(), marshaller)
             : marshaller;
     }
 
@@ -643,7 +643,7 @@ final class DefaultInvokerFactory {
         J fromNative(N value, FromNativeContext fromNativeContext);
     }
 
-    static ResultConverter<? extends Number, Number> getNumberResultConverter(FromNativeType fromNativeType) {
+    static ResultConverter<? extends Number, Number> getNumberResultConverter(jnr.ffi.provider.FromNativeType fromNativeType) {
         if (Byte.class == fromNativeType.effectiveJavaType() || byte.class == fromNativeType.effectiveJavaType()) {
             return ByteResultConverter.INSTANCE;
 

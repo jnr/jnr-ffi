@@ -4,10 +4,14 @@ import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Platform;
 import jnr.ffi.CallingConvention;
 import jnr.ffi.NativeType;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.SigType;
 
 import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.FastIntMethodGenerator.isFastIntType;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static jnr.ffi.provider.jffi.Util.getBooleanProperty;
 
 /**
@@ -104,18 +108,18 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
 
     private static boolean isFastLongType(Platform platform, SigType type) {
         return isFastIntType(platform, type)
-            || type.nativeType == NativeType.SLONG || type.nativeType == NativeType.ULONG
-            || type.nativeType == NativeType.SLONGLONG || type.nativeType == NativeType.ULONGLONG;
+            || type.getNativeType() == NativeType.SLONG || type.getNativeType() == NativeType.ULONG
+            || type.getNativeType() == NativeType.SLONGLONG || type.getNativeType() == NativeType.ULONGLONG;
     }
 
     static boolean isFastLongResult(Platform platform, ResultType resultType) {
         return isFastLongType(platform, resultType)
-                || resultType.nativeType == NativeType.VOID
-                || (resultType.nativeType == NativeType.ADDRESS && resultType.size() == 8)
+                || resultType.getNativeType() == NativeType.VOID
+                || (resultType.getNativeType() == NativeType.ADDRESS && sizeof(NativeType.ADDRESS) == 8)
                 ;
     }
 
     static boolean isFastLongParameter(Platform platform, ParameterType type) {
-        return isFastLongType(platform, type) || (isDelegate(type) && type.size() == 8);
+        return isFastLongType(platform, type) || (isDelegate(type) && sizeof(type.getNativeType()) == 8);
     }
 }

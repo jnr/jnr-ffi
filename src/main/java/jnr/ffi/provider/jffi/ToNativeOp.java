@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.Address;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
+import jnr.ffi.provider.ToNativeType;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;

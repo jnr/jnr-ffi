@@ -20,15 +20,13 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Platform;
 import jnr.ffi.Address;
-import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.provider.*;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -39,7 +37,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.nio.Buffer;
 import java.util.Collection;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
@@ -486,7 +483,7 @@ final class AsmUtil {
     }
 
     static void emitToNativeConversion(AsmBuilder builder, SkinnyMethodAdapter mv, ToNativeType toNativeType) {
-        ToNativeConverter parameterConverter = toNativeType.toNativeConverter;
+        ToNativeConverter parameterConverter = toNativeType.getToNativeConverter();
         if (parameterConverter != null) {
             Method toNativeMethod = getToNativeMethod(toNativeType, builder.getClassLoader());
 
@@ -508,8 +505,8 @@ final class AsmUtil {
             mv.swap();
 
             // load context parameter (if there is one)
-            if (toNativeType.toNativeContext != null) {
-                getfield(mv, builder, builder.getToNativeContextField(toNativeType.toNativeContext));
+            if (toNativeType.getToNativeContext() != null) {
+                getfield(mv, builder, builder.getToNativeContextField(toNativeType.getToNativeContext()));
             } else {
                 mv.aconst_null();
             }
@@ -529,16 +526,16 @@ final class AsmUtil {
 
     static void emitFromNativeConversion(AsmBuilder builder, SkinnyMethodAdapter mv, FromNativeType fromNativeType, Class nativeClass) {
         // If there is a result converter, retrieve it and put on the stack
-        FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
+        FromNativeConverter fromNativeConverter = fromNativeType.getFromNativeConverter();
         if (fromNativeConverter != null) {
-            convertPrimitive(mv, nativeClass, unboxedType(fromNativeConverter.nativeType()), fromNativeType.nativeType);
+            convertPrimitive(mv, nativeClass, unboxedType(fromNativeConverter.nativeType()), fromNativeType.getNativeType());
             boxValue(builder, mv, fromNativeConverter.nativeType(), nativeClass);
 
             Method fromNativeMethod = getFromNativeMethod(fromNativeType, builder.getClassLoader());
             getfield(mv, builder, builder.getFromNativeConverterField(fromNativeConverter));
             mv.swap();
-            if (fromNativeType.fromNativeContext != null) {
-                getfield(mv, builder, builder.getFromNativeContextField(fromNativeType.fromNativeContext));
+            if (fromNativeType.getFromNativeContext() != null) {
+                getfield(mv, builder, builder.getFromNativeContextField(fromNativeType.getFromNativeContext()));
             } else {
                 mv.aconst_null();
             }
@@ -555,7 +552,7 @@ final class AsmUtil {
                 // The actual return type is a primitive, but there was a converter for it - extract the primitive value
                 Class boxedType = getBoxedClass(fromNativeType.getDeclaredType());
                 if (!boxedType.isAssignableFrom(fromNativeMethod.getReturnType())) mv.checkcast(p(boxedType));
-                unboxNumber(mv, boxedType, fromNativeType.getDeclaredType(), fromNativeType.nativeType);
+                unboxNumber(mv, boxedType, fromNativeType.getDeclaredType(), fromNativeType.getNativeType());
 
             } else if (!fromNativeType.getDeclaredType().isAssignableFrom(fromNativeMethod.getReturnType())) {
                 mv.checkcast(p(fromNativeType.getDeclaredType()));
@@ -563,14 +560,14 @@ final class AsmUtil {
 
         } else if (!fromNativeType.getDeclaredType().isPrimitive()) {
             Class unboxedType = unboxedType(fromNativeType.getDeclaredType());
-            convertPrimitive(mv, nativeClass, unboxedType, fromNativeType.nativeType);
+            convertPrimitive(mv, nativeClass, unboxedType, fromNativeType.getNativeType());
             boxValue(builder, mv, fromNativeType.getDeclaredType(), unboxedType);
 
         }
     }
 
     static Method getToNativeMethod(ToNativeType toNativeType, AsmClassLoader classLoader) {
-        ToNativeConverter toNativeConverter = toNativeType.toNativeConverter;
+        ToNativeConverter toNativeConverter = toNativeType.getToNativeConverter();
         if (toNativeConverter == null) {
             return null;
         }
@@ -606,7 +603,7 @@ final class AsmUtil {
 
 
     static Method getFromNativeMethod(FromNativeType fromNativeType, AsmClassLoader classLoader) {
-        FromNativeConverter fromNativeConverter = fromNativeType.fromNativeConverter;
+        FromNativeConverter fromNativeConverter = fromNativeType.getFromNativeConverter();
         if (fromNativeConverter == null) {
             return null;
         }

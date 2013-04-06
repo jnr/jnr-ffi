@@ -2,6 +2,8 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
+import jnr.ffi.provider.FromNativeType;
+import jnr.ffi.provider.ToNativeType;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -79,10 +81,10 @@ public abstract class NativeClosureProxy {
 
         Class[] nativeParameterClasses = new Class[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
-            nativeParameterClasses[i] = getNativeClass(parameterTypes[i].nativeType);
+            nativeParameterClasses[i] = getNativeClass(parameterTypes[i].getNativeType());
         }
 
-        Class nativeResultClass = getNativeClass(resultType.nativeType);
+        Class nativeResultClass = getNativeClass(resultType.getNativeType());
 
         SkinnyMethodAdapter mv = new SkinnyMethodAdapter(closureClassVisitor, ACC_PUBLIC | ACC_FINAL, "invoke",
                 sig(nativeResultClass, nativeParameterClasses),
@@ -111,7 +113,7 @@ public abstract class NativeClosureProxy {
             if (!parameterClass.isPrimitive()) {
                 emitFromNativeConversion(builder, mv, parameterTypes[i], nativeParameterClasses[i]);
             } else {
-                convertPrimitive(mv, nativeParameterClasses[i], parameterClass, parameterType.nativeType);
+                convertPrimitive(mv, nativeParameterClasses[i], parameterClass, parameterType.getNativeType());
             }
         }
 
@@ -129,7 +131,7 @@ public abstract class NativeClosureProxy {
         emitToNativeConversion(builder, mv, resultType);
         if (!resultType.effectiveJavaType().isPrimitive()) {
             if (Number.class.isAssignableFrom(resultType.effectiveJavaType())) {
-                AsmUtil.unboxNumber(mv, resultType.effectiveJavaType(), nativeResultClass, resultType.nativeType);
+                AsmUtil.unboxNumber(mv, resultType.effectiveJavaType(), nativeResultClass, resultType.getNativeType());
 
             } else if (Boolean.class.isAssignableFrom(resultType.effectiveJavaType())) {
                 AsmUtil.unboxBoolean(mv, nativeResultClass);

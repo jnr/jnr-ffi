@@ -6,6 +6,8 @@ import jnr.ffi.Pointer;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.mapper.*;
 import jnr.ffi.provider.InAccessibleMemoryIO;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;

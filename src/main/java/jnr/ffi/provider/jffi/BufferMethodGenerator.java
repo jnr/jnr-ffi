@@ -7,6 +7,8 @@ import com.kenai.jffi.ObjectParameterStrategy;
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.CallingConvention;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -103,12 +105,12 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
     }
 
     private static void emitPrimitiveOp(final SkinnyMethodAdapter mv, ParameterType parameterType, ToNativeOp op) {
-        MarshalOp marshalOp = marshalOps.get(parameterType.nativeType);
+        MarshalOp marshalOp = marshalOps.get(parameterType.getNativeType());
         if (marshalOp == null) {
             throw new IllegalArgumentException("unsupported parameter type " + parameterType);
         }
 
-        op.emitPrimitive(mv, marshalOp.primitiveClass, parameterType.nativeType);
+        op.emitPrimitive(mv, marshalOp.primitiveClass, parameterType.getNativeType());
         mv.invokevirtual(HeapInvocationBuffer.class, marshalOp.methodName, void.class, marshalOp.primitiveClass);
     }
 
@@ -176,7 +178,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
             }
         }
 
-        InvokeOp iop = invokeOps.get(resultType.nativeType);
+        InvokeOp iop = invokeOps.get(resultType.getNativeType());
         if (iop == null) {
             throw new IllegalArgumentException("unsupported return type " + resultType.getDeclaredType());
         }
@@ -184,7 +186,7 @@ final class BufferMethodGenerator extends BaseMethodGenerator {
         mv.invokevirtual(Invoker.class, iop.methodName, iop.primitiveClass, CallContext.class, long.class, HeapInvocationBuffer.class);
 
         // box and/or narrow/widen the return value if needed
-        convertPrimitive(mv, iop.primitiveClass, unboxedReturnType(resultType.effectiveJavaType()), resultType.nativeType);
+        convertPrimitive(mv, iop.primitiveClass, unboxedReturnType(resultType.effectiveJavaType()), resultType.getNativeType());
         emitEpilogue(builder, mv, resultType, parameterTypes, parameters, converted, sessionRequired ? new Runnable() {
             public void run() {
                 mv.aload(session);

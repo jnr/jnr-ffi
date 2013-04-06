@@ -35,7 +35,7 @@ final class ClosureUtil {
     private ClosureUtil() {
     }
 
-    static ToNativeType getResultType(jnr.ffi.Runtime runtime, Method m, SignatureTypeMapper typeMapper) {
+    static jnr.ffi.provider.ToNativeType getResultType(jnr.ffi.Runtime runtime, Method m, SignatureTypeMapper typeMapper) {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getAnnotations());
         ToNativeContext context = new SimpleNativeContext(runtime, annotations);
         SignatureType signatureType = DefaultSignatureType.create(m.getReturnType(), context);
@@ -43,10 +43,10 @@ final class ClosureUtil {
         ToNativeConverter converter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = Types.getType(runtime, javaClass, annotations).getNativeType();
-        return new ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
+        return new jnr.ffi.provider.ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
     }
 
-    static FromNativeType getParameterType(jnr.ffi.Runtime runtime, Method m, int idx, SignatureTypeMapper typeMapper) {
+    static jnr.ffi.provider.FromNativeType getParameterType(jnr.ffi.Runtime runtime, Method m, int idx, SignatureTypeMapper typeMapper) {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getParameterAnnotations()[idx]);
         Class declaredJavaClass = m.getParameterTypes()[idx];
         FromNativeContext context = new SimpleNativeContext(runtime, annotations);
@@ -55,7 +55,7 @@ final class ClosureUtil {
         FromNativeConverter converter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = Types.getType(runtime, javaClass, annotations).getNativeType();
-        return new FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
+        return new jnr.ffi.provider.FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
     }
 
 

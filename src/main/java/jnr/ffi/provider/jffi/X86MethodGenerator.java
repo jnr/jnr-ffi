@@ -4,6 +4,9 @@ import com.kenai.jffi.*;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.CallingConvention;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.SigType;
 import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -76,20 +79,20 @@ class X86MethodGenerator implements MethodGenerator {
         boolean wrapperNeeded = false;
 
         for (int i = 0; i < parameterTypes.length; ++i) {
-            wrapperNeeded |= parameterTypes[i].toNativeConverter != null || !parameterTypes[i].effectiveJavaType().isPrimitive();
+            wrapperNeeded |= parameterTypes[i].getToNativeConverter() != null || !parameterTypes[i].effectiveJavaType().isPrimitive();
             if (!parameterTypes[i].effectiveJavaType().isPrimitive()) {
-                nativeParameterTypes[i] = getNativeClass(parameterTypes[i].nativeType);
+                nativeParameterTypes[i] = getNativeClass(parameterTypes[i].getNativeType());
             } else {
                 nativeParameterTypes[i] = parameterTypes[i].effectiveJavaType();
             }
         }
 
         Class nativeReturnType;
-        wrapperNeeded |= resultType.fromNativeConverter != null || !resultType.effectiveJavaType().isPrimitive();
+        wrapperNeeded |= resultType.getFromNativeConverter() != null || !resultType.effectiveJavaType().isPrimitive();
         if (resultType.effectiveJavaType().isPrimitive()) {
             nativeReturnType = resultType.effectiveJavaType();
         } else {
-            nativeReturnType = getNativeClass(resultType.nativeType);
+            nativeReturnType = getNativeClass(resultType.getNativeType());
         }
 
         String stubName = functionName + (wrapperNeeded ? "$jni$" + nextMethodID.incrementAndGet() : "");
@@ -136,7 +139,7 @@ class X86MethodGenerator implements MethodGenerator {
 
             ToNativeOp toNativeOp = ToNativeOp.get(parameterTypes[i]);
             if (toNativeOp != null && toNativeOp.isPrimitive()) {
-                toNativeOp.emitPrimitive(mv, nativeParameterClass, parameterTypes[i].nativeType);
+                toNativeOp.emitPrimitive(mv, nativeParameterClass, parameterTypes[i].getNativeType());
 
             } else if (hasPointerParameterStrategy(javaParameterClass)) {
                 pointerCount = emitDirectCheck(mv, javaParameterClass, nativeParameterClass, converted[i], objCount, pointerCount);
@@ -184,7 +187,7 @@ class X86MethodGenerator implements MethodGenerator {
                     mv.invokestatic(Double.class, "doubleToRawLongBits", long.class, double.class);
 
                 } else {
-                    convertPrimitive(mv, nativeParameterTypes[i], long.class, parameterTypes[i].nativeType);
+                    convertPrimitive(mv, nativeParameterTypes[i], long.class, parameterTypes[i].getNativeType());
                 }
                 mv.lstore(tmp[i]);
             }
@@ -240,7 +243,7 @@ class X86MethodGenerator implements MethodGenerator {
                 mv.pop2();
 
             }
-            convertPrimitive(mv, long.class, unboxedResultType, resultType.nativeType);
+            convertPrimitive(mv, long.class, unboxedResultType, resultType.getNativeType());
 
             // Jump to the main conversion/boxing code above
             mv.go_to(convertResult);
@@ -260,7 +263,7 @@ class X86MethodGenerator implements MethodGenerator {
 
 
     private static boolean isSupportedType(SigType type) {
-        switch (type.nativeType) {
+        switch (type.getNativeType()) {
             case SCHAR:
             case UCHAR:
             case SSHORT:
@@ -283,7 +286,7 @@ class X86MethodGenerator implements MethodGenerator {
 
     static boolean isSupportedResult(ResultType resultType) {
         return isSupportedType(resultType) || void.class == resultType.effectiveJavaType()
-                || resultType.nativeType == NativeType.ADDRESS
+                || resultType.getNativeType() == NativeType.ADDRESS
                 ;
     }
 

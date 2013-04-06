@@ -20,6 +20,8 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Function;
 import jnr.ffi.*;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.REG;
 import jnr.x86asm.Register;
@@ -43,7 +45,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             return false;
         }
 
-        switch (returnType.nativeType) {
+        switch (returnType.getNativeType()) {
             case VOID:
             case SCHAR:
             case UCHAR:
@@ -69,7 +71,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         int iCount = 0;
 
         for (ParameterType t : parameterTypes) {
-            switch (t.nativeType) {
+            switch (t.getNativeType()) {
                 case SCHAR:
                 case UCHAR:
                 case SSHORT:
@@ -116,7 +118,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         int fCount = fCount(parameterTypes);
 
         boolean canJumpToTarget = !saveErrno & iCount <= 6 & fCount <= 8;
-        switch (resultType.nativeType) {
+        switch (resultType.getNativeType()) {
             case SINT:
             case UINT:
                 canJumpToTarget &= int.class == resultClass;
@@ -150,7 +152,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         // env and self arguments
         //
         for (int i = 0; i < Math.min(iCount, 4); i++) {
-            switch (parameterTypes[i].nativeType) {
+            switch (parameterTypes[i].getNativeType()) {
                 case SCHAR:
                     a.movsx(dstRegisters64[i], srcRegisters8[i]);
                     break;
@@ -189,7 +191,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         // For args 5 & 6 of the function, they would have been pushed on the stack
         for (int i = 4; i < iCount; i++) {
             int disp = 8 + ((4 - i) * 8);
-            switch (parameterTypes[i].nativeType) {
+            switch (parameterTypes[i].getNativeType()) {
                 case SCHAR:
                     a.movsx(dstRegisters64[i], byte_ptr(rsp, disp));
                     break;
@@ -248,7 +250,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
 
         if (saveErrno) {
             // Save the return on the stack
-            switch (resultType.nativeType) {
+            switch (resultType.getNativeType()) {
                 case VOID:
                     // No need to save/reload return value registers
                     break;
@@ -269,7 +271,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
             a.call(imm(errnoFunctionAddress));
 
             // Retrieve return value and put it back in the appropriate return register
-            switch (resultType.nativeType) {
+            switch (resultType.getNativeType()) {
                 case VOID:
                     // No need to save/reload return value registers
                     break;
@@ -314,7 +316,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
 
         } else {
             // sign/zero extend the result
-            switch (resultType.nativeType) {
+            switch (resultType.getNativeType()) {
                 case SCHAR:
                     a.movsx(rax, al);
                     break;
@@ -352,7 +354,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         int fCount = 0;
 
         for (ParameterType t : parameterTypes) {
-            switch (t.nativeType) {
+            switch (t.getNativeType()) {
                 case FLOAT:
                 case DOUBLE:
                     ++fCount;
@@ -367,7 +369,7 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
         int iCount = 0;
 
         for (ParameterType t : parameterTypes) {
-            switch (t.nativeType) {
+            switch (t.getNativeType()) {
                 case SCHAR:
                 case UCHAR:
                 case SSHORT:

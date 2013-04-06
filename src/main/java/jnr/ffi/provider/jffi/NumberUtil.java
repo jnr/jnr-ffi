@@ -19,6 +19,7 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
+import jnr.ffi.provider.SigType;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -237,7 +238,7 @@ public final class NumberUtil {
     }
 
     static int sizeof(SigType type) {
-        return sizeof(type.nativeType);
+        return sizeof(type.getNativeType());
     }
 
     static int sizeof(NativeType nativeType) {

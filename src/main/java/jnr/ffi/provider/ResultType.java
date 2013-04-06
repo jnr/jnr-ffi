@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.mapper.FromNativeContext;
@@ -10,9 +10,9 @@ import java.util.Collection;
 /**
  *
  */
-class ResultType extends FromNativeType {
+public class ResultType extends FromNativeType {
 
-    ResultType(Class javaType, NativeType nativeType, Collection<Annotation> annotations,
+    public ResultType(Class javaType, NativeType nativeType, Collection<Annotation> annotations,
                FromNativeConverter fromNativeConverter, FromNativeContext fromNativeContext) {
         super(javaType, nativeType, annotations, fromNativeConverter, fromNativeContext);
     }

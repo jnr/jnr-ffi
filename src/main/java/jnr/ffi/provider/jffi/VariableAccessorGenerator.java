@@ -97,8 +97,8 @@ public class VariableAccessorGenerator {
 
         Class boxedType = toNativeConverter != null ? toNativeConverter.nativeType() : javaType;
         NativeType nativeType = Types.getType(runtime, boxedType, annotations).getNativeType();
-        ToNativeType toNativeType = new ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
-        FromNativeType fromNativeType = new FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
+        jnr.ffi.provider.ToNativeType toNativeType = new jnr.ffi.provider.ToNativeType(javaType, nativeType, annotations, toNativeConverter, null);
+        jnr.ffi.provider.FromNativeType fromNativeType = new jnr.ffi.provider.FromNativeType(javaType, nativeType, annotations, fromNativeConverter, null);
         PointerOp pointerOp = pointerOperations.get(nativeType);
         if (pointerOp == null) {
             throw new IllegalArgumentException("global variable type not supported: " + javaType);
@@ -116,7 +116,7 @@ public class VariableAccessorGenerator {
 
         ToNativeOp toNativeOp = ToNativeOp.get(toNativeType);
         if (toNativeOp != null && toNativeOp.isPrimitive()) {
-            toNativeOp.emitPrimitive(set, pointerOp.nativeIntClass, toNativeType.nativeType);
+            toNativeOp.emitPrimitive(set, pointerOp.nativeIntClass, toNativeType.getNativeType());
         } else {
             throw new IllegalArgumentException("global variable type not supported: " + javaType);
         }

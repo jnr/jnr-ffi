@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.mapper.FromNativeContext;
@@ -10,11 +10,11 @@ import java.util.Collection;
 /**
  *
  */
-class FromNativeType extends SigType implements jnr.ffi.mapper.FromNativeType {
-    final FromNativeConverter fromNativeConverter;
-    final FromNativeContext fromNativeContext;
+public class FromNativeType extends SigType implements jnr.ffi.mapper.FromNativeType {
+    private final FromNativeConverter fromNativeConverter;
+    private final FromNativeContext fromNativeContext;
 
-    FromNativeType(Class javaType, NativeType nativeType, Collection<Annotation> annotations,
+    public FromNativeType(Class javaType, NativeType nativeType, Collection<Annotation> annotations,
                    FromNativeConverter fromNativeConverter, FromNativeContext fromNativeContext) {
         super(javaType, nativeType, annotations, fromNativeConverter != null ? fromNativeConverter.nativeType() : javaType);
         this.fromNativeConverter = fromNativeConverter;
@@ -24,5 +24,9 @@ class FromNativeType extends SigType implements jnr.ffi.mapper.FromNativeType {
     @Override
     public FromNativeConverter getFromNativeConverter() {
         return fromNativeConverter;
+    }
+
+    public FromNativeContext getFromNativeContext() {
+        return fromNativeContext;
     }
 }

@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi;
+package jnr.ffi.provider;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.mapper.SignatureType;
@@ -7,17 +7,15 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
-
 /**
  *
  */
-abstract class SigType implements SignatureType {
+abstract public class SigType implements SignatureType {
     private final Class javaType, convertedType;
     private final Collection<Annotation> annotations;
-    final NativeType nativeType;
+    private final NativeType nativeType;
 
-    SigType(Class javaType, NativeType nativeType, Collection<Annotation> annotations, Class convertedType) {
+    public SigType(Class javaType, NativeType nativeType, Collection<Annotation> annotations, Class convertedType) {
         this.javaType = javaType;
         this.annotations = annotations;
         this.convertedType = convertedType;
@@ -28,15 +26,11 @@ abstract class SigType implements SignatureType {
         return javaType;
     }
 
-    final Class effectiveJavaType() {
+    public final Class effectiveJavaType() {
         return convertedType;
     }
 
-    final int size() {
-        return sizeof(nativeType);
-    }
-
-    final Collection<Annotation> annotations() {
+    public final Collection<Annotation> annotations() {
         return annotations;
     }
 
@@ -50,6 +44,10 @@ abstract class SigType implements SignatureType {
     }
 
     public final String toString() {
-        return String.format("declared: %s, effective: %s, native: %s", getDeclaredType(), effectiveJavaType(), nativeType);
+        return String.format("declared: %s, effective: %s, native: %s", getDeclaredType(), effectiveJavaType(), getNativeType());
+    }
+
+    public NativeType getNativeType() {
+        return nativeType;
     }
 }

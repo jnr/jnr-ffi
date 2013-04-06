@@ -5,6 +5,9 @@ import com.kenai.jffi.Platform;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.CallingConvention;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.SigType;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
@@ -102,7 +105,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     static boolean isFastIntType(Platform platform, SigType type) {
-        switch (type.nativeType) {
+        switch (type.getNativeType()) {
             case SCHAR:
             case UCHAR:
             case SSHORT:
@@ -111,7 +114,7 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
             case UINT:
             case SLONG:
             case ULONG:
-                return sizeof(type.nativeType) <= 4;
+                return sizeof(type.getNativeType()) <= 4;
 
             default:
                 return false;
@@ -124,15 +127,15 @@ final class FastIntMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     static boolean isFastIntResult(Platform platform, ResultType resultType) {
         return isFastIntType(platform, resultType)
-                || resultType.nativeType == NativeType.VOID
-                || (resultType.nativeType == NativeType.ADDRESS && sizeof(resultType)== 4)
+                || resultType.getNativeType() == NativeType.VOID
+                || (resultType.getNativeType() == NativeType.ADDRESS && sizeof(resultType)== 4)
                 ;
     }
 
 
     static boolean isFastIntParameter(Platform platform, ParameterType parameterType) {
         return isFastIntType(platform, parameterType)
-            || (parameterType.nativeType == NativeType.ADDRESS && sizeof(parameterType)== 4)
+            || (parameterType.getNativeType() == NativeType.ADDRESS && sizeof(parameterType)== 4)
                 && isSupportedPointerParameterType(parameterType.effectiveJavaType());
     }
 }

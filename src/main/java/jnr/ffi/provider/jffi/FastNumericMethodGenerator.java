@@ -6,7 +6,9 @@ import com.kenai.jffi.Type;
 import jnr.ffi.CallingConvention;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.SigType;
 
 import java.nio.*;
 
@@ -100,22 +102,22 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
 
     private static boolean isNumericType(Platform platform, SigType type) {
         return isFastIntType(platform, type)
-                || type.nativeType == NativeType.SLONG || type.nativeType == NativeType.ULONG
-                || type.nativeType == NativeType.SLONGLONG || type.nativeType == NativeType.ULONGLONG
-                || type.nativeType == NativeType.FLOAT || type.nativeType == NativeType.DOUBLE
+                || type.getNativeType() == NativeType.SLONG || type.getNativeType() == NativeType.ULONG
+                || type.getNativeType() == NativeType.SLONGLONG || type.getNativeType() == NativeType.ULONGLONG
+                || type.getNativeType() == NativeType.FLOAT || type.getNativeType() == NativeType.DOUBLE
                 ;
     }
 
     static boolean isFastNumericResult(Platform platform, ResultType type) {
         return isNumericType(platform, type)
-                || NativeType.VOID == type.nativeType
-                || NativeType.ADDRESS == type.nativeType
+                || NativeType.VOID == type.getNativeType()
+                || NativeType.ADDRESS == type.getNativeType()
                 ;
     }
 
     static boolean isFastNumericParameter(Platform platform, ParameterType parameterType) {
         return isNumericType(platform, parameterType) || isDelegate(parameterType.getDeclaredType())
-            || (parameterType.nativeType == NativeType.ADDRESS && isSupportedPointerParameterType(parameterType.effectiveJavaType()));
+            || (parameterType.getNativeType() == NativeType.ADDRESS && isSupportedPointerParameterType(parameterType.effectiveJavaType()));
     }
 
     private static boolean isSupportedPointerParameterType(Class javaParameterType) {

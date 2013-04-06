@@ -28,6 +28,9 @@ import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.SaveError;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.mapper.*;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.SigType;
 import jnr.ffi.util.Annotations;
 
 import java.lang.annotation.Annotation;
@@ -196,10 +199,10 @@ final class InvokerUtil {
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[parameterTypes.length];
 
         for (int i = 0; i < nativeParamTypes.length; ++i) {
-            nativeParamTypes[i] = jffiType(parameterTypes[i].nativeType);
+            nativeParamTypes[i] = jffiType(parameterTypes[i].getNativeType());
         }
 
-        return CallContextCache.getInstance().getCallContext(jffiType(resultType.nativeType),
+        return CallContextCache.getInstance().getCallContext(jffiType(resultType.getNativeType()),
                 nativeParamTypes, jffiConvention(convention), requiresErrno);
     }
 
