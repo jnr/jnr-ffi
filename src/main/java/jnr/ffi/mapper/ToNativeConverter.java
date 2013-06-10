@@ -45,4 +45,10 @@ public interface ToNativeConverter<J, N> {
     @Target(ElementType.TYPE)
     public static @interface Cacheable {
     }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @interface ToNative {
+        Class nativeType();
+    }
 }

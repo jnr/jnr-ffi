@@ -39,4 +39,10 @@ public interface FromNativeConverter<J, N> {
     @Target(ElementType.TYPE)
     public static @interface Cacheable {
     }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @interface FromNative {
+        Class nativeType();
+    }
 }
