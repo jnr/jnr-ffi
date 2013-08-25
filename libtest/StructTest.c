@@ -74,3 +74,17 @@ struct_make_struct(char b, short s, int i, long long ll, float f, double d)
     t.d = d;
     return &t;
 }
+
+struct foo {
+  unsigned long l1,l2, l3;
+};
+
+int
+fill_struct_from_longs(unsigned long l1, unsigned long l2, struct foo* s, unsigned long l3)
+{
+    s->l1 = l1;
+    s->l2 = l2;
+    s->l3 = l3;
+
+  return 0;
+}

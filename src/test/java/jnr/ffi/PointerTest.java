@@ -18,9 +18,7 @@
 
 package jnr.ffi;
 
-import jnr.ffi.annotations.In;
-import jnr.ffi.annotations.LongLong;
-import jnr.ffi.annotations.Out;
+import jnr.ffi.annotations.*;
 import jnr.ffi.types.int32_t;
 import jnr.ffi.types.int8_t;
 import jnr.ffi.types.size_t;
@@ -58,6 +56,17 @@ public class PointerTest {
         void ptr_set_double(Pointer p, int offset, double value);
         void ptr_reverse_l5(Pointer p1, Pointer p2, Pointer p3, Pointer p4, Pointer p5);
         void ptr_reverse_l6(Pointer p1, Pointer p2, Pointer p3, Pointer p4, Pointer p5, Pointer p6);
+
+        public static final class Foo extends Struct {
+            public final UnsignedLong l1 = new UnsignedLong();
+            public final UnsignedLong l2 = new UnsignedLong();
+            public final UnsignedLong l3 = new UnsignedLong();
+
+            public Foo(Runtime runtime) {
+                super(runtime);
+            }
+        }
+        int fill_struct_from_longs(@size_t long l1, @size_t long l2, @Out Foo[] foo, @size_t long l3);
 
         Pointer ptr_malloc(@size_t int size);
         void ptr_free(Pointer ptr);
@@ -379,6 +388,16 @@ public class PointerTest {
         assertEquals(p1, ary[0]);
         testlib.ptr_set_array_element(ary, 9, p2);
         assertEquals(p2, ary[9]);
+    }
+
+    @Test public void mixObjectsAndPrimitives() {
+        TestLib.Foo[] structs = Struct.arrayOf(runtime, TestLib.Foo.class, 1);
+        TestLib.Foo foo = structs[0];
+
+        testlib.fill_struct_from_longs(0xdeadL, 0xbeefL, structs, 0x1eefcafe);
+        assertEquals(0xdeadL, foo.l1.get());
+        assertEquals(0xbeefL, foo.l2.get());
+        assertEquals(0x1eefcafeL, foo.l3.get());
     }
 //    @Test
 //    public void testLibcMalloc() {
