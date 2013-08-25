@@ -349,20 +349,6 @@ final class AsmUtil {
         }
     }
 
-    static boolean isDelegate(Class klass) {
-        for (Method m : klass.getMethods()) {
-            if (m.isAnnotationPresent(Delegate.class)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    static boolean isDelegate(SigType type) {
-        return isDelegate(type.getDeclaredType());
-    }
-
     static int getNativeArrayFlags(int flags) {
         int nflags = 0;
         nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ArrayFlags.IN : 0;

@@ -8,7 +8,6 @@ import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.SigType;
 
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.FastIntMethodGenerator.isFastIntType;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
@@ -108,6 +107,7 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
 
     private static boolean isFastLongType(Platform platform, SigType type) {
         return isFastIntType(platform, type)
+            || (type.getNativeType() == NativeType.ADDRESS && sizeof(NativeType.ADDRESS) == 8)
             || type.getNativeType() == NativeType.SLONG || type.getNativeType() == NativeType.ULONG
             || type.getNativeType() == NativeType.SLONGLONG || type.getNativeType() == NativeType.ULONGLONG;
     }
@@ -120,6 +120,6 @@ public class FastLongMethodGenerator extends AbstractFastNumericMethodGenerator 
     }
 
     static boolean isFastLongParameter(Platform platform, ParameterType type) {
-        return isFastLongType(platform, type) || (isDelegate(type) && sizeof(type.getNativeType()) == 8);
+        return isFastLongType(platform, type);
     }
 }

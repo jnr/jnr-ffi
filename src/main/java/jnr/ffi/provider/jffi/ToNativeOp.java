@@ -50,9 +50,6 @@ abstract class ToNativeOp {
         if (op != null) {
             return op;
 
-        } if (Pointer.class.isAssignableFrom(type.effectiveJavaType()) && isDelegate(type)) {
-            return Delegate.INSTANCE;
-
         } else {
           return null;
         }

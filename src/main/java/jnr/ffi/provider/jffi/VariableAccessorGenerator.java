@@ -25,6 +25,7 @@ import jnr.ffi.mapper.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
@@ -35,8 +36,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AsmUtil.emitFromNativeConversion;
-import static jnr.ffi.provider.jffi.AsmUtil.emitToNativeConversion;
+import static jnr.ffi.provider.jffi.AsmUtil.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 import static org.objectweb.asm.Opcodes.*;
@@ -117,6 +117,10 @@ public class VariableAccessorGenerator {
         ToNativeOp toNativeOp = ToNativeOp.get(toNativeType);
         if (toNativeOp != null && toNativeOp.isPrimitive()) {
             toNativeOp.emitPrimitive(set, pointerOp.nativeIntClass, toNativeType.getNativeType());
+
+        } else if (Pointer.class.isAssignableFrom(toNativeType.effectiveJavaType())) {
+            pointerOp = POINTER_OP_POINTER;
+
         } else {
             throw new IllegalArgumentException("global variable type not supported: " + javaType);
         }
@@ -193,6 +197,8 @@ public class VariableAccessorGenerator {
     private static void op(Map<NativeType, PointerOp> ops, NativeType type, String name, Class nativeIntType) {
         ops.put(type, new PointerOp(name, nativeIntType));
     }
+
+    private static final PointerOp POINTER_OP_POINTER = new PointerOp("Pointer", Pointer.class);
 
     private static final class PointerOp {
         private final String getMethodName;

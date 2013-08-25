@@ -12,7 +12,6 @@ import jnr.ffi.provider.SigType;
 
 import java.nio.*;
 
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.FastIntMethodGenerator.isFastIntType;
 import static jnr.ffi.provider.jffi.Util.getBooleanProperty;
@@ -116,7 +115,7 @@ class FastNumericMethodGenerator extends AbstractFastNumericMethodGenerator {
     }
 
     static boolean isFastNumericParameter(Platform platform, ParameterType parameterType) {
-        return isNumericType(platform, parameterType) || isDelegate(parameterType.getDeclaredType())
+        return isNumericType(platform, parameterType)
             || (parameterType.getNativeType() == NativeType.ADDRESS && isSupportedPointerParameterType(parameterType.effectiveJavaType()));
     }
 

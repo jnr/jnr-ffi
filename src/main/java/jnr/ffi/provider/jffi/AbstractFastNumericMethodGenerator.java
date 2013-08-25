@@ -25,7 +25,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
     public void generate(final AsmBuilder builder, final SkinnyMethodAdapter mv, LocalVariableAllocator localVariableAllocator, CallContext callContext, final ResultType resultType, final ParameterType[] parameterTypes,
                          boolean ignoreError) {
         // [ stack contains: Invoker, Function ]
-         final Class nativeIntType = getInvokerType();
+        final Class nativeIntType = getInvokerType();
         final LocalVariable objCount = localVariableAllocator.allocate(int.class);
         final LocalVariable[] parameters = AsmUtil.getParameterVariables(parameterTypes);
         final LocalVariable[] converted = new LocalVariable[parameterTypes.length];

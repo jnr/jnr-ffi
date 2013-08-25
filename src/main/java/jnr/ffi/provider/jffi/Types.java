@@ -12,7 +12,6 @@ import java.lang.ref.SoftReference;
 import java.nio.Buffer;
 import java.util.*;
 
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 
 /**
  *
@@ -100,9 +99,6 @@ class Types {
             return runtime.findType(NativeType.ADDRESS);
 
         } else if (type.isArray()) {
-            return runtime.findType(NativeType.ADDRESS);
-
-        } else if (isDelegate(type)) {
             return runtime.findType(NativeType.ADDRESS);
 
         } else {

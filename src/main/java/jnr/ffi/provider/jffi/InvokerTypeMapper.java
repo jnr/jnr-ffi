@@ -3,6 +3,7 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
+import jnr.ffi.annotations.Delegate;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
 import jnr.ffi.mapper.FromNativeType;
@@ -10,10 +11,9 @@ import jnr.ffi.mapper.ToNativeType;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
 
+import java.lang.reflect.Method;
 import java.util.EnumSet;
 import java.util.Set;
-
-import static jnr.ffi.provider.jffi.AsmUtil.isDelegate;
 
 final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements SignatureTypeMapper {
     private final NativeClosureManager closureManager;
@@ -142,4 +142,16 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
     public ToNativeType getToNativeType(SignatureType type, ToNativeContext context) {
         return ToNativeTypes.create(getToNativeConverter(type, context));
     }
+
+
+    private static boolean isDelegate(Class klass) {
+        for (Method m : klass.getMethods()) {
+            if (m.isAnnotationPresent(Delegate.class)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }
