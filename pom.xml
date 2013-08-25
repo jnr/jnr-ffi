@@ -143,6 +143,7 @@
         <version>2.4.1</version>
         <configuration>
           <tagNameFormat>@{project.version}</tagNameFormat>
+          <goals>deploy</goals>
         </configuration>
       </plugin>
       <plugin>
