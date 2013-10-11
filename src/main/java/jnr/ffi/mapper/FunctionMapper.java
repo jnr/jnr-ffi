@@ -49,4 +49,14 @@ public interface FunctionMapper {
             return new SimpleFunctionMapper(functionNameMap);
         }
     }
+
+    /**
+     * An implementation of {@link jnr.ffi.mapper.FunctionMapper} that maps 1:1 between java symbols and native functions
+     */
+    public static final FunctionMapper IDENTITY = new FunctionMapper() {
+        @Override
+        public String mapFunctionName(String functionName, Context context) {
+            return functionName;
+        }
+    };
 }
