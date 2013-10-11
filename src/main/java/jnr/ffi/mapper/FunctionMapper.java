@@ -22,6 +22,9 @@ import jnr.ffi.Library;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public interface FunctionMapper {
@@ -32,4 +35,18 @@ public interface FunctionMapper {
         public Collection<Annotation> getAnnotations();
     }
     public String mapFunctionName(String functionName, Context context);
+
+
+    public static final class Builder {
+        private final Map<String, String> functionNameMap = Collections.synchronizedMap(new HashMap<String, String>());
+
+        public Builder map(String javaName, String nativeFunction) {
+            functionNameMap.put(javaName, nativeFunction);
+            return this;
+        }
+
+        public FunctionMapper build() {
+            return new SimpleFunctionMapper(functionNameMap);
+        }
+    }
 }
