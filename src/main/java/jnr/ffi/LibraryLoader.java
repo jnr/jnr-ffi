@@ -35,6 +35,8 @@ public abstract class LibraryLoader<T> {
     private final List<SignatureTypeMapper> typeMappers = new ArrayList<SignatureTypeMapper>();
     private final List<FunctionMapper> functionMappers = new ArrayList<FunctionMapper>();
     private final Map<LibraryOption, Object> optionMap = new EnumMap<LibraryOption, Object>(LibraryOption.class);
+    private final TypeMapper.Builder typeMapperBuilder = new TypeMapper.Builder();
+    private final FunctionMapper.Builder functionMapperBuilder = new FunctionMapper.Builder();
     private final Class<T> interfaceClass;
     private boolean failImmediately = false;
 
@@ -141,6 +143,35 @@ public abstract class LibraryLoader<T> {
     }
 
     /**
+     * Adds a custom java type mapping.
+     *
+     * @param javaType The java type to convert to a native type.
+     * @param toNativeConverter A {@link jnr.ffi.mapper.ToNativeConverter} that will convert from the java type to a native type.
+     * @return The {@code LibraryLoader} instance.
+     */
+    public <J> LibraryLoader<T> map(Class<? extends J> javaType, ToNativeConverter<? extends J, ?> toNativeConverter) {
+        typeMapperBuilder.map(javaType, toNativeConverter);
+        return this;
+    }
+
+    /**
+     * Adds a custom java type mapping.
+     *
+     * @param javaType The java type to convert to a native type.
+     * @param fromNativeConverter A {@link jnr.ffi.mapper.ToNativeConverter} that will convert from the native type to a java type.
+     * @return The {@code LibraryLoader} instance.
+     */
+    public <J> LibraryLoader<T> map(Class<? extends J> javaType, FromNativeConverter<? extends J, ?> fromNativeConverter) {
+        typeMapperBuilder.map(javaType, fromNativeConverter);
+        return this;
+    }
+
+    public <J> LibraryLoader<T> map(Class<? extends J> javaType, DataConverter<? extends J, ?> dataConverter) {
+        typeMapperBuilder.map(javaType, dataConverter);
+        return this;
+    }
+
+    /**
      * Adds a function mapper to use when resolving symbols in this library.
      *
      * Multiple function mappers can be specified by additional calls to this method, and
@@ -151,6 +182,18 @@ public abstract class LibraryLoader<T> {
      */
     public LibraryLoader<T> mapper(FunctionMapper typeMapper) {
         optionMap.put(LibraryOption.FunctionMapper, typeMapper);
+        return this;
+    }
+
+    /**
+     * Adds a function name mapping to use when resolving symbols in this library.
+     *
+     * @param javaName The java method name.
+     * @param nativeFunction The native library symbol to map the java method name to.
+     * @return The {@code LibraryLoader} instance.
+     */
+    public LibraryLoader<T> map(String javaName, String nativeFunction) {
+        functionMapperBuilder.map(javaName, nativeFunction);
         return this;
     }
 
@@ -212,17 +255,11 @@ public abstract class LibraryLoader<T> {
             throw new UnsatisfiedLinkError("no library names specified");
         }
 
-        if (!typeMappers.isEmpty()) {
-            SignatureTypeMapper typeMapper = typeMappers.size() > 1
-                    ? new CompositeTypeMapper(typeMappers) : typeMappers.get(0);
-            optionMap.put(LibraryOption.TypeMapper, typeMapper);
-        }
+        typeMappers.add(0, new SignatureTypeMapperAdapter(typeMapperBuilder.build()));
+        optionMap.put(LibraryOption.TypeMapper, typeMappers.size() > 1 ? new CompositeTypeMapper(typeMappers) : typeMappers.get(0));
 
-        if (!functionMappers.isEmpty()) {
-            FunctionMapper functionMapper = functionMappers.size() > 1
-                    ? new CompositeFunctionMapper(functionMappers) : functionMappers.get(0);
-            optionMap.put(LibraryOption.FunctionMapper, functionMapper);
-        }
+        functionMappers.add(0, functionMapperBuilder.build());
+        optionMap.put(LibraryOption.FunctionMapper, functionMappers.size() > 1 ? new CompositeFunctionMapper(functionMappers) : functionMappers.get(0));
 
         try {
             return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
