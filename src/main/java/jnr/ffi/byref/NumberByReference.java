@@ -63,7 +63,7 @@ public class NumberByReference extends AbstractNumberReference<Number> {
     }
 
     @Override
-    public void toNative(Runtime runtime, Pointer memory, long offset) {
+    public void fromNative(Runtime runtime, Pointer memory, long offset) {
         switch (runtime.findType(typeAlias).getNativeType()) {
             case SCHAR:
             case UCHAR:
@@ -108,7 +108,7 @@ public class NumberByReference extends AbstractNumberReference<Number> {
     }
 
     @Override
-    public void fromNative(Runtime runtime, Pointer memory, long offset) {
+    public void toNative(Runtime runtime, Pointer memory, long offset) {
         switch (runtime.findType(typeAlias).getNativeType()) {
             case SCHAR:
             case UCHAR:
