@@ -125,7 +125,16 @@ public abstract class Struct {
      */
     protected Struct(Runtime runtime) {
         Pack p = this.getClass().getAnnotation(Pack.class);
+        boolean apply = false;
         if (p != null) {
+            try {
+                apply = (java.lang.Boolean) p.enabler().getMethod("enable", null)
+                        .invoke(null, null);
+            } catch (Exception e) {
+                // Swallow
+            }
+        }
+        if (apply) {
             this.__info = new Info(runtime, p.padding());
         } else {
             this.__info = new Info(runtime);

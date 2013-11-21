@@ -34,6 +34,19 @@ struct pack2_small {
 };
 #pragma pack(pop)
 
+#if defined(__APPLE__)
+    #pragma pack(push, 2)
+#endif
+
+struct pack2_on_osx {
+    uint32_t i;
+    uint64_t l;
+};
+
+#if defined(__APPLE__)
+    #pragma pack(pop)
+#endif
+
 struct pack2*
 packedstruct_make_struct(uint32_t i, uint64_t l)
 {
@@ -52,5 +65,15 @@ packedstruct_make_tiny(uint8_t v1, uint8_t v2)
     s.tiny = v1;
     s.tiny2 = v2;
     s.deadbeef = 0xdeadbeef;
+    return &s;
+}
+
+struct pack2_on_osx*
+packedstruct_make_packed_on_osx(uint32_t i, uint64_t l)
+{
+    static struct pack2_on_osx s;
+    memset(&s, 0, sizeof(s));
+    s.i = i;
+    s.l = l;
     return &s;
 }

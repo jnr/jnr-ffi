@@ -23,6 +23,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import jnr.ffi.annotations.PackEnabler;
+
 /**
  * Explicitly specifies the packing for structure fields.
  *
@@ -35,4 +37,5 @@ import java.lang.annotation.Target;
 @Target(value = { ElementType.TYPE })
 public @interface Pack {
     public int padding();
+    public Class<? extends PackEnabler> enabler() default PackEnabler.class;
 }

@@ -62,6 +62,8 @@ public class PackedStructTest {
     public static interface TestLib {
         Pack2 packedstruct_make_struct(@u_int32_t int i, @u_int64_t long l);
         Pack2Small packedstruct_make_tiny(@u_int8_t byte v1, @u_int8_t byte v2);
+        Pack2OnOSX packedstruct_make_packed_on_osx(@u_int32_t int i,
+                @u_int64_t long l);
     }
 
     @BeforeClass
@@ -90,5 +92,26 @@ public class PackedStructTest {
         Pack2Small p = testlib.packedstruct_make_tiny(v1, v2);
         assertEquals("Incorrect byte value 1 in struct", v1, p.v1.get());
         assertEquals("Incorrect byte value 1 in struct", v2, p.v2.get());
+    }
+
+    @Pack(padding = 2, enabler = OSXPackEnabler.class)
+    public static class Pack2OnOSX extends Struct {
+        public final u_int32_t i = new u_int32_t();
+        public final u_int64_t l = new u_int64_t();
+        public Pack2OnOSX(Runtime runtime) {
+            super(runtime);
+        }
+    }
+
+    /**
+     * Tests optionally enabled packing.
+     */
+    @Test
+    public void testPackEnabler() {
+        final int i = 0xAAAAAAAA;
+        final long l = 0xBBBBBBBBBBBBBBBBL;
+        Pack2OnOSX p = testlib.packedstruct_make_packed_on_osx(i, l);
+        assertEquals("Incorrect int value in struct", i, p.i.get());
+        assertEquals("Incorrect long value in struct", l, p.l.get());
     }
 }
