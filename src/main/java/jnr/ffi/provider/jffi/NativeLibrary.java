@@ -92,7 +92,7 @@ public class NativeLibrary {
         return Collections.unmodifiableList(libs);
     }
 
-    private static final Pattern BAD_ELF = Pattern.compile("(.*): invalid ELF header");
+    private static final Pattern BAD_ELF = Pattern.compile("(.*): (invalid ELF header|file too short|invalid file format)");
     private static final Pattern ELF_GROUP = Pattern.compile("GROUP\\s*\\(\\s*(\\S*).*\\)");
 
     private static com.kenai.jffi.Library openLibrary(String path) {
