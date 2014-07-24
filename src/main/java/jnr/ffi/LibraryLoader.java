@@ -177,11 +177,11 @@ public abstract class LibraryLoader<T> {
      * Multiple function mappers can be specified by additional calls to this method, and
      * each mapper will be tried in order, until one is successful.
      *
-     * @param typeMapper The function mapper to use.
+     * @param functionMapper The function mapper to use.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader<T> mapper(FunctionMapper typeMapper) {
-        optionMap.put(LibraryOption.FunctionMapper, typeMapper);
+    public LibraryLoader<T> mapper(FunctionMapper functionMapper) {
+        functionMappers.add(functionMapper);
         return this;
     }
 

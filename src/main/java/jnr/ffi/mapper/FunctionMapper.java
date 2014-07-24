@@ -34,8 +34,17 @@ public interface FunctionMapper {
         public abstract boolean isSymbolPresent(String name);
         public Collection<Annotation> getAnnotations();
     }
-    public String mapFunctionName(String functionName, Context context);
 
+    /**
+     * Translate the (Java) function name into its (native) equivalent. If the
+     * name is not present in the map, it is to return the supplied name (same
+     * object exactly).
+     *
+     * @param functionName to translate
+     * @param context for translation
+     * @return native equivalent or <code>functionName</code> if not in map
+     */
+    public String mapFunctionName(String functionName, Context context);
 
     public static final class Builder {
         private final Map<String, String> functionNameMap = Collections.synchronizedMap(new HashMap<String, String>());
