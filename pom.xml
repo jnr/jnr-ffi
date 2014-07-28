@@ -43,6 +43,7 @@
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <github.global.server>github</github.global.server>
+    <asm.version>5.0.1</asm.version>
   </properties>
 
   <dependencies>
@@ -68,31 +69,31 @@
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-analysis</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-tree</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
