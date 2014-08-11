@@ -21,7 +21,7 @@ void returnVoid() {
 }
 
 void returnVoidI(int arg) {
-    
+    (void)(arg);
 }
 int returnInt() {
     return 0;

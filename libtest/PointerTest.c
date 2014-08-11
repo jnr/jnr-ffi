@@ -94,6 +94,7 @@ void
 ptr_reverse_l5(long* l1, long* l2, long* l3, long* l4, long* l5)
 {
     swap(l1, l5);
+    (void)(l3);
     swap(l2, l4);
 }
 
