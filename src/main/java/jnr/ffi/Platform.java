@@ -452,8 +452,10 @@ public abstract class Platform {
                 } else {
                     String num = path.substring(path.lastIndexOf(".so.") + 4);
                     try {
-                        if (Integer.parseInt(num) >= version) {
+                        int v = Integer.parseInt(num);
+                        if (v > version) {
                             bestMatch = path;
+                            version = v;
                         }
                     } catch (NumberFormatException e) {
                     } // Just skip if not a number
