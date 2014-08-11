@@ -94,6 +94,9 @@ public abstract class Platform {
         /** 64 bit Power PC */
         PPC64,
 
+        /** 64 bit Power PC little endian */
+        PPC64LE,
+
         /** 32 bit Sun sparc */
         SPARC,
 
@@ -197,6 +200,8 @@ public abstract class Platform {
             return CPU.PPC;
         } else if (equalsIgnoreCase("ppc64", archString) || equalsIgnoreCase("powerpc64", archString)) {
             return CPU.PPC64;
+        } else if (equalsIgnoreCase("ppc64le", archString) || equalsIgnoreCase("powerpc64le", archString)) {
+            return CPU.PPC64LE;
         } else if (equalsIgnoreCase("s390", archString) || equalsIgnoreCase("s390x", archString)) {
             return CPU.S390X;
         }
@@ -252,6 +257,7 @@ public abstract class Platform {
                     break;
                 case X86_64:
                 case PPC64:
+                case PPC64LE:
                 case SPARCV9:
                 case S390X:
                     dataModel = 64;
