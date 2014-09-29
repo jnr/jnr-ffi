@@ -92,7 +92,7 @@ public class NativeLibrary {
         return Collections.unmodifiableList(libs);
     }
 
-    private static final Pattern BAD_ELF = Pattern.compile("(.*): invalid ELF header");
+    private static final Pattern BAD_ELF = Pattern.compile("(.*): (invalid ELF header|file too short|invalid file format)");
     private static final Pattern ELF_GROUP = Pattern.compile("GROUP\\s*\\(\\s*(\\S*).*\\)");
 
     private static com.kenai.jffi.Library openLibrary(String path) {
@@ -109,7 +109,7 @@ public class NativeLibrary {
             File f = new File(badElf.group(1));
             if (f.isFile() && f.length() < (4 * 1024)) {
                 Matcher sharedObject = ELF_GROUP.matcher(readAll(f));
-                if (sharedObject.lookingAt()) {
+                if (sharedObject.find()) {
                     return com.kenai.jffi.Library.getCachedInstance(sharedObject.group(1), com.kenai.jffi.Library.LAZY | com.kenai.jffi.Library.GLOBAL);
                 }
             }
