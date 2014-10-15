@@ -25,8 +25,9 @@ import jnr.ffi.Runtime;
  * ShortByReference is used when the address of a primitive short value must be passed
  * as a parameter to a function.
  *
- * <p>For example, the following C code,
- * <p><blockquote><pre>
+ * <p>
+ * For example, the following C code,
+ * <pre>
  * {@code
  * extern void get_a(short * ap);
  *
@@ -38,21 +39,23 @@ import jnr.ffi.Runtime;
  *     return a;
  * }
  * }
- * </pre></blockquote>
- * <p>Would be declared in java as
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * Would be declared in java as
+ * <pre>
  * {@code
  * interface Lib {
  *     void get_a(@Out ShortByReference ap);
  * }
  * }
- * </pre></blockquote>
- * <p>and used like this
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * and used like this
+ * <pre>
  * ShortByReference ap = new ShortByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.getValue());
- * </pre></blockquote>
+ * </pre>
  */
 public final class ShortByReference extends AbstractNumberReference<Short> {
     
@@ -84,8 +87,9 @@ public final class ShortByReference extends AbstractNumberReference<Short> {
     /**
      * Copies the short value to native memory
      *
-     * @param runtime
-     * @param buffer the native memory buffer
+     * @param runtime the current runtime.
+     * @param buffer  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void toNative(Runtime runtime, Pointer buffer, long offset) {
         buffer.putShort(offset, value);
@@ -94,8 +98,9 @@ public final class ShortByReference extends AbstractNumberReference<Short> {
     /**
      * Copies the short value from native memory
      *
-     * @param runtime
-     * @param buffer the native memory buffer.
+     * @param runtime the current runtime.
+     * @param buffer  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void fromNative(Runtime runtime, Pointer buffer, long offset) {
         this.value = buffer.getShort(offset);
@@ -104,6 +109,7 @@ public final class ShortByReference extends AbstractNumberReference<Short> {
     /**
      * Gets the native size of type of reference in bytes.
      * 
+     * @param runtime the current runtime.
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {

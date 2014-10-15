@@ -30,6 +30,7 @@ public final class Memory {
      * Allocates a new block of java memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param size The size in bytes of memory to allocate.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -42,6 +43,7 @@ public final class Memory {
      * Allocates a new block of java memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param type The native type to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -54,6 +56,7 @@ public final class Memory {
      * Allocates a new block of java memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param type The type to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -66,6 +69,7 @@ public final class Memory {
      * Allocates a new block of java memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param type The type alias to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -78,6 +82,7 @@ public final class Memory {
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param size The size in bytes of memory to allocate.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -90,6 +95,7 @@ public final class Memory {
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param type The native type to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -102,6 +108,7 @@ public final class Memory {
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param type The type alias to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -114,6 +121,7 @@ public final class Memory {
      * Allocates a new block of native memory and wraps it in a {@link Pointer}
      * accessor.
      *
+     * @param runtime The current runtime.
      * @param size The size in bytes of memory to allocate.
      * @param clear Whether the memory contents should be cleared, or left as
      * random data.
@@ -129,6 +137,7 @@ public final class Memory {
      * accessor.  The memory returned by this method should not be passed to native methods
      * that store the address for later use, as it may change each time it is passed to native code.
      *
+     * @param runtime The current runtime.
      * @param type The native type to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -142,6 +151,7 @@ public final class Memory {
      * accessor.  The memory returned by this method should not be passed to native methods
      * that store the address for later use, as it may change each time it is passed to native code.
      *
+     * @param runtime The current runtime.
      * @param type The type alias to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -155,6 +165,7 @@ public final class Memory {
      * accessor.  The memory returned by this method should not be passed to native methods
      * that store the address for later use, as it may change each time it is passed to native code.
      *
+     * @param runtime The current runtime.
      * @param type The native type to allocate memory for.
      * @param clear Whether the memory contents should be cleared, or left as
      * random data.

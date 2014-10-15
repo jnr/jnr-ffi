@@ -5,8 +5,8 @@ package jnr.ffi;
  *
  * <p>
  *     To access global variables, declare a method with a parameterized return type of this class.
- * </p>
- * <p><b>Example</b>
+ * <p>
+ * <b>Example</b>
  * <pre>
  *     {@code
  *
@@ -20,7 +20,6 @@ package jnr.ffi;
  *     lib.my_int_var().set(0xdeadbeef);
  *     }
  * </pre>
- * </p>
  */
 public interface Variable<T> {
     /**

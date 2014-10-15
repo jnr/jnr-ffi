@@ -26,8 +26,9 @@ import jnr.ffi.Runtime;
  * IntByReference is used when the address of a primitive int must be passed
  * as a parameter to a function.
  *
- * <p>For example, the following C code,
- * <p><blockquote><pre>
+ * <p>
+ * For example, the following C code,
+ * <pre>
  * {@code
  * extern void get_a(int * ap);
  *
@@ -39,21 +40,23 @@ import jnr.ffi.Runtime;
  *     return a;
  * }
  * }
- * </pre></blockquote>
- * <p>Would be declared in java as
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * Would be declared in java as
+ * <pre>
  * {@code
  * interface Lib {
  *     void get_a(@Out IntByReference ap);
  * }
  * }
- * </pre></blockquote>
- * <p>and used like this
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * and used like this
+ * <pre>
  * IntByReference ap = new IntByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.intValue());
- * </pre></blockquote>
+ * </pre>
  */
 public final class IntByReference extends AbstractNumberReference<Integer> {
 
@@ -85,8 +88,9 @@ public final class IntByReference extends AbstractNumberReference<Integer> {
     /**
      * Copies the integer value to native memory
      *
-     * @param runtime
-     * @param buffer the native memory buffer
+     * @param runtime the current runtime.
+     * @param buffer  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void toNative(Runtime runtime, Pointer buffer, long offset) {
         buffer.putInt(offset, value);
@@ -95,8 +99,9 @@ public final class IntByReference extends AbstractNumberReference<Integer> {
     /**
      * Copies the integer value from native memory
      *
-     * @param runtime
-     * @param buffer the native memory buffer.
+     * @param runtime the current runtime.
+     * @param buffer  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void fromNative(Runtime runtime, Pointer buffer, long offset) {
         this.value = buffer.getInt(offset);

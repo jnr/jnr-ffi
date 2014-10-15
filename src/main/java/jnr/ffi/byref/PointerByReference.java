@@ -25,8 +25,9 @@ import jnr.ffi.Runtime;
  * AddressByReference is used when the address of a pointer must be passed
  * as a parameter to a function.
  *
- * <p>For example, the following C code,
- * <p><blockquote><pre>
+ * <p>
+ * For example, the following C code,
+ * <pre>
  * {@code
  * extern void get_a(void** ap);
  *
@@ -38,23 +39,27 @@ import jnr.ffi.Runtime;
  *     return a;
  * }
  * }
- * </pre></blockquote>
- * <p>Would be declared in java as
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * Would be declared in java as
+ * <pre>
  * {@code
  * interface Lib {
  *     void get_a(@Out PointerByReference ap);
  * }
  * }
- * </pre></blockquote>
- * <p>and used like this
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * and used like this
+ * <pre>
+ * {@code
  * PointerByReference ap = new PointerByReference();
  * lib.get_a(ap);
  * Pointer ptr = ap.getValue();
  * System.out.println("ptr from lib=" + a.getValue());
  * System.out.println("ptr contents=" + ptr.getInt(0));
- * </pre></blockquote>
+ * }
+ * </pre>
  */
 public final class PointerByReference extends AbstractReference<Pointer>{
     /**

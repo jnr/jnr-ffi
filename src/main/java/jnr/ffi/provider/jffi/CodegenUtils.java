@@ -26,7 +26,10 @@ import java.util.Map;
 
 public class CodegenUtils {
     /**
-     * Creates a dotted class name from a path/package name
+     * Creates a dotted class name from a path/package name.
+     *
+     * @param p The path/package name.
+     * @return The dotted class name.
      */
     public static String c(String p) {
         return p.replace('/', '.');
@@ -34,6 +37,9 @@ public class CodegenUtils {
 
     /**
      * Creates a class path name, from a Class.
+     *
+     * @param n A class.
+     * @return The class path name.
      */
     public static String p(Class n) {
         return n.getName().replace('.','/');
@@ -41,6 +47,9 @@ public class CodegenUtils {
 
     /**
      * Creates a class path name, from a class name.
+     *
+     * @param n A class name.
+     * @return A class path name.
      */
     public static String p(String n) {
         return n.replace('.', '/');
@@ -48,6 +57,9 @@ public class CodegenUtils {
 
     /**
      * Creates a class identifier of form Labc/abc;, from a Class.
+     *
+     * @param n A class.
+     * @return The class identifier.
      */
     public static String ci(Class n) {
         if (n.isArray()) {
@@ -106,13 +118,20 @@ public class CodegenUtils {
 
     /**
      * Creates a human-readable representation, from a Class.
+     *
+     * @param n A class.
+     * @return A human-readable representation.
      */
     public static String human(Class n) {
         return n.getCanonicalName();
     }
     
     /**
-     * Create a method signature from the given param types and return values
+     * Create a method signature from the given param types and return values.
+     *
+     * @param retval The return value class.
+     * @param params The parameters.
+     * @return A method signature.
      */
     public static String sig(Class retval, Class... params) {
         return sigParams(params) + ci(retval);

@@ -26,8 +26,9 @@ import jnr.ffi.Runtime;
  * LongLongByReference is used when the address of a native long long value must be passed
  * as a parameter to a function.
  *
- * <p>For example, the following C code,
- * <p><blockquote><pre>
+ * <p>
+ * For example, the following C code,
+ * <pre>
  * {@code
  * extern void get_a(long long * ap);
  *
@@ -39,21 +40,23 @@ import jnr.ffi.Runtime;
  *     return a;
  * }
  * }
- * </pre></blockquote>
- * <p>Would be declared in java as
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * Would be declared in java as
+ * <pre>
  * {@code
  * interface Lib {
  *     void get_a(@Out LongLongByReference ap);
  * }
  * }
- * </pre></blockquote>
- * <p>and used like this
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * and used like this
+ * <pre>
  * LongLongByReference ap = new LongLongByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.longValue());
- * </pre></blockquote>
+ * </pre>
  */
 public final class LongLongByReference extends AbstractNumberReference<Long> {
     
@@ -85,8 +88,9 @@ public final class LongLongByReference extends AbstractNumberReference<Long> {
     /**
      * Copies the value to native memory
      *
-     * @param runtime
-     * @param memory the native memory buffer
+     * @param runtime the current runtime.
+     * @param memory  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void toNative(Runtime runtime, Pointer memory, long offset) {
         memory.putLongLong(offset, value);
@@ -95,8 +99,9 @@ public final class LongLongByReference extends AbstractNumberReference<Long> {
     /**
      * Copies the value from native memory
      *
-     * @param runtime
-     * @param memory the native memory buffer.
+     * @param runtime the current runtime.
+     * @param memory  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void fromNative(Runtime runtime, Pointer memory, long offset) {
         this.value = memory.getLongLong(offset);
@@ -105,6 +110,7 @@ public final class LongLongByReference extends AbstractNumberReference<Long> {
     /**
      * Gets the native size of type of reference in bytes.
      * 
+     * @param runtime the current runtime.
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {

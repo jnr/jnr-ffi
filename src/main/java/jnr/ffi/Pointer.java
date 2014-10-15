@@ -174,15 +174,15 @@ abstract public class Pointer {
     /**
      * Returns the array that backs this pointer.
      *
-     * @throws {@link java.lang.UnsupportedOperationException} if this pointer does not have a backing array
-     * @return The array that backs this pointer
+     * @return The array that backs this pointer.
+     * @throws java.lang.UnsupportedOperationException if this pointer does not have a backing array.
      */
     abstract public Object array();
 
     /**
      * Returns the offset within this pointer's backing array of the first element.
      *
-     * @throws {@link java.lang.UnsupportedOperationException} if this pointer does not have a backing array
+     * @throws java.lang.UnsupportedOperationException if this pointer does not have a backing array
      * @return The offset of the first element on the backing array
      */
     abstract public int arrayOffset();
@@ -190,7 +190,7 @@ abstract public class Pointer {
     /**
      * Returns the length of this pointer's backing array that is used by this pointer.
      *
-     * @throws {@link UnsupportedOperationException} if this pointer does not have a backing array
+     * @throws UnsupportedOperationException if this pointer does not have a backing array
      * @return The length of the backing array used
      */
     abstract public int arrayLength();
@@ -348,6 +348,7 @@ abstract public class Pointer {
     /**
      * Writes an integer of a specific type, at the given offset.
      *
+     * @param type The integer type.
      * @param offset The offset from the start of the memory this {@code Pointer} represents at which the value will be written.
      * @param value the {@code int} value to be written.
      */
@@ -592,6 +593,7 @@ abstract public class Pointer {
      * Writes a {@code String} value at the given offset, using a specific {@code Charset}
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the value will be written.
+     * @param string the string to be written.
      * @param maxLength the maximum size of memory to use to store the string.
      * @param cs the {@code Charset} to use to decode the string.
      */
@@ -644,7 +646,7 @@ abstract public class Pointer {
      *
      * @param offset the starting point within this memory region.
      * @param length the length of the memory region in bytes
-     * @throws java.lang.IndexOutOfBoundsException
+     * @throws java.lang.IndexOutOfBoundsException if the memory region is not within the bounds.
      */
     abstract public void checkBounds(long offset, long length);
 

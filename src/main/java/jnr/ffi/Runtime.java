@@ -31,10 +31,8 @@ import java.nio.ByteOrder;
  * <p>
  *     This class is needed by many classes to correctly initialize internal data structures, and each library loaded
  *     has its own instance of this class.
- * </p>
  * <p>
  *     To obtain an instance of this class, use {@link #getRuntime(Object)} on a loaded library.
- * </p>
  * <p>
  *     Example
  *     <pre>
@@ -57,7 +55,6 @@ import java.nio.ByteOrder;
  *     library.write(1, buffer, bytes.length);
  *     }
  *     </pre>
- * </p>
  */
 public abstract class Runtime {
 
@@ -88,13 +85,15 @@ public abstract class Runtime {
     /**
      * Looks up the runtime-specific type that corresponds to the pseudo-type
      *
-     * @return A {@code Type} instance
+     * @param type The native pseudo-type.
+     * @return A {@code Type} instance.
      */
     public abstract Type findType(NativeType type);
 
     /**
      * Looks up the runtime-specific type that corresponds to the type alias
      *
+     * @param type the type alias.
      * @return A {@code Type} instance
      */
     public abstract Type findType(TypeAlias type);
@@ -116,6 +115,7 @@ public abstract class Runtime {
     /**
      * Creates a new {@code ObjectReferenceManager}
      *
+     * @param <T> the type parameter of the {@code ObjectReferenceManager}.
      * @return A new {@link ObjectReferenceManager}
      */
     public abstract <T> ObjectReferenceManager<T> newObjectReferenceManager();
