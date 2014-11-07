@@ -457,10 +457,10 @@ public abstract class Platform {
                         continue; // Just skip if not a number
                     }
                 }
-		if (fileVersion > bestVersion) {
-		    bestMatch = path;
+                if (fileVersion > bestVersiobestMatch = path;
+                    bestMatch = path;
                     bestVersion = fileVersion;
-		}
+                }
             }
             return bestMatch != null ? bestMatch : mapLibraryName(libName);
         }
