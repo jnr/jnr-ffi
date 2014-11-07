@@ -452,7 +452,7 @@ public abstract class Platform {
                 } else {
                     String num = path.substring(path.lastIndexOf(".so.") + 4);
                     try {
-                        if (Integer.parseInt(num) >= version) {
+                        if (Integer.parseInt(num) > version) {
                             bestMatch = path;
                         }
                     } catch (NumberFormatException e) {
