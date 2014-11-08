@@ -457,7 +457,7 @@ public abstract class Platform {
                         continue; // Just skip if not a number
                     }
                 }
-                if (fileVersion > bestVersiobestMatch = path;
+                if (fileVersion > bestVersion) {
                     bestMatch = path;
                     bestVersion = fileVersion;
                 }
