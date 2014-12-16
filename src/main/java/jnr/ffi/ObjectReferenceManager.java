@@ -13,32 +13,30 @@ package jnr.ffi;
  *     from within a callback.
  *     e.g.
  *     <pre>
- *     {@code
+ *         <code>
+ *         public interface MyLib {
+ *             public static interface MyCallback {
+ *                 @Delegate public void call(Pointer value);
+ *             }
  *
- *     public interface MyLib {
- *         public static interface MyCallback {
- *             @Delegate public void call(Pointer value);
+ *             public void do_something_with_callback(MyCallback cb, Pointer cb_argument);
  *         }
  *
- *         public void do_something_with_callback(MyCallback cb, Pointer cb_argument);
- *     }
+ *         MyLib lib = LibraryLoader.create(MyLib.class).load("mylib");
+ *         final ObjectReferenceManager referenceManager = Runtime.getRuntime(lib).newObjectReferenceManager();
  *
- *     MyLib lib = LibraryLoader.create(MyLib.class).load("mylib");
- *     final ObjectReferenceManager referenceManager = Runtime.getRuntime(lib).newObjectReferenceManager();
- *
- *     MyCallback cb = new MyCallback {
- *         public void call(Pointer cb_argument) {
- *             Object javaCallbackArgument = referenceManager.get(cb_argument);
- *             System.out.println("java callback parameter=" + javaCallbackArgument);
+ *         MyCallback cb = new MyCallback {
+ *             public void call(Pointer cb_argument) {
+ *                 Object javaCallbackArgument = referenceManager.get(cb_argument);
+ *                 System.out.println("java callback parameter=" + javaCallbackArgument);
+ *             }
  *         }
- *     }
  *
- *     String callbackArgument = "Hello, World";
- *     Pointer cb_argument = referenceManager.add(callback);
- *     lib.do_something_with_callback(cb, cb_argument);
- *     referenceManager.remove(cb_argument);
- *
- *     }
+ *         String callbackArgument = "Hello, World";
+ *         Pointer cb_argument = referenceManager.add(callback);
+ *         lib.do_something_with_callback(cb, cb_argument);
+ *         referenceManager.remove(cb_argument);
+ *         </code>
  *     </pre>
  * </p>
  *
