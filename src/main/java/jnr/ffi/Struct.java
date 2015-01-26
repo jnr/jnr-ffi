@@ -108,7 +108,9 @@ public abstract class Struct {
     final Info __info;
 
     /**
-     * Creates a new <tt>Struct</tt>.
+     * Creates a new {@code Struct}.
+     *
+     * @param runtime The current runtime.
      */
     protected Struct(Runtime runtime) {
         this.__info = new Info(runtime);
@@ -192,7 +194,7 @@ public abstract class Struct {
     /**
      * Returns a human readable {@link java.lang.String} representation of the structure.
      * 
-     * @return a <tt>String representation of this structure.
+     * @return a {@code String} representation of this structure.
      */
     @Override
     public java.lang.String toString() {
@@ -242,9 +244,9 @@ public abstract class Struct {
      */
     protected abstract class Member {
         /**
-         * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
+         * Gets the {@code Struct} this {@code Member} is a member of.
          * 
-         * @return a <tt>Struct</tt>.
+         * @return a {@code Struct}.
          */
         abstract Struct struct();
 
@@ -257,6 +259,8 @@ public abstract class Struct {
         
         /**
          * Gets the offset within the structure for this field.
+         *
+         * @return the offset within the structure for this field.
          */
         abstract long offset();
     }
@@ -1579,6 +1583,8 @@ public abstract class Struct {
         
         /**
          * Puts a {@link jnr.ffi.Address} value into the native memory.
+         *
+         * @param value the value to write.
          */
         public final void set(jnr.ffi.Address value) {
             getMemory().putAddress(offset(), value != null ? value.nativeAddress() : 0);
@@ -1652,6 +1658,8 @@ public abstract class Struct {
         
         /**
          * Puts a {@link jnr.ffi.Address} value into the native memory.
+         *
+         * @param value the value to write.
          */
         public final void set(jnr.ffi.Pointer value) {
             getMemory().putPointer(offset(), value);

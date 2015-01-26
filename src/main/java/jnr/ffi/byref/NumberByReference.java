@@ -8,7 +8,7 @@ import jnr.ffi.Runtime;
  * as a parameter to a function, but the exact type is system dependent.
  *
  * <p>For example, the following C code,
- * <p><pre>
+ * <pre>
  * {@code
  *
  * extern void get_size(ssize_t *sp);
@@ -20,11 +20,11 @@ import jnr.ffi.Runtime;
  *
  *     return n;
  * }
- *
  * }
  * </pre>
- * <p>Would be declared in java as
- * <p><pre>
+ * <p>
+ * Would be declared in java as
+ * <pre>
  * {@code
  *
  * interface Lib {
@@ -33,8 +33,9 @@ import jnr.ffi.Runtime;
  *
  * }
  * </pre>
- * <p>and used like this
- * <p><pre>
+ * <p>
+ * and used like this
+ * <pre>
  * {@code
  *
  * NumberByReference size = new NumberByReference(ssize_t);

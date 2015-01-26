@@ -3,7 +3,7 @@ package jnr.ffi.mapper;
 import java.util.*;
 
 /**
- * Caches Class -> native converter lookups.
+ * Caches native converter lookups by class.
  */
 public final class CachingTypeMapper extends AbstractSignatureTypeMapper implements SignatureTypeMapper {
     private final SignatureTypeMapper mapper;

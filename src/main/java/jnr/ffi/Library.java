@@ -58,6 +58,7 @@ public final class Library {
      * to native methods in the library.
      *
      * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
+     * @param <T> the interface class.
      * @param libraryName the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @return an instance of {@code interfaceclass} that will call the native methods.
@@ -71,6 +72,7 @@ public final class Library {
      * to native methods in the library.
      *
      * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
+     * @param <T> the interface type.
      * @param libraryNames the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @return an instance of {@code interfaceclass} that will call the native methods.
@@ -85,6 +87,7 @@ public final class Library {
      * to native methods in the library.
      *
      * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
+     * @param <T> the interface type.
      * @param libraryName the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @param libraryOptions options
@@ -100,6 +103,7 @@ public final class Library {
      * to native methods in the library.
      *
      * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
+     * @param <T> the interface type.
      * @param libraryNames the name of the library to load
      * @param interfaceClass the interface that describes the native library interface
      * @param libraryOptions options

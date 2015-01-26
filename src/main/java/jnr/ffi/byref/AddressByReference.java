@@ -27,39 +27,46 @@ import jnr.ffi.Runtime;
  * as a parameter to a function.
  *
  * <p>For example, the following C code,
- * <p><pre>
- * {@code
+ * <pre>
+ * <code>
  *
  * extern void get_a(void** ap);
  *
  * void* foo(void) {
  *     void* a;
  *     // pass a reference to 'a' so get_a() can fill it out
- *     get_a(&a);
+ *     get_a({@literal &}a);
  *
  *     return a;
  * }
  *
- * }
+ * </code>
  * </pre>
  *
- * <p>Would be declared in java as
- * <p><pre>
- * {@code
+ * <p>
+ * Would be declared in java as
+ *
+ * <pre>
+ * <code>
  *
  * interface Lib {
  *     void get_a(@Out AddressByReference ap);
  * }
  *
- * }
+ * </code>
  * </pre>
- * <p>and used like this
+ * <p>
+ * and used like this
  *
- * <p><blockquote><pre>
+ * <pre>
+ * <code>
+ *
  * AddressByReference ap = new AddressByReference();
  * lib.get_a(ap);
  * System.out.println("a from lib=" + a.getValue());
- * </pre></blockquote>
+ *
+ * </code>
+ * </pre>
  */
 public final class AddressByReference extends AbstractReference<Address> {
 
@@ -82,8 +89,9 @@ public final class AddressByReference extends AbstractReference<Address> {
     /**
      * Copies the address value to native memory
      *
-     * @param runtime
-     * @param memory the native memory buffer
+     * @param runtime The current runtime.
+     * @param memory  The native memory buffer
+     * @param offset  The offset.
      */
     public void toNative(Runtime runtime, Pointer memory, long offset) {
         memory.putAddress(offset, value.nativeAddress());
@@ -92,8 +100,9 @@ public final class AddressByReference extends AbstractReference<Address> {
     /**
      * Copies the address value from native memory
      *
-     * @param runtime
-     * @param memory the native memory buffer.
+     * @param runtime The current runtime.
+     * @param memory  The native memory buffer.
+     * @param offset  The offset.
      */
     public void fromNative(Runtime runtime, Pointer memory, long offset) {
         value = Address.valueOf(memory.getAddress(offset));
@@ -102,6 +111,7 @@ public final class AddressByReference extends AbstractReference<Address> {
     /**
      * Gets the native size of type of reference
      * 
+     * @param runtime The current runtime.
      * @return The size of the native type this reference points to
      */
     public int nativeSize(Runtime runtime) {

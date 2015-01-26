@@ -25,47 +25,52 @@ import jnr.ffi.Runtime;
  * A ByReference subclass is used when a primitive parameter must be passed
  * by-reference.
  *
- * <p>For example, the following C code,
- * <p><blockquote><pre>
- * {@code
+ * <p>
+ * For example, the following C code,
+ *
+ * <pre>
+ * <code>
  *
  * extern void get_a(int * ap);
  *
  * int foo(void) {
  *     int a;
  *     // pass a reference to 'a' so get_a() can fill it out
- *     get_a(&a);
+ *     get_a({@literal &}a);
  *
  *     return a;
  * }
- * }
- * </pre></blockquote>
- * <p>Would be declared in java as
- * <p><blockquote><pre>
- * {@code
+ * </code> 
+ * </pre>
+ *
+ * <p>
+ * Would be declared in java as
+ * <pre>
+ * <code>
  *
  * interface Lib {
  *     void get_a(@Out IntByReference ap);
  * }
  *
- * }
- * </pre></blockquote>
- * <p>and used like this
- * <p><pre>
- *{@code
+ * </code>
+ * </pre>
+ * <p>
+ * and used like this
+ * <pre>
+ * <code>
  *
  * IntByReference ap = new IntByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.getValue());
  *
- * }
+ * </code>
  * </pre>
- * @param <T>
  */
 public interface ByReference<T> {
     /**
      * Gets the size of the native buffer required to store the value
      * 
+     * @param runtime The current runtime.
      * @return the size in bytes of the native type
      */
     int nativeSize(Runtime runtime);
@@ -73,16 +78,18 @@ public interface ByReference<T> {
     /**
      * Copies the java value to native memory
      *
-     * @param runtime
-     * @param memory the native memory buffer.
+     * @param runtime The current runtime.
+     * @param memory The native memory buffer.
+     * @param offset The offset of the field.
      */
     void toNative(Runtime runtime, Pointer memory, long offset);
     
     /**
      * Copies the java value from native memory
      *
-     * @param runtime
+     * @param runtime The current runtime.
      * @param memory the native memory buffer.
+     * @param offset The offset of the field.
      */
     void fromNative(Runtime runtime, Pointer memory, long offset);
     

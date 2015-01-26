@@ -25,7 +25,6 @@ package jnr.ffi;
  * </p>
  * Replace any function parameters which are <tt>long</tt> in the C definition with 
  * a NativeLong.
- * </p>
  */
 public final class NativeLong extends Number implements Comparable<NativeLong> {
 
