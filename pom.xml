@@ -39,7 +39,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.test.failure.ignore>true</maven.test.failure.ignore>
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <github.global.server>github</github.global.server>
