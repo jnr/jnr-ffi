@@ -144,7 +144,6 @@
         <version>2.4.1</version>
         <configuration>
           <tagNameFormat>@{project.version}</tagNameFormat>
-          <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
           <!--<goals>deploy</goals>-->
           <!--<pushChanges>false</pushChanges>-->
         </configuration>
