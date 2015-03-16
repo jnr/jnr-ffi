@@ -94,6 +94,9 @@ public abstract class Platform {
         /** 64 bit Power PC */
         PPC64,
 
+        /** 64 bit Power PC little endian */
+        PPC64LE,
+
         /** 32 bit Sun sparc */
         SPARC,
 
@@ -197,6 +200,8 @@ public abstract class Platform {
             return CPU.PPC;
         } else if (equalsIgnoreCase("ppc64", archString) || equalsIgnoreCase("powerpc64", archString)) {
             return CPU.PPC64;
+        } else if (equalsIgnoreCase("ppc64le", archString) || equalsIgnoreCase("powerpc64le", archString)) {
+            return CPU.PPC64LE;
         } else if (equalsIgnoreCase("s390", archString) || equalsIgnoreCase("s390x", archString)) {
             return CPU.S390X;
         }
@@ -252,6 +257,7 @@ public abstract class Platform {
                     break;
                 case X86_64:
                 case PPC64:
+                case PPC64LE:
                 case SPARCV9:
                 case S390X:
                     dataModel = 64;
@@ -442,21 +448,24 @@ public abstract class Platform {
             // Search through the results and return the highest numbered version
             // i.e. libc.so.6 is preferred over libc.so.5
             //
-            int version = 0;
+            int bestVersion = -1;
             String bestMatch = null;
             for (File file : matches) {
                 String path = file.getAbsolutePath();
-                if (bestMatch == null && path.endsWith(".so")) {
-                    bestMatch = path;
-                    version = 0;
+                int fileVersion;
+                if (path.endsWith(".so")) {
+                    fileVersion = 0;
                 } else {
                     String num = path.substring(path.lastIndexOf(".so.") + 4);
                     try {
-                        if (Integer.parseInt(num) >= version) {
-                            bestMatch = path;
-                        }
+                        fileVersion = Integer.parseInt(num);
                     } catch (NumberFormatException e) {
-                    } // Just skip if not a number
+                        continue; // Just skip if not a number
+                    }
+                }
+                if (fileVersion > bestVersion) {
+                    bestMatch = path;
+                    bestVersion = fileVersion;
                 }
             }
             return bestMatch != null ? bestMatch : mapLibraryName(libName);

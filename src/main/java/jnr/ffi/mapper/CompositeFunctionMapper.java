@@ -18,11 +18,11 @@ public final class CompositeFunctionMapper implements FunctionMapper {
     public String mapFunctionName(String functionName, Context context) {
         for (FunctionMapper functionMapper : functionMappers) {
             String mappedName = functionMapper.mapFunctionName(functionName, context);
-            if (mappedName != null) {
+            if (mappedName != functionName) {
+                // A translation was explicit in this mapper.
                 return mappedName;
             }
         }
-
-        return null;
+        return functionName;
     }
 }

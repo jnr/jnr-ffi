@@ -55,8 +55,9 @@ public final class DoubleByReference extends AbstractNumberReference<Double> {
     /**
      * Copies the double value to native memory
      *
-     * @param runtime
-     * @param buffer the native memory buffer
+     * @param runtime the current runtime.
+     * @param buffer the native memory buffer.
+     * @param offset the memory offset.
      */
     public void toNative(Runtime runtime, Pointer buffer, long offset) {
         buffer.putDouble(offset, value);
@@ -65,8 +66,9 @@ public final class DoubleByReference extends AbstractNumberReference<Double> {
     /**
      * Copies the double value from native memory
      *
-     * @param runtime
+     * @param runtime the current runtime.
      * @param buffer the native memory buffer.
+     * @param offset the memory offset.
      */
     public void fromNative(Runtime runtime, Pointer buffer, long offset) {
         this.value = buffer.getDouble(offset);
@@ -75,7 +77,8 @@ public final class DoubleByReference extends AbstractNumberReference<Double> {
     /**
      * Gets the native size of type of reference in bytes.
      * 
-     * @return the size of a byte in bytes
+     * @param runtime the current runtime.
+     * @return the size of a byte in bytes.
      */
     public final int nativeSize(Runtime runtime) {
         return 8;

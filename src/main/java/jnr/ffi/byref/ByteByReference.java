@@ -27,7 +27,7 @@ import jnr.ffi.Runtime;
  * as a parameter to a function.
  *
  * <p>For example, the following C code,
- * <p><blockquote><pre>
+ * <pre>
  * {@code
  * extern void get_a(char *ap);
  *
@@ -39,21 +39,23 @@ import jnr.ffi.Runtime;
  *     return a;
  * }
  * }
- * </pre></blockquote>
- * <p>Would be declared in java as
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * Would be declared in java as
+ * <pre>
  * {@code
  * interface Lib {
  *     void get_a(@Out ByteByReference ap);
  * }
  * }
- * </pre></blockquote>
- * <p>and used like this
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * and used like this
+ * <pre>
  * ByteByReference ap = new ByteByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.byteValue());
- * </pre></blockquote>
+ * </pre>
  */
 public final class ByteByReference extends AbstractNumberReference<Byte> {
 
@@ -85,7 +87,7 @@ public final class ByteByReference extends AbstractNumberReference<Byte> {
     /**
      * Copies the Byte value to native memory
      *
-     * @param runtime
+     * @param runtime The current runtime.
      * @param buffer the native memory buffer
      */
     public void toNative(Runtime runtime, Pointer buffer, long offset) {
@@ -95,7 +97,7 @@ public final class ByteByReference extends AbstractNumberReference<Byte> {
     /**
      * Copies the Byte value from native memory
      *
-     * @param runtime
+     * @param runtime The current runtime.
      * @param buffer the native memory buffer.
      */
     public void fromNative(Runtime runtime, Pointer buffer, long offset) {

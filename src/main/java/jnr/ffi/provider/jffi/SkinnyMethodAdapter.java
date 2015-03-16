@@ -35,7 +35,16 @@ public class SkinnyMethodAdapter extends MethodVisitor implements Opcodes {
     private final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private MethodVisitor method;
     
-    /** Creates a new instance of SkinnyMethodAdapter */
+    /** 
+     * Creates a new instance of SkinnyMethodAdapter.
+     *
+     * @param cv The class visitor instance.
+     * @param flags The flags.
+     * @param name The name.
+     * @param signature The signature.
+     * @param something Something.
+     * @param exceptions The array of exceptions.
+     */
     public SkinnyMethodAdapter(ClassVisitor cv, int flags, String name, String signature, String something, String[] exceptions) {
         super(Opcodes.ASM4);
         setMethodVisitor(cv.visitMethod(flags, name, signature, something, exceptions));

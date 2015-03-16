@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This is used internally by jnr-ffi to define type aliases.  e.g. ssize_t => long
+ * This is used internally by jnr-ffi to define type aliases, e.g. {@code ssize_t => long}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = { ElementType.ANNOTATION_TYPE })

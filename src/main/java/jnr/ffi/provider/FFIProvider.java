@@ -37,11 +37,19 @@ public abstract class FFIProvider {
 
     protected FFIProvider() {}
 
-    /** Gets the default <tt>Runtime</tt> for this provider */
+    /** 
+     * Gets the default <tt>Runtime</tt> for this provider.
+     *
+     * @return the runtime.
+     */
     public abstract jnr.ffi.Runtime getRuntime();
 
     /**
-     *  Creates a new {@link LibraryLoader} instance
+     *  Creates a new {@link LibraryLoader} instance.
+     *
+     *  @param <T> The library type.
+     *  @param interfaceClass The library interface class.
+     *  @return the {@code LibraryLoader} instance.
      */
     public abstract <T> LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass);
 

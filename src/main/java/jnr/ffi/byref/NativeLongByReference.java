@@ -28,7 +28,7 @@ import jnr.ffi.Runtime;
  * as a parameter to a function.
  *
  * <p>For example, the following C code,
- * <p><blockquote><pre>
+ * <pre>
  * {@code
  * extern void get_a(long * ap);
  *
@@ -40,21 +40,23 @@ import jnr.ffi.Runtime;
  *     return a;
  * }
  * }
- * </pre></blockquote>
- * <p>Would be declared in java as
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * Would be declared in java as
+ * <pre>
  * {@code
  * interface Lib {
  *     void get_a(@Out NativeLongByReference ap);
  * }
  * }
- * </pre></blockquote>
- * <p>and used like this
- * <p><blockquote><pre>
+ * </pre>
+ * <p>
+ * and used like this
+ * <pre>
  * NativeLongByReference ap = new NativeLongByReference();
  * lib.get_a(ap);
  * System.out.printf("a from lib=%d\n", a.longValue());
- * </pre></blockquote>
+ * </pre>
  */
 public final class NativeLongByReference extends AbstractNumberReference<NativeLong> {
     
@@ -86,8 +88,9 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
     /**
      * Copies the long value to native memory
      *
-     * @param runtime
-     * @param memory the native memory buffer
+     * @param runtime the current runtime.
+     * @param memory  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void toNative(Runtime runtime, Pointer memory, long offset) {
         memory.putNativeLong(offset, value.longValue());
@@ -96,8 +99,9 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
     /**
      * Copies the long value from native memory
      *
-     * @param runtime
-     * @param memory the native memory buffer.
+     * @param runtime the current runtime.
+     * @param memory  the native memory buffer.
+     * @param offset  the memory offset.
      */
     public void fromNative(Runtime runtime, Pointer memory, long offset) {
         this.value = NativeLong.valueOf(memory.getNativeLong(offset));
@@ -106,6 +110,7 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
     /**
      * Gets the native size of type of reference in bytes.
      * 
+     * @param  runtime the current runtime.
      * @return the size of a byte in bytes
      */
     public final int nativeSize(Runtime runtime) {

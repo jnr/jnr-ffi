@@ -25,7 +25,7 @@ import java.util.Collection;
 import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 /**
- * Holds context for a method parameter java->native conversion.
+ * Holds context for a method parameter from Java to native conversion.
  */
 public final class MethodParameterContext implements ToNativeContext {
     private final jnr.ffi.Runtime runtime;

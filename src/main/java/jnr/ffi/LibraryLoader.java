@@ -27,7 +27,7 @@ import java.util.*;
  * libc.puts("Hello, World");
  *
  * }
- * </pre></p>
+ * </pre>
  */
 public abstract class LibraryLoader<T> {
     private final List<String> searchPaths = new ArrayList<String>();
@@ -44,6 +44,7 @@ public abstract class LibraryLoader<T> {
     /**
      * Creates a new {@code LibraryLoader} instance.
      *
+     * @param <T> The library type.
      * @param interfaceClass the interface that describes the native library functions
      * @return A {@code LibraryLoader} instance.
      */
@@ -84,7 +85,7 @@ public abstract class LibraryLoader<T> {
      *
      * @see LibraryOption
      *
-     * @param option The option to set
+     * @param option The option to set.
      * @param value The value for the option.
      * @return The {@code LibraryLoader} instance.
      */
@@ -145,6 +146,7 @@ public abstract class LibraryLoader<T> {
     /**
      * Adds a custom java type mapping.
      *
+     * @param <J> The Java type.
      * @param javaType The java type to convert to a native type.
      * @param toNativeConverter A {@link jnr.ffi.mapper.ToNativeConverter} that will convert from the java type to a native type.
      * @return The {@code LibraryLoader} instance.
@@ -157,6 +159,7 @@ public abstract class LibraryLoader<T> {
     /**
      * Adds a custom java type mapping.
      *
+     * @param <J> The Java type.
      * @param javaType The java type to convert to a native type.
      * @param fromNativeConverter A {@link jnr.ffi.mapper.ToNativeConverter} that will convert from the native type to a java type.
      * @return The {@code LibraryLoader} instance.
@@ -177,11 +180,11 @@ public abstract class LibraryLoader<T> {
      * Multiple function mappers can be specified by additional calls to this method, and
      * each mapper will be tried in order, until one is successful.
      *
-     * @param typeMapper The function mapper to use.
+     * @param functionMapper The function mapper to use.
      * @return The {@code LibraryLoader} instance.
      */
-    public LibraryLoader<T> mapper(FunctionMapper typeMapper) {
-        optionMap.put(LibraryOption.FunctionMapper, typeMapper);
+    public LibraryLoader<T> mapper(FunctionMapper functionMapper) {
+        functionMappers.add(functionMapper);
         return this;
     }
 
@@ -203,6 +206,7 @@ public abstract class LibraryLoader<T> {
      * <p>This is only needed on windows platforms - unless explicitly specified, all platforms assume
      * {@link CallingConvention#DEFAULT} as the calling convention.
      *
+     * @param convention The calling convention.
      * @return The {@code LibraryLoader} instance.
      */
     public LibraryLoader<T> convention(CallingConvention convention) {
@@ -299,9 +303,9 @@ public abstract class LibraryLoader<T> {
      * Implemented by FFI providers to load the actual library.
      *
      * @param interfaceClass The java class that describes the functions to be mapped.
-     * @param libraryNames A list of libraries to load & search for symbols
-     * @param searchPaths The paths to search for libraries to be loaded
-     * @param options The options to apply when loading the library
+     * @param libraryNames A list of libraries to load and search for symbols.
+     * @param searchPaths The paths to search for libraries to be loaded.
+     * @param options The options to apply when loading the library.
      * @return an instance of {@code interfaceClass} that will call the native methods.
      */
     protected abstract T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames,
@@ -332,5 +336,4 @@ public abstract class LibraryLoader<T> {
         }
         return Collections.emptyList();
     }
-
 }

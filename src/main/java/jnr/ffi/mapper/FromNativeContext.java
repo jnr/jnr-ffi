@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Context for a native->java type conversion.
+ * Context for conversion from native to Java.
  */
 public interface FromNativeContext {
     /**
