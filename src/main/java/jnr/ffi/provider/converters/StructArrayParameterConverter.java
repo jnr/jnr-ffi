@@ -51,7 +51,6 @@ public class StructArrayParameterConverter implements ToNativeConverter<Struct[]
     }
 
     @Override
-    @LongLong
     public Class<Pointer> nativeType() {
         return Pointer.class;
     }
