@@ -169,8 +169,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
     static boolean hasPointerParameterStrategy(Class javaType) {
         for (Class c : STRATEGY_PARAMETER_TYPES.keySet()) {
             if (c.isAssignableFrom(javaType)) {
-                // FIXME: replace special handling for 32/64bit arrays with more generic elsewhere
-                return !(LongBuffer.class.isAssignableFrom(javaType) || long[].class == javaType) || sizeof(NativeType.SLONG) == 8;
+                return true;
             }
         }
 
