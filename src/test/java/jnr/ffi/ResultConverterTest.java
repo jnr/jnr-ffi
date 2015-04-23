@@ -47,7 +47,7 @@ public class ResultConverterTest {
     }
 
     public static interface TestLib {
-        TestType strdup(CharSequence cs);
+        TestType string_duplicate(CharSequence cs);
         void cfree(Pointer ptr);
     }
 
@@ -116,7 +116,7 @@ public class ResultConverterTest {
     // public void hello() {}
     @Test public void testCustomResult() {
         final String MAGIC = "test";
-        TestType t = testlib.strdup(MAGIC);
+        TestType t = testlib.string_duplicate(MAGIC);
         assertNotNull(t);
         assertEquals("contents not set", MAGIC, t.str);
     }

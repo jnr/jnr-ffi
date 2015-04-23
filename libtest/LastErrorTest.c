@@ -17,7 +17,16 @@
  */
 #include <errno.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 int setLastError(int error) {
+#ifdef _WIN32
+    SetLastError(error);
+#else
     errno = error;
+#endif
+    
     return -1;
 }

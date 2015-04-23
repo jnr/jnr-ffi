@@ -76,7 +76,7 @@ class Types {
     }
 
     static Type lookupType(jnr.ffi.Runtime runtime, Class type, Collection<Annotation> annotations) {
-        Type aliasedType = lookupAliasedType(runtime, annotations);
+        Type aliasedType = type.isArray() ? null : lookupAliasedType(runtime, annotations);
         if (aliasedType != null) {
             return aliasedType;
 
