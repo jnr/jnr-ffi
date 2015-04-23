@@ -1,4 +1,4 @@
-package jnr.ffi.provider.jffi.platform.ppc64le.linux;
+package jnr.ffi.provider.jffi.platform.ppc64.linux;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;
