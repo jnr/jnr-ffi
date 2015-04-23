@@ -38,3 +38,9 @@ string_concat(char* dst, const char* src)
         ep++;
     strcpy(ep, src);
 }
+
+char*
+string_duplicate(const char* s1)
+{
+    return strdup(s1);
+}

@@ -11,7 +11,7 @@ endif
 # Default value of $OS on Windows is Windows_NT
 ifeq ($(OS), Windows_NT)
     # that's how we detect x64...
-    ifneq ($(findstring 64, $(BUILD_OS)),)
+    ifdef CommonProgramFiles(x86)
       OS = win64
     else
       OS = win32
@@ -47,16 +47,16 @@ IFLAGS = -I"$(BUILD_DIR)"
 CFLAGS = $(OFLAGS) $(WFLAGS) $(IFLAGS) $(PICFLAGS) -D_REENTRANT
 
 ifeq ($(OS), win32)
-    CC += -mno-cygwin
-    LDFLAGS += -mno-cygwin -Wl,--add-stdcall-alias
-    PREFIX =
-    LIBEXT = dll
-    PICFLAGS =
+  CC = i686-w64-mingw32-gcc
+  LDFLAGS += -Wl,--add-stdcall-alias -static-libgcc
+  PREFIX =
+  LIBEXT = dll
+  PICFLAGS =
 endif
 
-ifeq ($(OS),win64)
-  CC += -mno-cygwin
-  LDFLAGS += -mno-cygwin -Wl,--add-stdcall-alias
+ifeq ($(OS), win64)
+  CC = x86_64-w64-mingw32-gcc
+  LDFLAGS += -Wl,--add-stdcall-alias -static-libgcc
   PREFIX =
   LIBEXT = dll
   PICFLAGS =
@@ -130,7 +130,7 @@ all:	$(LIBTEST)
 
 $(TEST_BUILD_DIR)/%.o : $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
-	$(CCACHE) $(CC) $(CFLAGS) -c $< -o $@
+	$(CCACHE) $(CC) $(CFLAGS) -c $< -o "$@"
 
 $(LIBTEST):  $(TEST_OBJS)
 	$(CC) -o $@ $(LDFLAGS) $(TEST_OBJS) -lm
@@ -140,3 +140,6 @@ clean::
 
 debug::
 	@echo "SRCS=$(TEST_SRCS)"
+
+print-%:
+	@echo '$*=$($*)'
