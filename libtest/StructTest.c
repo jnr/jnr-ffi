@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef char Signed8;
 typedef short Signed16;
@@ -88,3 +90,53 @@ fill_struct_from_longs(unsigned long l1, unsigned long l2, struct foo* s, unsign
 
   return 0;
 }
+
+#define STRUCT_ALIGNMENT(alignment)             \
+    struct StructAlignment##alignment {         \
+        uint8_t  f0;                            \
+        uint16_t f1;                            \
+        uint32_t f2;                            \
+        uint64_t f3;                            \
+        void    *f4;                            \
+        };                                      \
+                                                \
+    int struct_alignment_size_##alignment() {                           \
+        return sizeof(struct StructAlignment##alignment);               \
+    }                                                                   \
+                                                                        \
+    int struct_alignment_field_offset_##alignment(int field) {          \
+        switch(field) {                                                 \
+        case 0:                                                         \
+            return offsetof(struct StructAlignment##alignment, f0);     \
+        case 1:                                                         \
+            return offsetof(struct StructAlignment##alignment, f1);     \
+        case 2:                                                         \
+            return offsetof(struct StructAlignment##alignment, f2);     \
+        case 3:                                                         \
+            return offsetof(struct StructAlignment##alignment, f3);     \
+        case 4:                                                         \
+            return offsetof(struct StructAlignment##alignment, f4);     \
+        default:                                                        \
+            return -1;                                                  \
+        }                                                               \
+    }                                                                   \
+
+#pragma pack(push, 1)
+STRUCT_ALIGNMENT(1)
+#pragma pack(pop)
+
+#pragma pack(push, 2)
+STRUCT_ALIGNMENT(2)
+#pragma pack(pop)
+
+#pragma pack(push, 4)
+STRUCT_ALIGNMENT(4)
+#pragma pack(pop)
+
+#pragma pack(push, 8)
+STRUCT_ALIGNMENT(8)
+#pragma pack(pop)
+
+#pragma pack(push, 16)
+STRUCT_ALIGNMENT(16)
+#pragma pack(pop)
