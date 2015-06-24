@@ -199,6 +199,9 @@ public abstract class Platform {
         } else if (equalsIgnoreCase("ppc", archString) || equalsIgnoreCase("powerpc", archString)) {
             return CPU.PPC;
         } else if (equalsIgnoreCase("ppc64", archString) || equalsIgnoreCase("powerpc64", archString)) {
+            if ("little".equals(System.getProperty("sun.cpu.endian"))) {
+                return CPU.PPC64LE;
+            }
             return CPU.PPC64;
         } else if (equalsIgnoreCase("ppc64le", archString) || equalsIgnoreCase("powerpc64le", archString)) {
             return CPU.PPC64LE;
