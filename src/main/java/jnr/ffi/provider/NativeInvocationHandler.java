@@ -43,16 +43,8 @@ public class NativeInvocationHandler implements InvocationHandler {
     }
 
     public Object invoke(Object self, Method method, Object[] argArray) throws Throwable {
-        if (method.isVarArgs()) {
-            Invoker invoker = invokerMap.get(method);
-            if (invoker == null) {
-                throw new UnsatisfiedLinkError("no invoker for native method " + method.getName());
-            }
-            return invoker.invoke(self, argArray);
-        } else {
-            Invoker invoker = fastLookupTable.get(method);
-            return invoker != null ? invoker.invoke(self, argArray) : lookupAndCacheInvoker(method).invoke(self, argArray);
-        }
+        Invoker invoker = fastLookupTable.get(method);
+        return invoker != null ? invoker.invoke(self, argArray) : lookupAndCacheInvoker(method).invoke(self, argArray);
     }
 
     private synchronized Invoker lookupAndCacheInvoker(Method method) {

@@ -36,6 +36,7 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import jnr.ffi.Address;
@@ -309,10 +310,10 @@ final class DefaultInvokerFactory {
 
         public final Object invoke(Object self, Object[] parameters) {
             Object[] varParam = (Object[])parameters[parameters.length - 1];
-            ParameterType[] argTypes = new ParameterType[fixedParameterTypes.length + varParam.length - 1];
+            ParameterType[] argTypes = new ParameterType[fixedParameterTypes.length + varParam.length];
             System.arraycopy(fixedParameterTypes, 0, argTypes, 0, fixedParameterTypes.length - 1);
 
-            Object[] variableArgs = new Object[varParam.length];
+            Object[] variableArgs = new Object[varParam.length + 1];
             int variableArgsCount = 0;
             List<Class<? extends Annotation>> paramAnnotations = new ArrayList<Class<? extends Annotation>>();
 
@@ -345,6 +346,19 @@ final class DefaultInvokerFactory {
                     variableArgsCount++;
                 }
             }
+            
+            //Add one extra vararg of NULL to meet the common convention of ending
+            //varargs with a NULL.  Functions that get a length from the fixed arguments
+            //will ignore the extra, and funtions that expect the extra NULL will get it.
+            //This matches what JNA does.
+            argTypes[fixedParameterTypes.length + variableArgsCount - 1] = new ParameterType(
+                    Pointer.class, 
+                    Types.getType(runtime, Pointer.class, Collections.<Annotation>emptyList()).getNativeType(), 
+                    Collections.<Annotation>emptyList(), 
+                    null, 
+                    new SimpleNativeContext(runtime, Collections.<Annotation>emptyList()));
+            variableArgs[variableArgsCount] = null;
+            variableArgsCount++;
 
             Function function = new Function(functionAddress,
                     getCallContext(resultType, argTypes, variableArgsCount + fixedParameterTypes.length - 1, callingConvention, requiresErrno));
