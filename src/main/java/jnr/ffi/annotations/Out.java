@@ -45,7 +45,7 @@ import java.lang.annotation.Target;
  * @see Clear
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER, ElementType.METHOD })
+@Target({ ElementType.PARAMETER, ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 public @interface Out {
 
 }
