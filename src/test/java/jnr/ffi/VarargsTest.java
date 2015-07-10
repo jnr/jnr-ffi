@@ -1,7 +1,7 @@
 package jnr.ffi;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import jnr.ffi.annotations.Encoding;
 import jnr.ffi.annotations.Meta;
@@ -39,21 +39,21 @@ public class VarargsTest {
         Assert.assertEquals("12345", result);
     }
 
-    @Test public void testMetaAscii() {
+    @Test public void testMetaAscii() throws UnsupportedEncodingException {
         Pointer ptr = Runtime.getRuntime(c).getMemoryManager().allocate(5000);
         int size = c.snprintf(ptr, 5000, "%s", AsciiEncoding.class, "\u7684");
         Assert.assertEquals(1, size);
-        String result = ptr.getString(0, size, StandardCharsets.US_ASCII);
-        String expected = new String("\u7684".getBytes(StandardCharsets.US_ASCII), StandardCharsets.US_ASCII);
+        String result = ptr.getString(0, size, Charset.forName("ASCII"));
+        String expected = new String("\u7684".getBytes("ASCII"), "ASCII");
         Assert.assertEquals(expected, result);
     }
 
-    @Test public void testMetaUtf8() {
+    @Test public void testMetaUtf8() throws UnsupportedEncodingException {
         Pointer ptr = Runtime.getRuntime(c).getMemoryManager().allocate(5000);
         int size = c.snprintf(ptr, 5000, "%s", UTF8Encoding.class, "\u7684");
         Assert.assertEquals(3, size);
-        String result = ptr.getString(0, size, StandardCharsets.UTF_8);
-        String expected = new String("\u7684".getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+        String result = ptr.getString(0, size, Charset.forName("UTF-8"));
+        String expected = new String("\u7684".getBytes("UTF-8"), "UTF-8");
         Assert.assertEquals(expected, result);
     }
 
