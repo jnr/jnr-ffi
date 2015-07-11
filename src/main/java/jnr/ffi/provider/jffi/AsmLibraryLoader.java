@@ -91,8 +91,12 @@ public class AsmLibraryLoader extends LibraryLoader {
             typeMapper = new NullTypeMapper();
         }
 
+        CompositeTypeMapper closureTypeMapper = new CompositeTypeMapper(typeMapper, 
+                new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)),
+                new CachingTypeMapper(new AnnotationTypeMapper()));
+        
         typeMapper = new CompositeTypeMapper(typeMapper, 
-                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper, classLoader), classLoader, NativeLibraryLoader.ASM_ENABLED)),
+                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, closureTypeMapper, classLoader), classLoader, NativeLibraryLoader.ASM_ENABLED)),
                 new CachingTypeMapper(new AnnotationTypeMapper()));
         
         CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);

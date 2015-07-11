@@ -24,6 +24,7 @@ import jnr.ffi.mapper.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.Collection;
 
 import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
@@ -50,7 +51,7 @@ final class ClosureUtil {
         Collection<Annotation> annotations = sortedAnnotationCollection(m.getParameterAnnotations()[idx]);
         Class declaredJavaClass = m.getParameterTypes()[idx];
         FromNativeContext context = new SimpleNativeContext(runtime, annotations);
-        SignatureType signatureType = DefaultSignatureType.create(declaredJavaClass, context);
+        SignatureType signatureType = new DefaultSignatureType(declaredJavaClass, context.getAnnotations(), m.getGenericParameterTypes()[idx]);
         jnr.ffi.mapper.FromNativeType fromNativeType = typeMapper.getFromNativeType(signatureType, context);
         FromNativeConverter converter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
