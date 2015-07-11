@@ -109,6 +109,10 @@ final class DefaultInvokerFactory {
                 resultContext);
         
         FunctionInvoker functionInvoker = getFunctionInvoker(resultType);
+        if (resultType.getFromNativeConverter() != null) {
+            functionInvoker = new ConvertingInvoker(resultType.getFromNativeConverter(), resultType.getFromNativeContext(), functionInvoker);
+        }
+        
         ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, method);
         //Allow individual methods to set the calling convention to stdcall
         CallingConvention callingConvention = method.isAnnotationPresent(StdCall.class)
@@ -124,10 +128,6 @@ final class DefaultInvokerFactory {
             Marshaller[] marshallers = new Marshaller[parameterTypes.length];
             for (int i = 0; i < marshallers.length; ++i) {
                 marshallers[i] = getMarshaller(parameterTypes[i]);
-            }
-
-            if (resultType.getFromNativeConverter() != null) {
-                functionInvoker = new ConvertingInvoker(resultType.getFromNativeConverter(), resultType.getFromNativeContext(), functionInvoker);
             }
 
             return new DefaultInvoker(runtime, library, function, functionInvoker, marshallers);

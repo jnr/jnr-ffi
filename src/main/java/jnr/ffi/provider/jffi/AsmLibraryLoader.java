@@ -349,7 +349,10 @@ public class AsmLibraryLoader extends LibraryLoader {
             mv.checkcast(Boolean.class);
             mv.invokevirtual(Boolean.class, "booleanValue", boolean.class);
             mv.ireturn();
+        } else if (void.class.isAssignableFrom(m.getReturnType())) {
+           mv.voidreturn();
         } else {
+            mv.checkcast(m.getReturnType());
             mv.areturn();
         }
         
