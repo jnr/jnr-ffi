@@ -343,7 +343,6 @@ public abstract class LibraryLoader<T> {
                 String line = in.readLine();
                 while( line != null ) {
                     if (new File(line).exists()) {
-                        System.err.println(line);
                         paths.add(line);
                     }
                     line = in.readLine();
