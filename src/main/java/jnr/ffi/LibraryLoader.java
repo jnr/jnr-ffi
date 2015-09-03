@@ -366,16 +366,33 @@ public abstract class LibraryLoader<T> {
                 // Add JNA paths for compatibility
                 paths.addAll(getPropertyPaths("jna.library.path"));
                 paths.addAll(getPropertyPaths("java.library.path"));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
-            // only for oracle jdk on ubuntu parse /etc/ld.so.conf and /etc/ld.so.conf.d/*
-            // more details:
-            // https://github.com/jruby/jruby/issues/2913
-            // https://github.com/jruby/jruby/issues/3145
-            // https://github.com/elastic/logstash/issues/3127#issuecomment-101068714
-            addPaths(paths, new File("/etc/ld.so.conf"));
-            for(File file: new File("/etc/ld.so.conf.d").listFiles()) {
-                addPaths(paths, file);
+            switch (Platform.getNativePlatform().getOS()) {
+                case FREEBSD:
+                case OPENBSD:
+                case NETBSD:
+                case LINUX:
+                case ZLINUX:
+                    // only for oracle jdk on Linux and non-OSX BSD parse /etc/ld.so.conf and /etc/ld.so.conf.d/*
+                    // more details:
+                    // https://github.com/jruby/jruby/issues/2913
+                    // https://github.com/jruby/jruby/issues/3145
+                    // https://github.com/elastic/logstash/issues/3127#issuecomment-101068714
+                    File ldSoConf = new File("/etc/ld.so.conf");
+                    File ldSoConfD = new File("/etc/ld.so.conf.d");
+
+                    if (ldSoConf.exists()) {
+                        addPaths(paths, ldSoConf);
+                    }
+
+                    if (ldSoConfD.isDirectory()) {
+                        for (File file : ldSoConfD.listFiles()) {
+                            addPaths(paths, file);
+                        }
+                    }
+                    break;
             }
             USER_LIBRARY_PATH = Collections.unmodifiableList(new ArrayList<String>(paths));
         }
