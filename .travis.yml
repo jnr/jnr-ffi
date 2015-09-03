@@ -11,6 +11,7 @@ matrix:
   include:
     - os: os x
     - os: linux
-      jdk: oraclejdk7
-    - os: linux
-      jdk: openjdk6
+      jdk:
+        - oraclejdk8
+        - oraclejdk7
+        - openjdk6
