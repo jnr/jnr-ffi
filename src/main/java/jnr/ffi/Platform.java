@@ -439,8 +439,19 @@ public abstract class Platform {
                 }
             };
 
+            Pattern exclude;
+            if (getCPU() == CPU.X86_64) {
+                exclude = Pattern.compile(".*(lib32|i[0-9]86).*");
+            }
+            else {
+                exclude = Pattern.compile(".*(lib64|amd64|x86_64).*");
+            }
+
             List<File> matches = new LinkedList<File>();
             for (String path : libraryPath) {
+                if (exclude.matcher(path).matches()) {
+                    continue;
+                }
                 File[] files = new File(path).listFiles(filter);
                 if (files != null && files.length > 0) {
                     matches.addAll(Arrays.asList(files));
