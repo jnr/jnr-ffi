@@ -342,6 +342,31 @@ public abstract class Platform {
     }
 
     /**
+     * Returns the platform specific standard C library name
+     * 
+     * @return The standard C library name
+     */
+    public String getStandardCLibraryName() {
+        switch (os) {
+        case LINUX:
+            return "libc.so.6";
+        case SOLARIS:
+            return "c";
+        case FREEBSD:
+        case NETBSD:
+            return "c";
+        case AIX:
+            return addressSize == 32
+                ? "libc.a(shr.o)"
+                : "libc.a(shr_64.o)";
+        case WINDOWS:
+            return "msvcrt";
+        default:
+            return "c";
+        }
+    }
+    
+    /**
      * Maps from a generic library name (e.g. "c") to the platform specific library name.
      *
      * @param libName The library name to map
