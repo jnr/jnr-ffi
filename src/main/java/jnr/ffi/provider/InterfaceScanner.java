@@ -90,11 +90,14 @@ public class InterfaceScanner {
 
         try {
             return Boolean.TRUE.equals(methodIsDefault.invoke(method));
-        } catch (ReflectiveOperationException e) {
+        } catch (Exception e) {
             // e can throw one of:
             // * IllegalAccessException, but we know isDefault is public.
             // * InvocationTargetException, but we know isDefault doesn't throw.
             // but java doesn't let us prove this invariants, so we do this.
+            // And we can't catch ReflectiveOperationException as it was
+            // introduced in Java SE 1.7, so we have to catch the next common
+            // superclass (Exception).
             throw new RuntimeException("Unexpected error attempting to call isDefault method", e);
         }
     }
