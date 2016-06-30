@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Indicates that the errno valud for a native function need not be saved after
+ * Indicates that the errno value for a native function need not be saved after
  * the function returns.
  *
  * <p>Due to the nature of the Java Virtual Machine, the errno value must be saved
