@@ -335,6 +335,7 @@ public class StructureTest {
         }
 
     }
+
     private class InnerTest extends Struct {
         public final Signed32 i32 = new Signed32();
         public final InnerStruct s = inner(new InnerStruct());
@@ -344,12 +345,30 @@ public class StructureTest {
         }
 
     }
+
+    private class DoubleInnerTest extends Struct {
+        public final Signed32 s32 = new Signed32();
+        public final InnerTest innerTestStruct = inner(new InnerTest());
+
+        public DoubleInnerTest() {
+            super(runtime);
+        }
+    }
+
     @Test public void innerStruct() {
         InnerTest t = new InnerTest();
         Pointer io = Struct.getMemory(t);
         io.putInt(0, 0xdeadbeef);
         io.putByte(4, (byte) 0x12);
         assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get());
+    }
+
+    @Test public void doubleInnerStruct() {
+        DoubleInnerTest t = new DoubleInnerTest();
+        Pointer io = Struct.getMemory(t);
+        io.putInt(0, 0xffffffff);
+        io.putInt(4, 0xffffffff);
+        assertEquals(0, t.innerTestStruct.s.s8.get());
     }
 
     private class TypeTest extends Struct {

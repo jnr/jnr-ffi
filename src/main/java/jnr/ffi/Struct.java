@@ -58,6 +58,10 @@ public abstract class Struct {
             this.runtime = runtime;
         }
 
+        public final int getOffset() {
+            return enclosing == null ? 0 : offset + enclosing.__info.getOffset();
+        }
+
         public final jnr.ffi.Pointer getMemory(int flags) {
             return enclosing != null ? enclosing.__info.getMemory(flags) : memory != null ? memory : (memory = allocateMemory(flags));
         }
@@ -564,7 +568,7 @@ public abstract class Struct {
          * Gets the offset within the structure for this field.
          */
         public final long offset() {
-            return offset + __info.offset;
+            return offset + __info.getOffset();
         }
     }
 
@@ -688,7 +692,7 @@ public abstract class Struct {
          * Gets the offset within the structure for this field.
          */
         public final long offset() {
-            return offset + __info.offset;
+            return offset + __info.getOffset();
         }
 
         /**
