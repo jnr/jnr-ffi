@@ -308,6 +308,113 @@ public abstract class Struct {
     }
 
     /**
+     * Creates an array of <tt>Enum8</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum8</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum8<T>[] array(Enum8<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum8<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum16</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum16</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum16<T>[] array(Enum16<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum16<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum32</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum32</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum32<T>[] array(Enum32<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum32<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum64</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum64</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum64<T>[] array(Enum64<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum64<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum<T>[] array(Enum<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Struct</tt> instances.
+     *
+     * @param array the array to store the instances in
+     * @return the array that was passed in
+     */
+    protected <T extends Struct> T[] array(T[] array) {
+        arrayBegin();
+        try {
+            Class<?> type = array.getClass().getComponentType();
+            Constructor c = type.getConstructor(Runtime.class);
+
+            for (int i = 0; i < array.length; i++) {
+                array[i] = inner((T) c.newInstance(getRuntime()));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
      * Creates an array of <tt>Signed8</tt> instances.
      *
      * @param array the array to store the instances in
