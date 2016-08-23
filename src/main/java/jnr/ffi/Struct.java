@@ -128,6 +128,7 @@ public abstract class Struct {
     Struct(Runtime runtime, final boolean isUnion) {
         this(runtime);
         __info.resetIndex = isUnion;
+        __info.isUnion = isUnion;
     }
 
     public final Runtime getRuntime() {
@@ -625,11 +626,10 @@ public abstract class Struct {
     }
 
     protected final <T extends Struct> T inner(T struct) {
-        int off = align(__info.size, struct.__info.getMinimumAlignment());
+        int off = __info.resetIndex ? 0 : align(__info.size, struct.__info.getMinimumAlignment());
         struct.__info.enclosing = this;
         struct.__info.offset = off;
-        __info.size = off + struct.__info.size;
-
+        __info.size = Math.max(__info.size, off + struct.__info.size);
         return struct;
     }
 
