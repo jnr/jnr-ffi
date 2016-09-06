@@ -20,9 +20,10 @@ package jnr.ffi;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class Platform {
@@ -448,22 +449,14 @@ public abstract class Platform {
     /**
      * A {@link Platform} subclass representing the Linux operating system.
      */
-    private static final class Linux extends Supported {
+    static final class Linux extends Supported {
 
         public Linux() {
             super(OS.LINUX);
         }
 
         @Override
-        public String locateLibrary(final String libName, List<String> libraryPath) {
-            FilenameFilter filter = new FilenameFilter() {
-                Pattern p = Pattern.compile("lib" + libName + "\\.so\\.[0-9]+$");
-                String exact = "lib" + libName + ".so";
-                public boolean accept(File dir, String name) {
-                    return p.matcher(name).matches() || exact.equals(name);
-                }
-            };
-
+        public String locateLibrary(final String libName, List<String> libraryPaths) {
             Pattern exclude;
             // there are /libx32 directories in wild on ubuntu 14.04 and the
             // oracle-java8-installer package
@@ -474,14 +467,40 @@ public abstract class Platform {
                 exclude = Pattern.compile(".*(lib[a-z]*64|amd64|x86_64).*");
             }
 
-            List<File> matches = new LinkedList<File>();
-            for (String path : libraryPath) {
+            final Pattern versionedLibPattern = Pattern.compile("lib" + libName + "\\.so((?:\\.[0-9]+)*)$");
+
+            FilenameFilter filter = new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    return versionedLibPattern.matcher(name).matches();
+                }
+            };
+
+            Map<String, int[]> matches = new HashMap<String, int[]>();
+            for (String path : libraryPaths) {
                 if (exclude.matcher(path).matches()) {
                     continue;
                 }
-                File[] files = new File(path).listFiles(filter);
-                if (files != null && files.length > 0) {
-                    matches.addAll(Arrays.asList(files));
+
+                File libraryPath = new File(path);
+                File[] files = libraryPath.listFiles(filter);
+                if (files == null) {
+                    continue;
+                }
+
+                for (File file : files) {
+                    Matcher matcher = versionedLibPattern.matcher(file.getName());
+                    String versionString = matcher.matches() ? matcher.group(1) : "";
+                    int[] version;
+                    if (versionString == null || versionString.isEmpty()) {
+                        version = new int[0];
+                    } else {
+                        String[] parts = versionString.split("\\.");
+                        version = new int[parts.length - 1];
+                        for (int i = 1; i < parts.length; i++) {
+                            version[i - 1] = Integer.parseInt(parts[i]);
+                        }
+                    }
+                    matches.put(file.getAbsolutePath(), version);
                 }
             }
 
@@ -489,28 +508,50 @@ public abstract class Platform {
             // Search through the results and return the highest numbered version
             // i.e. libc.so.6 is preferred over libc.so.5
             //
-            int bestVersion = -1;
+            int[] bestVersion = null;
             String bestMatch = null;
-            for (File file : matches) {
-                String path = file.getAbsolutePath();
-                int fileVersion;
-                if (path.endsWith(".so")) {
-                    fileVersion = 0;
-                } else {
-                    String num = path.substring(path.lastIndexOf(".so.") + 4);
-                    try {
-                        fileVersion = Integer.parseInt(num);
-                    } catch (NumberFormatException e) {
-                        continue; // Just skip if not a number
-                    }
-                }
-                if (fileVersion > bestVersion) {
-                    bestMatch = path;
+            for (Map.Entry<String,int[]> entry : matches.entrySet()) {
+                String file = entry.getKey();
+                int[] fileVersion = entry.getValue();
+
+                if (compareVersions(fileVersion, bestVersion) > 0) {
+                    bestMatch = file;
                     bestVersion = fileVersion;
                 }
             }
+
             return bestMatch != null ? bestMatch : mapLibraryName(libName);
         }
+
+        private static int compareVersions(int[] version1, int[] version2) {
+            // Null is always smallest
+            if (version1 == null) {
+                return version2 == null ? 0 : -1;
+            }
+            if (version2 == null) {
+                return 1;
+            }
+
+            // Compare component by component
+            int commonLength = Math.min(version1.length, version2.length);
+            for (int i = 0; i < commonLength; i++) {
+                if (version1[i] < version2[i]) {
+                    return -1;
+                } else if (version1[i] > version2[i]) {
+                    return 1;
+                }
+            }
+
+            // If all components are equal, version with fewest components is smallest
+            if (version1.length < version2.length) {
+                return -1;
+            } else if (version1.length > version2.length) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+
         @Override
         public String mapLibraryName(String libName) {
             // Older JDK on linux map 'c' to 'libc.so' which doesn't work
