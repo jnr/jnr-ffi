@@ -91,6 +91,10 @@ final class NativeClosureManager implements ClosureManager {
         }
 
         public Pointer toNative(T value, ToNativeContext context) {
+            if (value == null) {
+                return null;
+            }
+            
             // If passing down a function pointer, don't re-wrap it
             if (value instanceof ClosureFromNativeConverter.AbstractClosurePointer) {
                 return (ClosureFromNativeConverter.AbstractClosurePointer) value;
