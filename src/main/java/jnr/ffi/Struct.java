@@ -397,6 +397,7 @@ public abstract class Struct {
      * Creates an array of <tt>Struct</tt> instances.
      *
      * @param array the array to store the instances in
+     * @param <T> the type of Struct
      * @return the array that was passed in
      */
     protected <T extends Struct> T[] array(T[] array) {
