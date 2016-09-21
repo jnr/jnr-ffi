@@ -78,6 +78,41 @@ public abstract class LibraryLoader<T> {
     }
 
     /**
+     * When either the {@link jnr.ffi.annotations.SaveError} or
+     * {@link jnr.ffi.annotations.IgnoreError} annotations are used, the
+     * following matrix applies:
+     *
+     * (SL = save at library level, IM = ignore at method level, etc)
+     *
+     * <pre>
+     *         | none |  SL  |  IL  | SL+IL|
+     * -------------------------------------
+     * none    | save | save | ignr | save |
+     * SM      | save | save | save | save |
+     * IM      | ignr | ignr | ignr | ignr |
+     * SM + IM | save | save | save | save |
+     * </pre>
+     */
+    public static boolean saveError(Map<LibraryOption, ?> options, boolean methodHasSave, boolean methodHasIgnore) {
+
+        // default to save
+        boolean saveError = options.containsKey(LibraryOption.SaveError) || !options.containsKey(LibraryOption.IgnoreError);
+
+        // toggle only according to above matrix
+        if (saveError) {
+            if (methodHasIgnore && !methodHasSave) {
+                saveError = false;
+            }
+        } else {
+            if (methodHasSave) {
+                saveError = true;
+            }
+        }
+
+        return saveError;
+    }
+
+    /**
      * Adds a library to be loaded.  Multiple libraries can be specified using additional calls
      * to this method, and all libraries will be searched to resolve symbols (e.g. functions, variables).
      *

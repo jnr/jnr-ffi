@@ -19,9 +19,11 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.LibraryOption;
+import jnr.ffi.provider.NativeFunction;
 
 import java.util.Map;
 
 public abstract class LibraryLoader {
+
     abstract <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions);
 }

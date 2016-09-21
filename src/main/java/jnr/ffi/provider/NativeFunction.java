@@ -32,20 +32,16 @@ public final class NativeFunction {
     private final Method method;
     private final Collection<Annotation> annotations;
     private final boolean saveError;
+    private final boolean ignoreError;
     private final CallingConvention callingConvention;
 
     public NativeFunction(Method method, CallingConvention callingConvention) {
         this.method = method;
         this.annotations = Collections.unmodifiableCollection(Arrays.asList(method.getAnnotations()));
-        boolean saveError = true;
-        for (Annotation a : annotations) {
-            if (a instanceof IgnoreError) {
-                saveError = false;
-            } else if (a instanceof SaveError) {
-                saveError = true;
-            }
-        }
-        this.saveError = saveError;
+
+        this.saveError = hasSaveError(method);
+        this.ignoreError = hasIgnoreError(method);
+
         this.callingConvention = callingConvention;
     }
 
@@ -62,10 +58,26 @@ public final class NativeFunction {
     }
     
     public boolean isErrnoRequired() {
+        return !ignoreError || saveError;
+    }
+
+    public boolean hasSaveError() {
         return saveError;
+    }
+
+    public boolean hasIgnoreError() {
+        return ignoreError;
     }
 
     public Method getMethod() {
         return method;
+    }
+
+    public static boolean hasSaveError(Method method) {
+        return method.getAnnotation(SaveError.class) != null;
+    }
+
+    public static boolean hasIgnoreError(Method method) {
+        return method.getAnnotation(IgnoreError.class) != null;
     }
 }

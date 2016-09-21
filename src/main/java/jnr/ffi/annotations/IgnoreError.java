@@ -18,8 +18,12 @@
 
 package jnr.ffi.annotations;
 
+import jnr.ffi.LibraryLoader;
+import jnr.ffi.LibraryOption;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
 
 /**
  * Indicates that the errno value for a native function need not be saved after
@@ -37,6 +41,7 @@ import java.lang.annotation.RetentionPolicy;
  * avoid unneccessary saving of the errno value.
  *
  * @see SaveError
+ * @see LibraryLoader#saveError(Map, boolean, boolean)
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IgnoreError {
