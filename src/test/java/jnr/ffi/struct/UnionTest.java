@@ -18,11 +18,11 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.Library;
-import jnr.ffi.Runtime;
-import jnr.ffi.TstUtil;
 import java.nio.ByteOrder;
 
+import jnr.ffi.Runtime;
+import jnr.ffi.Struct;
+import jnr.ffi.TstUtil;
 import jnr.ffi.Union;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -79,6 +79,25 @@ public class UnionTest {
 
 
     }
+
+    public static final class innerStruct extends Struct {
+        public final Unsigned8 firstByte = new Unsigned8();
+        public final Unsigned8 secondByte = new Unsigned8();
+
+        public innerStruct() {
+            super(runtime);
+        }
+    }
+
+    public static final class unionWithStruct extends Union {
+        public final Unsigned16 u16 = new Unsigned16();
+        public final innerStruct inner = inner(new innerStruct());
+
+        public unionWithStruct() {
+            super(runtime);
+        }
+    }
+
     @Test public void offsetTest() {
         union u = new union();
         assertEquals("Not at offset 0", 0L, u.s8.offset());
@@ -136,5 +155,10 @@ public class UnionTest {
         u.s64.set(MAGIC);
         assertEquals("Wrong value", 0xdeadbeef, u.s32.get());
     }
-    
+
+    @Test
+    public void innerStructSize() {
+        unionWithStruct unionWithStruct = new unionWithStruct();
+        assertEquals(2, Struct.size(unionWithStruct));
+    }
 }

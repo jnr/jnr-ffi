@@ -36,7 +36,7 @@ import java.nio.charset.Charset;
 
 /**
  * Representation of C structures in java.
- * 
+ *
  * <b>Note:</b> This class is not threadsafe.
  */
 public abstract class Struct {
@@ -48,7 +48,7 @@ public abstract class Struct {
         private jnr.ffi.Pointer memory = null;
         Struct enclosing = null;
         int offset = 0; // offset within enclosing Struct
-        
+
         int size = 0;
         int minAlign = 1;
         boolean isUnion = false;
@@ -56,6 +56,10 @@ public abstract class Struct {
 
         public Info(Runtime runtime) {
             this.runtime = runtime;
+        }
+
+        public final int getOffset() {
+            return enclosing == null ? 0 : offset + enclosing.__info.getOffset();
         }
 
         public final jnr.ffi.Pointer getMemory(int flags) {
@@ -89,13 +93,13 @@ public abstract class Struct {
         public final void useMemory(jnr.ffi.Pointer io) {
             this.memory = io;
         }
-        
+
         protected final int addField(int sizeBits, int alignBits, Offset offset) {
             this.size = Math.max(this.size, offset.intValue() + (sizeBits >> 3));
             this.minAlign = Math.max(this.minAlign, alignBits >> 3);
             return offset.intValue();
         }
-        
+
         protected final int addField(int sizeBits, int alignBits) {
             final int off = resetIndex ? 0 : align(this.size, alignBits >> 3);
             this.size = Math.max(this.size, off + (sizeBits >> 3));
@@ -103,7 +107,7 @@ public abstract class Struct {
             return off;
         }
 
-        
+
     }
     final Info __info;
 
@@ -124,6 +128,7 @@ public abstract class Struct {
     Struct(Runtime runtime, final boolean isUnion) {
         this(runtime);
         __info.resetIndex = isUnion;
+        __info.isUnion = isUnion;
     }
 
     public final Runtime getRuntime() {
@@ -190,10 +195,10 @@ public abstract class Struct {
         }
     }
 
-    
+
     /**
      * Returns a human readable {@link java.lang.String} representation of the structure.
-     * 
+     *
      * @return a {@code String} representation of this structure.
      */
     @Override
@@ -215,7 +220,7 @@ public abstract class Struct {
         sb.append("}\n");
         return sb.toString();
     }
-    
+
     public static final class Offset extends java.lang.Number {
         private final int offset;
         public Offset(int offset) {
@@ -245,18 +250,18 @@ public abstract class Struct {
     protected abstract class Member {
         /**
          * Gets the {@code Struct} this {@code Member} is a member of.
-         * 
+         *
          * @return a {@code Struct}.
          */
         abstract Struct struct();
 
         /**
          * Gets the memory object used to store this {@code Member}
-         * 
+         *
          * @return a {@code Pointer}
          */
         abstract jnr.ffi.Pointer getMemory();
-        
+
         /**
          * Gets the offset within the structure for this field.
          *
@@ -271,17 +276,17 @@ public abstract class Struct {
     protected final void arrayBegin() {
         __info.resetIndex = false;
     }
-    
+
     /**
      * Ends an array construction session
      */
     protected final void arrayEnd() {
         __info.resetIndex = __info.isUnion;
     }
-    
+
     /**
      * Creates an array of <tt>Member</tt> instances.
-     * 
+     *
      * @param <T> The type of the <tt>Member</tt> subclass to create.
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -297,15 +302,123 @@ public abstract class Struct {
                 array[i] = (T) ctor.newInstance(parameters);
             }
         } catch (Exception ex) {
-            throw new RuntimeException(ex);    
+            throw new RuntimeException(ex);
         }
         arrayEnd();
         return array;
     }
-    
+
+    /**
+     * Creates an array of <tt>Enum8</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum8</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum8<T>[] array(Enum8<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum8<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum16</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum16</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum16<T>[] array(Enum16<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum16<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum32</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum32</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum32<T>[] array(Enum32<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum32<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum64</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum64</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum64<T>[] array(Enum64<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum64<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Enum</tt> instances.
+     *
+     * @param array     the array to store the instances in
+     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum</tt> instances will represent
+     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @return the array that was passed in
+     */
+    protected <T extends java.lang.Enum<T>> Enum<T>[] array(Enum<T>[] array, Class<T> enumClass) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new Enum<T>(enumClass);
+        }
+        arrayEnd();
+        return array;
+    }
+
+    /**
+     * Creates an array of <tt>Struct</tt> instances.
+     *
+     * @param array the array to store the instances in
+     * @param <T> the type of Struct
+     * @return the array that was passed in
+     */
+    protected <T extends Struct> T[] array(T[] array) {
+        arrayBegin();
+        try {
+            Class<?> type = array.getClass().getComponentType();
+            Constructor c = type.getConstructor(Runtime.class);
+
+            for (int i = 0; i < array.length; i++) {
+                array[i] = inner((T) c.newInstance(getRuntime()));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        arrayEnd();
+        return array;
+    }
+
     /**
      * Creates an array of <tt>Signed8</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -317,10 +430,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Unsigned8</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -332,10 +445,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Signed16</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -347,10 +460,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Unsigned16</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -362,10 +475,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Signed32</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -377,10 +490,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Unsigned32</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -395,7 +508,7 @@ public abstract class Struct {
 
     /**
      * Creates an array of <tt>Signed64</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -407,10 +520,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Unsigned64</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -422,10 +535,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>SignedLong</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -437,10 +550,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>UnsignedLong</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -452,10 +565,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Float</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -467,10 +580,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Double</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -482,10 +595,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Address</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -497,10 +610,10 @@ public abstract class Struct {
         arrayEnd();
         return array;
     }
-    
+
     /**
      * Creates an array of <tt>Pointer</tt> instances.
-     * 
+     *
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -514,14 +627,13 @@ public abstract class Struct {
     }
 
     protected final <T extends Struct> T inner(T struct) {
-        int off = align(__info.size, struct.__info.getMinimumAlignment());
+        int off = __info.resetIndex ? 0 : align(__info.size, struct.__info.getMinimumAlignment());
         struct.__info.enclosing = this;
         struct.__info.offset = off;
-        __info.size = off + struct.__info.size;
-
+        __info.size = Math.max(__info.size, off + struct.__info.size);
         return struct;
     }
-    
+
     /**
      * Base implementation of Member
      */
@@ -550,24 +662,24 @@ public abstract class Struct {
         public final jnr.ffi.Pointer getMemory() {
             return __info.getMemory();
         }
-        
+
         /**
          * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
-         * 
+         *
          * @return a <tt>Struct</tt>.
          */
         public final Struct struct() {
             return Struct.this;
         }
-        
+
         /**
          * Gets the offset within the structure for this field.
          */
         public final long offset() {
-            return offset + __info.offset;
+            return offset + __info.getOffset();
         }
     }
-    
+
     /**
      * Base class for Boolean fields
      */
@@ -648,7 +760,7 @@ public abstract class Struct {
          */
         private final int offset;
         protected final Type type;
-  
+
         protected NumberField(NativeType type) {
             Type t = this.type = getRuntime().findType(type);
             this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
@@ -673,43 +785,43 @@ public abstract class Struct {
         public final jnr.ffi.Pointer getMemory() {
             return __info.getMemory();
         }
-        
-        
+
+
         /**
          * Gets the <tt>Struct</tt> this <tt>Member</tt> is in.
-         * 
+         *
          * @return a <tt>Struct</tt>.
          */
         public final Struct struct() {
             return Struct.this;
         }
-        
+
         /**
          * Gets the offset within the structure for this field.
          */
         public final long offset() {
-            return offset + __info.offset;
+            return offset + __info.getOffset();
         }
-        
+
         /**
          * Sets the field to a new value.
-         * 
+         *
          * @param value The new value.
          */
         public abstract void set(java.lang.Number value);
 
         /**
          * Returns an {@code float} representation of this <tt>Number</tt>.
-         * 
+         *
          * @return an {@code float} value for this <tt>Number</tt>.
          */
         public double doubleValue() {
             return (double) longValue();
         }
-        
+
         /**
          * Returns an {@code float} representation of this <tt>Number</tt>.
-         * 
+         *
          * @return an {@code float} value for this <tt>Number</tt>.
          */
         public float floatValue() {
@@ -743,13 +855,13 @@ public abstract class Struct {
 
         /**
          * Returns a {@code long} representation of this <tt>Number</tt>.
-         * 
+         *
          * @return a {@code long} value for this <tt>Number</tt>.
          */
         public long longValue() {
             return intValue();
         }
-        
+
         /**
          * Returns a string representation of this <code>Address</code>.
          *
@@ -799,7 +911,7 @@ public abstract class Struct {
             return get();
         }
     }
-    
+
     /**
      * An 8 bit signed integer
      */
@@ -819,19 +931,19 @@ public abstract class Struct {
         public Signed8(Offset offset) {
             super(NativeType.SCHAR, offset);
         }
-        
+
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a byte.
          */
         public final byte get() {
             return getMemory().getByte(offset());
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 8 bit value to set.
          */
         public final void set(byte value) {
@@ -844,27 +956,27 @@ public abstract class Struct {
 
         /**
          * Returns a java byte representation of this field.
-         * 
+         *
          * @return a java byte value for this field.
          */
         @Override
         public final byte byteValue() {
             return get();
         }
-        
+
         /**
          * Returns a java short representation of this field.
-         * 
+         *
          * @return a java short value for this field.
          */
         @Override
         public final short shortValue() {
             return get();
         }
-        
+
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
@@ -872,7 +984,7 @@ public abstract class Struct {
             return get();
         }
     }
-    
+
     /**
      * An 8 bit unsigned integer
      */
@@ -892,20 +1004,20 @@ public abstract class Struct {
         public Unsigned8(Offset offset) {
             super(NativeType.UCHAR, offset);
         }
-        
+
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a byte.
          */
         public final short get() {
             short value = getMemory().getByte(offset());
             return value < 0 ? (short) ((value & 0x7F) + 0x80) : value;
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 8 bit value to set.
          */
         public final void set(short value) {
@@ -918,17 +1030,17 @@ public abstract class Struct {
 
         /**
          * Returns a java short representation of this field.
-         * 
+         *
          * @return a java short value for this field.
          */
         @Override
         public final short shortValue() {
             return get();
         }
-        
+
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
@@ -936,7 +1048,7 @@ public abstract class Struct {
             return get();
         }
     }
-    
+
     /**
      * A 16 bit signed integer field.
      */
@@ -959,16 +1071,16 @@ public abstract class Struct {
 
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a short.
          */
         public final short get() {
             return getMemory().getShort(offset());
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 16 bit value to set.
          */
         public final void set(short value) {
@@ -981,17 +1093,17 @@ public abstract class Struct {
 
         /**
          * Returns a java short representation of this field.
-         * 
+         *
          * @return a java short value for this field.
          */
         @Override
         public final short shortValue() {
             return get();
         }
-        
+
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
@@ -999,7 +1111,7 @@ public abstract class Struct {
             return get();
         }
     }
-    
+
     /**
      * A 16 bit signed integer field.
      */
@@ -1022,17 +1134,17 @@ public abstract class Struct {
 
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a short.
          */
         public final int get() {
             int value = getMemory().getShort(offset());
             return value < 0 ? (int)((value & 0x7FFF) + 0x8000) : value;
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 16 bit unsigned value to set.
          */
         public final void set(int value) {
@@ -1045,7 +1157,7 @@ public abstract class Struct {
 
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
@@ -1053,7 +1165,7 @@ public abstract class Struct {
             return get();
         }
     }
-    
+
     /**
      * A 32 bit signed integer field.
      */
@@ -1076,16 +1188,16 @@ public abstract class Struct {
 
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a int.
          */
         public final int get() {
             return getMemory().getInt(offset());
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 32 bit value to set.
          */
         public final void set(int value) {
@@ -1098,7 +1210,7 @@ public abstract class Struct {
 
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
@@ -1106,7 +1218,7 @@ public abstract class Struct {
             return get();
         }
     }
-    
+
     /**
      * A 32 bit signed integer field.
      */
@@ -1129,17 +1241,17 @@ public abstract class Struct {
 
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a long.
          */
         public final long get() {
             long value = getMemory().getInt(offset());
             return value < 0 ? (long)((value & 0x7FFFFFFFL) + 0x80000000L) : value;
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 32 bit unsigned value to set.
          */
         public final void set(long value) {
@@ -1152,17 +1264,17 @@ public abstract class Struct {
 
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
         public final int intValue() {
             return (int) get();
         }
-        
+
         /**
          * Returns a java long representation of this field.
-         * 
+         *
          * @return a java long value for this field.
          */
         @Override
@@ -1170,7 +1282,7 @@ public abstract class Struct {
             return get();
         }
     }
-    
+
     /**
      * A 64 bit signed integer field.
      */
@@ -1193,16 +1305,16 @@ public abstract class Struct {
 
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a long.
          */
         public final long get() {
             return getMemory().getLongLong(offset());
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 64 bit value to set.
          */
         public final void set(long value) {
@@ -1215,24 +1327,24 @@ public abstract class Struct {
 
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
         public final int intValue() {
             return (int) get();
         }
-        
+
         /**
          * Returns a java long representation of this field.
-         * 
+         *
          * @return a java long value for this field.
          */
         @Override
         public final long longValue() {
             return get();
         }
-        
+
         /**
          * Returns a string representation of this field.
          *
@@ -1243,7 +1355,7 @@ public abstract class Struct {
             return java.lang.Long.toString(get());
         }
     }
-    
+
     /**
      * A 64 bit unsigned integer field.
      */
@@ -1254,7 +1366,7 @@ public abstract class Struct {
         public Unsigned64() {
             super(NativeType.ULONGLONG);
         }
-        
+
         /**
          * Creates a new 64 bit unsigned integer field at a specific offset
          *
@@ -1263,19 +1375,19 @@ public abstract class Struct {
         public Unsigned64(Offset offset) {
             super(NativeType.ULONGLONG, offset);
         }
-        
+
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a long.
          */
         public final long get() {
             return getMemory().getLongLong(offset());
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 64 bit value to set.
          */
         public final void set(long value) {
@@ -1288,24 +1400,24 @@ public abstract class Struct {
 
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
         public final int intValue() {
             return (int) get();
         }
-        
+
         /**
          * Returns a java long representation of this field.
-         * 
+         *
          * @return a java long value for this field.
          */
         @Override
         public final long longValue() {
             return get();
         }
-        
+
         /**
          * Returns a string representation of this field.
          *
@@ -1316,7 +1428,7 @@ public abstract class Struct {
             return java.lang.Long.toString(get());
         }
     }
-    
+
     /**
      * A native long integer field.
      */
@@ -1339,16 +1451,16 @@ public abstract class Struct {
 
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a long.
          */
         public final long get() {
             return getMemory().getNativeLong(offset());
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 32/64 bit value to set.
          */
         public final void set(long value) {
@@ -1361,24 +1473,24 @@ public abstract class Struct {
 
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
         public final int intValue() {
             return (int) get();
         }
-        
+
         /**
          * Returns a java long representation of this field.
-         * 
+         *
          * @return a java long value for this field.
          */
         @Override
         public final long longValue() {
             return get();
         }
-        
+
         /**
          * Returns a string representation of this field.
          *
@@ -1389,12 +1501,12 @@ public abstract class Struct {
             return java.lang.Long.toString(get());
         }
     }
-    
+
     /**
      * A native long integer field.
      */
     public class UnsignedLong extends NumberField {
-        
+
         /**
          * Creates a new native long field.
          */
@@ -1413,20 +1525,20 @@ public abstract class Struct {
 
         /**
          * Gets the value for this field.
-         * 
+         *
          * @return a int.
          */
         public final long get() {
             long value = getMemory().getNativeLong(offset());
             final long mask = getRuntime().findType(NativeType.SLONG).size() == 32 ? 0xffffffffL : 0xffffffffffffffffL;
-            return value < 0 
+            return value < 0
                     ? (long) ((value & mask) + mask + 1)
                     : value;
         }
-        
+
         /**
          * Sets the value for this field.
-         * 
+         *
          * @param value the 32/64 bit value to set.
          */
         public final void set(long value) {
@@ -1439,24 +1551,24 @@ public abstract class Struct {
 
         /**
          * Returns a java int representation of this field.
-         * 
+         *
          * @return a java int value for this field.
          */
         @Override
         public final int intValue() {
             return (int) get();
         }
-        
+
         /**
          * Returns a java long representation of this field.
-         * 
+         *
          * @return a java long value for this field.
          */
         @Override
         public final long longValue() {
             return get();
         }
-        
+
         /**
          * Returns a string representation of this field.
          *
@@ -1467,7 +1579,7 @@ public abstract class Struct {
             return java.lang.Long.toString(get());
         }
     }
-    
+
     public class Float extends NumberField {
         public Float() {
             super(NativeType.FLOAT);
@@ -1480,7 +1592,7 @@ public abstract class Struct {
         public Float(Offset offset) {
             super(NativeType.FLOAT, offset);
         }
-        
+
         public final float get() {
             return getMemory().getFloat(offset());
         }
@@ -1490,7 +1602,7 @@ public abstract class Struct {
         public void set(java.lang.Number value) {
             getMemory().putFloat(offset(), value.floatValue());
         }
-        
+
         @Override
         public final int intValue() {
             return (int) get();
@@ -1532,12 +1644,12 @@ public abstract class Struct {
         public void set(java.lang.Number value) {
             getMemory().putDouble(offset(), value.doubleValue());
         }
-        
+
         @Override
         public final int intValue() {
             return (int) get();
         }
-        
+
         @Override
         public final long longValue() {
             return (long) get();
@@ -1546,7 +1658,7 @@ public abstract class Struct {
         public final float floatValue() {
             return (float) get();
         }
-        
+
         @Override
         public final double doubleValue() {
             return get();
@@ -1556,12 +1668,12 @@ public abstract class Struct {
             return java.lang.String.valueOf(get());
         }
     }
-    
+
     /**
      * Represents a native memory address.
      */
     public class Address extends NumberField {
-        
+
         /**
          * Creates a new <tt>Address</tt> field.
          */
@@ -1571,16 +1683,16 @@ public abstract class Struct {
         public Address(Offset offset) {
             super(NativeType.ADDRESS, offset);
         }
-        
+
         /**
          * Reads an {@code Address} value from the struct.
-         * 
+         *
          * @return a {@link jnr.ffi.Address}.
          */
         public final jnr.ffi.Address get() {
             return jnr.ffi.Address.valueOf(getMemory().getAddress(offset()));
         }
-        
+
         /**
          * Puts a {@link jnr.ffi.Address} value into the native memory.
          *
@@ -1595,24 +1707,24 @@ public abstract class Struct {
         }
         /**
          * Returns an integer representation of this address.
-         * 
+         *
          * @return an integer value for this address.
          */
         @Override
         public final int intValue() {
             return get().intValue();
         }
-        
+
         /**
          * Returns an {@code long} representation of this address.
-         * 
+         *
          * @return an {@code long} value for this address.
          */
         @Override
         public final long longValue() {
             return get().longValue();
         }
-        
+
         /**
          * Returns a string representation of this <code>Address</code>.
          *
@@ -1623,7 +1735,7 @@ public abstract class Struct {
             return get().toString();
         }
     }
-    
+
     /**
      * Represents a native memory address.
      */
@@ -1640,22 +1752,22 @@ public abstract class Struct {
 
         /**
          * Gets the {@link jnr.ffi.Pointer} value from the native memory.
-         * 
+         *
          * @return a {@link jnr.ffi.Pointer}.
          */
         public final jnr.ffi.Pointer get() {
             return getMemory().getPointer(offset());
         }
-        
+
         /**
          * Gets the size of a Pointer in bits
-         * 
+         *
          * @return the size of the Pointer
          */
         public final int size() {
             return getRuntime().findType(NativeType.ADDRESS).size() * 8;
         }
-        
+
         /**
          * Puts a {@link jnr.ffi.Address} value into the native memory.
          *
@@ -1670,24 +1782,24 @@ public abstract class Struct {
         }
         /**
          * Returns an integer representation of this <code>Pointer</code>.
-         * 
+         *
          * @return an integer value for this <code>Pointer</code>.
          */
         @Override
         public final int intValue() {
             return (int) getMemory().getAddress(offset());
         }
-        
+
         /**
          * Returns an {@code long} representation of this <code>Pointer</code>.
-         * 
+         *
          * @return an {@code long} value for this <code>Pointer</code>.
          */
         @Override
         public final long longValue() {
             return getMemory().getAddress(offset());
         }
-        
+
         /**
          * Returns a string representation of this <code>Pointer</code>.
          *
@@ -1698,10 +1810,10 @@ public abstract class Struct {
             return get().toString();
         }
     }
-    
+
     /**
      * Base for all the Enum fields.
-     * 
+     *
      * @param <E> the type of {@link java.lang.Enum}
      */
     protected abstract class EnumField<E> extends NumberField {
@@ -1709,7 +1821,7 @@ public abstract class Struct {
 
         /**
          * Constructs a new Enum field.
-         * 
+         *
          * @param type the native type of the enum.
          * @param enumClass the Enum class.
          */
@@ -1717,14 +1829,14 @@ public abstract class Struct {
             super(type);
             this.enumClass = enumClass;
         }
-        
+
         /**
          * Gets a java Enum value representing the native integer value.
-         * 
+         *
          * @return a java Enum value.
          */
         public abstract E get();
-        
+
         /**
          * Returns a string representation of this field.
          *
@@ -1737,31 +1849,31 @@ public abstract class Struct {
     }
     /**
      * An 8 bit enum field.
-     * 
+     *
      * @param <E> the {@link java.lang.Enum} to translate to/from.
      */
     public class Enum8<E extends java.lang.Enum<E>> extends EnumField<E> {
         /**
          * Creates a new 8 bit enum field.
-         * 
+         *
          * @param enumClass the class of the {@link java.lang.Enum}.
          */
         public Enum8(Class<E> enumClass) {
             super(NativeType.SCHAR, enumClass);
         }
-        
+
         /**
          * Gets a java Enum value representing the native integer value.
-         * 
+         *
          * @return a java Enum value.
          */
         public final E get() {
             return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
-        
+
         /**
          * Sets the native integer value using a java Enum value.
-         * 
+         *
          * @param value the java <tt>Enum</tt> value.
          */
         public final void set(E value) {
@@ -1773,7 +1885,7 @@ public abstract class Struct {
         }
         /**
          * Returns an integer representation of this enum field.
-         * 
+         *
          * @return an integer value for this enum field.
          */
         @Override
@@ -1819,7 +1931,7 @@ public abstract class Struct {
             return getMemory().getInt(offset());
         }
     }
-    
+
     public class Enum64<E extends java.lang.Enum<E>> extends EnumField<E> {
         public Enum64(Class<E> enumClass) {
             super(NativeType.SLONGLONG, enumClass);
@@ -1847,7 +1959,7 @@ public abstract class Struct {
         public EnumLong(Class<E> enumClass) {
             super(NativeType.SLONG, enumClass);
         }
-        
+
         public final E get() {
             return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
         }
@@ -1868,17 +1980,17 @@ public abstract class Struct {
             return getMemory().getNativeLong(offset());
         }
     }
-    
+
     public class Enum<T extends java.lang.Enum<T>> extends Enum32<T> {
         public Enum(Class<T> enumClass) {
             super(enumClass);
         }
     }
-    
+
     abstract public class String extends AbstractMember {
         protected final Charset charset;
         protected final int length;
-        
+
         protected String(int size, int align, int length, Charset cs) {
             super(size, align);
             this.length = length;
@@ -1906,7 +2018,7 @@ public abstract class Struct {
     public class UTFString extends String {
         public UTFString(int length, Charset cs) {
             super(length * 8, 8, length, cs); // FIXME: This won't work for non-ASCII
-         
+
         }
         protected jnr.ffi.Pointer getStringMemory() {
             return getMemory().slice(offset(), length());
@@ -1959,7 +2071,7 @@ public abstract class Struct {
                 valueHolder = getRuntime().getMemoryManager().allocateDirect(length() * 4);
                 valueHolder.putString(0, value, length() * 4, charset);
                 getMemory().putPointer(offset(), valueHolder);
-            
+
             } else {
                 this.valueHolder = null;
                 getMemory().putAddress(offset(), 0);
