@@ -128,12 +128,14 @@ public class AsmLibraryLoader extends LibraryLoader {
 
                 ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, function.getMethod());
 
+                boolean saveError = jnr.ffi.LibraryLoader.saveError(libraryOptions, function.hasSaveError(), function.hasIgnoreError());
+
                 Function jffiFunction = new Function(functionAddress, 
-                        getCallContext(resultType, parameterTypes,function.convention(), function.isErrnoRequired())); 
+                        getCallContext(resultType, parameterTypes,function.convention(), saveError));
 
                 for (MethodGenerator g : generators) {
                     if (g.isSupported(resultType, parameterTypes, function.convention())) {
-                        g.generate(builder, function.getMethod().getName(), jffiFunction, resultType, parameterTypes, !function.isErrnoRequired());
+                        g.generate(builder, function.getMethod().getName(), jffiFunction, resultType, parameterTypes, !saveError);
                         break;
                     }
                 }

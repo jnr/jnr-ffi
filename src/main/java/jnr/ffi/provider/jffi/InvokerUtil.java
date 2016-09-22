@@ -28,6 +28,7 @@ import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.SaveError;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.mapper.*;
+import jnr.ffi.provider.NativeFunction;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.SigType;
@@ -41,18 +42,6 @@ import java.util.EnumMap;
 import java.util.Map;
 
 final class InvokerUtil {
-
-    public static boolean requiresErrno(Method method) {
-        boolean saveError = true;
-        for (Annotation a : method.getAnnotations()) {
-            if (a instanceof IgnoreError) {
-                saveError = false;
-            } else if (a instanceof SaveError) {
-                saveError = true;
-            }
-        }
-        return saveError;
-    }
 
     public static jnr.ffi.CallingConvention getCallingConvention(Map<LibraryOption, ?> libraryOptions) {
         Object convention = libraryOptions.get(LibraryOption.CallingConvention);
