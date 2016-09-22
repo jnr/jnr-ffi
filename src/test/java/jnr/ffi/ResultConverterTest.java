@@ -165,7 +165,6 @@ public class ResultConverterTest {
     }
 
     @Test public void testPosixError() {
-        System.setProperty("jnr.ffi.compile.dump", "true");
         Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
         options.put(LibraryOption.TypeMapper, posixTypeMapper);
         Posix posix = TstUtil.loadTestLib(Posix.class, options);

@@ -51,6 +51,10 @@ public class DelegateTest {
     }
     
     public static interface TestLib {
+        public static interface CallableNull {
+            @Delegate public int call();
+        }
+        int testClosureNull(CallableNull closure, int defaultValue);
         public static interface CallableVrV {
             @Delegate public void call();
         }
@@ -149,6 +153,26 @@ public class DelegateTest {
         Pointer ret_pointer(ReusableCallable callable);
         public CallableVrV ret_pointer(CallableVrV callable);
         public CallableIrV ret_pointer(CallableIrV callable);
+    }
+    @Test
+    public void closureNullWithValue() {
+        final boolean[] called = { false };
+        final TestLib.CallableNull closure = new TestLib.CallableNull() {
+
+            public int call() {
+                called[0] = true;
+                return 42;
+            }
+        };
+        int retValue = lib.testClosureNull(closure, 41);
+        assertTrue("Callable not called", called[0]);
+        assertEquals("Incorrect return value from callable", 42, retValue);
+    }
+    @Test
+    public void closureNullWithNull() {
+        final TestLib.CallableNull closure = null;
+        int retValue = lib.testClosureNull(closure, 41);
+        assertEquals("Incorrect return value from callable", 41, retValue);
     }
     @Test
     public void closureVrV() {

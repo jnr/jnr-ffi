@@ -23,7 +23,10 @@ import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 import jnr.ffi.provider.NativeInvocationHandler;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -332,6 +335,29 @@ public abstract class LibraryLoader<T> {
 
     private static final class StaticDataHolder {
         private static final List<String> USER_LIBRARY_PATH;
+        private static void addPaths(List<String> paths, File file) {
+            if (!file.isFile() || !file.exists()) return;
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new FileReader(file));
+                String line = in.readLine();
+                while( line != null ) {
+                    if (new File(line).exists()) {
+                        paths.add(line);
+                    }
+                    line = in.readLine();
+                }
+            }
+            catch(IOException ignored) {
+            }
+            finally {
+                if (in != null) {
+                    try { in.close(); }
+                    catch(IOException ignored) {}
+                }
+            }
+        }
+
         static {
             List<String> paths = new ArrayList<String>();
             try {
@@ -340,7 +366,34 @@ public abstract class LibraryLoader<T> {
                 // Add JNA paths for compatibility
                 paths.addAll(getPropertyPaths("jna.library.path"));
                 paths.addAll(getPropertyPaths("java.library.path"));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
+
+            switch (Platform.getNativePlatform().getOS()) {
+                case FREEBSD:
+                case OPENBSD:
+                case NETBSD:
+                case LINUX:
+                case ZLINUX:
+                    // only for oracle jdk on Linux and non-OSX BSD parse /etc/ld.so.conf and /etc/ld.so.conf.d/*
+                    // more details:
+                    // https://github.com/jruby/jruby/issues/2913
+                    // https://github.com/jruby/jruby/issues/3145
+                    // https://github.com/elastic/logstash/issues/3127#issuecomment-101068714
+                    File ldSoConf = new File("/etc/ld.so.conf");
+                    File ldSoConfD = new File("/etc/ld.so.conf.d");
+
+                    if (ldSoConf.exists()) {
+                        addPaths(paths, ldSoConf);
+                    }
+
+                    if (ldSoConfD.isDirectory()) {
+                        for (File file : ldSoConfD.listFiles()) {
+                            addPaths(paths, file);
+                        }
+                    }
+                    break;
+            }
             USER_LIBRARY_PATH = Collections.unmodifiableList(new ArrayList<String>(paths));
         }
     }

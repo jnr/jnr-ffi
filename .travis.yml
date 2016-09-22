@@ -1,10 +1,4 @@
 language: java
-jdk:
-  - oraclejdk7
-  - openjdk6
-os:
-  - linux
-  - osx
 notifications:
   irc:
     channels:
@@ -13,3 +7,13 @@ notifications:
     on_failure: always
     template:
       - "%{repository} (%{branch}:%{commit} by %{author}): %{message} (%{build_url})"
+matrix:
+  include:
+    - os: os x
+    - os: linux
+      jdk: oraclejdk8
+    - os: linux
+      jdk: oraclejdk7
+    - os: linux
+      jdk: openjdk6
+sudo: false
