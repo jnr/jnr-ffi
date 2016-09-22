@@ -371,6 +371,44 @@ public class StructureTest {
         assertEquals(0, t.innerTestStruct.s.s8.get());
     }
 
+    public static class structWithPointer extends Struct {
+        public final Pointer pointer = new Pointer();
+
+        public structWithPointer(jnr.ffi.Runtime runtime) {
+            super(runtime);
+        }
+    }
+
+    @Test
+    public void abstractPointer() {
+        structWithPointer s = new structWithPointer(runtime);
+        Pointer p = Memory.allocate(s.getRuntime(), NativeType.UCHAR);
+        p.putByte(0, (byte) 0xff);
+        s.pointer.set(p);
+        assertNotNull("Abstract pointer was not copied", s.pointer.get());
+        assertEquals("Abstract pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+    }
+
+    @Test
+    public void tempPointer() {
+        structWithPointer s = new structWithPointer(runtime);
+        Pointer p = Memory.allocateTemporary(s.getRuntime(), NativeType.UCHAR);
+        p.putByte(0, (byte) 0xff);
+        s.pointer.set(p);
+        assertNotNull("Temp pointer was not copied", s.pointer.get());
+        assertEquals("Temp pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+    }
+
+    @Test
+    public void directPointer() {
+        structWithPointer s = new structWithPointer(runtime);
+        Pointer p = Memory.allocateDirect(s.getRuntime(), NativeType.UCHAR);
+        p.putByte(0, (byte) 0xff);
+        s.pointer.set(p);
+        assertNotNull("Direct pointer was not copied", s.pointer.get());
+        assertEquals("Direct pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+    }
+
     private class TypeTest extends Struct {
         class Fixnum extends NumberField {
             Fixnum(TypeAlias type) {
