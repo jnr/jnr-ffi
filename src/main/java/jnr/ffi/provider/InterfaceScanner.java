@@ -69,6 +69,39 @@ public class InterfaceScanner {
         };
     }
     
+    private static final Method methodIsDefault;
+
+    static {
+        Method isDefault = null;
+
+        try {
+            isDefault = Method.class.getMethod("isDefault", null);
+        } catch (NoSuchMethodException e) {
+            // expected for jre < 1.8
+        }
+
+        methodIsDefault = isDefault;
+    }
+
+    private static boolean isDefault(Method method) {
+        if (methodIsDefault == null) {
+            return false;
+        }
+
+        try {
+            return Boolean.TRUE.equals(methodIsDefault.invoke(method));
+        } catch (Exception e) {
+            // e can throw one of:
+            // * IllegalAccessException, but we know isDefault is public.
+            // * InvocationTargetException, but we know isDefault doesn't throw.
+            // but java doesn't let us prove this invariants, so we do this.
+            // And we can't catch ReflectiveOperationException as it was
+            // introduced in Java SE 1.7, so we have to catch the next common
+            // superclass (Exception).
+            throw new RuntimeException("Unexpected error attempting to call isDefault method", e);
+        }
+    }
+
     private final class FunctionsIterator implements Iterator<NativeFunction> {
         private final java.lang.reflect.Method[] methods;
         private int nextIndex;
@@ -81,7 +114,8 @@ public class InterfaceScanner {
         @Override
         public boolean hasNext() {
             for (; nextIndex < methods.length; nextIndex++) {
-                if (!Variable.class.isAssignableFrom(methods[nextIndex].getReturnType())) {
+                if (!Variable.class.isAssignableFrom(methods[nextIndex].getReturnType())
+                        && !isDefault(methods[nextIndex])) {
                     return true;
                 }
             }
