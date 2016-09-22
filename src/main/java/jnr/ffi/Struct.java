@@ -54,6 +54,8 @@ public abstract class Struct {
         boolean isUnion = false;
         boolean resetIndex = false;
 
+        Alignment alignment = new Alignment(0);
+
         public Info(Runtime runtime) {
             this.runtime = runtime;
         }
@@ -75,7 +77,7 @@ public abstract class Struct {
         }
 
         final int size() {
-            return size;
+            return this.alignment.intValue() > 0 ? size + ((-this.size) & (this.minAlign - 1)) : size;
         }
 
         final int getMinimumAlignment() {
@@ -101,13 +103,12 @@ public abstract class Struct {
         }
 
         protected final int addField(int sizeBits, int alignBits) {
-            final int off = resetIndex ? 0 : align(this.size, alignBits >> 3);
-            this.size = Math.max(this.size, off + (sizeBits >> 3));
-            this.minAlign = Math.max(this.minAlign, alignBits >> 3);
-            return off;
+            final int alignment = this.alignment.intValue() > 0 ? Math.min(this.alignment.intValue(), (alignBits >> 3)) : (alignBits >> 3);
+            final int offset = resetIndex ? 0 : align(this.size, alignment);
+            this.size = Math.max(this.size, offset + (sizeBits >> 3));
+            this.minAlign = Math.max(this.minAlign, alignment);
+            return offset;
         }
-
-
     }
     final Info __info;
 
@@ -118,6 +119,11 @@ public abstract class Struct {
      */
     protected Struct(Runtime runtime) {
         this.__info = new Info(runtime);
+    }
+
+    protected Struct(Runtime runtime, Alignment alignment) {
+        this(runtime);
+        __info.alignment = alignment;
     }
 
     /**
@@ -241,6 +247,34 @@ public abstract class Struct {
         @Override
         public double doubleValue() {
             return offset;
+        }
+    }
+
+    public static final class Alignment extends Number {
+        private final int alignment;
+
+        public Alignment(int alignment) {
+            this.alignment = alignment;
+        }
+
+        @Override
+        public int intValue() {
+            return alignment;
+        }
+
+        @Override
+        public long longValue() {
+            return alignment;
+        }
+
+        @Override
+        public float floatValue() {
+            return alignment;
+        }
+
+        @Override
+        public double doubleValue() {
+            return alignment;
         }
     }
 

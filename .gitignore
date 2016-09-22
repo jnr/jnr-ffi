@@ -4,6 +4,8 @@
 *~
 .idea
 *.iml
+*.iws
+*.ipr
 nbproject/private
 build
 dist
