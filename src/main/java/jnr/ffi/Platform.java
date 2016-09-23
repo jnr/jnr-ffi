@@ -113,6 +113,9 @@ public abstract class Platform {
         /** 32 bit ARM */
         ARM,
 
+        /** 64 bit ARM */
+        AARCH64,
+
         /**
          * Unknown CPU architecture.  A best effort will be made to infer architecture
          * specific values such as address and long size.
@@ -208,6 +211,8 @@ public abstract class Platform {
             return CPU.PPC64LE;
         } else if (equalsIgnoreCase("s390", archString) || equalsIgnoreCase("s390x", archString)) {
             return CPU.S390X;
+        } else if (equalsIgnoreCase("aarch64", archString)) {
+            return CPU.AARCH64;
         }
 
         // Try to find by lookup up in the CPU list
@@ -264,6 +269,7 @@ public abstract class Platform {
                 case PPC64LE:
                 case SPARCV9:
                 case S390X:
+                case AARCH64:
                     dataModel = 64;
                     break;
                 default:
