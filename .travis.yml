@@ -17,3 +17,6 @@ matrix:
     - os: linux
       jdk: openjdk6
 sudo: false
+cache:
+  directories:
+  - $HOME/.m2
