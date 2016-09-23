@@ -91,35 +91,132 @@ fill_struct_from_longs(unsigned long l1, unsigned long l2, struct foo* s, unsign
   return 0;
 }
 
-#define STRUCT_ALIGNMENT(alignment)             \
-    struct StructAlignment##alignment {         \
-        uint8_t  f0;                            \
-        uint16_t f1;                            \
-        uint32_t f2;                            \
-        uint64_t f3;                            \
-        void    *f4;                            \
-        };                                      \
-                                                \
-    int struct_alignment_size_##alignment() {                           \
-        return sizeof(struct StructAlignment##alignment);               \
-    }                                                                   \
-                                                                        \
-    int struct_alignment_field_offset_##alignment(int field) {          \
-        switch(field) {                                                 \
-        case 0:                                                         \
-            return offsetof(struct StructAlignment##alignment, f0);     \
-        case 1:                                                         \
-            return offsetof(struct StructAlignment##alignment, f1);     \
-        case 2:                                                         \
-            return offsetof(struct StructAlignment##alignment, f2);     \
-        case 3:                                                         \
-            return offsetof(struct StructAlignment##alignment, f3);     \
-        case 4:                                                         \
-            return offsetof(struct StructAlignment##alignment, f4);     \
-        default:                                                        \
-            return -1;                                                  \
-        }                                                               \
-    }                                                                   \
+#define STRUCT_ALIGNMENT(alignment)                                                   \
+    struct StructAlignment##alignment {                                               \
+        uint8_t  f0;                                                                  \
+        uint16_t f1;                                                                  \
+        uint32_t f2;                                                                  \
+        uint64_t f3;                                                                  \
+        void    *f4;                                                                  \
+        };                                                                            \
+                                                                                      \
+    int struct_alignment_size_##alignment() {                                         \
+        return sizeof(struct StructAlignment##alignment);                             \
+    }                                                                                 \
+                                                                                      \
+    int struct_alignment_field_offset_##alignment(int field) {                        \
+        switch(field) {                                                               \
+        case 0:                                                                       \
+            return offsetof(struct StructAlignment##alignment, f0);                   \
+        case 1:                                                                       \
+            return offsetof(struct StructAlignment##alignment, f1);                   \
+        case 2:                                                                       \
+            return offsetof(struct StructAlignment##alignment, f2);                   \
+        case 3:                                                                       \
+            return offsetof(struct StructAlignment##alignment, f3);                   \
+        case 4:                                                                       \
+            return offsetof(struct StructAlignment##alignment, f4);                   \
+        default:                                                                      \
+            return -1;                                                                \
+        }                                                                             \
+    }                                                                                 \
+                                                                                      \
+    struct InnerStructAlignment1_##alignment {                                        \
+        uint8_t  f0;                                                                  \
+        uint16_t f1;                                                                  \
+        uint32_t f2;                                                                  \
+        uint64_t f3;                                                                  \
+        void    *f4;                                                                  \
+        struct InnerStructAlignment2_##alignment {                                    \
+            uint8_t  f0;                                                              \
+            uint16_t f1;                                                              \
+            uint32_t f2;                                                              \
+            uint64_t f3;                                                              \
+            void    *f4;                                                              \
+            struct InnerStructAlignment3_##alignment {                                \
+                uint8_t  f0;                                                          \
+                uint16_t f1;                                                          \
+                uint32_t f2;                                                          \
+                uint64_t f3;                                                          \
+                void    *f4;                                                          \
+            } f5;                                                                     \
+        } f5;                                                                         \
+    };                                                                                \
+                                                                                      \
+    int inner_struct_alignment_size_##alignment() {                                   \
+        return sizeof(struct InnerStructAlignment1_##alignment);                      \
+    }                                                                                 \
+                                                                                      \
+    int inner_struct_alignment_field_offset_##alignment(int level, int field) {       \
+        switch(field) {                                                               \
+        case 0:                                                                       \
+            switch(level) {                                                           \
+            case 0:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f0);        \
+            case 1:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f0);     \
+            case 2:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f5.f0);  \
+            default:                                                                  \
+                return -1;                                                            \
+            }                                                                         \
+        case 1:                                                                       \
+            switch(level) {                                                           \
+            case 0:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f1);        \
+            case 1:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f1);     \
+            case 2:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f5.f1);  \
+            default:                                                                  \
+                return -1;                                                            \
+            }                                                                         \
+        case 2:                                                                       \
+            switch(level) {                                                           \
+            case 0:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f2);        \
+            case 1:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f2);     \
+            case 2:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f5.f2);  \
+            default:                                                                  \
+                return -1;                                                            \
+            }                                                                         \
+        case 3:                                                                       \
+            switch(level) {                                                           \
+            case 0:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f3);        \
+            case 1:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f3);     \
+            case 2:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f5.f3);  \
+            default:                                                                  \
+                return -1;                                                            \
+            }                                                                         \
+        case 4:                                                                       \
+            switch(level) {                                                           \
+            case 0:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f4);        \
+            case 1:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f4);     \
+            case 2:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f5.f4);  \
+            default:                                                                  \
+                return -1;                                                            \
+            }                                                                         \
+        case 5:                                                                       \
+            switch(level) {                                                           \
+            case 0:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5);        \
+            case 1:                                                                   \
+                return offsetof(struct InnerStructAlignment1_##alignment, f5.f5);     \
+            default:                                                                  \
+                return -1;                                                            \
+            }                                                                         \
+        default:                                                                      \
+            return -1;                                                                \
+        }                                                                             \
+    }
 
 #pragma pack(push, 1)
 STRUCT_ALIGNMENT(1)

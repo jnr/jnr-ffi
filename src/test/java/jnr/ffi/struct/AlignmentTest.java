@@ -74,6 +74,64 @@ public class AlignmentTest {
         public int struct_alignment_size_16();
 
         public int struct_alignment_field_offset_16(int field);
+
+        class InnerStructAlignment1 extends Struct {
+            class InnerStructAlignment2 extends Struct {
+                class InnerStructAlignment3 extends Struct {
+                    public final u_int8_t  f0 = new u_int8_t();
+                    public final u_int16_t f1 = new u_int16_t();
+                    public final u_int32_t f2 = new u_int32_t();
+                    public final u_int64_t f3 = new u_int64_t();
+                    public final Pointer   f4 = new Pointer();
+
+                    public InnerStructAlignment3(Struct enclosing) {
+                        super(runtime, enclosing);
+                    }
+                }
+
+                public final u_int8_t              f0 = new u_int8_t();
+                public final u_int16_t             f1 = new u_int16_t();
+                public final u_int32_t             f2 = new u_int32_t();
+                public final u_int64_t             f3 = new u_int64_t();
+                public final Pointer               f4 = new Pointer();
+                public final InnerStructAlignment3 f5 = inner(new InnerStructAlignment3(this));
+
+                public InnerStructAlignment2(Struct enclosing) {
+                    super(runtime, enclosing);
+                }
+            }
+
+            public final u_int8_t              f0 = new u_int8_t();
+            public final u_int16_t             f1 = new u_int16_t();
+            public final u_int32_t             f2 = new u_int32_t();
+            public final u_int64_t             f3 = new u_int64_t();
+            public final Pointer               f4 = new Pointer();
+            public final InnerStructAlignment2 f5 = inner(new InnerStructAlignment2(this));
+
+            public InnerStructAlignment1(Alignment alignment) {
+                super(runtime, alignment);
+            }
+        }
+
+        int inner_struct_alignment_size_1();
+
+        int inner_struct_alignment_field_offset_1(int level, int field);
+
+        int inner_struct_alignment_size_2();
+
+        int inner_struct_alignment_field_offset_2(int level, int field);
+
+        int inner_struct_alignment_size_4();
+
+        int inner_struct_alignment_field_offset_4(int level, int field);
+
+        int inner_struct_alignment_size_8();
+
+        int inner_struct_alignment_field_offset_8(int level, int field);
+
+        int inner_struct_alignment_size_16();
+
+        int inner_struct_alignment_field_offset_16(int level, int field);
     }
 
     static TestLib testlib;
@@ -170,5 +228,115 @@ public class AlignmentTest {
         assertEquals("f2 offset", testlib.struct_alignment_field_offset_16(2), s.f2.offset());
         assertEquals("f3 offset", testlib.struct_alignment_field_offset_16(3), s.f3.offset());
         assertEquals("f4 offset", testlib.struct_alignment_field_offset_16(4), s.f4.offset());
+    }
+
+    @Test
+    public void alignsInnerStructWhenTheAlignmentValueIs1() {
+        TestLib.InnerStructAlignment1 s = new TestLib.InnerStructAlignment1(new Struct.Alignment(1));
+
+        assertEquals("InnerStructAlignment1 size", testlib.inner_struct_alignment_size_1(), Struct.size(s));
+        assertEquals("f0 offset"      , testlib.inner_struct_alignment_field_offset_1(0, 0), s.f0.offset());
+        assertEquals("f1 offset"      , testlib.inner_struct_alignment_field_offset_1(0, 1), s.f1.offset());
+        assertEquals("f2 offset"      , testlib.inner_struct_alignment_field_offset_1(0, 2), s.f2.offset());
+        assertEquals("f3 offset"      , testlib.inner_struct_alignment_field_offset_1(0, 3), s.f3.offset());
+        assertEquals("f4 offset"      , testlib.inner_struct_alignment_field_offset_1(0, 4), s.f4.offset());
+        assertEquals("f5.f0 offset"   , testlib.inner_struct_alignment_field_offset_1(1, 0), s.f5.f0.offset());
+        assertEquals("f5.f1 offset"   , testlib.inner_struct_alignment_field_offset_1(1, 1), s.f5.f1.offset());
+        assertEquals("f5.f2 offset"   , testlib.inner_struct_alignment_field_offset_1(1, 2), s.f5.f2.offset());
+        assertEquals("f5.f3 offset"   , testlib.inner_struct_alignment_field_offset_1(1, 3), s.f5.f3.offset());
+        assertEquals("f5.f4 offset"   , testlib.inner_struct_alignment_field_offset_1(1, 4), s.f5.f4.offset());
+        assertEquals("f5.f5.f0 offset", testlib.inner_struct_alignment_field_offset_1(2, 0), s.f5.f5.f0.offset());
+        assertEquals("f5.f5.f1 offset", testlib.inner_struct_alignment_field_offset_1(2, 1), s.f5.f5.f1.offset());
+        assertEquals("f5.f5.f2 offset", testlib.inner_struct_alignment_field_offset_1(2, 2), s.f5.f5.f2.offset());
+        assertEquals("f5.f5.f3 offset", testlib.inner_struct_alignment_field_offset_1(2, 3), s.f5.f5.f3.offset());
+        assertEquals("f5.f5.f4 offset", testlib.inner_struct_alignment_field_offset_1(2, 4), s.f5.f5.f4.offset());
+    }
+
+    @Test
+    public void alignsInnerStructWhenTheAlignmentValueIs2() {
+        TestLib.InnerStructAlignment1 s = new TestLib.InnerStructAlignment1(new Struct.Alignment(2));
+
+        assertEquals("InnerStructAlignment2 size", testlib.inner_struct_alignment_size_2(), Struct.size(s));
+        assertEquals("f0 offset"      , testlib.inner_struct_alignment_field_offset_2(0, 0), s.f0.offset());
+        assertEquals("f1 offset"      , testlib.inner_struct_alignment_field_offset_2(0, 1), s.f1.offset());
+        assertEquals("f2 offset"      , testlib.inner_struct_alignment_field_offset_2(0, 2), s.f2.offset());
+        assertEquals("f3 offset"      , testlib.inner_struct_alignment_field_offset_2(0, 3), s.f3.offset());
+        assertEquals("f4 offset"      , testlib.inner_struct_alignment_field_offset_2(0, 4), s.f4.offset());
+        assertEquals("f5.f0 offset"   , testlib.inner_struct_alignment_field_offset_2(1, 0), s.f5.f0.offset());
+        assertEquals("f5.f1 offset"   , testlib.inner_struct_alignment_field_offset_2(1, 1), s.f5.f1.offset());
+        assertEquals("f5.f2 offset"   , testlib.inner_struct_alignment_field_offset_2(1, 2), s.f5.f2.offset());
+        assertEquals("f5.f3 offset"   , testlib.inner_struct_alignment_field_offset_2(1, 3), s.f5.f3.offset());
+        assertEquals("f5.f4 offset"   , testlib.inner_struct_alignment_field_offset_2(1, 4), s.f5.f4.offset());
+        assertEquals("f5.f5.f0 offset", testlib.inner_struct_alignment_field_offset_2(2, 0), s.f5.f5.f0.offset());
+        assertEquals("f5.f5.f1 offset", testlib.inner_struct_alignment_field_offset_2(2, 1), s.f5.f5.f1.offset());
+        assertEquals("f5.f5.f2 offset", testlib.inner_struct_alignment_field_offset_2(2, 2), s.f5.f5.f2.offset());
+        assertEquals("f5.f5.f3 offset", testlib.inner_struct_alignment_field_offset_2(2, 3), s.f5.f5.f3.offset());
+        assertEquals("f5.f5.f4 offset", testlib.inner_struct_alignment_field_offset_2(2, 4), s.f5.f5.f4.offset());
+    }
+
+    @Test
+    public void alignsInnerStructWhenTheAlignmentValueIs4() {
+        TestLib.InnerStructAlignment1 s = new TestLib.InnerStructAlignment1(new Struct.Alignment(4));
+
+        assertEquals("InnerStructAlignment4 size", testlib.inner_struct_alignment_size_4(), Struct.size(s));
+        assertEquals("f1 offset"      , testlib.inner_struct_alignment_field_offset_4(0, 1), s.f1.offset());
+        assertEquals("f0 offset"      , testlib.inner_struct_alignment_field_offset_4(0, 0), s.f0.offset());
+        assertEquals("f2 offset"      , testlib.inner_struct_alignment_field_offset_4(0, 2), s.f2.offset());
+        assertEquals("f3 offset"      , testlib.inner_struct_alignment_field_offset_4(0, 3), s.f3.offset());
+        assertEquals("f4 offset"      , testlib.inner_struct_alignment_field_offset_4(0, 4), s.f4.offset());
+        assertEquals("f5.f0 offset"   , testlib.inner_struct_alignment_field_offset_4(1, 0), s.f5.f0.offset());
+        assertEquals("f5.f1 offset"   , testlib.inner_struct_alignment_field_offset_4(1, 1), s.f5.f1.offset());
+        assertEquals("f5.f2 offset"   , testlib.inner_struct_alignment_field_offset_4(1, 2), s.f5.f2.offset());
+        assertEquals("f5.f3 offset"   , testlib.inner_struct_alignment_field_offset_4(1, 3), s.f5.f3.offset());
+        assertEquals("f5.f4 offset"   , testlib.inner_struct_alignment_field_offset_4(1, 4), s.f5.f4.offset());
+        assertEquals("f5.f5.f0 offset", testlib.inner_struct_alignment_field_offset_4(2, 0), s.f5.f5.f0.offset());
+        assertEquals("f5.f5.f1 offset", testlib.inner_struct_alignment_field_offset_4(2, 1), s.f5.f5.f1.offset());
+        assertEquals("f5.f5.f2 offset", testlib.inner_struct_alignment_field_offset_4(2, 2), s.f5.f5.f2.offset());
+        assertEquals("f5.f5.f3 offset", testlib.inner_struct_alignment_field_offset_4(2, 3), s.f5.f5.f3.offset());
+        assertEquals("f5.f5.f4 offset", testlib.inner_struct_alignment_field_offset_4(2, 4), s.f5.f5.f4.offset());
+    }
+
+    @Test
+    public void alignsInnerStructWhenTheAlignmentValueIs8() {
+        TestLib.InnerStructAlignment1 s = new TestLib.InnerStructAlignment1(new Struct.Alignment(8));
+
+        assertEquals("InnerStructAlignment8 size", testlib.inner_struct_alignment_size_8(), Struct.size(s));
+        assertEquals("f1 offset"      , testlib.inner_struct_alignment_field_offset_8(0, 1), s.f1.offset());
+        assertEquals("f0 offset"      , testlib.inner_struct_alignment_field_offset_8(0, 0), s.f0.offset());
+        assertEquals("f2 offset"      , testlib.inner_struct_alignment_field_offset_8(0, 2), s.f2.offset());
+        assertEquals("f3 offset"      , testlib.inner_struct_alignment_field_offset_8(0, 3), s.f3.offset());
+        assertEquals("f4 offset"      , testlib.inner_struct_alignment_field_offset_8(0, 4), s.f4.offset());
+        assertEquals("f5.f0 offset"   , testlib.inner_struct_alignment_field_offset_8(1, 0), s.f5.f0.offset());
+        assertEquals("f5.f1 offset"   , testlib.inner_struct_alignment_field_offset_8(1, 1), s.f5.f1.offset());
+        assertEquals("f5.f2 offset"   , testlib.inner_struct_alignment_field_offset_8(1, 2), s.f5.f2.offset());
+        assertEquals("f5.f3 offset"   , testlib.inner_struct_alignment_field_offset_8(1, 3), s.f5.f3.offset());
+        assertEquals("f5.f4 offset"   , testlib.inner_struct_alignment_field_offset_8(1, 4), s.f5.f4.offset());
+        assertEquals("f5.f5.f0 offset", testlib.inner_struct_alignment_field_offset_8(2, 0), s.f5.f5.f0.offset());
+        assertEquals("f5.f5.f1 offset", testlib.inner_struct_alignment_field_offset_8(2, 1), s.f5.f5.f1.offset());
+        assertEquals("f5.f5.f2 offset", testlib.inner_struct_alignment_field_offset_8(2, 2), s.f5.f5.f2.offset());
+        assertEquals("f5.f5.f3 offset", testlib.inner_struct_alignment_field_offset_8(2, 3), s.f5.f5.f3.offset());
+        assertEquals("f5.f5.f4 offset", testlib.inner_struct_alignment_field_offset_8(2, 4), s.f5.f5.f4.offset());
+    }
+
+    @Test
+    public void alignsInnerStructWhenTheAlignmentValueIs16() {
+        TestLib.InnerStructAlignment1 s = new TestLib.InnerStructAlignment1(new Struct.Alignment(16));
+
+        assertEquals("InnerStructAlignment16 size", testlib.inner_struct_alignment_size_16(), Struct.size(s));
+        assertEquals("f1 offset"      , testlib.inner_struct_alignment_field_offset_16(0, 1), s.f1.offset());
+        assertEquals("f0 offset"      , testlib.inner_struct_alignment_field_offset_16(0, 0), s.f0.offset());
+        assertEquals("f2 offset"      , testlib.inner_struct_alignment_field_offset_16(0, 2), s.f2.offset());
+        assertEquals("f3 offset"      , testlib.inner_struct_alignment_field_offset_16(0, 3), s.f3.offset());
+        assertEquals("f4 offset"      , testlib.inner_struct_alignment_field_offset_16(0, 4), s.f4.offset());
+        assertEquals("f5.f0 offset"   , testlib.inner_struct_alignment_field_offset_16(1, 0), s.f5.f0.offset());
+        assertEquals("f5.f1 offset"   , testlib.inner_struct_alignment_field_offset_16(1, 1), s.f5.f1.offset());
+        assertEquals("f5.f2 offset"   , testlib.inner_struct_alignment_field_offset_16(1, 2), s.f5.f2.offset());
+        assertEquals("f5.f3 offset"   , testlib.inner_struct_alignment_field_offset_16(1, 3), s.f5.f3.offset());
+        assertEquals("f5.f4 offset"   , testlib.inner_struct_alignment_field_offset_16(1, 4), s.f5.f4.offset());
+        assertEquals("f5.f5.f0 offset", testlib.inner_struct_alignment_field_offset_16(2, 0), s.f5.f5.f0.offset());
+        assertEquals("f5.f5.f1 offset", testlib.inner_struct_alignment_field_offset_16(2, 1), s.f5.f5.f1.offset());
+        assertEquals("f5.f5.f2 offset", testlib.inner_struct_alignment_field_offset_16(2, 2), s.f5.f5.f2.offset());
+        assertEquals("f5.f5.f3 offset", testlib.inner_struct_alignment_field_offset_16(2, 3), s.f5.f5.f3.offset());
+        assertEquals("f5.f5.f4 offset", testlib.inner_struct_alignment_field_offset_16(2, 4), s.f5.f5.f4.offset());
     }
 }
