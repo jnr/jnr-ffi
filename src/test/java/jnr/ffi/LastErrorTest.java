@@ -18,48 +18,87 @@
 
 package jnr.ffi;
 
+import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.SaveError;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 /**
  *
  */
 public class LastErrorTest {
-    public static interface TestLib {
+    public interface ErrorSavingUnspecified {
+        int setLastError(int error);
+    }
+
+    public interface MethodSaveError extends ErrorSavingUnspecified {
         @SaveError
         int setLastError(int error);
     }
-    
-    public LastErrorTest() {
+
+    public interface MethodIgnoreError extends ErrorSavingUnspecified {
+        @IgnoreError
+        int setLastError(int error);
     }
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
+    public interface MethodIgnoreAndSaveError extends ErrorSavingUnspecified {
+        @IgnoreError
+        @SaveError
+        int setLastError(int error);
     }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
+    @Test
+    public void testLastError() {
+        assertSavesError(true, ErrorSavingUnspecified.class);
+        assertSavesError(true, MethodSaveError.class);
+        assertSavesError(false, MethodIgnoreError.class);
+        assertSavesError(true, MethodIgnoreAndSaveError.class);
+
+        assertSavesError(false, ErrorSavingUnspecified.class, LibraryOption.IgnoreError);
+        assertSavesError(true, MethodSaveError.class, LibraryOption.IgnoreError);
+        assertSavesError(false, MethodIgnoreError.class, LibraryOption.IgnoreError);
+        assertSavesError(true, MethodIgnoreAndSaveError.class, LibraryOption.IgnoreError);
+
+        assertSavesError(true, ErrorSavingUnspecified.class, LibraryOption.SaveError);
+        assertSavesError(true, MethodSaveError.class, LibraryOption.SaveError);
+        assertSavesError(false, MethodIgnoreError.class, LibraryOption.SaveError);
+        assertSavesError(true, MethodIgnoreAndSaveError.class, LibraryOption.SaveError);
+
+        assertSavesError(true, ErrorSavingUnspecified.class, LibraryOption.IgnoreError, LibraryOption.SaveError);
+        assertSavesError(true, MethodSaveError.class, LibraryOption.IgnoreError, LibraryOption.SaveError);
+        assertSavesError(false, MethodIgnoreError.class, LibraryOption.IgnoreError, LibraryOption.SaveError);
+        assertSavesError(true, MethodIgnoreAndSaveError.class, LibraryOption.IgnoreError, LibraryOption.SaveError);
     }
 
-    @Before
-    public void setUp() {
+    void assertSavesError(boolean expected, Class<? extends ErrorSavingUnspecified> cls) {
+        assertSavesError(expected, cls, Collections.<LibraryOption, Object>emptyMap());
     }
 
-    @After
-    public void tearDown() {
+    void assertSavesError(boolean expected, Class<? extends ErrorSavingUnspecified> cls, LibraryOption... options) {
+        Map<LibraryOption, Object> optionsMap = new HashMap<LibraryOption, Object>();
+        for (LibraryOption option : options) optionsMap.put(option, option);
+        assertSavesError(expected, cls, optionsMap);
     }
-    
-    @Test public void testLastError() {
-        TestLib lib = TstUtil.loadTestLib(TestLib.class);
-        Runtime runtime = Runtime.getRuntime(lib);
+
+    void assertSavesError(boolean expected, Class<? extends ErrorSavingUnspecified> cls, Map<LibraryOption, ?> options) {
+        ErrorSavingUnspecified methodSaveError = TstUtil.loadTestLib(cls, options);
+        Runtime runtime = Runtime.getRuntime(methodSaveError);
+
+        // clear errno
+        runtime.setLastError(0);
 
         final int MAGIC = 0xdeadbeef;
-        lib.setLastError(MAGIC);
-        assertEquals("Wrong errno value", MAGIC, runtime.getLastError());
+        methodSaveError.setLastError(MAGIC);
+
+        if (expected) {
+            assertEquals("Errno value was not saved for " + cls, MAGIC, runtime.getLastError());
+        } else {
+            assertNotEquals("Errno value was saved for " + cls, MAGIC, runtime.getLastError());
+        }
     }
 }

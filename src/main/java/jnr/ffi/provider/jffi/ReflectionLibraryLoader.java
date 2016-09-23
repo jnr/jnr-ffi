@@ -180,8 +180,11 @@ class ReflectionLibraryLoader extends LibraryLoader {
             CallingConvention callingConvention = method.isAnnotationPresent(StdCall.class)
                     ? CallingConvention.STDCALL : libraryCallingConvention;
 
+            // If ignore has been specified and save error has not, ignore error; otherwise, library default
+            boolean saveError = jnr.ffi.LibraryLoader.saveError(libraryOptions, NativeFunction.hasSaveError(method), NativeFunction.hasIgnoreError(method));
+
             Function function = new Function(functionAddress,
-                    getCallContext(resultType, parameterTypes, callingConvention, InvokerUtil.requiresErrno(method)));
+                    getCallContext(resultType, parameterTypes, callingConvention, saveError));
 
             Invoker invoker = invokerFactory.createInvoker(runtime, library, function, resultType, parameterTypes);
 

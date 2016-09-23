@@ -18,14 +18,19 @@
 
 package jnr.ffi.annotations;
 
+import jnr.ffi.LibraryLoader;
+import jnr.ffi.LibraryOption;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
 
 /**
  * Tags a library method as requiring any error codes as returned
  * by errno on unix, or GetLastError on windows be saved.
  *
  * @see IgnoreError
+ * @see LibraryLoader#saveError(Map, boolean, boolean)
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SaveError {

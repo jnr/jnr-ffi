@@ -18,6 +18,8 @@
 
 package jnr.ffi;
 
+import java.util.Map;
+
 /**
  * Options that apply to a library
  */
@@ -26,12 +28,17 @@ public enum LibraryOption {
      * Function calls should save the errno/last error after the call.
      * This option can be overridden on individual methods by use of the 
      * {@link jnr.ffi.annotations.IgnoreError} annotation.
+     *
+     * @see LibraryLoader#saveError(Map, boolean, boolean)
      */
     SaveError,
+
     /**
      * Function calls should NOT save the errno/last error after the call.
      * This option can be overridden on individual methods by use of the 
      * {@link jnr.ffi.annotations.SaveError} annotation.
+     *
+     * @see LibraryLoader#saveError(Map, boolean, boolean)
      */
     IgnoreError,
     
