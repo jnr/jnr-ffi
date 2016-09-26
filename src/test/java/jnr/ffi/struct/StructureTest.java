@@ -91,6 +91,14 @@ public class StructureTest {
 
 
     }
+
+    public static class structWithStructRef extends Struct {
+        public final StructRef<struct1> mStructRef = new StructRef<struct1>(struct1.class);
+        public structWithStructRef(jnr.ffi.Runtime runtime) {
+            super(runtime);
+        }
+    }
+
     public static class Int16Align extends Struct {
         public final Signed8 first = new Signed8();
         public final Signed16 s = new Signed16();
@@ -254,6 +262,19 @@ public class StructureTest {
         }
 
     }
+
+    @Test
+    public void structRef()
+    {
+        structWithStructRef structWithStructRef = new structWithStructRef(runtime);
+        struct1 s = new struct1(runtime);
+        s.i.set(12);
+        structWithStructRef.mStructRef.set(s);
+        assertEquals("Struct field not equals", s.i.get(), structWithStructRef.mStructRef.get().i.get());
+        structWithStructRef.mStructRef.set(new struct1[]{s});
+        assertEquals("Struct field not equals", s.i.get(), structWithStructRef.mStructRef.get(1)[0].i.get());
+    }
+
     @Test
     public void unsigned8() {
         Unsigned8Test s = new Unsigned8Test();
