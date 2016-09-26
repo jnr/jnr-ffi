@@ -28,6 +28,7 @@
 package jnr.ffi;
 
 import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.provider.jffi.ArrayMemoryIO;
 import jnr.ffi.util.EnumMapper;
 
 import java.lang.reflect.Array;
@@ -1774,7 +1775,14 @@ public abstract class Struct {
          * @param value the value to write.
          */
         public final void set(jnr.ffi.Pointer value) {
-            getMemory().putPointer(offset(), value);
+            jnr.ffi.Pointer finalPointer = value;
+            if (value instanceof ArrayMemoryIO) {
+                ArrayMemoryIO arrayMemory = (ArrayMemoryIO) value;
+                byte[] valueArray = arrayMemory.array();
+                finalPointer = Memory.allocateDirect(getRuntime(), valueArray.length);
+                finalPointer.put(0, valueArray, 0, valueArray.length);
+            }
+            getMemory().putPointer(offset(), finalPointer);
         }
 
         public void set(java.lang.Number value) {
