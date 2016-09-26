@@ -44,7 +44,7 @@ final class ClosureUtil {
         ToNativeConverter converter = toNativeType != null ? toNativeType.getToNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : m.getReturnType();
         NativeType nativeType = Types.getType(runtime, javaClass, annotations).getNativeType();
-        return new jnr.ffi.provider.ToNativeType(m.getReturnType(), nativeType, annotations, converter, null);
+        return new jnr.ffi.provider.ToNativeType(m.getReturnType(), nativeType, annotations, converter, context);
     }
 
     static jnr.ffi.provider.FromNativeType getParameterType(jnr.ffi.Runtime runtime, Method m, int idx, SignatureTypeMapper typeMapper) {
@@ -56,7 +56,7 @@ final class ClosureUtil {
         FromNativeConverter converter = fromNativeType != null ? fromNativeType.getFromNativeConverter() : null;
         Class javaClass = converter != null ? converter.nativeType() : declaredJavaClass;
         NativeType nativeType = Types.getType(runtime, javaClass, annotations).getNativeType();
-        return new jnr.ffi.provider.FromNativeType(declaredJavaClass, nativeType, annotations, converter, null);
+        return new jnr.ffi.provider.FromNativeType(declaredJavaClass, nativeType, annotations, converter, context);
     }
 
 
