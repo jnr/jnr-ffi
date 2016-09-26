@@ -38,9 +38,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import jnr.ffi.Address;
 import jnr.ffi.CallingConvention;
+import jnr.ffi.LibraryLoader;
+import jnr.ffi.LibraryOption;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
@@ -60,6 +63,7 @@ import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.ToNativeType;
 import jnr.ffi.provider.InvocationSession;
 import jnr.ffi.provider.Invoker;
+import jnr.ffi.provider.NativeFunction;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.SigType;
@@ -77,6 +81,7 @@ final class DefaultInvokerFactory {
     private final FunctionMapper functionMapper;
     private final jnr.ffi.CallingConvention libraryCallingConvention;
     private final boolean libraryIsSynchronized;
+    private final Map<LibraryOption, ?> libraryOptions;
 
     public DefaultInvokerFactory(
             Runtime runtime,
@@ -84,6 +89,7 @@ final class DefaultInvokerFactory {
             SignatureTypeMapper typeMapper,
             FunctionMapper functionMapper,
             CallingConvention libraryCallingConvention,
+            Map<LibraryOption, ?> libraryOptions,
             boolean libraryIsSynchronized) {
         super();
         this.runtime = runtime;
@@ -92,6 +98,7 @@ final class DefaultInvokerFactory {
         this.functionMapper = functionMapper;
         this.libraryCallingConvention = libraryCallingConvention;
         this.libraryIsSynchronized = libraryIsSynchronized;
+        this.libraryOptions = libraryOptions;
     }
 
     public Invoker createInvoker(Method method) {
@@ -117,13 +124,15 @@ final class DefaultInvokerFactory {
         //Allow individual methods to set the calling convention to stdcall
         CallingConvention callingConvention = method.isAnnotationPresent(StdCall.class)
                 ? CallingConvention.STDCALL : libraryCallingConvention;
+
+        boolean saveError = LibraryLoader.saveError(libraryOptions, NativeFunction.hasSaveError(method), NativeFunction.hasIgnoreError(method));
         
         Invoker invoker;
         if (method.isVarArgs()) {
-            invoker = new VariadicInvoker(runtime, functionInvoker, typeMapper, parameterTypes, functionAddress, resultType, InvokerUtil.requiresErrno(method), callingConvention);
+            invoker = new VariadicInvoker(runtime, functionInvoker, typeMapper, parameterTypes, functionAddress, resultType, saveError, callingConvention);
         } else {
             Function function = new Function(functionAddress,
-                    getCallContext(resultType, parameterTypes, callingConvention, InvokerUtil.requiresErrno(method)));
+                    getCallContext(resultType, parameterTypes, callingConvention, saveError));
 
             Marshaller[] marshallers = new Marshaller[parameterTypes.length];
             for (int i = 0; i < marshallers.length; ++i) {

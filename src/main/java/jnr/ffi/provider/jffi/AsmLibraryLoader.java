@@ -142,7 +142,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new BufferMethodGenerator()
         };
         
-        DefaultInvokerFactory invokerFactory = new DefaultInvokerFactory(runtime, library, typeMapper, functionMapper, libraryCallingConvention, interfaceClass.isAnnotationPresent(Synchronized.class));
+        DefaultInvokerFactory invokerFactory = new DefaultInvokerFactory(runtime, library, typeMapper, functionMapper, libraryCallingConvention, libraryOptions, interfaceClass.isAnnotationPresent(Synchronized.class));
         InterfaceScanner scanner = new InterfaceScanner(interfaceClass, typeMapper, libraryCallingConvention);
 
         for (NativeFunction function : scanner.functions()) {
