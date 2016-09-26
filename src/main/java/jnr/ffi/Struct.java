@@ -126,6 +126,11 @@ public abstract class Struct {
         __info.alignment = alignment;
     }
 
+    protected Struct(Runtime runtime, Struct enclosing) {
+        this(runtime);
+        __info.alignment = enclosing.__info.alignment;
+    }
+
     /**
      * Creates a new <tt>Struct</tt>.
      *
@@ -661,10 +666,11 @@ public abstract class Struct {
     }
 
     protected final <T extends Struct> T inner(T struct) {
-        int off = __info.resetIndex ? 0 : align(__info.size, struct.__info.getMinimumAlignment());
+        int alignment = __info.alignment.intValue() > 0 ? Math.min(__info.alignment.intValue(), struct.__info.getMinimumAlignment()) : struct.__info.getMinimumAlignment();
+        int offset = __info.resetIndex ? 0 : align(__info.size, alignment);
         struct.__info.enclosing = this;
-        struct.__info.offset = off;
-        __info.size = Math.max(__info.size, off + struct.__info.size);
+        struct.__info.offset = offset;
+        __info.size = Math.max(__info.size, offset + struct.__info.size);
         return struct;
     }
 
