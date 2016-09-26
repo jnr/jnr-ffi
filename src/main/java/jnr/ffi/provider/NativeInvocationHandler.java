@@ -41,7 +41,7 @@ public class NativeInvocationHandler implements InvocationHandler {
         this.invokerMap = invokers;
         this.fastLookupTable = Collections.emptyMap();
     }
-    
+
     public Object invoke(Object self, Method method, Object[] argArray) throws Throwable {
         Invoker invoker = fastLookupTable.get(method);
         return invoker != null ? invoker.invoke(self, argArray) : lookupAndCacheInvoker(method).invoke(self, argArray);

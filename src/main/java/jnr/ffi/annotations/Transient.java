@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * and after the method call, the native memory can be freed again.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
+@Target({ ElementType.PARAMETER, ElementType.ANNOTATION_TYPE })
 public @interface Transient {
 
 }
