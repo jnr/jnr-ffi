@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * Used to specify the {@link java.nio.charset.Charset} to use for encoding/decoding a {@link String}
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value = { ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE })
+@Target(value = { ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 public @interface Encoding {
     String value();
 }

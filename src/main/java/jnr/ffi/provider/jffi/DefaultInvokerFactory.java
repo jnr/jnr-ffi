@@ -18,39 +18,136 @@
 
 package jnr.ffi.provider.jffi;
 
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
+import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
+import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
+import static jnr.ffi.provider.jffi.NumberUtil.getBoxedClass;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import jnr.ffi.Address;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.LibraryLoader;
+import jnr.ffi.LibraryOption;
+import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
+import jnr.ffi.Runtime;
+import jnr.ffi.annotations.Meta;
+import jnr.ffi.annotations.StdCall;
+import jnr.ffi.annotations.Synchronized;
+import jnr.ffi.mapper.DataConverter;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.MethodResultContext;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.ToNativeType;
+import jnr.ffi.provider.InvocationSession;
+import jnr.ffi.provider.Invoker;
+import jnr.ffi.provider.NativeFunction;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.SigType;
+import jnr.ffi.util.AnnotationProxy;
+
 import com.kenai.jffi.Function;
 import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.ObjectParameterStrategy;
 import com.kenai.jffi.ObjectParameterType;
-import jnr.ffi.Address;
-import jnr.ffi.NativeType;
-import jnr.ffi.Pointer;
-import jnr.ffi.Runtime;
-import jnr.ffi.mapper.*;
-import jnr.ffi.provider.*;
-
-import java.lang.annotation.Annotation;
-import java.nio.*;
-import java.util.Collection;
-
-import static jnr.ffi.provider.jffi.NumberUtil.getBoxedClass;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 
 final class DefaultInvokerFactory {
+    private final Runtime runtime;
+    private final NativeLibrary library;
+    private final SignatureTypeMapper typeMapper;
+    private final FunctionMapper functionMapper;
+    private final jnr.ffi.CallingConvention libraryCallingConvention;
+    private final boolean libraryIsSynchronized;
+    private final Map<LibraryOption, ?> libraryOptions;
 
-    final jnr.ffi.provider.Invoker createInvoker(jnr.ffi.Runtime runtime, NativeLibrary nativeLibrary, Function function, ResultType resultType, ParameterType[] parameterTypes) {
+    public DefaultInvokerFactory(
+            Runtime runtime,
+            NativeLibrary library,
+            SignatureTypeMapper typeMapper,
+            FunctionMapper functionMapper,
+            CallingConvention libraryCallingConvention,
+            Map<LibraryOption, ?> libraryOptions,
+            boolean libraryIsSynchronized) {
+        super();
+        this.runtime = runtime;
+        this.library = library;
+        this.typeMapper = typeMapper;
+        this.functionMapper = functionMapper;
+        this.libraryCallingConvention = libraryCallingConvention;
+        this.libraryIsSynchronized = libraryIsSynchronized;
+        this.libraryOptions = libraryOptions;
+    }
 
-        Marshaller[] marshallers = new Marshaller[parameterTypes.length];
-        for (int i = 0; i < marshallers.length; ++i) {
-            marshallers[i] = getMarshaller(parameterTypes[i]);
+    public Invoker createInvoker(Method method) {
+        Collection<Annotation> annotations = sortedAnnotationCollection(method.getAnnotations());
+        String functionName = functionMapper.mapFunctionName(method.getName(), new NativeFunctionMapperContext(library, annotations));
+        long functionAddress = library.getSymbolAddress(functionName);
+        if (functionAddress == 0L) {
+            return new FunctionNotFoundInvoker(method, functionName);
         }
 
-        FunctionInvoker invoker = getFunctionInvoker(resultType);
+        FromNativeContext resultContext = new MethodResultContext(NativeRuntime.getInstance(), method);
+        SignatureType signatureType = DefaultSignatureType.create(method.getReturnType(), resultContext);
+        ResultType resultType = getResultType(runtime, method.getReturnType(),
+                resultContext.getAnnotations(), typeMapper.getFromNativeType(signatureType, resultContext),
+                resultContext);
+        
+        FunctionInvoker functionInvoker = getFunctionInvoker(resultType);
         if (resultType.getFromNativeConverter() != null) {
-            invoker = new ConvertingInvoker(resultType.getFromNativeConverter(), resultType.getFromNativeContext(), invoker);
+            functionInvoker = new ConvertingInvoker(resultType.getFromNativeConverter(), resultType.getFromNativeContext(), functionInvoker);
+        }
+        
+        ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, method);
+        //Allow individual methods to set the calling convention to stdcall
+        CallingConvention callingConvention = method.isAnnotationPresent(StdCall.class)
+                ? CallingConvention.STDCALL : libraryCallingConvention;
+
+        boolean saveError = LibraryLoader.saveError(libraryOptions, NativeFunction.hasSaveError(method), NativeFunction.hasIgnoreError(method));
+        
+        Invoker invoker;
+        if (method.isVarArgs()) {
+            invoker = new VariadicInvoker(runtime, functionInvoker, typeMapper, parameterTypes, functionAddress, resultType, saveError, callingConvention);
+        } else {
+            Function function = new Function(functionAddress,
+                    getCallContext(resultType, parameterTypes, callingConvention, saveError));
+
+            Marshaller[] marshallers = new Marshaller[parameterTypes.length];
+            for (int i = 0; i < marshallers.length; ++i) {
+                marshallers[i] = getMarshaller(parameterTypes[i]);
+            }
+
+            return new DefaultInvoker(runtime, library, function, functionInvoker, marshallers);
         }
 
-        return new DefaultInvoker(runtime, nativeLibrary, function, invoker, marshallers);
+        //
+        // If either the method or the library is specified as requiring
+        // synchronization, then wrap the raw invoker in a synchronized proxy
+        //
+        return libraryIsSynchronized || method.isAnnotationPresent(Synchronized.class)
+                ? new SynchronizedInvoker(invoker) : invoker;
     }
 
     private static FunctionInvoker getFunctionInvoker(ResultType resultType) {
@@ -194,6 +291,123 @@ final class DefaultInvokerFactory {
         }
     }
 
+    static class VariadicInvoker implements jnr.ffi.provider.Invoker {
+        private final jnr.ffi.Runtime runtime;
+        private final FunctionInvoker functionInvoker;
+        private final SignatureTypeMapper typeMapper;
+        private final ParameterType[] fixedParameterTypes;
+        private final long functionAddress;
+        private final SigType resultType;
+        private final boolean requiresErrno;
+        private final CallingConvention callingConvention;
+
+        VariadicInvoker(Runtime runtime,
+                FunctionInvoker functionInvoker, SignatureTypeMapper typeMapper,
+                ParameterType[] fixedParameterTypes, long functionAddress,
+                SigType resultType, boolean requiresErrno,
+                CallingConvention callingConvention) {
+            super();
+            this.runtime = runtime;
+            this.functionInvoker = functionInvoker;
+            this.typeMapper = typeMapper;
+            this.fixedParameterTypes = fixedParameterTypes;
+            this.functionAddress = functionAddress;
+            this.resultType = resultType;
+            this.requiresErrno = requiresErrno;
+            this.callingConvention = callingConvention;
+        }
+
+        public final Object invoke(Object self, Object[] parameters) {
+            Object[] varParam = (Object[])parameters[parameters.length - 1];
+            ParameterType[] argTypes = new ParameterType[fixedParameterTypes.length + varParam.length];
+            System.arraycopy(fixedParameterTypes, 0, argTypes, 0, fixedParameterTypes.length - 1);
+
+            Object[] variableArgs = new Object[varParam.length + 1];
+            int variableArgsCount = 0;
+            List<Class<? extends Annotation>> paramAnnotations = new ArrayList<Class<? extends Annotation>>();
+
+            for (Object arg : varParam) {
+                if (arg instanceof Class && Annotation.class.isAssignableFrom((Class)arg)) {
+                    paramAnnotations.add((Class)arg);
+                } else {
+                    Class<?> argClass;
+                    ToNativeConverter<?, ?> toNativeConverter = null;
+                    Collection<Annotation> annos = getAnnotations(paramAnnotations);
+                    paramAnnotations.clear();
+                    ToNativeContext toNativeContext = new SimpleNativeContext(runtime, annos);
+
+                    if (arg != null) {
+                        ToNativeType toNativeType = typeMapper.getToNativeType(DefaultSignatureType.create(arg.getClass(), toNativeContext), toNativeContext);
+                        toNativeConverter = toNativeType == null ? null : toNativeType.getToNativeConverter();
+                        argClass = toNativeConverter == null ? arg.getClass() : toNativeConverter.nativeType();
+                        variableArgs[variableArgsCount] = arg;
+                    } else {
+                        argClass = Pointer.class;
+                        variableArgs[variableArgsCount] = arg;
+                    }
+
+                    argTypes[fixedParameterTypes.length + variableArgsCount - 1] = new ParameterType(
+                            argClass, 
+                            Types.getType(runtime, argClass, annos).getNativeType(), 
+                            annos, 
+                            toNativeConverter, 
+                            new SimpleNativeContext(runtime, annos));
+                    variableArgsCount++;
+                }
+            }
+            
+            //Add one extra vararg of NULL to meet the common convention of ending
+            //varargs with a NULL.  Functions that get a length from the fixed arguments
+            //will ignore the extra, and funtions that expect the extra NULL will get it.
+            //This matches what JNA does.
+            argTypes[fixedParameterTypes.length + variableArgsCount - 1] = new ParameterType(
+                    Pointer.class, 
+                    Types.getType(runtime, Pointer.class, Collections.<Annotation>emptyList()).getNativeType(), 
+                    Collections.<Annotation>emptyList(), 
+                    null, 
+                    new SimpleNativeContext(runtime, Collections.<Annotation>emptyList()));
+            variableArgs[variableArgsCount] = null;
+            variableArgsCount++;
+
+            Function function = new Function(functionAddress,
+                    getCallContext(resultType, argTypes, variableArgsCount + fixedParameterTypes.length - 1, callingConvention, requiresErrno));
+            HeapInvocationBuffer buffer = new HeapInvocationBuffer(function.getCallContext());
+
+            InvocationSession session = new InvocationSession();
+            try {
+                if (parameters != null) for (int i = 0; i < parameters.length - 1; ++i) {
+                    getMarshaller(argTypes[i]).marshal(session, buffer, parameters[i]);
+                }
+                
+                for (int i = 0; i < variableArgsCount; ++i) {
+                    getMarshaller(argTypes[i + fixedParameterTypes.length - 1]).marshal(session, buffer, variableArgs[i]);
+                }
+
+                return functionInvoker.invoke(runtime, function, buffer);
+            } finally {
+                session.finish();
+            }
+        }
+        
+        private static Collection<Annotation> getAnnotations(Collection<Class<? extends Annotation>> klasses) {
+            List<Annotation> ret = new ArrayList<Annotation>();
+            for (Class<? extends Annotation> klass : klasses) {
+                if (klass.getAnnotation(Meta.class) != null) {
+                    for (Annotation anno : klass.getAnnotations()) {
+                        if (anno.annotationType().getName().startsWith("java") 
+                                || Meta.class.equals(anno.annotationType())) {
+                            continue;
+                        }
+                        ret.add(anno);
+                    }
+                } else {
+                    ret.add(AnnotationProxy.newProxy(klass));
+                }
+            }
+            return ret;
+        }
+    }
+
     static class DefaultInvoker implements jnr.ffi.provider.Invoker {
         protected final jnr.ffi.Runtime runtime;
         final Function function;
@@ -223,7 +437,36 @@ final class DefaultInvokerFactory {
             }
         }
     }
-    
+
+    private static final class SynchronizedInvoker implements Invoker {
+        private final Invoker invoker;
+        public SynchronizedInvoker(Invoker invoker) {
+            this.invoker = invoker;
+        }
+
+        @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+        public Object invoke(Object self, Object[] parameters) {
+            synchronized (self) {
+                return invoker.invoke(self, parameters);
+            }
+        }
+    }
+
+    private static final class FunctionNotFoundInvoker implements Invoker {
+        private final Method method;
+        private final String functionName;
+
+        private FunctionNotFoundInvoker(Method method, String functionName) {
+            this.method = method;
+            this.functionName = functionName;
+        }
+
+        @Override
+        public Object invoke(Object self, Object[] parameters) {
+            throw new UnsatisfiedLinkError(String.format("native method '%s' not found for method %s", functionName,  method));
+        }
+    }
+
     static interface Marshaller {
         public abstract void marshal(InvocationSession session, HeapInvocationBuffer buffer, Object parameter);
     }

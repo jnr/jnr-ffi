@@ -19,13 +19,19 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.Function;
-import jnr.ffi.*;
-import jnr.ffi.mapper.*;
-import jnr.ffi.provider.*;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallingConvention;
+import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
+import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.V1_6;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
@@ -34,10 +40,34 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.InvokerUtil.*;
-import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
-import static org.objectweb.asm.Opcodes.*;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.LibraryOption;
+import jnr.ffi.annotations.Synchronized;
+import jnr.ffi.mapper.CachingTypeMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.MethodResultContext;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapperAdapter;
+import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.IdentityFunctionMapper;
+import jnr.ffi.provider.InterfaceScanner;
+import jnr.ffi.provider.Invoker;
+import jnr.ffi.provider.NativeFunction;
+import jnr.ffi.provider.NativeVariable;
+import jnr.ffi.provider.NullTypeMapper;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.jffi.AsmBuilder.ObjectField;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+
+import com.kenai.jffi.Function;
 
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
@@ -112,9 +142,16 @@ public class AsmLibraryLoader extends LibraryLoader {
                 new BufferMethodGenerator()
         };
         
+        DefaultInvokerFactory invokerFactory = new DefaultInvokerFactory(runtime, library, typeMapper, functionMapper, libraryCallingConvention, libraryOptions, interfaceClass.isAnnotationPresent(Synchronized.class));
         InterfaceScanner scanner = new InterfaceScanner(interfaceClass, typeMapper, libraryCallingConvention);
 
         for (NativeFunction function : scanner.functions()) {
+            if (function.getMethod().isVarArgs()) {
+                ObjectField field = builder.getObjectField(invokerFactory.createInvoker(function.getMethod()), Invoker.class);
+                generateVarargsInvocation(builder, function.getMethod(), field);
+                continue;
+            }
+
             String functionName = functionMapper.mapFunctionName(function.name(), new NativeFunctionMapperContext(library, function.annotations()));
 
             try {
@@ -223,5 +260,109 @@ public class AsmLibraryLoader extends LibraryLoader {
         mv.visitEnd();
     }
 
+    private void generateVarargsInvocation(AsmBuilder builder, Method m, ObjectField field) {
+        Class[] parameterTypes = m.getParameterTypes();
+        SkinnyMethodAdapter mv = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL,
+                m.getName(),
+                sig(m.getReturnType(), parameterTypes), null, null);
+        mv.start();
 
+        // Retrieve the invoker
+        mv.aload(0);
+        mv.getfield(builder.getClassNamePath(), field.name, ci(Invoker.class));
+
+        //Push ref to this
+        mv.aload(0);
+        
+        //Construct the params array
+        mv.pushInt(parameterTypes.length);
+        mv.anewarray(p(Object.class));
+        
+        int slot = 1;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            mv.dup();
+            mv.pushInt(i);
+            if (parameterTypes[i].equals(long.class)) {
+                mv.lload(slot);
+                mv.invokestatic(Long.class, "valueOf", Long.class, long.class);
+                slot++;
+            } else if (parameterTypes[i].equals(double.class)) {
+                mv.dload(slot);
+                mv.invokestatic(Double.class, "valueOf", Double.class, double.class);
+                slot++;
+            } else if (parameterTypes[i].equals(int.class)) {
+                mv.iload(slot);
+                mv.invokestatic(Integer.class, "valueOf", Integer.class, int.class);
+            } else if (parameterTypes[i].equals(float.class)) {
+                mv.fload(slot);
+                mv.invokestatic(Float.class, "valueOf", Float.class, float.class);
+            } else if (parameterTypes[i].equals(short.class)) {
+                mv.iload(slot);
+                mv.i2s();
+                mv.invokestatic(Short.class, "valueOf", Short.class, short.class);
+            } else if (parameterTypes[i].equals(char.class)) {
+                mv.iload(slot);
+                mv.i2c();
+                mv.invokestatic(Character.class, "valueOf", Character.class, char.class);
+            } else if (parameterTypes[i].equals(byte.class)) {
+                mv.iload(slot);
+                mv.i2b();
+                mv.invokestatic(Byte.class, "valueOf", Byte.class, byte.class);
+            } else if (parameterTypes[i].equals(char.class)) {
+                mv.iload(slot);
+                mv.i2b();
+                mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);
+            } else {
+                mv.aload(slot);
+            }
+            mv.aastore();
+            slot++;
+        }
+        
+        // call invoker(this, parameters)
+        mv.invokeinterface(jnr.ffi.provider.Invoker.class, "invoke", Object.class, Object.class, Object[].class);
+        
+        Class<?> returnType = m.getReturnType();
+        if (returnType.equals(long.class)) {
+            mv.checkcast(Long.class);
+            mv.invokevirtual(Long.class, "longValue", long.class);
+            mv.lreturn();
+        } else if (returnType.equals(double.class)) {
+            mv.checkcast(Double.class);
+            mv.invokevirtual(Double.class, "doubleValue", double.class);
+            mv.dreturn();
+        } else if (returnType.equals(int.class)) {
+            mv.checkcast(Integer.class);
+            mv.invokevirtual(Integer.class, "intValue", int.class);
+            mv.ireturn();
+        } else if (returnType.equals(float.class)) {
+            mv.checkcast(Float.class);
+            mv.invokevirtual(Float.class, "floatValue", float.class);
+            mv.freturn();
+        } else if (returnType.equals(short.class)) {
+            mv.checkcast(Short.class);
+            mv.invokevirtual(Short.class, "shortValue", short.class);
+            mv.ireturn();
+        } else if (returnType.equals(char.class)) {
+            mv.checkcast(Character.class);
+            mv.invokevirtual(Character.class, "charValue", char.class);
+            mv.ireturn();
+        } else if (returnType.equals(byte.class)) {
+            mv.checkcast(Byte.class);
+            mv.invokevirtual(Byte.class, "byteValue", byte.class);
+            mv.ireturn();
+        } else if (returnType.equals(boolean.class)) {
+            mv.checkcast(Boolean.class);
+            mv.invokevirtual(Boolean.class, "booleanValue", boolean.class);
+            mv.ireturn();
+        } else if (void.class.isAssignableFrom(m.getReturnType())) {
+           mv.voidreturn();
+        } else {
+            mv.checkcast(m.getReturnType());
+            mv.areturn();
+        }
+        
+        mv.visitMaxs(100, AsmUtil.calculateLocalVariableSpace(parameterTypes) + 1);
+        mv.visitEnd();
+    }
 }

@@ -18,15 +18,8 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.Function;
-import jnr.ffi.CallingConvention;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.Runtime;
-import jnr.ffi.Variable;
-import jnr.ffi.annotations.StdCall;
-import jnr.ffi.annotations.Synchronized;
-import jnr.ffi.mapper.*;
-import jnr.ffi.provider.*;
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallingConvention;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -36,8 +29,21 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static jnr.ffi.provider.jffi.InvokerUtil.*;
-import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+import jnr.ffi.LibraryOption;
+import jnr.ffi.Runtime;
+import jnr.ffi.Variable;
+import jnr.ffi.annotations.Synchronized;
+import jnr.ffi.mapper.CachingTypeMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapperAdapter;
+import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.IdentityFunctionMapper;
+import jnr.ffi.provider.Invoker;
+import jnr.ffi.provider.LoadedLibrary;
+import jnr.ffi.provider.NativeInvocationHandler;
+import jnr.ffi.provider.NullTypeMapper;
 
 /**
  *
@@ -48,20 +54,6 @@ class ReflectionLibraryLoader extends LibraryLoader {
     <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
         return interfaceClass.cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(),
                 new Class[]{ interfaceClass, LoadedLibrary.class }, new NativeInvocationHandler(new LazyLoader<T>(library, interfaceClass, libraryOptions))));
-    }
-
-    private static final class SynchronizedInvoker implements Invoker {
-        private final Invoker invoker;
-        public SynchronizedInvoker(Invoker invoker) {
-            this.invoker = invoker;
-        }
-
-        @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-        public Object invoke(Object self, Object[] parameters) {
-            synchronized (self) {
-                return invoker.invoke(self, parameters);
-            }
-        }
     }
 
     private static final class FunctionNotFoundInvoker implements Invoker {
@@ -93,7 +85,7 @@ class ReflectionLibraryLoader extends LibraryLoader {
     }
 
     private static final class LazyLoader<T> extends AbstractMap<Method, Invoker> {
-        private final DefaultInvokerFactory invokerFactory = new DefaultInvokerFactory();
+        private final DefaultInvokerFactory invokerFactory;
         private final jnr.ffi.Runtime runtime = NativeRuntime.getInstance();
         private final AsmClassLoader classLoader = new AsmClassLoader();
         private final SignatureTypeMapper typeMapper;
@@ -102,7 +94,6 @@ class ReflectionLibraryLoader extends LibraryLoader {
 
         private final boolean libraryIsSynchronized;
 
-        @SuppressWarnings("unused")
         private final NativeLibrary library;
         @SuppressWarnings("unused")
         private final Class<T> interfaceClass;
@@ -135,6 +126,7 @@ class ReflectionLibraryLoader extends LibraryLoader {
                     new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper, classLoader), classLoader, NativeLibraryLoader.ASM_ENABLED)));
             libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
             libraryIsSynchronized = interfaceClass.isAnnotationPresent(Synchronized.class);
+            invokerFactory = new DefaultInvokerFactory(runtime, library, this.typeMapper, functionMapper, libraryCallingConvention, libraryOptions, libraryIsSynchronized);
         }
 
         @Override
@@ -156,44 +148,8 @@ class ReflectionLibraryLoader extends LibraryLoader {
             } else if (method.getName().equals("getRuntime") && method.getReturnType().isAssignableFrom(NativeRuntime.class)) {
                 return new GetRuntimeInvoker(runtime);
             } else {
-                return getFunctionInvoker(method);
+                return invokerFactory.createInvoker(method);
             }
-        }
-
-        private Invoker getFunctionInvoker(Method method) {
-            Collection<Annotation> annotations = sortedAnnotationCollection(method.getAnnotations());
-            String functionName = functionMapper.mapFunctionName(method.getName(), new NativeFunctionMapperContext(library, annotations));
-            long functionAddress = library.getSymbolAddress(functionName);
-            if (functionAddress == 0L) {
-                return new FunctionNotFoundInvoker(method, functionName);
-            }
-
-            FromNativeContext resultContext = new MethodResultContext(NativeRuntime.getInstance(), method);
-            SignatureType signatureType = DefaultSignatureType.create(method.getReturnType(), resultContext);
-            ResultType resultType = getResultType(runtime, method.getReturnType(),
-                    resultContext.getAnnotations(), typeMapper.getFromNativeType(signatureType, resultContext),
-                    resultContext);
-
-            ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, method);
-
-            // Allow individual methods to set the calling convention to stdcall
-            CallingConvention callingConvention = method.isAnnotationPresent(StdCall.class)
-                    ? CallingConvention.STDCALL : libraryCallingConvention;
-
-            // If ignore has been specified and save error has not, ignore error; otherwise, library default
-            boolean saveError = jnr.ffi.LibraryLoader.saveError(libraryOptions, NativeFunction.hasSaveError(method), NativeFunction.hasIgnoreError(method));
-
-            Function function = new Function(functionAddress,
-                    getCallContext(resultType, parameterTypes, callingConvention, saveError));
-
-            Invoker invoker = invokerFactory.createInvoker(runtime, library, function, resultType, parameterTypes);
-
-            //
-            // If either the method or the library is specified as requiring
-            // synchronization, then wrap the raw invoker in a synchronized proxy
-            //
-            return libraryIsSynchronized || method.isAnnotationPresent(Synchronized.class)
-                    ? new SynchronizedInvoker(invoker) : invoker;
         }
 
         private Invoker getVariableAccessor(Method method) {

@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * before passing it to a native function.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER, ElementType.METHOD })
+@Target({ ElementType.PARAMETER, ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 public @interface NulTerminate {
 
 }
