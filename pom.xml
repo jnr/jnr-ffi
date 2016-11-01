@@ -43,6 +43,7 @@
     <maven.compiler.target>1.6</maven.compiler.target>
     <github.global.server>github</github.global.server>
     <asm.version>5.0.3</asm.version>
+    <make>make</make>
   </properties>
 
   <dependencies>
@@ -112,7 +113,7 @@
             <phase>test-compile</phase>
             <configuration>
               <tasks>
-                <exec dir="${basedir}" executable="make" failonerror="true">
+                  <exec dir="${basedir}" executable="${make}" failonerror="true">
                   <arg line="-f libtest/GNUmakefile" />
                   <arg line="BUILD_DIR=${project.build.directory}" />
                   <arg line="CPU=${os.arch}" />
