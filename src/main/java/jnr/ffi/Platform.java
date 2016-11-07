@@ -20,7 +20,7 @@ package jnr.ffi;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -481,7 +481,7 @@ public abstract class Platform {
                 }
             };
 
-            Map<String, int[]> matches = new HashMap<String, int[]>();
+            Map<String, int[]> matches = new LinkedHashMap<String, int[]>();
             for (String path : libraryPaths) {
                 if (exclude.matcher(path).matches()) {
                     continue;
