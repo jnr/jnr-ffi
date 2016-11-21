@@ -2151,7 +2151,7 @@ public abstract class Struct {
         }
     }
 
-    protected final class Function<T> extends AbstractMember {
+    public final class Function<T> extends AbstractMember {
         private final Class<? extends T> closureClass;
         private T instance;
 
