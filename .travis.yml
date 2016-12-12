@@ -14,8 +14,6 @@ matrix:
       jdk: oraclejdk8
     - os: linux
       jdk: oraclejdk7
-    - os: linux
-      jdk: openjdk6
 sudo: false
 cache:
   directories:
