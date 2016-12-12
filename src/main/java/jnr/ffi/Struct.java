@@ -28,6 +28,7 @@
 package jnr.ffi;
 
 import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.provider.jffi.ArrayMemoryIO;
 import jnr.ffi.util.EnumMapper;
 
 import java.lang.reflect.Array;
@@ -1776,17 +1777,16 @@ public abstract class Struct {
         }
     }
 
-    /**
-     * Represents a native memory address.
-     */
-    public class Pointer extends NumberField {
+
+    public abstract class PointerField extends NumberField {
         /**
          * Creates a new <tt>Address</tt> field.
          */
-        public Pointer() {
+        public PointerField() {
             super(NativeType.ADDRESS);
         }
-        public Pointer(Offset offset) {
+
+        public PointerField(Offset offset) {
             super(NativeType.ADDRESS, offset);
         }
 
@@ -1795,7 +1795,7 @@ public abstract class Struct {
          *
          * @return a {@link jnr.ffi.Pointer}.
          */
-        public final jnr.ffi.Pointer get() {
+        protected final jnr.ffi.Pointer getPointer() {
             return getMemory().getPointer(offset());
         }
 
@@ -1814,19 +1814,27 @@ public abstract class Struct {
          * @param value the value to write.
          */
         public final void set(jnr.ffi.Pointer value) {
-            getMemory().putPointer(offset(), value);
+            jnr.ffi.Pointer finalPointer = value;
+            if (value instanceof ArrayMemoryIO) {
+                ArrayMemoryIO arrayMemory = (ArrayMemoryIO) value;
+                byte[] valueArray = arrayMemory.array();
+                finalPointer = Memory.allocateDirect(getRuntime(), valueArray.length);
+                finalPointer.put(0, valueArray, 0, valueArray.length);
+            }
+            getMemory().putPointer(offset(), finalPointer);
         }
 
         public void set(java.lang.Number value) {
             getMemory().putAddress(offset(), value.longValue());
         }
+
         /**
          * Returns an integer representation of this <code>Pointer</code>.
          *
          * @return an integer value for this <code>Pointer</code>.
          */
         @Override
-        public final int intValue() {
+        public int intValue() {
             return (int) getMemory().getAddress(offset());
         }
 
@@ -1836,7 +1844,7 @@ public abstract class Struct {
          * @return an {@code long} value for this <code>Pointer</code>.
          */
         @Override
-        public final long longValue() {
+        public long longValue() {
             return getMemory().getAddress(offset());
         }
 
@@ -1846,8 +1854,167 @@ public abstract class Struct {
          * @return a string representation of this <code>Pointer</code>.
          */
         @Override
+        public java.lang.String toString() {
+            return getPointer().toString();
+        }
+    }
+
+    /**
+     * Represents a native memory address.
+     */
+    public class Pointer extends PointerField {
+        /**
+         * Creates a new <tt>Address</tt> field.
+         */
+        public Pointer() {
+        }
+
+        public Pointer(Offset offset) {
+            super(offset);
+        }
+
+        /**
+         * Gets the {@link jnr.ffi.Pointer} value from the native memory.
+         *
+         * @return a {@link jnr.ffi.Pointer}.
+         */
+        public final jnr.ffi.Pointer get() {
+            return getPointer();
+        }
+
+        /**
+         * Returns an integer representation of this <code>Pointer</code>.
+         *
+         * @return an integer value for this <code>Pointer</code>.
+         */
+        @Override
+        public final int intValue() {
+            return super.intValue();
+        }
+
+        /**
+         * Returns an {@code long} representation of this <code>Pointer</code>.
+         *
+         * @return an {@code long} value for this <code>Pointer</code>.
+         */
+        @Override
+        public final long longValue() {
+            return super.longValue();
+        }
+
+        /**
+         * Returns a string representation of this <code>Pointer</code>.
+         *
+         * @return a string representation of this <code>Pointer</code>.
+         */
+        @Override
         public final java.lang.String toString() {
-            return get().toString();
+            return super.toString();
+        }
+    }
+
+    /**
+     * Represents a reference to a Struct or and array of Structs
+     * @param <T> - Struct type
+     */
+    public class StructRef<T extends Struct> extends PointerField {
+        private final Constructor<T> structConstructor;
+        private final Class<T> structType;
+        private final int size;
+
+        public StructRef(Class<T> structType) {
+            this.structType = structType;
+            try {
+                structConstructor = structType.getDeclaredConstructor(Runtime.class);
+                size = Struct.size(structConstructor.newInstance(getRuntime()));
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        /**
+         * @param structType         Struct type
+         * @param initialStructCount the number of struct instances. Use this to allocate memory without setting value.
+         */
+        public StructRef(Class<T> structType, int initialStructCount) {
+            this(structType);
+            set(Memory.allocateDirect(getRuntime(), size * initialStructCount));
+        }
+
+        public StructRef(Offset offset, Class<T> structType) {
+            super(offset);
+            this.structType = structType;
+            try {
+                structConstructor = structType.getDeclaredConstructor(Runtime.class);
+                size = Struct.size(structConstructor.newInstance(getRuntime()));
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        /**
+         * @param offset             offset of the field
+         * @param structType         Struct type
+         * @param initialStructCount the number of struct instances. Use this to allocate memory without setting value.
+         */
+        public StructRef(Offset offset, Class<T> structType, int initialStructCount) {
+            this(offset, structType);
+            set(Memory.allocateDirect(getRuntime(), size * initialStructCount));
+        }
+
+        public final void set(T struct) {
+            jnr.ffi.Pointer structMemory = Struct.getMemory(struct);
+            set(structMemory);
+        }
+
+        public final void set(T[] structs) {
+            if (structs.length == 0) {
+                set(Memory.allocateDirect(getRuntime(), 0));
+                return;
+            }
+            jnr.ffi.Pointer value = Memory.allocateDirect(getRuntime(), size * structs.length);
+            byte[] data = new byte[size];
+            for (int i = 0; i < structs.length; i++) {
+                Struct.getMemory(structs[i]).get(0L, data, 0, size);
+                value.put(size * i, data, 0, size);
+            }
+            set(value);
+        }
+
+        /**
+         * @return struct from memory
+         */
+        public final T get() {
+            T struct;
+            try {
+                struct = structConstructor.newInstance(getRuntime());
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            struct.useMemory(getPointer());
+            return struct;
+        }
+
+        /**
+         * @return struct from memory
+         */
+        public final T[] get(int length) {
+            try {
+                T[] array = (T[]) Array.newInstance(structType, length);
+                for (int i = 0; i < length; ++i) {
+                    array[i] = structConstructor.newInstance(getRuntime());
+                    array[i].useMemory(getPointer().slice(Struct.size(array[i]) * i));
+                }
+                return array;
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        @Override
+        public java.lang.String toString() {
+            return "struct @ " + super.toString()
+                    + '\n' + get();
         }
     }
 

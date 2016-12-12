@@ -91,6 +91,14 @@ public class StructureTest {
 
 
     }
+
+    public static class structWithStructRef extends Struct {
+        public final StructRef<struct1> mStructRef = new StructRef<struct1>(struct1.class);
+        public structWithStructRef(jnr.ffi.Runtime runtime) {
+            super(runtime);
+        }
+    }
+
     public static class Int16Align extends Struct {
         public final Signed8 first = new Signed8();
         public final Signed16 s = new Signed16();
@@ -254,6 +262,19 @@ public class StructureTest {
         }
 
     }
+
+    @Test
+    public void structRef()
+    {
+        structWithStructRef structWithStructRef = new structWithStructRef(runtime);
+        struct1 s = new struct1(runtime);
+        s.i.set(12);
+        structWithStructRef.mStructRef.set(s);
+        assertEquals("Struct field not equals", s.i.get(), structWithStructRef.mStructRef.get().i.get());
+        structWithStructRef.mStructRef.set(new struct1[]{s});
+        assertEquals("Struct field not equals", s.i.get(), structWithStructRef.mStructRef.get(1)[0].i.get());
+    }
+
     @Test
     public void unsigned8() {
         Unsigned8Test s = new Unsigned8Test();
@@ -369,6 +390,44 @@ public class StructureTest {
         io.putInt(0, 0xffffffff);
         io.putInt(4, 0xffffffff);
         assertEquals(0, t.innerTestStruct.s.s8.get());
+    }
+
+    public static class structWithPointer extends Struct {
+        public final Pointer pointer = new Pointer();
+
+        public structWithPointer(jnr.ffi.Runtime runtime) {
+            super(runtime);
+        }
+    }
+
+    @Test
+    public void abstractPointer() {
+        structWithPointer s = new structWithPointer(runtime);
+        Pointer p = Memory.allocate(s.getRuntime(), NativeType.UCHAR);
+        p.putByte(0, (byte) 0xff);
+        s.pointer.set(p);
+        assertNotNull("Abstract pointer was not copied", s.pointer.get());
+        assertEquals("Abstract pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+    }
+
+    @Test
+    public void tempPointer() {
+        structWithPointer s = new structWithPointer(runtime);
+        Pointer p = Memory.allocateTemporary(s.getRuntime(), NativeType.UCHAR);
+        p.putByte(0, (byte) 0xff);
+        s.pointer.set(p);
+        assertNotNull("Temp pointer was not copied", s.pointer.get());
+        assertEquals("Temp pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+    }
+
+    @Test
+    public void directPointer() {
+        structWithPointer s = new structWithPointer(runtime);
+        Pointer p = Memory.allocateDirect(s.getRuntime(), NativeType.UCHAR);
+        p.putByte(0, (byte) 0xff);
+        s.pointer.set(p);
+        assertNotNull("Direct pointer was not copied", s.pointer.get());
+        assertEquals("Direct pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
     }
 
     private class TypeTest extends Struct {
