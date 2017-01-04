@@ -904,9 +904,9 @@ public abstract class Struct {
         }
 
         /**
-         * Returns a string representation of this <code>Address</code>.
+         * Returns a string representation of this <code>Number</code>.
          *
-         * @return a string representation of this <code>Address</code>.
+         * @return a string representation of this <code>Number</code>.
          */
         @Override
         public java.lang.String toString() {
@@ -950,6 +950,16 @@ public abstract class Struct {
         @Override
         public long longValue() {
             return get();
+        }
+
+        /**
+         * Returns a string representation of this field.
+         *
+         * @return a string representation of this field.
+         */
+        @Override
+        public final java.lang.String toString() {
+            return java.lang.Long.toString(get());
         }
     }
 
@@ -1321,6 +1331,16 @@ public abstract class Struct {
         @Override
         public final long longValue() {
             return get();
+        }
+
+        /**
+         * Returns a string representation of this field.
+         *
+         * @return a string representation of this field.
+         */
+        @Override
+        public final java.lang.String toString() {
+            return java.lang.Long.toString(get());
         }
     }
 
