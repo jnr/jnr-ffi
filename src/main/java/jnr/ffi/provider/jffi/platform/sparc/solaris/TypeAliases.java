@@ -42,7 +42,7 @@ public final class TypeAliases {
         m.put(TypeAlias.dev_t, NativeType.ULONG);
         m.put(TypeAlias.blkcnt_t, NativeType.SLONGLONG);
         m.put(TypeAlias.blksize_t, NativeType.SLONG);
-        m.put(TypeAlias.gid_t, NativeType.SLONG);
+        m.put(TypeAlias.gid_t, NativeType.UINT);
         m.put(TypeAlias.in_addr_t, NativeType.UINT);
         m.put(TypeAlias.in_port_t, NativeType.USHORT);
         m.put(TypeAlias.ino_t, NativeType.ULONGLONG);
@@ -54,7 +54,7 @@ public final class TypeAliases {
         m.put(TypeAlias.pid_t, NativeType.SLONG);
         m.put(TypeAlias.off_t, NativeType.SLONGLONG);
         m.put(TypeAlias.swblk_t, NativeType.SLONG);
-        m.put(TypeAlias.uid_t, NativeType.SLONG);
+        m.put(TypeAlias.uid_t, NativeType.UINT);
         m.put(TypeAlias.clock_t, NativeType.SLONG);
         m.put(TypeAlias.size_t, NativeType.UINT);
         m.put(TypeAlias.ssize_t, NativeType.SINT);
