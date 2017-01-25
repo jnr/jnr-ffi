@@ -42,7 +42,7 @@ public final class NativeRuntime extends AbstractRuntime {
     private final NativeMemoryManager mm = new NativeMemoryManager(this);
     private final NativeClosureManager closureManager = new NativeClosureManager(this,
             new SignatureTypeMapperAdapter(new DefaultTypeMapper()),
-            new AsmClassLoader(ClassLoader.getSystemClassLoader()));
+            new AsmClassLoader(Thread.currentThread().getContextClassLoader()));
     private final Type[] aliases;
 
     public static NativeRuntime getInstance() {
