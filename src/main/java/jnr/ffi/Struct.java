@@ -792,6 +792,56 @@ public abstract class Struct {
         }
     }
 
+  public final class BOOL16 extends AbstractBoolean {
+    public BOOL16() {
+      super(NativeType.SSHORT);
+    }
+
+    public final boolean get() {
+      return (getMemory().getShort(offset()) & 0x1) != 0;
+    }
+
+    public final void set(boolean value) {
+      getMemory().putShort(offset(), (short) (value ? 1 : 0));
+    }
+  }
+
+  public final class BYTE extends Unsigned8 {
+    public BYTE() {
+    }
+
+    public BYTE(Offset offset) {
+      super(offset);
+    }
+  }
+
+  public final class WORD extends Unsigned16 {
+    public WORD() {
+    }
+
+    public WORD(Offset offset) {
+      super(offset);
+    }
+  }
+
+  public final class DWORD extends Unsigned32 {
+    public DWORD() {
+    }
+
+    public DWORD(Offset offset) {
+      super(offset);
+    }
+  }
+
+  public final class LONG extends Signed32 {
+    public LONG() {
+    }
+
+    public LONG(Offset offset) {
+      super(offset);
+    }
+  }
+
     /**
      * Base class for all Number structure fields.
      */
