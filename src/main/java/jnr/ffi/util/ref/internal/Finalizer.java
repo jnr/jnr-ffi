@@ -20,6 +20,7 @@ import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
@@ -46,7 +47,7 @@ import java.util.logging.Logger;
  * class loader from getting garbage collected, and this class can detect when
  * the main class loader has been garbage collected and stop itself.
  */
-public class Finalizer extends Thread {
+public class Finalizer implements Runnable {
 
     private static final Logger logger
             = Logger.getLogger(Finalizer.class.getName());
@@ -56,6 +57,7 @@ public class Finalizer extends Thread {
      */
     private static final String FINALIZABLE_REFERENCE
             = "jnr.ffi.util.ref.FinalizableReference";
+    private Thread thread;
 
     /**
      * Starts the Finalizer thread. FinalizableReferenceQueue calls this method
@@ -90,35 +92,77 @@ public class Finalizer extends Thread {
     private final PhantomReference<Object> frqReference;
     private final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
 
-    private static final Field inheritableThreadLocals
-            = getInheritableThreadLocalsField();
+    private static final Field inheritableThreadLocals;
+    private static final Constructor inheritableThreadlocalsConstructor;
+
+    static {
+        Field itl = null;
+        try {
+            itl = getInheritableThreadLocalsField();
+        } catch (Throwable t) {
+        }
+
+        Constructor itlc = null;
+        try {
+            itlc = getInheritableThreadLocalsConstructor();
+        } catch (Throwable t) {
+        }
+
+        inheritableThreadLocals = itl;
+        inheritableThreadlocalsConstructor = itlc;
+
+        if (itl == null && itlc == null) {
+            logger.log(Level.INFO, "Couldn't access Thread.inheritableThreadLocals or appropriate constructor."
+                    + " Reference finalizer threads will inherit thread local values.");
+        }
+    }
 
     /**
      * Constructs a new finalizer thread.
      */
     private Finalizer(Class<?> finalizableReferenceClass, Object frq) {
-        super(Finalizer.class.getName());
-
         this.finalizableReferenceClassReference
                 = new WeakReference<Class<?>>(finalizableReferenceClass);
 
         // Keep track of the FRQ that started us so we know when to stop.
         this.frqReference = new PhantomReference<Object>(frq, queue);
+    }
 
-        setDaemon(true);
-        setPriority(Thread.MAX_PRIORITY);
+    public void start() {
+        if (inheritableThreadlocalsConstructor != null) {
+            try {
+                this.thread = (Thread) inheritableThreadlocalsConstructor.newInstance(
+                        Thread.currentThread().getThreadGroup(),
+                        this,
+                        Finalizer.class.getName(),
+                        0,
+                        false
+                );
+            } catch (Throwable t) {
+                logger.log(Level.INFO, "Failed to disable thread local values inherited"
+                        + " by reference finalizer thread.", t);
+
+                // fall through and try field tweak
+            }
+        }
+
+        if (this.thread == null) {
+            this.thread = new Thread(this, Finalizer.class.getName());
+            if (inheritableThreadLocals != null) {
+                try {
+                    inheritableThreadLocals.set(this.thread, null);
+                } catch (Throwable t) {
+                    logger.log(Level.INFO, "Failed to clear thread local values inherited"
+                            + " by reference finalizer thread.", t);
+                }
+            }
+        }
+
+        thread.setDaemon(true);
+        thread.setPriority(Thread.MAX_PRIORITY);
         // Set the context class loader to null in order to avoid
         // keeping a strong reference to an application classloader.
-        setContextClassLoader(null);
-
-        try {
-            if (inheritableThreadLocals != null) {
-                inheritableThreadLocals.set(this, null);
-            }
-        } catch (Throwable t) {
-            logger.log(Level.INFO, "Failed to clear thread local values inherited"
-                    + " by reference finalizer thread.", t);
-        }
+        thread.setContextClassLoader(null);
     }
 
     /**
@@ -205,9 +249,18 @@ public class Finalizer extends Thread {
             inheritableThreadLocals.setAccessible(true);
             return inheritableThreadLocals;
         } catch (Throwable t) {
-            logger.log(Level.INFO, "Couldn't access Thread.inheritableThreadLocals."
-                    + " Reference finalizer threads will inherit thread local"
-                    + " values.");
+            t.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Constructor getInheritableThreadLocalsConstructor() {
+        try {
+            Constructor inheritableThreadLocalsConstructor
+                    = Thread.class.getConstructor(ThreadGroup.class, Runnable.class, String.class, long.class, boolean.class);
+            return inheritableThreadLocalsConstructor;
+        } catch (Throwable t) {
+            t.printStackTrace();
             return null;
         }
     }
