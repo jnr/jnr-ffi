@@ -249,7 +249,6 @@ public class Finalizer implements Runnable {
             inheritableThreadLocals.setAccessible(true);
             return inheritableThreadLocals;
         } catch (Throwable t) {
-            t.printStackTrace();
             return null;
         }
     }
@@ -260,7 +259,6 @@ public class Finalizer implements Runnable {
                     = Thread.class.getConstructor(ThreadGroup.class, Runnable.class, String.class, long.class, boolean.class);
             return inheritableThreadLocalsConstructor;
         } catch (Throwable t) {
-            t.printStackTrace();
             return null;
         }
     }
