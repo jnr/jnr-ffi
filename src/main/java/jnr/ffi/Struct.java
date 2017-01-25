@@ -666,6 +666,22 @@ public abstract class Struct {
         return array;
     }
 
+    /**
+     * Creates an array of <tt>UTF8String</tt> instances.
+     *
+     * @param array        the array to store the instances in
+     * @param stringLength length of each string in array
+     * @return the array that was passed in
+     */
+    protected UTF8String[] array(UTF8String[] array, int stringLength) {
+        arrayBegin();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = new UTF8String(stringLength);
+        }
+        arrayEnd();
+        return array;
+    }
+
     protected final <T extends Struct> T inner(T struct) {
         int alignment = __info.alignment.intValue() > 0 ? Math.min(__info.alignment.intValue(), struct.__info.getMinimumAlignment()) : struct.__info.getMinimumAlignment();
         int offset = __info.resetIndex ? 0 : align(__info.size, alignment);
