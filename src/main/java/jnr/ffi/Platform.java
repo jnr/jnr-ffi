@@ -196,7 +196,10 @@ public abstract class Platform {
     
     private static CPU determineCPU() {
         String archString = System.getProperty("os.arch");
-        if (equalsIgnoreCase("x86", archString) || equalsIgnoreCase("i386", archString) || equalsIgnoreCase("i86pc", archString)) {
+        if (equalsIgnoreCase("x86", archString) ||
+                equalsIgnoreCase("i386", archString) ||
+                equalsIgnoreCase("i86pc", archString) ||
+                equalsIgnoreCase("i686", archString)) {
             return CPU.I386;
         } else if (equalsIgnoreCase("x86_64", archString) || equalsIgnoreCase("amd64", archString)) {
             return CPU.X86_64;
