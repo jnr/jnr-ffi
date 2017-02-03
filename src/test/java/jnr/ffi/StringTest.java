@@ -35,6 +35,7 @@ public class StringTest {
     public StringTest() {
     }
     public static interface TestLib {
+        String string_static();
         boolean string_equals(String s1, String s2);
         boolean string_equals(CharSequence s1, byte[] s2);        
         void string_set(StringBuffer dst, CharSequence src);
@@ -61,7 +62,12 @@ public class StringTest {
     public void tearDown() {
     }
 
-   
+
+    @Test
+    public void testStaticString() {
+        assertEquals("static string", testlib.string_static());
+    }
+
     @Test
     public void testReadOnlyString() {
         String MAGIC = "deadbeef\u0000";
