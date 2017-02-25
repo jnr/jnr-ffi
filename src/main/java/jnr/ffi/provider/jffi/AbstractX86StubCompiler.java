@@ -30,6 +30,7 @@ import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,10 +69,13 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         }
     }
 
+    static final AtomicIntegerFieldUpdater<PageHolder> PAGE_HOLDER_UPDATER = AtomicIntegerFieldUpdater.newUpdater(PageHolder.class, "disposed");
+
     static final class PageHolder {
         final PageManager pm;
         final long memory;
         final long pageCount;
+        volatile int disposed;
 
         public PageHolder(PageManager pm, long memory, long pageCount) {
             this.pm = pm;
@@ -82,7 +86,10 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         @Override
         protected void finalize() throws Throwable {
             try {
-                pm.freePages(memory, (int) pageCount);
+                int disposed = PAGE_HOLDER_UPDATER.getAndSet(this, 1);
+                if (disposed == 0) {
+                    pm.freePages(memory, (int) pageCount);
+                }
             } catch (Throwable t) {
                 Logger.getLogger(getClass().getName()).log(Level.WARNING, 
                     "Exception when freeing native pages: %s", t.getLocalizedMessage());
