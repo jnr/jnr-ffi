@@ -35,6 +35,11 @@
       <name>Wayne Meissner</name>
       <email>wmeissner@gmail.com</email>
     </developer>
+    <developer>
+      <id>headius</id>
+      <name>Charles Oliver Nutter</name>
+      <email>headius@headius.com</email>
+    </developer>
   </developers>
 
   <properties>
