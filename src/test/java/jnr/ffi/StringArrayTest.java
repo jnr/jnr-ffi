@@ -80,7 +80,6 @@ public class StringArrayTest {
         assertNull("last element of string array was not null", result);
     }
 
-
     @Test public void firstElementOfStringArrayShouldNotBeNull() {
         final String MAGIC = "test";
         String[] strings = { MAGIC };
@@ -100,5 +99,11 @@ public class StringArrayTest {
         ptr.putString(0, MAGIC, 1024, Charset.defaultCharset());
         testlib.ptr_set_array_element(strings, 0, ptr);
         assertEquals(MAGIC, strings[0]);
+    }
+
+    @Test public void lastIndexOfSparseStringArrayShouldNotBeNull() {
+        String[] strings = { null, "test" };
+        String result = testlib.ptr_return_array_element(strings, 1);
+        assertNotNull("last element of string array was null", result);
     }
 }
