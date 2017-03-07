@@ -108,6 +108,7 @@ public class CharSequenceArrayParameterConverter implements ToNativeConverter<Ch
         void put(int idx, CharSequence str) {
             if (str == null) {
                 memory.putAddress(idx * getRuntime().addressSize(), 0L);
+                stringMemory.add(idx, null);
             } else {
                 ByteBuffer buf = charset.encode(CharBuffer.wrap(str));
                 Pointer ptr = Memory.allocateDirect(getRuntime(), buf.remaining() + 4, true);
