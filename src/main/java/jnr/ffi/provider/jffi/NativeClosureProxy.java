@@ -212,8 +212,12 @@ public abstract class NativeClosureProxy {
                 cl = ClassLoader.getSystemClassLoader();
             }
             Class<? extends NativeClosureProxy> klass = builder.getClassLoader().defineClass(c(closureProxyClassName), closureImpBytes);
-            Constructor<? extends NativeClosureProxy> constructor
-                    = klass.getConstructor(NativeRuntime.class, Object[].class);
+            Constructor<? extends NativeClosureProxy> constructor = null;
+            try {
+                constructor = klass.getConstructor(NativeRuntime.class, Object[].class);
+            } catch(NoSuchMethodException e) {
+                constructor = (Constructor<? extends NativeClosureProxy>) klass.getConstructors()[0];
+            }
 
             return new Factory(runtime, constructor, klass.getMethod("invoke", nativeParameterClasses), fieldObjects);
         } catch (Throwable ex) {
