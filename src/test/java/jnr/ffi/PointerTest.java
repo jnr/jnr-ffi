@@ -145,7 +145,7 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         short MAGIC = (short) 0xFEE1;
-        for (int i = 0; i < (SIZE - 1); ++i) {
+        for (int i = 0; i < (SIZE - 1); i += 2) {
             p.putShort(i, MAGIC);
             assertEquals("Short not set at offset " + i, MAGIC, testlib.ptr_ret_int16_t(p, i));
         } 
@@ -155,7 +155,7 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         int MAGIC = (int) 0xFEE1DEAD;
-        for (int i = 0; i < (SIZE - 3); ++i) {
+        for (int i = 0; i < (SIZE - 3); i += 4) {
             p.putInt(i, MAGIC);
             assertEquals("Integer not set at offset " + i, MAGIC, testlib.ptr_ret_int32_t(p, i));
         } 
@@ -178,7 +178,7 @@ public class PointerTest {
                     (byte) (l >>> 48), (byte) (l >>> 56)
                 };
         
-        for (int i = 0; i < (SIZE - 7); ++i) {
+        for (int i = 0; i < (SIZE - 7); i += 8) {
             p.putLongLong(i, MAGIC);
             for (int idx = 0; idx < 8; ++idx) {
                 assertEquals("incorrect byte value at offset= " + i + " idx=" + idx, bytes[idx], p.getByte(i + idx));
@@ -191,7 +191,7 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         float MAGIC = (float) 0xFEE1DEADABCDEF12L;
-        for (int i = 0; i < (SIZE - 7); ++i) {
+        for (int i = 0; i < (SIZE - 3); i += 4) {
             p.putFloat(i, MAGIC);
             assertEquals("Float not set at offset " + i, MAGIC, testlib.ptr_ret_float(p, i), 0.00001);
         } 
@@ -219,7 +219,7 @@ public class PointerTest {
         for (int i = 0; i < 8; ++i) {
             assertEquals("incorrect byte value at idx=" + i, bytes[i], p.getByte(i));
         }
-        for (int i = 0; i < (SIZE - 7); ++i) {
+        for (int i = 0; i < (SIZE - 7); i += 8) {
             p.putDouble(i, MAGIC);
             assertEquals("Double not set at offset " + i, MAGIC, testlib.ptr_ret_double(p, i), 0.0001E16);
         } 
@@ -239,7 +239,7 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         short MAGIC = (short) 0xFEE1;
-        for (int i = 0; i < SIZE - 1; ++i) {
+        for (int i = 0; i < SIZE - 1; i += 2) {
             testlib.ptr_set_int16_t(p, i, MAGIC);
             assertEquals("Short not set at offset " + i, MAGIC, p.getShort(i));
         } 
@@ -249,7 +249,7 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         int MAGIC = (int) 0xFEE1DEAD;
-        for (int i = 0; i < SIZE - 3; ++i) {
+        for (int i = 0; i < SIZE - 3; i += 4) {
             testlib.ptr_set_int32_t(p, i, MAGIC);
             assertEquals("Integer not set at offset " + i, MAGIC, p.getInt(i));
         } 
@@ -259,17 +259,17 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         long MAGIC = 0xFEE1DEADABCDEF12L;
-        for (int i = 0; i < SIZE - 7; ++i) {
+        for (int i = 0; i < SIZE - 7; i += 8) {
             testlib.ptr_set_int64_t(p, i, MAGIC);
             assertEquals("Long not set at offset " + i, MAGIC, p.getLongLong(i));
-        } 
+        }
     }
     @Test
     public void testPointerGetFloat() {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         float MAGIC = (float) 0xFEE1DEADABCDEF12L;
-        for (int i = 0; i < (SIZE - 7); ++i) {
+        for (int i = 0; i < (SIZE - 3); i += 4) {
             testlib.ptr_set_float(p, i, MAGIC);
             assertEquals("Float not set at offset " + i, MAGIC, p.getFloat(i), 0.0001);
         } 
@@ -279,7 +279,7 @@ public class PointerTest {
         
         Pointer p = testlib.ptr_malloc(SIZE);
         double MAGIC = (double) 0xFEE1DEADABCDEF12L;
-        for (int i = 0; i < (SIZE - 7); ++i) {
+        for (int i = 0; i < (SIZE - 7); i += 8) {
             testlib.ptr_set_double(p, i, MAGIC);
             assertEquals("Double not set at offset " + i, MAGIC, p.getDouble(i), 0.00001);
         } 

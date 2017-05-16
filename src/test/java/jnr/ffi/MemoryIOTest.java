@@ -52,7 +52,10 @@ public class MemoryIOTest {
 
     static TestLib testlib;
     static Runtime runtime;
-    
+
+    private static final int FLOAT_BYTE_SIZE = Float.SIZE / 8;
+    private static final int DOUBLE_BYTE_SIZE = Double.SIZE / 8;
+
     public MemoryIOTest() {
     }
 
@@ -104,61 +107,61 @@ public class MemoryIOTest {
         }
     }
     private void testPutShort(Pointer io, int size) {
-        for (int i = 0; i <= size - 2; ++i) {
+        for (int i = 0; i <= size - 2; i += 2) {
             io.putShort(i, (short) i);
             assertEquals("Incorrect value at offset " + i, (short) i, testlib.ptr_ret_int16_t(io, i));
         }
     }
     private void testGetShort(Pointer io, int size) {
-        for (int i = 0; i <= size - 2; ++i) {
+        for (int i = 0; i <= size - 2; i += 2) {
             testlib.ptr_set_int16_t(io, i, (short) i);
             assertEquals("Incorrect value at offset " + i, (short) i, io.getShort(i));
         }
     }
     private void testPutInt(Pointer io, int size) {
-        for (int i = 0; i <= size - 4; ++i) {
+        for (int i = 0; i <= size - 4; i += 4) {
             io.putInt(i, i);
             assertEquals("Incorrect value at offset " + i, i, testlib.ptr_ret_int32_t(io, i));
         }
     }
     private void testGetInt(Pointer io, int size) {
-        for (int i = 0; i <= size - 4; ++i) {
+        for (int i = 0; i <= size - 4; i += 4) {
             testlib.ptr_set_int32_t(io, i, i);
             assertEquals("Incorrect value at offset " + i, i, io.getInt(i));
         }
     }
     private void testPutLongLong(Pointer io, int size) {
-        for (int i = 0; i <= size - 8; ++i) {
+        for (int i = 0; i <= size - 8; i += 8) {
             io.putLongLong(i, i);
             assertEquals("Incorrect value at offset " + i, (long) i, testlib.ptr_ret_int64_t(io, i));
         }
     }
     private void testGetLongLong(Pointer io, int size) {
-        for (int i = 0; i <= size - 8; ++i) {
+        for (int i = 0; i <= size - 8; i += 8) {
             testlib.ptr_set_int64_t(io, i, i);
             assertEquals("Incorrect value at offset " + i, (long) i, io.getLongLong(i));
         }
     }
     private void testPutFloat(Pointer io, int size) {
-        for (int i = 0; i <= size - (Float.SIZE / 8); ++i) {
+        for (int i = 0; i <= size - FLOAT_BYTE_SIZE; i += FLOAT_BYTE_SIZE) {
             io.putFloat(i, i);
             assertEquals("Incorrect value at offset " + i, (float) i, testlib.ptr_ret_float(io, i), 0.00001);
         }
     }
     private void testGetFloat(Pointer io, int size) {
-        for (int i = 0; i <= size - (Float.SIZE / 8); ++i) {
+        for (int i = 0; i <= size - FLOAT_BYTE_SIZE; i += FLOAT_BYTE_SIZE) {
             testlib.ptr_set_float(io, i, (float) i);
             assertEquals("Incorrect value at offset " + i, (float) i, io.getFloat(i), 0.00001);
         }
     }
     private void testPutDouble(Pointer io, int size) {
-        for (int i = 0; i <= size - (Double.SIZE / 8); ++i) {
+        for (int i = 0; i <= size - DOUBLE_BYTE_SIZE; i += DOUBLE_BYTE_SIZE) {
             io.putDouble(i, (double) i);
             assertEquals("Incorrect value at offset " + i, (double) i, testlib.ptr_ret_double(io, i), 0d);
         }
     }
     private void testGetDouble(Pointer io, int size) {
-        for (int i = 0; i <= size - (Double.SIZE / 8); ++i) {
+        for (int i = 0; i <= size - DOUBLE_BYTE_SIZE; i += DOUBLE_BYTE_SIZE) {
             testlib.ptr_set_double(io, i, (double) i);
             assertEquals("Incorrect value at offset " + i, (double) i, io.getDouble(i), 0d);
         }
