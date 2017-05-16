@@ -23,7 +23,7 @@ public class VarargsTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         LibraryLoader<C> loader = FFIProvider.getSystemProvider().createLibraryLoader(C.class);
-        c = loader.load("c");
+        c = loader.load(Platform.getNativePlatform().getStandardCLibraryName());
     }
 
     @AfterClass
