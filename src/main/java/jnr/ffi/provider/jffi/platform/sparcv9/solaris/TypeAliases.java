@@ -48,7 +48,7 @@ public final class TypeAliases {
         m.put(TypeAlias.ino_t, NativeType.ULONGLONG);
         m.put(TypeAlias.ino64_t, NativeType.ULONGLONG);
         m.put(TypeAlias.key_t, NativeType.SINT);
-        m.put(TypeAlias.mode_t, NativeType.ULONG);
+        m.put(TypeAlias.mode_t, NativeType.UINT);
         m.put(TypeAlias.nlink_t, NativeType.ULONG);
         m.put(TypeAlias.id_t, NativeType.SLONG);
         m.put(TypeAlias.pid_t, NativeType.SLONG);
