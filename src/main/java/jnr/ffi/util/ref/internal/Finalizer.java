@@ -163,6 +163,7 @@ public class Finalizer implements Runnable {
         // Set the context class loader to null in order to avoid
         // keeping a strong reference to an application classloader.
         thread.setContextClassLoader(null);
+        thread.start();
     }
 
     /**
