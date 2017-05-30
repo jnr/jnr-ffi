@@ -137,7 +137,7 @@ public abstract class Struct {
      *
      * @param isUnion if this Struct is a Union
      */
-    Struct(Runtime runtime, final boolean isUnion) {
+    protected Struct(Runtime runtime, final boolean isUnion) {
         this(runtime);
         __info.resetIndex = isUnion;
         __info.isUnion = isUnion;
