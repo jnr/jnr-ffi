@@ -1,4 +1,4 @@
-jnr-ffi [![Build Status](https://travis-ci.org/jnr/jnr-ffi.png)](https://travis-ci.org/jnr/jnr-ffi)
+jnr-ffi [![Build Status](https://travis-ci.org/jnr/jnr-ffi.svg)](https://travis-ci.org/jnr/jnr-ffi)
 ======
 
 [jnr-ffi](https://github.com/jnr/jnr-ffi) is a java library for loading native libraries without writing JNI code by hand, or using tools such as SWIG.
