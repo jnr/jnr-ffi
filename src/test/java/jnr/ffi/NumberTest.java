@@ -67,9 +67,16 @@ public class NumberTest {
     }
     static TestLib testlib;
 
+    public static interface TestBoolean {
+
+        public boolean ret_int32_t(int l);
+    }
+    static TestBoolean testboolean;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
+        testboolean = TstUtil.loadTestLib(TestBoolean.class);
     }
 
     @AfterClass
@@ -342,5 +349,12 @@ public class NumberTest {
 
     @Test public void testZeroExtension() throws Exception {
         assertEquals("upper 32 bits not set to zero", 0xdeadbeefL, testlib.ret_uint32_t(0xfee1deadbeefL));
+    }
+
+    @Test public void testBooleanFromInt() throws Exception {
+        assertEquals(false, testboolean.ret_int32_t(0));
+        assertEquals(true, testboolean.ret_int32_t(-1));
+        assertEquals(true, testboolean.ret_int32_t(1));
+        assertEquals(true, testboolean.ret_int32_t(2));
     }
 }
