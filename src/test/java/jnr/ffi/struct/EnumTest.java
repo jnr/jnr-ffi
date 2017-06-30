@@ -305,7 +305,7 @@ public class EnumTest {
     {
         Enum16FieldStruct struct = new Enum16FieldStruct();
         struct.value.set(ShortNegativeEnum.NEGATIVE);
-        assertEquals("negative Enum8 value conversation failed", ShortNegativeEnum.NEGATIVE, struct.value.get());
+        assertEquals("negative Enum16 value conversation failed", ShortNegativeEnum.NEGATIVE, struct.value.get());
     }
 
     @Test
@@ -313,7 +313,7 @@ public class EnumTest {
     {
         Enum32FieldStruct struct = new Enum32FieldStruct();
         struct.value.set(IntNegativeEnum.NEGATIVE);
-        assertEquals("negative Enum8 value conversation failed", IntNegativeEnum.NEGATIVE, struct.value.get());
+        assertEquals("negative Enum32 value conversation failed", IntNegativeEnum.NEGATIVE, struct.value.get());
     }
 
     @Test
