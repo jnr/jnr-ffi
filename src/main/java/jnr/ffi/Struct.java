@@ -2203,7 +2203,8 @@ public abstract class Struct {
         }
         @Override
         public final int intValue() {
-            return getMemory().getShort(offset());
+            int value = getMemory().getShort(offset());
+            return value < 0 ? (value & 0x7FFF) + 0x8000 : value;
         }
     }
 
