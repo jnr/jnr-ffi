@@ -317,7 +317,7 @@ public class EnumTest {
     }
 
     @Test
-    public void longEnumField(){
+    public void longLongEnumField(){
         Enum64FieldStruct struct = new Enum64FieldStruct();
         struct.value.set(LongEnum.BIGGER_THAN_INT);
         assertEquals("long Enum64 value conversation failed", LongEnum.BIGGER_THAN_INT, struct.value.get());
