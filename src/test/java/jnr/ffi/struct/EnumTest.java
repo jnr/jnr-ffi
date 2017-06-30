@@ -41,6 +41,47 @@ public class EnumTest {
         B,
         MAGIC
     }
+
+    public enum ByteNegativeEnum
+            implements EnumMapper.IntegerEnum {
+        NEGATIVE(0xF0);
+
+        final int value;
+
+        ByteNegativeEnum(int value) {this.value = value;}
+
+        @Override
+        public int intValue() {
+            return value;
+        }
+    }
+
+    public enum ShortNegativeEnum
+            implements EnumMapper.IntegerEnum {
+        NEGATIVE(0xF000);
+
+        final int value;
+
+        ShortNegativeEnum(int value) {this.value = value;}
+
+        @Override
+        public int intValue() {
+            return value;
+        }
+    }
+
+    public enum IntNegativeEnum {
+        NEGATIVE(0xF00000L);
+
+        final long value;
+
+        IntNegativeEnum(long value) {this.value = value;}
+
+        public long longValue() {
+            return value;
+        }
+    }
+
     public class struct1 extends Struct {
         public final Enum8<TestEnum> b = new Enum8<TestEnum>(TestEnum.class);
         public final Enum16<TestEnum> s = new Enum16<TestEnum>(TestEnum.class);
@@ -130,6 +171,24 @@ public class EnumTest {
         }
 
     }
+    public static class Enum8FieldStruct extends Struct {
+        public final Enum8<ByteNegativeEnum> value = new Enum8<ByteNegativeEnum>(ByteNegativeEnum.class);
+        public Enum8FieldStruct() {
+            super(runtime);
+        }
+    }
+    public static class Enum16FieldStruct extends Struct {
+        public final Enum16<ShortNegativeEnum> value = new Enum16<ShortNegativeEnum>(ShortNegativeEnum.class);
+        public Enum16FieldStruct() {
+            super(runtime);
+        }
+    }
+    public static class Enum32FieldStruct extends Struct {
+        public final Enum32<IntNegativeEnum> value = new Enum32<IntNegativeEnum>(IntNegativeEnum.class);
+        public Enum32FieldStruct() {
+            super(runtime);
+        }
+    }
     @Test public void testInt8InitialValue() {
         struct1 s = new struct1();
         assertEquals("default value not zero", TestEnum.ZERO, s.b.get());
@@ -211,5 +270,29 @@ public class EnumTest {
         s.l.set(TestEnum.MAGIC);
         
         assertEquals("native long field not aligned", MAGIC, testlib.struct_align_SignedLong(s));
+    }
+
+    @Test
+    public void byteEnumFieldWithNegativeValue()
+    {
+        Enum8FieldStruct struct = new Enum8FieldStruct();
+        struct.value.set(ByteNegativeEnum.NEGATIVE);
+        assertEquals("negative Enum8 value conversation failed", ByteNegativeEnum.NEGATIVE, struct.value.get());
+    }
+
+    @Test
+    public void shortEnumFieldWithNegativeValue()
+    {
+        Enum16FieldStruct struct = new Enum16FieldStruct();
+        struct.value.set(ShortNegativeEnum.NEGATIVE);
+        assertEquals("negative Enum8 value conversation failed", ShortNegativeEnum.NEGATIVE, struct.value.get());
+    }
+
+    @Test
+    public void intEnumFieldWithNegativeValue()
+    {
+        Enum32FieldStruct struct = new Enum32FieldStruct();
+        struct.value.set(IntNegativeEnum.NEGATIVE);
+        assertEquals("negative Enum8 value conversation failed", IntNegativeEnum.NEGATIVE, struct.value.get());
     }
 }
