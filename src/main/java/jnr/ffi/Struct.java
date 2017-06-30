@@ -2238,10 +2238,10 @@ public abstract class Struct {
             super(NativeType.SLONGLONG, enumClass);
         }
         public final E get() {
-            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(longValue()));
         }
         public final void set(E value) {
-            getMemory().putLongLong(offset(), EnumMapper.getInstance(enumClass).intValue(value));
+            getMemory().putLongLong(offset(), EnumMapper.getInstance(enumClass).longValue(value));
         }
         public void set(java.lang.Number value) {
             getMemory().putLongLong(offset(), value.longValue());
