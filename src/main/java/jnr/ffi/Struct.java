@@ -2213,7 +2213,7 @@ public abstract class Struct {
             super(NativeType.SINT, enumClass);
         }
         public final E get() {
-            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(longValue()));
         }
         public final void set(E value) {
             getMemory().putInt(offset(), EnumMapper.getInstance(enumClass).intValue(value));
@@ -2223,7 +2223,13 @@ public abstract class Struct {
         }
         @Override
         public final int intValue() {
-            return getMemory().getInt(offset());
+            return (int) longValue();
+        }
+
+        @Override
+        public long longValue() {
+            long value = getMemory().getInt(offset());
+            return value < 0 ? (long)((value & 0x7FFFFFFFL) + 0x80000000L) : value;
         }
     }
 
