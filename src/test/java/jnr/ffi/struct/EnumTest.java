@@ -209,6 +209,12 @@ public class EnumTest {
             super(runtime);
         }
     }
+    public static class EnumLongFieldStruct extends Struct {
+        public final EnumLong<LongEnum> value = new EnumLong<LongEnum>(LongEnum.class);
+        public EnumLongFieldStruct() {
+            super(runtime);
+        }
+    }
     @Test public void testInt8InitialValue() {
         struct1 s = new struct1();
         assertEquals("default value not zero", TestEnum.ZERO, s.b.get());
@@ -321,5 +327,13 @@ public class EnumTest {
         Enum64FieldStruct struct = new Enum64FieldStruct();
         struct.value.set(LongEnum.BIGGER_THAN_INT);
         assertEquals("long Enum64 value conversation failed", LongEnum.BIGGER_THAN_INT, struct.value.get());
+    }
+    @Test
+    public void longEnumFieldX64(){
+        if (runtime.longSize() == 8) {
+            EnumLongFieldStruct struct = new EnumLongFieldStruct();
+            struct.value.set(LongEnum.BIGGER_THAN_INT);
+            assertEquals("long EnumLong value conversation failed", LongEnum.BIGGER_THAN_INT, struct.value.get());
+        }
     }
 }
