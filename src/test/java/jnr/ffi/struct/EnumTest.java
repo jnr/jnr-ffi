@@ -82,6 +82,20 @@ public class EnumTest {
         }
     }
 
+    public enum LongEnum {
+        BIGGER_THAN_INT(0xFF00000000000000L);
+
+        private final long value;
+
+        LongEnum(long value) {
+            this.value = value;
+        }
+
+        public long longValue() {
+            return value;
+        }
+    }
+
     public class struct1 extends Struct {
         public final Enum8<TestEnum> b = new Enum8<TestEnum>(TestEnum.class);
         public final Enum16<TestEnum> s = new Enum16<TestEnum>(TestEnum.class);
@@ -186,6 +200,12 @@ public class EnumTest {
     public static class Enum32FieldStruct extends Struct {
         public final Enum32<IntNegativeEnum> value = new Enum32<IntNegativeEnum>(IntNegativeEnum.class);
         public Enum32FieldStruct() {
+            super(runtime);
+        }
+    }
+    public static class Enum64FieldStruct extends Struct {
+        public final Enum64<LongEnum> value = new Enum64<LongEnum>(LongEnum.class);
+        public Enum64FieldStruct() {
             super(runtime);
         }
     }
@@ -294,5 +314,12 @@ public class EnumTest {
         Enum32FieldStruct struct = new Enum32FieldStruct();
         struct.value.set(IntNegativeEnum.NEGATIVE);
         assertEquals("negative Enum8 value conversation failed", IntNegativeEnum.NEGATIVE, struct.value.get());
+    }
+
+    @Test
+    public void longEnumField(){
+        Enum64FieldStruct struct = new Enum64FieldStruct();
+        struct.value.set(LongEnum.BIGGER_THAN_INT);
+        assertEquals("long Enum64 value conversation failed", LongEnum.BIGGER_THAN_INT, struct.value.get());
     }
 }
