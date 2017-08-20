@@ -23,6 +23,10 @@ public class VarargsTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         LibraryLoader<C> loader = FFIProvider.getSystemProvider().createLibraryLoader(C.class);
+        if(Platform.getNativePlatform().getOS() == Platform.OS.WINDOWS)
+        {
+            loader.map("snprintf","_snprintf");
+        }
         c = loader.load(Platform.getNativePlatform().getStandardCLibraryName());
     }
 
