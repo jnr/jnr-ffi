@@ -11,6 +11,8 @@ import java.util.Collection;
 public class InterfaceScannerTest {
     private static final Method SPLITERATOR;
 
+    public interface Collection<T> extends java.util.Collection<T>{}
+
     static {
         Method s = null;
         try {
@@ -31,6 +33,6 @@ public class InterfaceScannerTest {
         Object spliterator = SPLITERATOR.invoke(lib);
 
         Assert.assertNotNull(spliterator);
-        Assert.assertEquals("java.util.Spliterator", spliterator.getClass().getName());
+        Assert.assertEquals("java.util.Spliterators$IteratorSpliterator", spliterator.getClass().getName());
     }
 }
