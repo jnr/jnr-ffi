@@ -24,11 +24,15 @@ import jnr.ffi.Runtime;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.Out;
+import jnr.ffi.provider.converters.CharSequenceParameterConverter;
 import jnr.ffi.provider.converters.EnumSetConverter;
+import jnr.ffi.provider.converters.StringResultConverter;
 import jnr.ffi.types.size_t;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.nio.ByteBuffer;
 
 import static junit.framework.TestCase.*;
 
@@ -50,10 +54,46 @@ public class AnnotatedMappedTypeTest {
             return value != null ? new CustomPointer(value) : null;
         }
     }
-    
+
+    public enum CustomEnum {
+        FIRST("FIRST"),
+        SECOND("SECOND");
+
+        @ToNativeConverter.ToNative(nativeType = ByteBuffer.class)
+        public static ByteBuffer toNative(CustomEnum value, ToNativeContext context) {
+            if (value != null) {
+                ByteBuffer byteBuffer = CharSequenceParameterConverter.getInstance(context)
+                                                                      .toNative(value.text, context);
+                return byteBuffer;
+            } else {
+                return null;
+            }
+        }
+
+        @FromNativeConverter.FromNative(nativeType = Pointer.class)
+        public static CustomEnum fromNative(Pointer value, FromNativeContext context) {
+            if (value != null) {
+                String fromNative = StringResultConverter.getInstance(context)
+                                                         .fromNative(value, context);
+                for (CustomEnum customEnum : CustomEnum.values()) {
+                    if (customEnum.text.equals(fromNative)) {
+                        return customEnum;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private final String text;
+
+        CustomEnum(String text) {this.text = text;}
+    }
+
     public static interface TestLib {
         CustomPointer ptr_malloc(@size_t int size);
         void ptr_free(CustomPointer ptr);
+        boolean string_equals(CustomEnum s1, String s2);
+        CustomEnum string_duplicate(CustomEnum s1);
     }
 
     static TestLib testlib;
@@ -71,5 +111,13 @@ public class AnnotatedMappedTypeTest {
     
     @Test public void toNative() {
         testlib.ptr_free(testlib.ptr_malloc(1));
+    }
+
+
+    @Test public void enumToNative() {
+        assertTrue(testlib.string_equals(CustomEnum.FIRST, CustomEnum.FIRST.text));
+    }
+    @Test public void enumFromNative() {
+        assertEquals(CustomEnum.SECOND,testlib.string_duplicate(CustomEnum.SECOND));
     }
 }
