@@ -121,14 +121,14 @@ public class AsmLibraryLoader extends LibraryLoader {
             typeMapper = new NullTypeMapper();
         }
 
-        CompositeTypeMapper closureTypeMapper = new CompositeTypeMapper(typeMapper, 
-                new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)),
-                new CachingTypeMapper(new AnnotationTypeMapper()));
-        
-        typeMapper = new CompositeTypeMapper(typeMapper, 
-                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, closureTypeMapper, classLoader), classLoader, NativeLibraryLoader.ASM_ENABLED)),
-                new CachingTypeMapper(new AnnotationTypeMapper()));
-        
+        CompositeTypeMapper closureTypeMapper = new CompositeTypeMapper(typeMapper,
+                new CachingTypeMapper(new AnnotationTypeMapper()),
+                new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)));
+
+        typeMapper = new CompositeTypeMapper(typeMapper,
+                new CachingTypeMapper(new AnnotationTypeMapper()),
+                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, closureTypeMapper, classLoader), classLoader, NativeLibraryLoader.ASM_ENABLED)));
+
         CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         StubCompiler compiler = StubCompiler.newCompiler(runtime);
