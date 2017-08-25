@@ -506,6 +506,9 @@ final class DefaultInvokerFactory {
     static class BooleanInvoker extends BaseInvoker {
         static FunctionInvoker INSTANCE = new BooleanInvoker();
         public final Object invoke(Runtime runtime, Function function, HeapInvocationBuffer buffer) {
+            if (function.getReturnType().size() == 8) {
+                return invoker.invokeLong(function, buffer) != 0;
+            }
             return invoker.invokeInt(function, buffer) != 0;
         }
     }
