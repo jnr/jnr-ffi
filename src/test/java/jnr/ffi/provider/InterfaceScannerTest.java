@@ -6,7 +6,6 @@ import org.junit.Assume;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 
 public class InterfaceScannerTest {
     private static final Method SPLITERATOR;
