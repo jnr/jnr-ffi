@@ -20,6 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.SigType;
+import org.objectweb.asm.Label;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -158,9 +159,18 @@ public final class NumberUtil {
                     mv.i2c();
 
                 } else if (boolean.class == to) {
-                    // Ensure only 0x0 and 0x1 values are used for boolean
+                    /* Equivalent to
+                       return resilt == 0 ? true : false;
+                     */
+                    Label zero = new Label();
+                    Label ret = new Label();
+                    mv.iconst_0();
+                    mv.if_icmpeq(zero);
                     mv.iconst_1();
-                    mv.iand();
+                    mv.go_to(ret);
+                    mv.label(zero);
+                    mv.iconst_0();
+                    mv.label(ret);
                 }
             }
         }
