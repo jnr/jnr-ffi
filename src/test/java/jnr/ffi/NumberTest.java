@@ -35,7 +35,7 @@ import static org.junit.Assert.fail;
  */
 public class NumberTest {
 
-    public static final long LONG_WITH_ONLY_SECOND_BYTE_POSITIVE = 0xFF00000000L;
+    public static final long LONG_WITH_ONLY_THIRD_WORD_NOT_ZERO = 0xFF00000000L;
 
     public NumberTest() {
     }
@@ -367,6 +367,6 @@ public class NumberTest {
         assertEquals(true, testboolean.ret_int64_t(-5));
         assertEquals(true, testboolean.ret_int64_t(1));
         assertEquals(true, testboolean.ret_int64_t(2));
-        assertEquals(true, testboolean.ret_int64_t(LONG_WITH_ONLY_SECOND_BYTE_POSITIVE));
+        assertEquals(true, testboolean.ret_int64_t(LONG_WITH_ONLY_THIRD_WORD_NOT_ZERO));
     }
 }
