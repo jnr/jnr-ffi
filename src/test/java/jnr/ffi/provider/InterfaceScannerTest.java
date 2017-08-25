@@ -14,7 +14,7 @@ public class InterfaceScannerTest {
     static {
         Method s = null;
         try {
-            Collection.class.getMethod("spliterator");
+            s = Collection.class.getMethod("spliterator");
         } catch (Exception e) {
             // leave null, tests will be skipped
         }
