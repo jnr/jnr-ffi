@@ -47,25 +47,26 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
     public FromNativeConverter getFromNativeConverter(SignatureType signatureType, FromNativeContext fromNativeContext) {
         FromNativeConverter converter;
 
-        if (Enum.class.isAssignableFrom(signatureType.getDeclaredType())) {
-            return EnumConverter.getInstance(signatureType.getDeclaredType().asSubclass(Enum.class));
+        Class declaredType = signatureType.getDeclaredType();
+        if (Enum.class.isAssignableFrom(declaredType)) {
+            return EnumConverter.getInstance(declaredType.asSubclass(Enum.class));
 
-        } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
-            return structResultConverterFactory.get(signatureType.getDeclaredType().asSubclass(Struct.class), fromNativeContext);
+        } else if (Struct.class.isAssignableFrom(declaredType)) {
+            return structResultConverterFactory.get(declaredType.asSubclass(Struct.class), fromNativeContext);
 
-        } else if (PointerWrapper.class.isAssignableFrom(signatureType.getDeclaredType())) {
-            return PointerWrapperFromNativeConverter.getInstance(signatureType.getDeclaredType());
+        } else if (PointerWrapper.class.isAssignableFrom(declaredType)) {
+            return PointerWrapperFromNativeConverter.getInstance(declaredType);
 
-        } else if (closureManager != null && isDelegate(signatureType.getDeclaredType())) {
+        } else if (closureManager != null && isDelegate(declaredType)) {
             return ClosureFromNativeConverter.getInstance(fromNativeContext.getRuntime(), signatureType, classLoader, this);
 
-        } else if (NativeLong.class == signatureType.getDeclaredType()) {
+        } else if (NativeLong.class == declaredType) {
             return NativeLongConverter.getInstance();
 
-        } else if (String.class == signatureType.getDeclaredType() || CharSequence.class == signatureType.getDeclaredType()) {
+        } else if (String.class == declaredType || CharSequence.class == declaredType) {
             return StringResultConverter.getInstance(fromNativeContext);
 
-        } else if ((Set.class == signatureType.getDeclaredType() || EnumSet.class == signatureType.getDeclaredType()) && (converter = EnumSetConverter.getFromNativeConverter(signatureType, fromNativeContext)) != null) {
+        } else if ((Set.class == declaredType || EnumSet.class == declaredType) && (converter = EnumSetConverter.getFromNativeConverter(signatureType, fromNativeContext)) != null) {
             return converter;
 
         } else {
