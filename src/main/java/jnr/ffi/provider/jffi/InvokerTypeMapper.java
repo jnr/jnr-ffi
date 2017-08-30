@@ -20,12 +20,11 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
+import jnr.ffi.PointerWrapper;
 import jnr.ffi.Struct;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
-import jnr.ffi.mapper.FromNativeType;
-import jnr.ffi.mapper.ToNativeType;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.*;
 
@@ -53,6 +52,9 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
 
         } else if (Struct.class.isAssignableFrom(signatureType.getDeclaredType())) {
             return structResultConverterFactory.get(signatureType.getDeclaredType().asSubclass(Struct.class), fromNativeContext);
+
+        } else if (PointerWrapper.class.isAssignableFrom(signatureType.getDeclaredType())) {
+            return PointerWrapperFromNativeConverter.getInstance(signatureType.getDeclaredType());
 
         } else if (closureManager != null && isDelegate(signatureType.getDeclaredType())) {
             return ClosureFromNativeConverter.getInstance(fromNativeContext.getRuntime(), signatureType, classLoader, this);
@@ -90,6 +92,9 @@ final class InvokerTypeMapper extends AbstractSignatureTypeMapper implements Sig
 
         } else if (Struct.class.isAssignableFrom(javaType)) {
             return StructByReferenceToNativeConverter.getInstance(context);
+
+        } else if (PointerWrapper.class.isAssignableFrom(javaType)) {
+            return PointerWrapperToNativeConverter.getInstance();
 
         } else if (NativeLong.class.isAssignableFrom(javaType)) {
             return NativeLongConverter.getInstance();
