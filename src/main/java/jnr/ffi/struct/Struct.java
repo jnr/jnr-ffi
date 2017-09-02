@@ -290,12 +290,6 @@ public abstract class Struct {
      * Interface all Struct members must implement.
      */
     protected abstract class Member {
-        /**
-         * Gets the {@code Struct} this {@code Member} is a member of.
-         *
-         * @return a {@code Struct}.
-         */
-        abstract Struct struct();
 
         /**
          * Gets the memory object used to store this {@code Member}
@@ -723,15 +717,6 @@ public abstract class Struct {
         }
 
         /**
-         * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
-         *
-         * @return a <tt>Struct</tt>.
-         */
-        public final Struct struct() {
-            return Struct.this;
-        }
-
-        /**
          * Gets the offset within the structure for this field.
          */
         public final long offset() {
@@ -895,15 +880,6 @@ public abstract class Struct {
             return __info.getMemory();
         }
 
-
-        /**
-         * Gets the <tt>Struct</tt> this <tt>Member</tt> is in.
-         *
-         * @return a <tt>Struct</tt>.
-         */
-        public final Struct struct() {
-            return Struct.this;
-        }
 
         /**
          * Gets the offset within the structure for this field.
