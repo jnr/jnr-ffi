@@ -649,43 +649,15 @@ public abstract class Struct {
     }
 
     /**
-     * Base implementation of Field
+     * Base class for Boolean fields
      */
-    protected abstract class AbstractMember extends Field {
-        protected AbstractMember(int size) {
-            this(size, size);
-        }
-
-        protected AbstractMember(int size, int align, Offset offset) {
-            super(Struct.this, size, align, offset);
-        }
-
-        protected AbstractMember(int size, int align) {
-            super(Struct.this, size, align);
-        }
-
-        protected AbstractMember(NativeType type) {
+    protected abstract class AbstractBoolean extends Field {
+        protected AbstractBoolean(NativeType type) {
             super(Struct.this, type);
         }
 
-        protected AbstractMember(NativeType type, Offset offset) {
-            super(Struct.this, type, offset);
-        }
-        /**
-         * Gets the offset within the structure for this field.
-         */
-    }
-
-    /**
-     * Base class for Boolean fields
-     */
-    protected abstract class AbstractBoolean extends AbstractMember {
-        protected AbstractBoolean(NativeType type) {
-            super(type);
-        }
-
         protected AbstractBoolean(NativeType type, Offset offset) {
-            super(type, offset);
+            super(Struct.this, type, offset);
         }
 
         /**
@@ -2196,22 +2168,22 @@ public abstract class Struct {
         }
     }
 
-    abstract public class String extends AbstractMember {
+    abstract public class String extends Field {
         protected final Charset charset;
         protected final int length;
 
         protected String(NativeType nativeType, int length, Charset cs) {
-            super(nativeType);
+            super(Struct.this, nativeType);
             this.length = length;
             this.charset = cs;
         }
         protected String(int size, int align, int length, Charset cs) {
-            super(size, align);
+            super(Struct.this, size, align);
             this.length = length;
             this.charset = cs;
         }
         protected String(int size, int align, Offset offset, int length, Charset cs) {
-            super(size, align, offset);
+            super(Struct.this, size, align, offset);
             this.length = length;
             this.charset = cs;
         }
@@ -2314,9 +2286,9 @@ public abstract class Struct {
      * Specialized padding fields for structs.  Use this instead of arrays of other
      * members for more efficient struct construction.
      */
-    protected final class Padding extends AbstractMember {
+    protected final class Padding extends Field {
         public Padding(Type type, int length) {
-            super(type.size() * 8 * length, type.alignment() * 8);
+            super(Struct.this, type.size() * 8 * length, type.alignment() * 8);
         }
 
         public Padding(NativeType type, int length) {
@@ -2324,12 +2296,12 @@ public abstract class Struct {
         }
     }
 
-    public final class Function<T> extends AbstractMember {
+    public final class Function<T> extends Field {
         private final Class<? extends T> closureClass;
         private T instance;
 
         public Function(Class<? extends T> closureClass) {
-            super(NativeType.ADDRESS);
+            super(Struct.this, NativeType.ADDRESS);
             this.closureClass = closureClass;
         }
 
