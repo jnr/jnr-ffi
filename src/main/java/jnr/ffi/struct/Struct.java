@@ -2320,7 +2320,7 @@ public abstract class Struct {
         }
 
         public Padding(NativeType type, int length) {
-            super(Struct.this.getRuntime().findType(type).size() * 8 * length, Struct.this.getRuntime().findType(type).alignment() * 8);
+            this(Struct.this.getRuntime().findType(type), length);
         }
     }
 
