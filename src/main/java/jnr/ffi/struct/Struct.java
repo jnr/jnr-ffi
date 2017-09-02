@@ -235,29 +235,6 @@ public abstract class Struct {
         return sb.toString();
     }
 
-    public static final class Offset extends java.lang.Number {
-        private final int offset;
-        public Offset(int offset) {
-            this.offset = offset;
-        }
-        @Override
-        public int intValue() {
-            return offset;
-        }
-        @Override
-        public long longValue() {
-            return offset;
-        }
-        @Override
-        public float floatValue() {
-            return offset;
-        }
-        @Override
-        public double doubleValue() {
-            return offset;
-        }
-    }
-
     public static final class Alignment extends Number {
         private final int alignment;
 
