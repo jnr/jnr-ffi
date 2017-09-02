@@ -816,44 +816,30 @@ public abstract class Struct {
     /**
      * Base class for all Number structure fields.
      */
-    public abstract class NumberField extends Member {
+    public abstract class NumberField extends Field {
         /**
          * Offset from the start of the <tt>Struct</tt> memory this field is located at.
          */
-        private final int offset;
         protected final Type type;
 
         protected NumberField(NativeType type) {
+            super(Struct.this, type);
             Type t = this.type = getRuntime().findType(type);
-            this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
         }
 
         protected NumberField(NativeType type, Offset offset) {
+            super(Struct.this, type, offset);
             Type t = this.type = getRuntime().findType(type);
-            this.offset = __info.addField(t.size() * 8, t.alignment() * 8, offset);
         }
 
         protected NumberField(TypeAlias type) {
+            super(Struct.this, type);
             Type t = this.type = getRuntime().findType(type);
-            this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
         }
 
         protected NumberField(TypeAlias type, Offset offset) {
+            super(Struct.this, type, offset);
             Type t = this.type = getRuntime().findType(type);
-            this.offset = __info.addField(t.size() * 8, t.alignment() * 8, offset);
-        }
-
-
-        public final jnr.ffi.Pointer getMemory() {
-            return __info.getMemory();
-        }
-
-
-        /**
-         * Gets the offset within the structure for this field.
-         */
-        public final long offset() {
-            return offset + __info.getOffset();
         }
 
         /**
