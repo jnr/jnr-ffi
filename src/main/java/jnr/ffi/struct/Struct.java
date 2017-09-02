@@ -25,8 +25,10 @@
  * freely granted, provided that this notice is preserved.
  */
 
-package jnr.ffi;
+package jnr.ffi.struct;
 
+import jnr.ffi.*;
+import jnr.ffi.Runtime;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.jffi.ArrayMemoryIO;
 import jnr.ffi.util.EnumMapper;

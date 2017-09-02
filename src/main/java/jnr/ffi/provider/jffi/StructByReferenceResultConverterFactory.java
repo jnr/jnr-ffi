@@ -22,6 +22,7 @@ import jnr.ffi.*;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.provider.converters.StructByReferenceFromNativeConverter;
+import jnr.ffi.struct.Struct;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

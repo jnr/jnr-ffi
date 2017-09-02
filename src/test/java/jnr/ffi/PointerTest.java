@@ -19,6 +19,7 @@
 package jnr.ffi;
 
 import jnr.ffi.annotations.*;
+import jnr.ffi.struct.Struct;
 import jnr.ffi.types.int32_t;
 import jnr.ffi.types.int8_t;
 import jnr.ffi.types.size_t;
