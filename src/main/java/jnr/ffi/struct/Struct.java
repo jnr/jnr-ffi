@@ -264,26 +264,6 @@ public abstract class Struct {
     }
 
     /**
-     * Interface all Struct members must implement.
-     */
-    protected abstract class Member {
-
-        /**
-         * Gets the memory object used to store this {@code Member}
-         *
-         * @return a {@code Pointer}
-         */
-        abstract jnr.ffi.Pointer getMemory();
-
-        /**
-         * Gets the offset within the structure for this field.
-         *
-         * @return the offset within the structure for this field.
-         */
-        abstract long offset();
-    }
-
-    /**
      * Starts an array construction session
      */
     protected final void arrayBegin() {
@@ -298,14 +278,14 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Member</tt> instances.
+     * Creates an array of <tt>Field</tt> instances.
      *
-     * @param <T> The type of the <tt>Member</tt> subclass to create.
+     * @param <T> The type of the <tt>Field</tt> subclass to create.
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
     @SuppressWarnings("unchecked")
-    protected <T extends Member> T[] array(T[] array) {
+    protected <T extends Field> T[] array(T[] array) {
         arrayBegin();
         try {
             Class<?> arrayClass = array.getClass().getComponentType();
@@ -665,7 +645,7 @@ public abstract class Struct {
     }
 
     /**
-     * Base implementation of Member
+     * Base implementation of Field
      */
     protected abstract class AbstractMember extends Field {
         protected AbstractMember(int size) {
