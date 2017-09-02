@@ -40,7 +40,7 @@ public class UTF8StringFieldTest {
     }
     
     public static class StringFieldStruct extends Struct {
-        public final UTF8String string = new UTF8String(32);
+        public final jnr.ffi.struct.UTF8String string = new jnr.ffi.struct.UTF8String(this, 32);
 
         public StringFieldStruct() {
             super(runtime);
@@ -87,7 +87,7 @@ public class UTF8StringFieldTest {
     public static final class SockaddrUnix extends Struct {
         private final Signed8 sun_len = new Signed8();
         private final Signed8 sun_family = new Signed8();
-        private final UTF8String sun_path = new UTF8String(100);
+        private final jnr.ffi.struct.UTF8String sun_path = new jnr.ffi.struct.UTF8String(this, 100);
 
         public SockaddrUnix() {
             super(runtime);

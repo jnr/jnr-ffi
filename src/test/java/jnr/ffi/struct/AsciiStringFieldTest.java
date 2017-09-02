@@ -39,7 +39,7 @@ public class AsciiStringFieldTest {
     public AsciiStringFieldTest() {
     }
     public class StringFieldStruct extends Struct {
-        public final StringField string = new AsciiString(32);
+        public final StringField string = new jnr.ffi.struct.AsciiString(this, 32);
 
         public StringFieldStruct() {
             super(runtime);

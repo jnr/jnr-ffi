@@ -630,10 +630,10 @@ public abstract class Struct {
      * @param stringLength length of each string in array
      * @return the array that was passed in
      */
-    protected UTF8String[] array(UTF8String[] array, int stringLength) {
+    protected jnr.ffi.struct.UTF8String[] array(jnr.ffi.struct.UTF8String[] array, int stringLength) {
         arrayBegin();
         for (int i = 0; i < array.length; i++) {
-            array[i] = new UTF8String(stringLength);
+            array[i] = new jnr.ffi.struct.UTF8String(this, stringLength);
         }
         arrayEnd();
         return array;
@@ -2168,33 +2168,33 @@ public abstract class Struct {
         }
     }
 
-    public class UTFString extends StringField {
+    /**
+     * Use {@link jnr.ffi.struct.UTFString} instead
+     */
+    @Deprecated
+    public class UTFString extends jnr.ffi.struct.UTFString {
         public UTFString(int length, Charset cs) {
-            super(Struct.this,length * 8, 8, length, cs); // FIXME: This won't work for non-ASCII
-
-        }
-        protected jnr.ffi.Pointer getStringMemory() {
-            return getMemory().slice(offset(), length());
-        }
-
-        public final java.lang.String get() {
-            return getStringMemory().getString(0, length, charset);
-        }
-
-        public final void set(java.lang.String value) {
-            getStringMemory().putString(0, value, length, charset);
+            super(Struct.this, length, cs);
         }
     }
 
-    public class UTF8String extends UTFString {
+    /**
+     * Use {@link jnr.ffi.struct.UTF8String} instead
+     */
+    @Deprecated
+    public class UTF8String extends jnr.ffi.struct.UTF8String {
         public UTF8String(int size) {
-            super(size, UTF8);
+            super(Struct.this, size);
         }
     }
 
-    public class AsciiString extends UTFString {
+    /**
+     * Use {@link jnr.ffi.struct.AsciiString} instead
+     */
+    @Deprecated
+    public class AsciiString extends jnr.ffi.struct.AsciiString {
         public AsciiString(int size) {
-            super(size, ASCII);
+            super(Struct.this, size);
         }
     }
 
