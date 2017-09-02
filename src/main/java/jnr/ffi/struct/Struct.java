@@ -2168,42 +2168,9 @@ public abstract class Struct {
         }
     }
 
-    abstract public class String extends Field {
-        protected final Charset charset;
-        protected final int length;
-
-        protected String(NativeType nativeType, int length, Charset cs) {
-            super(Struct.this, nativeType);
-            this.length = length;
-            this.charset = cs;
-        }
-        protected String(int size, int align, int length, Charset cs) {
-            super(Struct.this, size, align);
-            this.length = length;
-            this.charset = cs;
-        }
-        protected String(int size, int align, Offset offset, int length, Charset cs) {
-            super(Struct.this, size, align, offset);
-            this.length = length;
-            this.charset = cs;
-        }
-        public final int length() {
-            return length;
-        }
-
-        protected abstract jnr.ffi.Pointer getStringMemory();
-        public abstract java.lang.String get();
-        public abstract void set(java.lang.String value);
-
-        @Override
-        public final java.lang.String toString() {
-            return get();
-        }
-    }
-
-    public class UTFString extends String {
+    public class UTFString extends StringField {
         public UTFString(int length, Charset cs) {
-            super(length * 8, 8, length, cs); // FIXME: This won't work for non-ASCII
+            super(Struct.this,length * 8, 8, length, cs); // FIXME: This won't work for non-ASCII
 
         }
         protected jnr.ffi.Pointer getStringMemory() {
@@ -2231,11 +2198,11 @@ public abstract class Struct {
         }
     }
 
-    public class UTFStringRef extends String {
+    public class UTFStringRef extends StringField {
         private jnr.ffi.Pointer valueHolder;
 
         public UTFStringRef(int length, Charset cs) {
-            super(NativeType.ADDRESS, length, cs);
+            super(Struct.this, NativeType.ADDRESS, length, cs);
         }
 
         public UTFStringRef(Charset cs) {
