@@ -28,12 +28,12 @@ public abstract class Field {
         registerInStructure(struct, t.size() * 8, t.alignment() * 8, offset);
     }
 
-    protected jnr.ffi.Pointer getMemory() {
+    public final jnr.ffi.Pointer getMemory() {
         return info.getMemory();
     }
 
-    protected int offset() {
-        return offset.intValue();
+    protected long offset() {
+        return offset.intValue() + info.getOffset();
     }
 
     private void registerInStructure(Struct struct, int size, int alignment, Offset offset) {

@@ -667,38 +667,29 @@ public abstract class Struct {
     /**
      * Base implementation of Member
      */
-    protected abstract class AbstractMember extends Member {
-        private final int offset;
+    protected abstract class AbstractMember extends Field {
         protected AbstractMember(int size) {
             this(size, size);
         }
+
         protected AbstractMember(int size, int align, Offset offset) {
-            this.offset = __info.addField(size, align, offset);
+            super(Struct.this, size, align, offset);
         }
+
         protected AbstractMember(int size, int align) {
-            this.offset = __info.addField(size, align);
+            super(Struct.this, size, align);
         }
 
         protected AbstractMember(NativeType type) {
-            final Type t = getRuntime().findType(type);
-            this.offset = __info.addField(t.size() * 8, t.alignment() * 8);
+            super(Struct.this, type);
         }
 
         protected AbstractMember(NativeType type, Offset offset) {
-            final Type t = getRuntime().findType(type);
-            this.offset = __info.addField(t.size() * 8, t.alignment() * 8, offset);
+            super(Struct.this, type, offset);
         }
-
-        public final jnr.ffi.Pointer getMemory() {
-            return __info.getMemory();
-        }
-
         /**
          * Gets the offset within the structure for this field.
          */
-        public final long offset() {
-            return offset + __info.getOffset();
-        }
     }
 
     /**
