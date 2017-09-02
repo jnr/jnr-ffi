@@ -75,6 +75,10 @@ public abstract class Struct {
             return getMemory(ParameterFlags.TRANSIENT);
         }
 
+        public final Runtime getRuntime() {
+            return runtime;
+        }
+
         final boolean isDirect() {
             return (enclosing != null && enclosing.__info.isDirect()) || (memory != null && memory.isDirect());
         }
@@ -146,7 +150,7 @@ public abstract class Struct {
     }
 
     public final Runtime getRuntime() {
-        return __info.runtime;
+        return __info.getRuntime();
     }
 
     /**
@@ -2196,6 +2200,11 @@ public abstract class Struct {
         protected final Charset charset;
         protected final int length;
 
+        protected String(NativeType nativeType, int length, Charset cs) {
+            super(nativeType);
+            this.length = length;
+            this.charset = cs;
+        }
         protected String(int size, int align, int length, Charset cs) {
             super(size, align);
             this.length = length;
@@ -2254,8 +2263,7 @@ public abstract class Struct {
         private jnr.ffi.Pointer valueHolder;
 
         public UTFStringRef(int length, Charset cs) {
-            super(getRuntime().findType(NativeType.ADDRESS).size() * 8, getRuntime().findType(NativeType.ADDRESS).alignment() * 8,
-                    length, cs);
+            super(NativeType.ADDRESS, length, cs);
         }
 
         public UTFStringRef(Charset cs) {
@@ -2312,7 +2320,7 @@ public abstract class Struct {
         }
 
         public Padding(NativeType type, int length) {
-            super(getRuntime().findType(type).size() * 8 * length, getRuntime().findType(type).alignment() * 8);
+            super(Struct.this.getRuntime().findType(type).size() * 8 * length, Struct.this.getRuntime().findType(type).alignment() * 8);
         }
     }
 

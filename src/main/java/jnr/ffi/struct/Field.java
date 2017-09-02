@@ -1,6 +1,7 @@
 package jnr.ffi.struct;
 
 import jnr.ffi.NativeType;
+import jnr.ffi.Runtime;
 import jnr.ffi.Type;
 import jnr.ffi.TypeAlias;
 
@@ -44,6 +45,10 @@ public abstract class Field {
 
     public final jnr.ffi.Pointer getMemory() {
         return info.getMemory();
+    }
+
+    public final Runtime getRuntime() {
+        return info.getRuntime();
     }
 
     protected long offset() {
