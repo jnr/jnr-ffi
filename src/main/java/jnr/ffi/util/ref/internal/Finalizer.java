@@ -96,16 +96,19 @@ public class Finalizer implements Runnable {
     private static final Constructor inheritableThreadlocalsConstructor;
 
     static {
-        Field itl = null;
-        try {
-            itl = getInheritableThreadLocalsField();
-        } catch (Throwable t) {
-        }
-
+        // Try the constructor first because it is cleaner and doesn't produce warnings on Java 9.
         Constructor itlc = null;
         try {
             itlc = getInheritableThreadLocalsConstructor();
         } catch (Throwable t) {
+        }
+
+        Field itl = null;
+        if (itlc == null) {
+            try {
+                itl = getInheritableThreadLocalsField();
+            } catch (Throwable t) {
+            }
         }
 
         inheritableThreadLocals = itl;
