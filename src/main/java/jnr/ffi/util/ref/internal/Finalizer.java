@@ -93,11 +93,11 @@ public class Finalizer implements Runnable {
     private final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
 
     private static final Field inheritableThreadLocals;
-    private static final Constructor inheritableThreadlocalsConstructor;
+    private static final Constructor<Thread> inheritableThreadlocalsConstructor;
 
     static {
         // Try the constructor first because it is cleaner and doesn't produce warnings on Java 9.
-        Constructor itlc = null;
+        Constructor<Thread> itlc = null;
         try {
             itlc = getInheritableThreadLocalsConstructor();
         } catch (Throwable t) {
@@ -134,7 +134,7 @@ public class Finalizer implements Runnable {
     public void start() {
         if (inheritableThreadlocalsConstructor != null) {
             try {
-                this.thread = (Thread) inheritableThreadlocalsConstructor.newInstance(
+                this.thread = inheritableThreadlocalsConstructor.newInstance(
                         Thread.currentThread().getThreadGroup(),
                         this,
                         Finalizer.class.getName(),
@@ -257,11 +257,9 @@ public class Finalizer implements Runnable {
         }
     }
 
-    public static Constructor getInheritableThreadLocalsConstructor() {
+    public static Constructor<Thread> getInheritableThreadLocalsConstructor() {
         try {
-            Constructor inheritableThreadLocalsConstructor
-                    = Thread.class.getConstructor(ThreadGroup.class, Runnable.class, String.class, long.class, boolean.class);
-            return inheritableThreadLocalsConstructor;
+            return Thread.class.getConstructor(ThreadGroup.class, Runnable.class, String.class, long.class, boolean.class);
         } catch (Throwable t) {
             return null;
         }
