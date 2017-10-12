@@ -18,6 +18,8 @@
 
 package jnr.ffi;
 
+import org.omg.CORBA.UNKNOWN;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.LinkedHashMap;
@@ -65,6 +67,8 @@ public abstract class Platform {
         AIX,
         /** IBM zOS **/
         ZLINUX,
+        /** MidnightBSD **/
+        MIDNIGHTBSD,
         /** No idea what the operating system is */
         UNKNOWN;
 
@@ -154,6 +158,8 @@ public abstract class Platform {
             return OS.FREEBSD;
         } else if (startsWithIgnoreCase(osName, "windows")) {
             return OS.WINDOWS;
+        } else if (startsWithIgnoreCase(osName, "midnightbsd")) {
+            return OS.MIDNIGHTBSD;
         } else {
             return OS.UNKNOWN;
         }
@@ -316,7 +322,7 @@ public abstract class Platform {
     }
     
     public final boolean isBSD() {
-        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
+        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN || os == OS.MIDNIGHTBSD;
     }
     public final boolean isUnix() {
         return os != OS.WINDOWS;
@@ -363,6 +369,7 @@ public abstract class Platform {
         case SOLARIS:
             return "c";
         case FREEBSD:
+        case MIDNIGHTBSD:
         case NETBSD:
             return "c";
         case AIX:

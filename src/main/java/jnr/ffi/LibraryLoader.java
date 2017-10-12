@@ -410,6 +410,7 @@ public abstract class LibraryLoader<T> {
                 case NETBSD:
                 case LINUX:
                 case ZLINUX:
+                case MIDNIGHTBSD:
                     // only for oracle jdk on Linux and non-OSX BSD parse /etc/ld.so.conf and /etc/ld.so.conf.d/*
                     // more details:
                     // https://github.com/jruby/jruby/issues/2913
