@@ -1,10 +1,15 @@
 package jnr.ffi;
 
 import static org.junit.Assert.assertEquals;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class StructTest {
 
+    public static interface TestLib {
+        int getTypeSize(String type);
+        int getTypeAlign(String type);
+    }
     public static class A extends Struct {
         private Signed32 x = new Signed32();
         private Signed8 y = new Signed8();
@@ -120,85 +125,95 @@ public class StructTest {
         }
     }
 
-    private static final jnr.ffi.Runtime runtime = jnr.ffi.Runtime.getSystemRuntime();
+    private static jnr.ffi.Runtime runtime;
+
+    static TestLib testlib;
+
+    @BeforeClass
+    public static void setUpClass() {
+        testlib = TstUtil.loadTestLib(TestLib.class);
+        runtime = jnr.ffi.Runtime.getRuntime(testlib);
+    }
 
     @Test
     public void testAlignA() {
-        test(new A(runtime), 4, 8);
+        test(new A(runtime));
     }
 
     @Test
     public void testAlignB() {
-        test(new B(runtime), 4, 8);
+        test(new B(runtime));
     }
 
     @Test
     public void testAlignC() {
-        test(new C(runtime), 4, 8);
+        test(new C(runtime));
     }
 
     @Test
     public void testAlignD() {
-        test(new D(runtime), 8, 24);
+        test(new D(runtime));
     }
 
     @Test
     public void testAlignE() {
-        test(new E(runtime), 8, 32);
+        test(new E(runtime));
     }
 
     @Test
     public void testAlignArray1() {
-        test(new Array1(runtime), 8, 72);
+        test(new Array1(runtime));
     }
 
     @Test
     public void testAlignMyLargeInteger() {
-        test(new MyLargeInteger(runtime), 8, 8);
+        test(new MyLargeInteger(runtime));
     }
 
     @Test
     public void testAlignF() {
-        test(new F(runtime), 8, 16);
+        test(new F(runtime));
     }
 
     @Test
     public void testAlignG() {
-        test(new G(runtime), 8, 24);
+        test(new G(runtime));
     }
 
     @Test
     public void testAlignArray2() {
-        test(new Array2(runtime), 8, 72);
+        test(new Array2(runtime));
     }
 
     @Test
     public void testAlignUnion1() {
-        test(new Union1(runtime), 8, 8);
+        test(new Union1(runtime));
     }
 
     @Test
     public void testAlignH() {
-        test(new H(runtime), 1, 3);
+        test(new H(runtime));
     }
 
     @Test
     public void testAlignUnion2() {
-        test(new Union2(runtime), 1, 15);
+        test(new Union2(runtime));
     }
 
     @Test
     public void testAlignJ() {
-        test(new J(runtime), 2, 6);
+        test(new J(runtime));
     }
 
     @Test
     public void testAlignUnion3() {
-        test(new Union3(runtime), 2, 30);
+        test(new Union3(runtime));
     }
 
-    private void test(Struct a, int alignment, int sizeof) {
+    private void test(Struct a) {
         String name = a.getClass().getSimpleName();
+        int alignment = testlib.getTypeAlign(name);
+        int sizeof = testlib.getTypeSize(name);
         assertEquals(name + ".alignment()", alignment, Struct.alignment(a));
         assertEquals("sizeof(" + name + ")", sizeof, sizeof(a));
     }
@@ -210,116 +225,3 @@ public class StructTest {
     }
 
 }
-/*
-#include <stdio.h>
-#include <stddef.h>
-
-struct A {
-    int x;
-    char y;
-};
-
-struct B {
-    char x;
-    int y;
-};
-
-struct C {
-    char x;
-    char y;
-    int z;
-};
-
-struct D {
-    char x;
-    long long y;
-    int z;
-};
-
-struct E {
-    char x;
-    D y;
-};
-
-struct Array1 {
-    D t[3];
-};
-
-union MyLargeInteger {
-
-    struct {
-        unsigned int LowPart;
-        int HighPart;
-    } u;
-    long long QuadPart;
-};
-
-struct F {
-    int x;
-    MyLargeInteger y;
-};
-
-struct G {
-    char x;
-    MyLargeInteger y;
-    int z;
-};
-
-struct Array2 {
-    G t[3];
-};
-
-union Union1 {
-    int intVal[2];
-    char ch[8];
-    MyLargeInteger my;
-    short ss[4];
-    long long u;
-};
-
-struct H {
-    char x[3];
-};
-
-struct Union2 {
-    H x[5];
-};
-
-struct J {
-    short x;
-    char y[3];
-};
-
-union Union3 {
-    J x[5];
-    char y[13];
-};
-
-#define DUMP(type)     \
-do{         \
-typedef struct _AlignType##type { \
-    char c;       \
-    type d;       \
-} AlignType##type;     \
-printf("@Test\npublic void testAlign%s() {\ntest(new %s(runtime), %d, %d);\n}\n", #type, #type, offsetof(AlignType##type, d), sizeof(type));\
-} while(0)
-
-int main() {
-    DUMP(A);
-    DUMP(B);
-    DUMP(C);
-    DUMP(D);
-    DUMP(E);
-    DUMP(Array1);
-    DUMP(MyLargeInteger);
-    DUMP(F);
-    DUMP(G);
-    DUMP(Array2);
-    DUMP(Union1);
-    DUMP(H);
-    DUMP(Union2);
-    DUMP(J);
-    DUMP(Union3);
-}
-
-*/
