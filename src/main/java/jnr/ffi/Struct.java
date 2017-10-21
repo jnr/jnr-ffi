@@ -53,7 +53,7 @@ public abstract class Struct {
         int size = 0;
         int minAlign = 1;
         boolean isUnion = false;
-        boolean resetIndex = false;
+        int currentSize = -1; // only used when this is an enum and add array elements
 
         Alignment alignment = new Alignment(0);
 
@@ -93,6 +93,20 @@ public abstract class Struct {
             }
         }
 
+        private int nextOffset(int size, int alignment) {
+            if (isUnion) {
+                if (currentSize > -1) { // add element to an array
+                    int result = align(this.currentSize, alignment);
+                    this.currentSize = result + size;
+                    return result;
+                } else {
+                    return 0;
+                }
+            } else {
+                return align(this.size, alignment);
+            }
+        }
+
         public final void useMemory(jnr.ffi.Pointer io) {
             this.memory = io;
         }
@@ -105,7 +119,7 @@ public abstract class Struct {
 
         protected final int addField(int sizeBits, int alignBits) {
             final int alignment = this.alignment.intValue() > 0 ? Math.min(this.alignment.intValue(), (alignBits >> 3)) : (alignBits >> 3);
-            final int offset = resetIndex ? 0 : align(this.size, alignment);
+            final int offset = nextOffset(sizeBits >> 3, alignment);
             this.size = Math.max(this.size, offset + (sizeBits >> 3));
             this.minAlign = Math.max(this.minAlign, alignment);
             return offset;
@@ -139,7 +153,7 @@ public abstract class Struct {
      */
     protected Struct(Runtime runtime, final boolean isUnion) {
         this(runtime);
-        __info.resetIndex = isUnion;
+        __info.currentSize = -1;
         __info.isUnion = isUnion;
     }
 
@@ -314,14 +328,14 @@ public abstract class Struct {
      * Starts an array construction session
      */
     protected final void arrayBegin() {
-        __info.resetIndex = false;
+        __info.currentSize = 0;
     }
 
     /**
      * Ends an array construction session
      */
     protected final void arrayEnd() {
-        __info.resetIndex = __info.isUnion;
+        __info.currentSize = -1;
     }
 
     /**
@@ -684,10 +698,11 @@ public abstract class Struct {
 
     protected final <T extends Struct> T inner(T struct) {
         int alignment = __info.alignment.intValue() > 0 ? Math.min(__info.alignment.intValue(), struct.__info.getMinimumAlignment()) : struct.__info.getMinimumAlignment();
-        int offset = __info.resetIndex ? 0 : align(__info.size, alignment);
+        int offset = __info.nextOffset(struct.__info.size, alignment);
         struct.__info.enclosing = this;
         struct.__info.offset = offset;
         __info.size = Math.max(__info.size, offset + struct.__info.size);
+        __info.minAlign = Math.max(__info.minAlign, alignment);
         return struct;
     }
 
