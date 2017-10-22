@@ -20,6 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.SigType;
+import org.objectweb.asm.Label;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -145,6 +146,22 @@ public final class NumberUtil {
         if (!from.equals(to)) {
             if (byte.class == to || short.class == to || char.class == to || int.class == to || boolean.class == to) {
                 if (long.class == from) {
+                    // long x = 0x100000000LL;
+                    // boolean b = x != 0;
+                    // IMO, return false only if the long is  zero.
+                    if (boolean.class == to) {
+                        mv.lconst_0();
+                        mv.lcmp();
+                        Label a = new Label();
+                        mv.ifeq(a);
+                        mv.iconst_1();
+                        Label b = new Label();
+                        mv.go_to(b);
+                        mv.label(a);
+                        mv.iconst_0();
+                        mv.label(b);
+                        return;
+                    }
                     mv.l2i();
                 }
 
@@ -159,8 +176,14 @@ public final class NumberUtil {
 
                 } else if (boolean.class == to) {
                     // Ensure only 0x0 and 0x1 values are used for boolean
+                    Label l0 = new Label();
+                    mv.ifeq(l0);
                     mv.iconst_1();
-                    mv.iand();
+                    Label l1 = new Label();
+                    mv.go_to(l1);
+                    mv.label(l0);
+                    mv.iconst_0();
+                    mv.label(l1);
                 }
             }
         }

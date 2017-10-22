@@ -21,6 +21,7 @@ package jnr.ffi;
 import java.util.Random;
 
 import jnr.ffi.annotations.LongLong;
+import jnr.ffi.provider.jffi.NoX86;
 import jnr.ffi.types.*;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -73,10 +74,18 @@ public class NumberTest {
     }
     static TestBoolean testboolean;
 
+    @NoX86
+    public static interface TestBooleanNoX86 {
+        public @int32_t boolean ret_int32_t(@int32_t int l);
+        public @int64_t boolean ret_int64_t(@int64_t long l);
+    }
+    static TestBooleanNoX86 testBooleanNoX86;
+
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         testboolean = TstUtil.loadTestLib(TestBoolean.class);
+        testBooleanNoX86 = TstUtil.loadTestLib(TestBooleanNoX86.class);
     }
 
     @AfterClass
@@ -357,4 +366,21 @@ public class NumberTest {
         assertEquals(true, testboolean.ret_int32_t(1));
         assertEquals(true, testboolean.ret_int32_t(2));
     }
+
+    @Test public void testBooleanFromIntNoX86() {
+        for (int i = -3; i <= 3; ++i) {
+            boolean expectResult = i != 0;
+            assertEquals("expect to boolean from '" + i + "'", expectResult, testBooleanNoX86.ret_int32_t(i));
+        }
+    }
+
+    @Test public void testBooleanFromLongNoX86() {
+        for (long i = -3; i <= 3; ++i) {
+            boolean expectResult = i != 0;
+            assertEquals("expect to boolean from '" + i + "'", expectResult, testBooleanNoX86.ret_int64_t(i));
+        }
+        long x = 0x100000000L;
+        assertEquals("expect to boolean from '" + x + "'", true, testBooleanNoX86.ret_int64_t(x));
+    }
+
 }
