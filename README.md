@@ -50,3 +50,6 @@ In addition, the following java types are mapped to a C pointer
 * Pointer - equivalent to "void *"
 * Buffer - equivalent to "void *"
 
+Useful tools
+------
+[spring-jnr](https://github.com/goto1134/spring-jnr) - Spring extension to load native libraries via jnr-ffi.
