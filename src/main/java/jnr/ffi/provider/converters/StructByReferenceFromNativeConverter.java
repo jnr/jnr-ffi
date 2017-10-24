@@ -19,7 +19,7 @@
 package jnr.ffi.provider.converters;
 
 import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
+import jnr.ffi.struct.Struct;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 
@@ -28,7 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 
 
 /**
- * Converts a native pointer result into a {@link jnr.ffi.Struct}
+ * Converts a native pointer result into a {@link Struct}
  */
 public class StructByReferenceFromNativeConverter implements FromNativeConverter<Struct, Pointer> {
     private final Constructor<? extends Struct> constructor;

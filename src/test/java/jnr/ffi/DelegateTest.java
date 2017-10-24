@@ -20,6 +20,7 @@ package jnr.ffi;
 
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
+import jnr.ffi.struct.Struct;
 import jnr.ffi.types.u_int32_t;
 import org.junit.*;
 

@@ -18,12 +18,11 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.Struct;
+import jnr.ffi.struct.Struct;
 import jnr.ffi.mapper.*;
 import jnr.ffi.mapper.FromNativeType;
 import jnr.ffi.mapper.ToNativeType;
 import jnr.ffi.provider.converters.EnumConverter;
-import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.converters.StringResultConverter;
 import jnr.ffi.provider.converters.StructByReferenceToNativeConverter;
 

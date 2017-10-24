@@ -18,8 +18,6 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.Library;
-import jnr.ffi.Struct;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;
@@ -41,7 +39,7 @@ public class AsciiStringFieldTest {
     public AsciiStringFieldTest() {
     }
     public class StringFieldStruct extends Struct {
-        public final String string = new AsciiString(32);
+        public final StringField string = new jnr.ffi.struct.AsciiString(this, 32);
 
         public StringFieldStruct() {
             super(runtime);

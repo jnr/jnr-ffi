@@ -20,7 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-import jnr.ffi.Struct;
+import jnr.ffi.struct.Struct;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import org.objectweb.asm.ClassReader;

@@ -20,7 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeLong;
 import jnr.ffi.Pointer;
-import jnr.ffi.Struct;
+import jnr.ffi.struct.Struct;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.byref.ByReference;
 import jnr.ffi.mapper.*;
