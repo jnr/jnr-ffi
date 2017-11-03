@@ -312,7 +312,7 @@ public class StructLayout extends Type {
         }
 
         public final boolean get(jnr.ffi.Pointer ptr) {
-            return (ptr.getByte(offset()) & 0x1) != 0;
+            return ptr.getByte(offset()) != 0;
         }
 
         public final void set(jnr.ffi.Pointer ptr, boolean value) {
@@ -333,7 +333,7 @@ public class StructLayout extends Type {
         }
 
         public final boolean get(jnr.ffi.Pointer ptr) {
-            return (ptr.getInt(offset()) & 0x1) != 0;
+            return ptr.getInt(offset()) != 0;
         }
 
         public final void set(jnr.ffi.Pointer ptr, boolean value) {

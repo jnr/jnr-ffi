@@ -308,7 +308,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 mv.iload(slot);
                 mv.i2b();
                 mv.invokestatic(Byte.class, "valueOf", Byte.class, byte.class);
-            } else if (parameterTypes[i].equals(char.class)) {
+            } else if (parameterTypes[i].equals(boolean.class)) {
                 mv.iload(slot);
                 mv.i2b();
                 mv.invokestatic(Boolean.class, "valueOf", Boolean.class, boolean.class);

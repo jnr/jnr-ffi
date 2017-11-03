@@ -92,6 +92,9 @@ class Types {
         } else if (Short.class.isAssignableFrom(type) || short.class == type) {
             return runtime.findType(NativeType.SSHORT);
 
+        } else if (Character.class.isAssignableFrom(type) || char.class == type) {
+            return runtime.findType(NativeType.USHORT);
+
         } else if (Integer.class.isAssignableFrom(type) || int.class == type) {
             return runtime.findType(NativeType.SINT);
 

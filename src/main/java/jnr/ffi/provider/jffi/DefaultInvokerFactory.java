@@ -158,6 +158,9 @@ final class DefaultInvokerFactory {
         } else if (Boolean.class.isAssignableFrom(returnType) || boolean.class == returnType) {
             return BooleanInvoker.INSTANCE;
 
+        } else if (Character.class.isAssignableFrom(returnType) || char.class == returnType) {
+            return CharacterInvoker.INSTANCE;
+
         } else if (Number.class.isAssignableFrom(returnType) || returnType.isPrimitive()) {
             return new ConvertingInvoker(getNumberResultConverter(resultType), null,
                     new ConvertingInvoker(getNumberDataConverter(resultType.getNativeType()), null, getNumberFunctionInvoker(resultType.getNativeType())));
@@ -240,6 +243,9 @@ final class DefaultInvokerFactory {
 
         } else if (Boolean.class.isAssignableFrom(type) || boolean.class == type) {
             return BooleanMarshaller.INSTANCE;
+        
+        } else if (Character.class.isAssignableFrom(type) || char.class == type) {
+            return CharacterMarshaller.INSTANCE;
         
         } else if (Pointer.class.isAssignableFrom(type)) {
             return new PointerMarshaller(annotations);
@@ -506,7 +512,17 @@ final class DefaultInvokerFactory {
     static class BooleanInvoker extends BaseInvoker {
         static FunctionInvoker INSTANCE = new BooleanInvoker();
         public final Object invoke(Runtime runtime, Function function, HeapInvocationBuffer buffer) {
+            if (function.getReturnType().size() == 8) {
+                return invoker.invokeLong(function, buffer) != 0;
+            }
             return invoker.invokeInt(function, buffer) != 0;
+        }
+    }
+
+    static class CharacterInvoker extends BaseInvoker {
+        static FunctionInvoker INSTANCE = new CharacterInvoker();
+        public final Object invoke(Runtime runtime, Function function, HeapInvocationBuffer buffer) {
+            return (char) invoker.invokeInt(function, buffer);
         }
     }
 
@@ -549,6 +565,13 @@ final class DefaultInvokerFactory {
         static final Marshaller INSTANCE = new BooleanMarshaller();
         public void marshal(InvocationSession session, HeapInvocationBuffer buffer, Object parameter) {
             buffer.putInt(((Boolean) parameter).booleanValue() ? 1 : 0);
+        }
+    }
+
+    static class CharacterMarshaller implements Marshaller {
+        static final CharacterMarshaller INSTANCE = new CharacterMarshaller();
+        public void marshal(InvocationSession session, HeapInvocationBuffer buffer, Object parameter) {
+            buffer.putInt(((Character) parameter).charValue());
         }
     }
 
@@ -767,7 +790,7 @@ final class DefaultInvokerFactory {
 
         @Override
         public Number toNative(Number value, ToNativeContext context) {
-            return value.intValue() & 0xffff;
+            return value.byteValue() & 0xff;
         }
     }
 
@@ -868,7 +891,7 @@ final class DefaultInvokerFactory {
         static final DataConverter<Boolean, Number> INSTANCE = new BooleanConverter();
         @Override
         public Boolean fromNative(Number nativeValue, FromNativeContext context) {
-            return (nativeValue.intValue() & 0x1) != 0;
+            return nativeValue.longValue() != 0;
         }
 
         @Override

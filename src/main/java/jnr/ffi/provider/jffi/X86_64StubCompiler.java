@@ -178,6 +178,15 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
                     a.mov(dstRegisters32[i], srcRegisters32[i]);
                     break;
 
+                case SLONGLONG:
+                case ULONGLONG:
+                    if (parameterTypes[i].getDeclaredType() != long.class) {
+                        a.movsxd(dstRegisters64[i], srcRegisters32[i]);
+                    } else {
+                        a.mov(dstRegisters64[i], srcRegisters64[i]);
+                    }
+                    break;
+
                 default:
                     a.mov(dstRegisters64[i], srcRegisters64[i]);
                     break;
@@ -215,6 +224,15 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
                 case UINT:
                     // mov with a 32bit dst reg zero extends to 64bit
                     a.mov(dstRegisters32[i], dword_ptr(rsp, disp));
+                    break;
+
+                case SLONGLONG:
+                case ULONGLONG:
+                    if (parameterTypes[i].getDeclaredType() != long.class) {
+                        a.movsxd(dstRegisters64[i], dword_ptr(rsp, disp));
+                    } else {
+                        a.mov(dstRegisters64[i], qword_ptr(rsp, disp));
+                    }
                     break;
 
                 default:
@@ -341,6 +359,11 @@ final class X86_64StubCompiler extends AbstractX86StubCompiler {
                     if (long.class == resultClass) a.mov(eax, eax);
                     break;
             }
+        }
+
+        if (boolean.class == resultType.getDeclaredType()) {
+            a.test(rax, rax);
+            a.setne(rax);
         }
 
         // Restore rsp to original position
