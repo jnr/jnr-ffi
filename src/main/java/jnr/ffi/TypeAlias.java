@@ -55,4 +55,7 @@ public enum TypeAlias {
     sa_family_t,
     socklen_t,
     rlim_t,
+    cc_t,
+    speed_t,
+    tcflag_t,
 }
