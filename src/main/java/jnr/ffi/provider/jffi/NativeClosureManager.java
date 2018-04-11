@@ -30,14 +30,13 @@ import java.util.Map;
  */
 final class NativeClosureManager implements ClosureManager {
     private volatile Map<Class<?>, NativeClosureFactory> factories = new IdentityHashMap<Class<?>, NativeClosureFactory>();
+    private volatile Map<ClassLoader,AsmClassLoader> asmClassLoaders = new IdentityHashMap<ClassLoader,AsmClassLoader>();
     private final jnr.ffi.Runtime runtime;
     private final SignatureTypeMapper typeMapper;
-    private final AsmClassLoader classLoader;
 
-    NativeClosureManager(jnr.ffi.Runtime runtime, SignatureTypeMapper typeMapper, AsmClassLoader classLoader) {
+    NativeClosureManager(jnr.ffi.Runtime runtime, SignatureTypeMapper typeMapper) {
         this.runtime = runtime;
         this.typeMapper = new CompositeTypeMapper(typeMapper, new CachingTypeMapper(new ClosureTypeMapper()));
-        this.classLoader = classLoader;
     }
 
     <T> NativeClosureFactory<T> getClosureFactory(Class<T> closureClass) {
@@ -45,8 +44,13 @@ final class NativeClosureManager implements ClosureManager {
         if (factory != null) {
             return factory;
         }
+        AsmClassLoader asmCl = asmClassLoaders.get(closureClass.getClassLoader());
+        if (asmCl==null) {
+            asmCl = new AsmClassLoader( closureClass.getClassLoader());
+            asmClassLoaders.put(closureClass.getClassLoader(), asmCl);
+        }
 
-        return initClosureFactory(closureClass);
+        return initClosureFactory(closureClass, asmCl);
     }
 
     public <T> T newClosure(Class<? extends T> closureClass, T instance) {
@@ -61,7 +65,7 @@ final class NativeClosureManager implements ClosureManager {
         return getClosureFactory(closureClass).getClosureReference(instance).getPointer();
     }
 
-    synchronized <T> NativeClosureFactory<T> initClosureFactory(Class<T> closureClass) {
+    synchronized <T> NativeClosureFactory<T> initClosureFactory(Class<T> closureClass, AsmClassLoader classLoader) {
         NativeClosureFactory<T> factory = factories.get(closureClass);
         if (factory != null) {
             return factory;
