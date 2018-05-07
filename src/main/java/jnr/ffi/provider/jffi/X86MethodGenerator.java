@@ -61,7 +61,7 @@ class X86MethodGenerator implements MethodGenerator {
             return false;
         }
 
-        if (!platform.getCPU().equals(Platform.CPU.I386) && !platform.getCPU().equals(Platform.CPU.X86_64)) {
+        if (!platform.getCPU().equals(Platform.CPU.I386) && !platform.getCPU().equals(Platform.CPU.X86_64) && !platform.getCPU().equals(Platform.CPU.AARCH64)) {
             return false;
         }
 
