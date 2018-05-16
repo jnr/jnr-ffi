@@ -439,10 +439,10 @@ public class PointerTest {
         Pointer src = runtime.getMemoryManager().allocateDirect(128);
         Pointer dst = runtime.getMemoryManager().allocateDirect(128);
         for (int i = 0; i < src.size(); i++) {
-            src.putByte(i, (byte)(i % 256));
+            src.putByte(i, (byte)(i & 0xFF));
         }
 
-        dst.transferFrom(0, dst, 0, src.size());
+        dst.transferFrom(0, src, 0, src.size());
 
         for (int i = 0; i < src.size(); i++) {
             assertEquals(src.getByte(i), dst.getByte(i));
