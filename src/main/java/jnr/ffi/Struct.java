@@ -2577,6 +2577,21 @@ public abstract class Struct {
         public time_t(Offset offset) { super(TypeAlias.time_t, offset); }
     }
 
+    public final class cc_t extends IntegerAlias {
+        public cc_t() { super(TypeAlias.cc_t); }
+        public cc_t(Offset offset) { super(TypeAlias.cc_t, offset); }
+    }
+
+    public final class speed_t extends IntegerAlias {
+        public speed_t() { super(TypeAlias.speed_t); }
+        public speed_t(Offset offset) { super(TypeAlias.speed_t, offset); }
+    }
+
+    public final class tcflag_t extends IntegerAlias {
+        public tcflag_t() { super(TypeAlias.tcflag_t); }
+        public tcflag_t(Offset offset) { super(TypeAlias.tcflag_t, offset); }
+    }
+
     public final class fsblkcnt_t extends IntegerAlias {
         public fsblkcnt_t() { super(TypeAlias.fsblkcnt_t); }
         public fsblkcnt_t(Offset offset) { super(TypeAlias.fsblkcnt_t, offset); }
