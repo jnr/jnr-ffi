@@ -1865,6 +1865,7 @@ public abstract class Struct {
 
 
     public abstract class PointerField extends NumberField {
+        private jnr.ffi.Pointer finalPointer;
         /**
          * Creates a new <tt>Address</tt> field.
          */
@@ -1900,7 +1901,7 @@ public abstract class Struct {
          * @param value the value to write.
          */
         public final void set(jnr.ffi.Pointer value) {
-            jnr.ffi.Pointer finalPointer = value;
+            finalPointer = value;
             if (value instanceof ArrayMemoryIO) {
                 ArrayMemoryIO arrayMemory = (ArrayMemoryIO) value;
                 byte[] valueArray = arrayMemory.array();
