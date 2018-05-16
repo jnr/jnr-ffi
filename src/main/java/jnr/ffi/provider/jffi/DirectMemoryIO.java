@@ -18,9 +18,11 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.MemoryIO;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.AbstractMemoryIO;
+import jnr.ffi.provider.DelegatingMemoryIO;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -208,4 +210,31 @@ class DirectMemoryIO extends AbstractMemoryIO {
         IO.setMemory(this.address() + offset, size, value);
     }
 
+    @Override
+    public void transferTo(long offset, Pointer other, long otherOffset, long count) {
+        Pointer dst = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
+
+        if (dst instanceof DirectMemoryIO) {
+            other.checkBounds(otherOffset, count);
+            memcpy(this, offset, ((DirectMemoryIO) dst), otherOffset, count);
+        } else {
+            super.transferTo(offset, other, otherOffset, count);
+        }
+    }
+
+    @Override
+    public void transferFrom(long offset, Pointer other, long otherOffset, long count) {
+        Pointer src = other instanceof DelegatingMemoryIO ? ((DelegatingMemoryIO) other).getDelegatedMemoryIO() : other;
+
+        if (src instanceof DirectMemoryIO) {
+            other.checkBounds(otherOffset, count);
+            memcpy(((DirectMemoryIO) src), otherOffset, this, offset, count);
+        } else {
+            super.transferFrom(offset, other, otherOffset, count);
+        }
+    }
+
+    private static void memcpy(DirectMemoryIO src, long srcOffset, DirectMemoryIO dst, long dstOffset, long count) {
+        IO.memcpy(dst.address() + dstOffset, src.address() + srcOffset, count);
+    }
 }
