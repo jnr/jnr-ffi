@@ -259,8 +259,8 @@ public abstract class Platform {
     }
 
     private static int calculateAddressSize(CPU cpu) {
-        int dataModel = Integer.getInteger("sun.arch.data.model");
-        if (dataModel != 32 && dataModel != 64) {
+        Integer dataModel = Integer.getInteger("sun.arch.data.model");
+        if (dataModel == null || (dataModel != 32 && dataModel != 64)) {
             switch (cpu) {
                 case I386:
                 case PPC:
