@@ -103,6 +103,14 @@
     </dependency>
     <dependency>
       <groupId>com.github.jnr</groupId>
+      <!--<artifactId>jnr-x86asm</artifactId>
+      <version>1.0.2</version>-->
+      <artifactId>jnr-a64asm</artifactId>
+	  <version>1.0.0</version>
+	  <scope>compile</scope>
+    </dependency>
+	<dependency>
+      <groupId>com.github.jnr</groupId>
       <artifactId>jnr-x86asm</artifactId>
       <version>1.0.2</version>
       <scope>compile</scope>

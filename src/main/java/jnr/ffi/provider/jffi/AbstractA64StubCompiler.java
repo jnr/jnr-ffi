@@ -24,8 +24,8 @@ import com.kenai.jffi.NativeMethods;
 import com.kenai.jffi.PageManager;
 import jnr.ffi.*;
 import jnr.ffi.Runtime;
-import jnr.x86asm.Assembler;
-
+/*import jnr.x86asm.Assembler; */
+import jnr.a64asm.Assembler_A64;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -37,11 +37,11 @@ import java.util.logging.Logger;
 /**
  * Base class for most X86_32/X86_64 stub compilers
  */
-abstract class AbstractX86StubCompiler extends StubCompiler {
+abstract class AbstractA64StubCompiler extends StubCompiler {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private final jnr.ffi.Runtime runtime;
 
-    protected AbstractX86StubCompiler(jnr.ffi.Runtime runtime) {
+    protected AbstractA64StubCompiler(jnr.ffi.Runtime runtime) {
         this.runtime = runtime;
     }
 
@@ -54,15 +54,15 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         static final Map<Class, PageHolder> PAGES
                 = Collections.synchronizedMap(new WeakHashMap<Class, PageHolder>());
     }
-    final List<Stub> stubs = new LinkedList<Stub>();
+    final List<Stub> stubs_A64 = new LinkedList<Stub>();
 
 
     static final class Stub {
         final String name;
         final String signature;
-        final Assembler assembler;
+        final Assembler_A64 assembler;
 
-        public Stub(String name, String signature, Assembler assembler) {
+        public Stub(String name, String signature, Assembler_A64 assembler) {
             this.name = name;
             this.signature = signature;
             this.assembler = assembler;
@@ -103,12 +103,12 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
     @Override
     void attach(Class clazz) {
 
-        if (stubs.isEmpty()) {
+        if (stubs_A64.isEmpty()) {
             return;
         }
 
         long codeSize = 0;
-        for (Stub stub : stubs) {
+        for (Stub stub : stubs_A64) {
             // add 8 bytes for alignment
             codeSize += stub.assembler.codeSize() + 8;
         }
@@ -124,13 +124,13 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
         PageHolder page = new PageHolder(pm, code, npages);
 
         // Now relocate/copy all the assembler stubs into the real code area
-        List<NativeMethod> methods = new ArrayList<NativeMethod>(stubs.size());
+        List<NativeMethod> methods = new ArrayList<NativeMethod>(stubs_A64.size());
         long fn = code;
         PrintStream dbg = System.err;
         System.out.flush(); System.err.flush();
 
-        for (Stub stub : stubs) {
-            Assembler asm = stub.assembler;
+        for (Stub stub : stubs_A64) {
+            Assembler_A64 asm = stub.assembler;
             // align the start of all functions on a 8 byte boundary
             fn = align(fn, 8);
             ByteBuffer buf = ByteBuffer.allocate(asm.codeSize()).order(ByteOrder.LITTLE_ENDIAN);
