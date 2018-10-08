@@ -1865,6 +1865,7 @@ public abstract class Struct {
 
 
     public abstract class PointerField extends NumberField {
+        private jnr.ffi.Pointer finalPointer;
         /**
          * Creates a new <tt>Address</tt> field.
          */
@@ -1900,7 +1901,7 @@ public abstract class Struct {
          * @param value the value to write.
          */
         public final void set(jnr.ffi.Pointer value) {
-            jnr.ffi.Pointer finalPointer = value;
+            finalPointer = value;
             if (value instanceof ArrayMemoryIO) {
                 ArrayMemoryIO arrayMemory = (ArrayMemoryIO) value;
                 byte[] valueArray = arrayMemory.array();
@@ -2575,6 +2576,21 @@ public abstract class Struct {
     public final class time_t extends IntegerAlias {
         public time_t() { super(TypeAlias.time_t); }
         public time_t(Offset offset) { super(TypeAlias.time_t, offset); }
+    }
+
+    public final class cc_t extends IntegerAlias {
+        public cc_t() { super(TypeAlias.cc_t); }
+        public cc_t(Offset offset) { super(TypeAlias.cc_t, offset); }
+    }
+
+    public final class speed_t extends IntegerAlias {
+        public speed_t() { super(TypeAlias.speed_t); }
+        public speed_t(Offset offset) { super(TypeAlias.speed_t, offset); }
+    }
+
+    public final class tcflag_t extends IntegerAlias {
+        public tcflag_t() { super(TypeAlias.tcflag_t); }
+        public tcflag_t(Offset offset) { super(TypeAlias.tcflag_t, offset); }
     }
 
     public final class fsblkcnt_t extends IntegerAlias {

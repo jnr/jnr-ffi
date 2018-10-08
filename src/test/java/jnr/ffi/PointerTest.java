@@ -404,4 +404,62 @@ public class PointerTest {
 //        Pointer p = libc.malloc(SIZE);
 //        libc.free(p);
 //    }
+
+    @Test
+    public void testTransferTo() {
+        Pointer src = runtime.getMemoryManager().allocateDirect(128);
+        Pointer dst = runtime.getMemoryManager().allocateDirect(128);
+        for (int i = 0; i < src.size(); i++) {
+             src.putByte(i, (byte)(i % 256));
+        }
+
+        src.transferTo(0, dst, 0, src.size());
+
+        for (int i = 0; i < src.size(); i++) {
+            assertEquals(src.getByte(i), dst.getByte(i));
+        }
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testTransferToSrcOutOfBounds() {
+        Pointer src = runtime.getMemoryManager().allocateDirect(128);
+        Pointer dst = runtime.getMemoryManager().allocateDirect(128);
+        src.transferTo(10, dst, 0, src.size());
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testTransferToDstOutOfBounds() {
+        Pointer src = runtime.getMemoryManager().allocateDirect(128);
+        Pointer dst = runtime.getMemoryManager().allocateDirect(128);
+        src.transferTo(0, dst, 10, src.size());
+    }
+
+    @Test
+    public void testTransferFrom() {
+        Pointer src = runtime.getMemoryManager().allocateDirect(128);
+        Pointer dst = runtime.getMemoryManager().allocateDirect(128);
+        for (int i = 0; i < src.size(); i++) {
+            src.putByte(i, (byte)(i & 0xFF));
+        }
+
+        dst.transferFrom(0, src, 0, src.size());
+
+        for (int i = 0; i < src.size(); i++) {
+            assertEquals(src.getByte(i), dst.getByte(i));
+        }
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testTransferFromSrcOutOfBounds() {
+        Pointer src = runtime.getMemoryManager().allocateDirect(128);
+        Pointer dst = runtime.getMemoryManager().allocateDirect(128);
+        dst.transferFrom(0, dst, 10, src.size());
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testTransferFromDstOutOfBounds() {
+        Pointer src = runtime.getMemoryManager().allocateDirect(128);
+        Pointer dst = runtime.getMemoryManager().allocateDirect(128);
+        dst.transferFrom(10, dst, 0, src.size());
+    }
 }

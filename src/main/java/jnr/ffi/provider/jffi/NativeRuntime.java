@@ -41,16 +41,7 @@ import java.util.logging.Logger;
 public final class NativeRuntime extends AbstractRuntime {
     private final NativeMemoryManager mm = new NativeMemoryManager(this);
     private final NativeClosureManager closureManager = new NativeClosureManager(this,
-            new SignatureTypeMapperAdapter(new DefaultTypeMapper()),
-            new AsmClassLoader(getParentClassLoader()));
-
-    private static ClassLoader getParentClassLoader() {
-        ClassLoader cl = NativeRuntime.class.getClassLoader();
-        if (cl == null) {
-            cl = ClassLoader.getSystemClassLoader();
-        }
-        return cl;
-    }
+            new SignatureTypeMapperAdapter(new DefaultTypeMapper()));
 
     private final Type[] aliases;
 
