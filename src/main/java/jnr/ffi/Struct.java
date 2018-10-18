@@ -223,7 +223,13 @@ public abstract class Struct {
             try {
                 sb.append(fieldPrefix);
                 sb.append(field.getName()).append(" = ");
-                sb.append(field.get(this).toString());
+                try {
+                    sb.append(field.get(this).toString());
+                } catch (NullPointerException ex) {
+                    sb.append("- null -");
+                } catch (IllegalAccessException ex) {
+                    sb.append("- IllegalAccessException -");
+                }
                 sb.append("\n");
             } catch (Throwable ex) {
                 throw new RuntimeException(ex);
