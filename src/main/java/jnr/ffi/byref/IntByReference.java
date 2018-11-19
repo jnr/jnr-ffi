@@ -60,20 +60,11 @@ import jnr.ffi.Runtime;
  */
 public final class IntByReference extends AbstractNumberReference<Integer> {
 
+    private int value;
     /**
      * Creates a new reference to an integer value initialized to zero.
      */
     public IntByReference() {
-        super(Integer.valueOf(0));
-    }
-
-    /**
-     * Creates a new reference to an integer value
-     * 
-     * @param value the initial native value
-     */
-    public IntByReference(Integer value) {
-        super(checkNull(value));
     }
 
     /**
@@ -82,7 +73,8 @@ public final class IntByReference extends AbstractNumberReference<Integer> {
      * @param value the initial native value
      */
     public IntByReference(int value) {
-        super(value);
+        super();
+        this.value = value;
     }
     
     /**
@@ -114,5 +106,40 @@ public final class IntByReference extends AbstractNumberReference<Integer> {
      */
     public int nativeSize(Runtime runtime) {
         return 4;
+    }
+    
+    @Override
+    public Integer getValue() {
+        return Integer.valueOf(value);
+    }
+    
+    @Override
+    public byte byteValue() {
+        return (byte)value;
+    }
+
+    @Override
+    public short shortValue() {
+        return (short)value;
+    }
+
+    @Override
+    public int intValue() {
+        return value;
+    }
+
+    @Override
+    public long longValue() {
+        return (long)value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float)value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double)value;
     }
 }

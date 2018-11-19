@@ -65,14 +65,14 @@ import jnr.ffi.Runtime;
  */
 public class NumberByReference extends AbstractNumberReference<Number> {
     private final TypeAlias typeAlias;
+    private Number value; 
 
     public NumberByReference(TypeAlias typeAlias, Number value) {
-        super(checkNull(value));
-        this.typeAlias = typeAlias;
-    }
-
-    public NumberByReference(TypeAlias typeAlias) {
-        super(0);
+        super();
+        if (value == null) {
+            throw new NullPointerException("reference value cannot be null");
+        }
+        this.value = value;
         this.typeAlias = typeAlias;
     }
 
@@ -170,4 +170,40 @@ public class NumberByReference extends AbstractNumberReference<Number> {
                 throw new UnsupportedOperationException("unsupported type: " + typeAlias);
         }
     }
+    
+    @Override
+    public Number getValue() {
+        return value;
+    }
+    
+    @Override
+    public byte byteValue() {
+        return value.byteValue();
+    }
+
+    @Override
+    public short shortValue() {
+        return value.shortValue();
+    }
+
+    @Override
+    public int intValue() {
+        return value.intValue();
+    }
+
+    @Override
+    public long longValue() {
+        return value.longValue();
+    }
+
+    @Override
+    public float floatValue() {
+        return value.floatValue();
+    }
+
+    @Override
+    public double doubleValue() {
+        return value.doubleValue();
+    }
+
 }

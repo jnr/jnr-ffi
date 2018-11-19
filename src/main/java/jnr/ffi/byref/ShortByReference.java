@@ -59,20 +59,12 @@ import jnr.ffi.Runtime;
  */
 public final class ShortByReference extends AbstractNumberReference<Short> {
     
+    private short value;
     /**
      * Creates a new reference to a short value initialized to zero.
      */
     public ShortByReference() {
-        super(Short.valueOf((short) 0));
-    }
-
-    /**
-     * Creates a new reference to a short value.
-     * 
-     * @param value the initial native value
-     */
-    public ShortByReference(Short value) {
-        super(checkNull(value));
+        super();
     }
 
     /**
@@ -81,7 +73,8 @@ public final class ShortByReference extends AbstractNumberReference<Short> {
      * @param value the initial native value
      */
     public ShortByReference(short value) {
-        super(value);
+        super();
+        this.value = value;
     }
     
     /**
@@ -115,4 +108,40 @@ public final class ShortByReference extends AbstractNumberReference<Short> {
     public final int nativeSize(Runtime runtime) {
         return 2;
     }
+    
+    @Override
+    public Short getValue() {
+        return Short.valueOf(value);
+    }
+    
+    @Override
+    public byte byteValue() {
+        return (byte)value;
+    }
+
+    @Override
+    public short shortValue() {
+        return value;
+    }
+
+    @Override
+    public int intValue() {
+        return (int)value;
+    }
+
+    @Override
+    public long longValue() {
+        return (long)value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float)value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double)value;
+    }
+
 }
