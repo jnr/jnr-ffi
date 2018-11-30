@@ -32,30 +32,99 @@ public enum TypeAlias {
     caddr_t,
     dev_t,
     blkcnt_t,
+    /**
+     * POSIX
+     */
     blksize_t,
     gid_t,
     in_addr_t,
     in_port_t,
     ino_t,
+    /**
+     *TODO Is this not defined as __ino64_t??
+     */
     ino64_t,
     key_t,
+    /**
+     * POSIX
+     */
     mode_t,
     nlink_t,
     id_t,
+    /**
+     * POSIX
+     */
     pid_t,
     off_t,
+    /**
+     * TODO Where is this from
+     */
     swblk_t,
     uid_t,
     clock_t,
+    /**
+     * POSIX
+     */
     size_t,
+    /**
+     * POSIX
+     */
     ssize_t,
     time_t,
     fsblkcnt_t,
     fsfilcnt_t,
     sa_family_t,
     socklen_t,
+    /**
+     * TODO Is this not defines ad  __rlim_t
+     */
     rlim_t,
+    /**
+     * POSIX
+     */
     cc_t,
+    /**
+     * POSIX
+     */
     speed_t,
+    /**
+     * POSIX
+     */
     tcflag_t,
+    /**
+     * Header: eventfd.h
+     * Linux:
+     * typedef uint64_t eventfd_t;
+     */
+    eventfd_t,
+    /**
+     * POSIX
+     * Header: poll.h
+     * Linux:
+     * typedef unsigned long int nfds_t
+     */
+    nfds_t,
+    /**
+     * Header: unistd.h
+     * Linux:
+     * typedef unsigned int __useconds_t;
+     * typedef __useconds_t useconds_t;
+     */
+    useconds_t,
+    /**
+     * POSIX
+     */
+    ptrdiff_t,
+    /**
+     * POSIX
+     */
+    suseconds_t,
+    /**
+     * POSIX
+     */
+    wchar_t,
+    /**
+     * POSIX
+     */
+    wint_t;
 }

@@ -176,7 +176,7 @@ public abstract class Struct {
         return struct.__info.isDirect();
     }
 
-    private static int align(int offset, int align) {
+    public static int align(int offset, int align) {
         return (offset + align - 1) & ~(align - 1);
     }
 
@@ -2617,4 +2617,20 @@ public abstract class Struct {
         public rlim_t() { super(TypeAlias.rlim_t); }
         public rlim_t(Offset offset) { super(TypeAlias.rlim_t, offset); }
     }
+
+    public final class useconds_t extends IntegerAlias {
+        public useconds_t() { super(TypeAlias.useconds_t); }
+        public useconds_t(Offset offset) { super(TypeAlias.useconds_t, offset); }
+    }
+
+    public final class nfds_t extends IntegerAlias {
+        public nfds_t() { super(TypeAlias.nfds_t); }
+        public nfds_t(Offset offset) { super(TypeAlias.nfds_t, offset); }
+    }
+
+    public final class eventfd_t extends IntegerAlias {
+        public eventfd_t() { super(TypeAlias.eventfd_t); }
+        public eventfd_t(Offset offset) { super(TypeAlias.eventfd_t, offset); }
+    }
+    
 }

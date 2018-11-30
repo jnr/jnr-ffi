@@ -67,6 +67,9 @@ public final class TypeAliases {
         m.put(TypeAlias.cc_t, NativeType.UCHAR);
         m.put(TypeAlias.speed_t, NativeType.UINT);
         m.put(TypeAlias.tcflag_t, NativeType.UINT);
+        m.put(TypeAlias.eventfd_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.nfds_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.useconds_t, NativeType.UINT);
         return m;
     }
 }

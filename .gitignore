@@ -6,6 +6,9 @@
 *.iml
 *.iws
 *.ipr
+.classpath
+.project
+.settings
 nbproject/private
 build
 dist

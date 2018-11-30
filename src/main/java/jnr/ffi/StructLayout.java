@@ -1937,4 +1937,35 @@ public class StructLayout extends Type {
         public rlim_t() { super(TypeAlias.rlim_t); }
         public rlim_t(Offset offset) { super(TypeAlias.rlim_t, offset); }
     }
+    
+    public final class useconds_t extends IntegerAlias {
+        public useconds_t() { super(TypeAlias.useconds_t); }
+        public useconds_t(Offset offset) { super(TypeAlias.useconds_t, offset); }
+    }
+
+    public final class cc_t extends IntegerAlias {
+        public cc_t() { super(TypeAlias.cc_t); }
+        public cc_t(Offset offset) { super(TypeAlias.cc_t, offset); }
+    }
+
+    public final class speed_t extends IntegerAlias {
+        public speed_t() { super(TypeAlias.speed_t); }
+        public speed_t(Offset offset) { super(TypeAlias.speed_t, offset); }
+    }
+
+    public final class tcflag_t extends IntegerAlias {
+        public tcflag_t() { super(TypeAlias.tcflag_t); }
+        public tcflag_t(Offset offset) { super(TypeAlias.tcflag_t, offset); }
+    }
+
+    public final class nfds_t extends IntegerAlias {
+        public nfds_t() { super(TypeAlias.nfds_t); }
+        public nfds_t(Offset offset) { super(TypeAlias.nfds_t, offset); }
+    }
+
+    public final class eventfd_t extends IntegerAlias {
+        public eventfd_t() { super(TypeAlias.eventfd_t); }
+        public eventfd_t(Offset offset) { super(TypeAlias.eventfd_t, offset); }
+    }
+
 }

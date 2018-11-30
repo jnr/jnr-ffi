@@ -95,7 +95,9 @@ public final class NativeRuntime extends AbstractRuntime {
             for (TypeAlias t : typeAliases) {
                 aliases[t.ordinal()] = (NativeType) aliasMap.get(t);
                 if (aliases[t.ordinal()] == null) {
-                    aliases[t.ordinal()] = NativeType.VOID;
+                    //Fail fast otherwise loading of the libraray may fail without meaningful error message!
+                    throw new RuntimeException(String.format("TypeAlias for \"%s\" on cpu: \"%s\" and os: \"%s\" not defined!\n\tClass: \"%s\" is is out of date Please file a bug at https://www.github.com/jnr/jnr-ffi !", t, cpu, os, cls.getCanonicalName()));
+                    // aliases[t.ordinal()] = NativeType.VOID;
                 }
             }
         } catch (ClassNotFoundException cne) {
