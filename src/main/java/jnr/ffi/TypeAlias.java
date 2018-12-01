@@ -29,7 +29,7 @@ public enum TypeAlias {
     u_int64_t,
     intptr_t,
     uintptr_t,
-    caddr_t,
+    caddr_t, //TODO PointerTo char ???
     dev_t,
     blkcnt_t,
     /**

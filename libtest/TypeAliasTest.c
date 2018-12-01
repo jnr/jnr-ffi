@@ -183,74 +183,85 @@ struct testTypeAliases {
 #endif    
 };
 
+#define GENERATE_SIZEOF_TEST(dt_name)\
+int sizeOf_##dt_name() {\
+    dt_name v = -1;\
+    if (v > 0) {\
+      return sizeof(dt_name);\
+    } else {\
+      return -((long int)sizeof(dt_name));\
+    }\
+} 
+
+#define GENERATE_INTEGER_TEST(dt_name)\
+    dt_name test__##dt_name(dt_name value) {\
+      return ~value;\
+    } \
+int sizeOf_##dt_name() {\
+    dt_name v = -1;\
+    if (v > 0) {\
+      return sizeof(dt_name);\
+    } else {\
+      return -((long int)sizeof(dt_name));\
+    } \
+}\
+
+    
 //#define __USE_POSIX    
 #ifdef __USE_POSIX    
 
-int sizeOf_int8_t() {
-    return sizeof(int8_t);
-}
+GENERATE_INTEGER_TEST(int8_t)
+GENERATE_INTEGER_TEST(u_int8_t)
+GENERATE_INTEGER_TEST(int16_t)
+GENERATE_INTEGER_TEST(u_int16_t)
+GENERATE_INTEGER_TEST(int32_t)
+GENERATE_INTEGER_TEST(u_int32_t)
+GENERATE_INTEGER_TEST(int64_t)
+GENERATE_INTEGER_TEST(u_int64_t)
+GENERATE_INTEGER_TEST(blkcnt_t)
+GENERATE_INTEGER_TEST(blksize_t)
+//TODO how to test dataType char * ??         
+GENERATE_SIZEOF_TEST(caddr_t)
 
-int8_t test__int8_t(int8_t value) {
-    return ~value;
-}
-
-int sizeOf_u_int8_t() {
-    return sizeof(u_int8_t);
-}
-
-u_int8_t test__u_int8_t(u_int8_t value) {
-    return ~value;
-}
-
-int sizeOf_int16_t() {
-    return sizeof(int16_t);
-}
-
-int16_t test__int16_t(int16_t value) {
-    return ~value;
-}
-
-int sizeOf_u_int16_t() {
-    return sizeof(u_int16_t);
-}
-
-u_int16_t test__u_int16_t(u_int16_t value) {
-    return ~value;
-}
-
-int sizeOf_int32_t() {
-    return sizeof(int32_t);
-}
-
-int32_t test__int32_t(int32_t value) {
-    return ~value;
-}
-
-int sizeOf_u_int32_t() {
-    return sizeof(u_int32_t);
-}
-
-u_int32_t test__u_int32_t(u_int32_t value) {
-    return ~value;
-}
-
-int sizeOf_int64_t() {
-    return sizeof(int64_t);
-}
-
-int64_t test__int64_t(int64_t value) {
-    return ~value;
-}
-
-int sizeOf_u_int64_t() {
-    return sizeof(u_int64_t);
-}
-
-u_int64_t test__u_int64_t(u_int64_t value) {
-    return ~value;
-}
-
-
+GENERATE_INTEGER_TEST(cc_t)
+GENERATE_INTEGER_TEST(clock_t)
+GENERATE_INTEGER_TEST(dev_t)
+#ifdef linux
+GENERATE_INTEGER_TEST(eventfd_t)
+#endif
+GENERATE_INTEGER_TEST(fsblkcnt_t)
+GENERATE_INTEGER_TEST(fsfilcnt_t)
+GENERATE_INTEGER_TEST(gid_t)
+GENERATE_INTEGER_TEST(id_t)
+GENERATE_INTEGER_TEST(in_addr_t)
+GENERATE_INTEGER_TEST(in_port_t)
+GENERATE_INTEGER_TEST(ino64_t)
+GENERATE_INTEGER_TEST(ino_t)
+GENERATE_INTEGER_TEST(intptr_t)
+GENERATE_INTEGER_TEST(key_t)
+GENERATE_INTEGER_TEST(mode_t)
+GENERATE_INTEGER_TEST(nfds_t)
+GENERATE_INTEGER_TEST(nlink_t)
+GENERATE_INTEGER_TEST(off_t)
+GENERATE_INTEGER_TEST(pid_t)
+GENERATE_INTEGER_TEST(ptrdiff_t)
+GENERATE_INTEGER_TEST(rlim_t)
+GENERATE_INTEGER_TEST(sa_family_t)
+GENERATE_INTEGER_TEST(size_t)
+GENERATE_INTEGER_TEST(socklen_t)
+GENERATE_INTEGER_TEST(speed_t)
+GENERATE_INTEGER_TEST(ssize_t)
+GENERATE_INTEGER_TEST(suseconds_t)
+#ifdef apple
+GENERATE_INTEGER_TEST(swblk_t)
+#endif
+GENERATE_INTEGER_TEST(tcflag_t)
+GENERATE_INTEGER_TEST(time_t)
+GENERATE_INTEGER_TEST(uid_t)
+GENERATE_INTEGER_TEST(uintptr_t)
+GENERATE_INTEGER_TEST(useconds_t)
+GENERATE_INTEGER_TEST(wchar_t)
+GENERATE_INTEGER_TEST(wint_t)
 #endif    
 
 #ifdef IDE_SETUP
