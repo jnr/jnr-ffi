@@ -185,12 +185,7 @@ struct testTypeAliases {
 
 #define GENERATE_SIZEOF_TEST(dt_name)\
 int sizeOf_##dt_name() {\
-    dt_name v = -1;\
-    if (v > 0) {\
       return sizeof(dt_name);\
-    } else {\
-      return -((long int)sizeof(dt_name));\
-    }\
 } 
 
 #define GENERATE_INTEGER_TEST(dt_name)\
