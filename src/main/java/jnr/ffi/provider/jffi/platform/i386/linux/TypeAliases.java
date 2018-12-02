@@ -36,7 +36,7 @@ public final class TypeAliases {
         m.put(TypeAlias.u_int32_t, NativeType.UINT);
         m.put(TypeAlias.int64_t, NativeType.SLONGLONG);
         m.put(TypeAlias.u_int64_t, NativeType.ULONGLONG);
-        m.put(TypeAlias.intptr_t, NativeType.SINT);
+        m.put(TypeAlias.intptr_t, NativeType.SLONG);
         m.put(TypeAlias.uintptr_t, NativeType.ULONG);
         m.put(TypeAlias.caddr_t, NativeType.ADDRESS);
         m.put(TypeAlias.dev_t, NativeType.ULONGLONG);
@@ -49,15 +49,15 @@ public final class TypeAliases {
         m.put(TypeAlias.ino64_t, NativeType.ULONGLONG);
         m.put(TypeAlias.key_t, NativeType.SINT);
         m.put(TypeAlias.mode_t, NativeType.UINT);
-        m.put(TypeAlias.nlink_t, NativeType.UINT);
+        m.put(TypeAlias.nlink_t, NativeType.ULONG);
         m.put(TypeAlias.id_t, NativeType.UINT);
         m.put(TypeAlias.pid_t, NativeType.SINT);
         m.put(TypeAlias.off_t, NativeType.SLONG);
         m.put(TypeAlias.swblk_t, NativeType.SLONG);
         m.put(TypeAlias.uid_t, NativeType.UINT);
         m.put(TypeAlias.clock_t, NativeType.SLONG);
-        m.put(TypeAlias.size_t, NativeType.UINT);
-        m.put(TypeAlias.ssize_t, NativeType.SINT);
+        m.put(TypeAlias.size_t, NativeType.ULONG);
+        m.put(TypeAlias.ssize_t, NativeType.SLONG);
         m.put(TypeAlias.time_t, NativeType.SLONG);
         m.put(TypeAlias.fsblkcnt_t, NativeType.ULONG);
         m.put(TypeAlias.fsfilcnt_t, NativeType.ULONG);

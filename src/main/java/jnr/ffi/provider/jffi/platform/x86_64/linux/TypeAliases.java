@@ -39,14 +39,14 @@ public final class TypeAliases {
         m.put(TypeAlias.intptr_t, NativeType.SLONG);
         m.put(TypeAlias.uintptr_t, NativeType.ULONG);
         m.put(TypeAlias.caddr_t, NativeType.ADDRESS);
-        m.put(TypeAlias.dev_t, NativeType.ULONG);
+        m.put(TypeAlias.dev_t, NativeType.ULONGLONG);
         m.put(TypeAlias.blkcnt_t, NativeType.SLONG);
         m.put(TypeAlias.blksize_t, NativeType.SLONG);
         m.put(TypeAlias.gid_t, NativeType.UINT);
         m.put(TypeAlias.in_addr_t, NativeType.UINT);
         m.put(TypeAlias.in_port_t, NativeType.USHORT);
         m.put(TypeAlias.ino_t, NativeType.ULONG);
-        m.put(TypeAlias.ino64_t, NativeType.ULONG);
+        m.put(TypeAlias.ino64_t, NativeType.ULONGLONG);
         m.put(TypeAlias.key_t, NativeType.SINT);
         m.put(TypeAlias.mode_t, NativeType.UINT);
         m.put(TypeAlias.nlink_t, NativeType.ULONG);
@@ -68,7 +68,7 @@ public final class TypeAliases {
         m.put(TypeAlias.speed_t, NativeType.UINT);
         m.put(TypeAlias.tcflag_t, NativeType.UINT);
         m.put(TypeAlias.eventfd_t, NativeType.ULONGLONG);
-        m.put(TypeAlias.nfds_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.nfds_t, NativeType.ULONG);
         m.put(TypeAlias.useconds_t, NativeType.UINT);
         m.put(TypeAlias.ptrdiff_t, NativeType.SLONG);
         m.put(TypeAlias.suseconds_t, NativeType.SLONG);
