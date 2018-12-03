@@ -181,6 +181,7 @@ public abstract class Platform {
     }
 
     private static Platform determinePlatform() {
+        //TODO jnr.ffi.provider.FFIProvider is different
         String providerName = System.getProperty("jnr.ffi.provider");
         try {
             Class c = Class.forName(providerName + "$Platform");

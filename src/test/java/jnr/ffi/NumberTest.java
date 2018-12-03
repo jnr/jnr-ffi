@@ -352,9 +352,9 @@ public class NumberTest {
     }
 
     @Test public void testBooleanFromInt() throws Exception {
-        assertEquals(false, testboolean.ret_int32_t(0));
-        assertEquals(true, testboolean.ret_int32_t(-1));
-        assertEquals(true, testboolean.ret_int32_t(1));
-        assertEquals(true, testboolean.ret_int32_t(2));
+        assertEquals("Expected false from 0", false, testboolean.ret_int32_t(0));
+        assertEquals("Expected true from -1", true, testboolean.ret_int32_t(-1));
+        assertEquals("Expected true from 1", true, testboolean.ret_int32_t(1));
+        assertEquals("Expected true from 2", true, testboolean.ret_int32_t(2));
     }
 }
