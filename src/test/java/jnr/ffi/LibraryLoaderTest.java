@@ -40,9 +40,35 @@ public class LibraryLoaderTest {
         }
     }
 
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void failImmediatelyShouldThrowULE() {
-        LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+        try {
+            LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            assertEquals("", ule.getMessage());
+            fail("IMPL ME");
+        }
+    }
+
+    // Loadable library interface to test error messages for non existant Functions
+    public static interface TestLibNonExistant {
+        void nonExistantFunction();
+    }
+
+    @Test
+    public void failNonExistantFunctionShouldThrowULE() {
+        try {
+        LibraryLoader<TestLibNonExistant> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibNonExistant.class);
+            loader.library("test");
+            TestLibNonExistant lib = loader.load();
+            lib.nonExistantFunction();
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            assertEquals("libnon-existent-library.so: Kann die Shared-Object-Datei nicht öffnen: Datei oder Verzeichnis nicht gefunden", ule.getMessage());
+            fail("IMPL ME");
+        }
     }
 
     @Test(expected = UnsatisfiedLinkError.class)

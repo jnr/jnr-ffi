@@ -1808,6 +1808,7 @@ public class StructLayout extends Type {
         public uintptr_t(Offset offset) { super(TypeAlias.uintptr_t, offset); }
     }
 
+    @Deprecated
     public final class caddr_t extends IntegerAlias {
         public caddr_t() { super(TypeAlias.caddr_t); }
         public caddr_t(Offset offset) { super(TypeAlias.caddr_t, offset); }

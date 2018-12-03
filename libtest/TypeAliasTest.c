@@ -183,8 +183,39 @@ struct testTypeAliases {
 #endif    
 };
 
+//typedef unsigned long int unsigned_long_int;
+//typedef signed long int signed_long_int;
+
+
+int sizeof_unsigned_long_int() {
+    unsigned long int v = -1;
+    if (v > 0) {
+        return sizeof(unsigned long int);
+    } else {
+        return -((long int)sizeof(unsigned long int));
+    }
+}
+
+unsigned long int test__unsigned_long_int(unsigned long int value) {
+    return ~value;
+}
+
+int sizeof_signed_long_int() {
+    signed long int v = -1;
+    if (v > 0) {
+        return sizeof(signed long int);
+    } else {
+        return -((long int)sizeof(signed long int));
+    }
+}
+
+signed long int test__signed_long_int(signed long int value) {
+    return ~value;
+}
+
+
 #define GENERATE_SIZEOF_TEST(dt_name)\
-int sizeOf_##dt_name() {\
+int sizeof_##dt_name() {\
       return sizeof(dt_name);\
 } 
 
@@ -192,7 +223,7 @@ int sizeOf_##dt_name() {\
     dt_name test__##dt_name(dt_name value) {\
       return ~value;\
     } \
-int sizeOf_##dt_name() {\
+int sizeof_##dt_name() {\
     dt_name v = -1;\
     if (v > 0) {\
       return sizeof(dt_name);\
@@ -259,6 +290,10 @@ GENERATE_INTEGER_TEST(wchar_t)
 GENERATE_INTEGER_TEST(wint_t)
 #endif    
 
+#ifdef windows
+GENERATE_INTEGER_TEST(HANDLE)
+#endif    
+        
 #ifdef IDE_SETUP
 Do not compile IDE Setup 
 #endif

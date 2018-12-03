@@ -318,8 +318,13 @@ public abstract class Platform {
     public final boolean isBSD() {
         return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
     }
+    
     public final boolean isUnix() {
         return os != OS.WINDOWS;
+    }
+
+    public final boolean isWindows() {
+        return os == OS.WINDOWS;
     }
 
     /**
