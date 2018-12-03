@@ -19,6 +19,8 @@
 package jnr.ffi.provider;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Holds information for each invocation of a native function
@@ -36,7 +38,9 @@ public class InvocationSession {
         if (list != null) for (PostInvoke p : list) {
             try {
                 p.postInvoke();
-            } catch (Throwable t) {}
+            } catch (Throwable t) {
+                Logger.getLogger("jnr-ffi").log(Level.FINEST, "postInvoke", t);
+            }
         }
     }
     public void addPostInvoke(PostInvoke postInvoke) {

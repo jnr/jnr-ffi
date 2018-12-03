@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.provider.FFIProvider;
+import org.junit.Assert;
 
 import org.junit.Test;
 
@@ -41,33 +42,67 @@ public class LibraryLoaderTest {
     }
 
     @Test
-    public void failImmediatelyShouldThrowULE() {
+    public void testNonexistentLibrary() {
         try {
             LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
             fail("should throw UnsatisfiedLinkError");
         } catch (UnsatisfiedLinkError ule) {
-            assertEquals("", ule.getMessage());
-            fail("IMPL ME");
+            Assert.assertTrue("No libraryname in error message", ule.getMessage().contains("non-existent-library"));
+            //TODO check for stacktrace ???
         }
     }
 
     // Loadable library interface to test error messages for non existant Functions
-    public static interface TestLibNonExistant {
+    public static interface TestLibNonExistent {
         void nonExistantFunction();
+        Pointer functionWrongRetType();
+        void function2Args(int arg0, int arg2);
     }
 
     @Test
-    public void failNonExistantFunctionShouldThrowULE() {
+    public void testWrongFunctionArgs() {
         try {
-        LibraryLoader<TestLibNonExistant> loader = FFIProvider.getSystemProvider()
-                .createLibraryLoader(TestLibNonExistant.class);
+        LibraryLoader<TestLibNonExistent> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibNonExistent.class);
             loader.library("test");
-            TestLibNonExistant lib = loader.load();
+            TestLibNonExistent lib = loader.load();
             lib.nonExistantFunction();
             fail("should throw UnsatisfiedLinkError");
         } catch (UnsatisfiedLinkError ule) {
-            assertEquals("libnon-existent-library.so: Kann die Shared-Object-Datei nicht öffnen: Datei oder Verzeichnis nicht gefunden", ule.getMessage());
-            fail("IMPL ME");
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("nonExistantFunction"));
+            //TODO check for stacktrace ???
+            fail("IMPLEMENT ME");
+        }
+    }
+
+    @Test
+    public void testWrongFunctionReturnType() {
+        try {
+        LibraryLoader<TestLibNonExistent> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibNonExistent.class);
+            loader.library("test");
+            TestLibNonExistent lib = loader.load();
+            lib.nonExistantFunction();
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("nonExistantFunction"));
+            //TODO check for stacktrace ???
+            fail("IMPLEMENT ME");
+        }
+    }
+
+    @Test
+    public void testNonExistantFunction() {
+        try {
+        LibraryLoader<TestLibNonExistent> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibNonExistent.class);
+            loader.library("test");
+            TestLibNonExistent lib = loader.load();
+            lib.nonExistantFunction();
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("nonExistantFunction"));
+            //TODO check for stacktrace ???
         }
     }
 
