@@ -646,7 +646,7 @@ public class TypeAliasTest {
 
     @Test
     public void test_ino64_t() {
-        if (!isPosixTest()) {
+        if (!isDarwinTest()) {
             ta.remove(TypeAlias.ino64_t);
             return;
         }
@@ -736,7 +736,7 @@ public class TypeAliasTest {
 
     @Test
     public void test_rlim_t() {
-        if (!isPosixTest()) {
+        if (!isDarwinTest()) {
             ta.remove(TypeAlias.rlim_t);
             return;
         }
