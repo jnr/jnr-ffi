@@ -94,6 +94,11 @@ ifeq ($(OS), aix)
   PICFLAGS += -pthread
 endif
 
+
+ifeq ($(OS), freebsd)
+  CC = gcc
+endif
+
 ifneq ($(findstring cygwin, $(OS)),)
   CFLAGS += -mno-cygwin -mwin32
   LIBEXT = dll
