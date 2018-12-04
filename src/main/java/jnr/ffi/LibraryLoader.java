@@ -329,13 +329,13 @@ public abstract class LibraryLoader<T> {
         
         } catch (LinkageError error) {
             if (failImmediately) throw error;
-            Logger.getLogger("jnr-ffi").log(Level.WARNING, "load library for " + interfaceClass, error);
+            Logger.getLogger(LibraryLoader.class.getCanonicalName()).log(Level.WARNING, "load library for " + interfaceClass, error);
             return createErrorProxy(error);
         
         } catch (Exception ex) {
             RuntimeException re = ex instanceof RuntimeException ? (RuntimeException) ex : new RuntimeException(ex);
             if (failImmediately) throw re;
-            Logger.getLogger("jnr-ffi").log(Level.WARNING, "load library for " + interfaceClass, ex);
+            Logger.getLogger(LibraryLoader.class.getCanonicalName()).log(Level.WARNING, "load library for " + interfaceClass, ex);
             
             return createErrorProxy(re);
         }

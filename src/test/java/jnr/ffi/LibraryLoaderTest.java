@@ -54,50 +54,71 @@ public class LibraryLoaderTest {
 
     // Loadable library interface to test error messages for non existant Functions
     public static interface TestLibNonExistent {
+    }
+
+    public static interface TestLibWrongArgs {
+        //non existant
         void nonExistantFunction();
-        Pointer functionWrongRetType();
-        void function2Args(int arg0, int arg2);
+        //wrong args types
+        int add(double arg0, double arg1);
+        //too few args
+        int sub(int arg0);
+        //wrong ret type
+        int addd(double arg0, double arg1);
+    }    
+    
+    @Test
+    public void testWrongFunctionArgTypes() {
+        try {
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
+            loader.library("test");
+            TestLibWrongArgs lib = loader.load();
+            lib.add(1.0, 2.0);
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("Could not find SymbolAddress of: \"add\" in libraray: \"[test]\""));
+            //TODO check for stacktrace ???
+        }
     }
 
     @Test
-    public void testWrongFunctionArgs() {
+    public void testTooFewFunctionArgs() {
         try {
-        LibraryLoader<TestLibNonExistent> loader = FFIProvider.getSystemProvider()
-                .createLibraryLoader(TestLibNonExistent.class);
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
             loader.library("test");
-            TestLibNonExistent lib = loader.load();
-            lib.nonExistantFunction();
+            TestLibWrongArgs lib = loader.load();
+            lib.sub(1);
             fail("should throw UnsatisfiedLinkError");
         } catch (UnsatisfiedLinkError ule) {
-            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("nonExistantFunction"));
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("Could not find SymbolAddress of: \"sub\" in libraray: \"[test]\""));
             //TODO check for stacktrace ???
-            fail("IMPLEMENT ME");
         }
     }
 
     @Test
     public void testWrongFunctionReturnType() {
         try {
-        LibraryLoader<TestLibNonExistent> loader = FFIProvider.getSystemProvider()
-                .createLibraryLoader(TestLibNonExistent.class);
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
             loader.library("test");
-            TestLibNonExistent lib = loader.load();
-            lib.nonExistantFunction();
+            TestLibWrongArgs lib = loader.load();
+            lib.addd(1.0, 2.0);
             fail("should throw UnsatisfiedLinkError");
         } catch (UnsatisfiedLinkError ule) {
-            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("nonExistantFunction"));
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("Could not find SymbolAddress of: \"addd\" in libraray: \"[test]\""));
             //TODO check for stacktrace ???
-            fail("IMPLEMENT ME");
         }
     }
 
     @Test
     public void testNonExistantFunction() {
         try {
-        LibraryLoader<TestLibNonExistent> loader = FFIProvider.getSystemProvider()
-                .createLibraryLoader(TestLibNonExistent.class);
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
             loader.library("test");
-            TestLibNonExistent lib = loader.load();
+            TestLibWrongArgs lib = loader.load();
             lib.nonExistantFunction();
             fail("should throw UnsatisfiedLinkError");
         } catch (UnsatisfiedLinkError ule) {

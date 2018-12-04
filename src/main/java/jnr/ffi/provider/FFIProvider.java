@@ -70,7 +70,7 @@ public abstract class FFIProvider {
                 return (FFIProvider) Class.forName(providerName).newInstance();
 
             } catch (Throwable ex) {
-                Logger.getLogger("jnr-ffi").log(Level.SEVERE, "could not load FFI provider " + providerName, ex);
+                Logger.getLogger(FFIProvider.class.getCanonicalName()).log(Level.SEVERE, "could not load FFI provider " + providerName, ex);
                 return newInvalidProvider("could not load FFI provider " + providerName, ex);
             }
         }

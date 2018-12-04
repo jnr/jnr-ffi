@@ -39,7 +39,7 @@ public class InvocationSession {
             try {
                 p.postInvoke();
             } catch (Throwable t) {
-                Logger.getLogger("jnr-ffi").log(Level.FINEST, "postInvoke", t);
+                Logger.getLogger(InvocationSession.class.getCanonicalName()).log(Level.FINEST, "postInvoke", t);
             }
         }
     }

@@ -58,7 +58,7 @@ public class NativeLibrary {
     long findSymbolAddress(String name) {
         long address = getSymbolAddress(name);
         if (address == 0) {
-            throw new SymbolNotFoundError("MSG from com.kenai.jffi.Library.getLastError(): " + com.kenai.jffi.Library.getLastError() + "\n\tCould not find SymbolAddress of: \"" + name + "\" in libraray: \"" + Arrays.toString(libraryNames.toArray()));
+            throw new SymbolNotFoundError("MSG from com.kenai.jffi.Library.getLastError(): " + com.kenai.jffi.Library.getLastError() + "\n\tCould not find SymbolAddress of: \"" + name + "\" in libraray: \"" + Arrays.toString(libraryNames.toArray()) + "\"");
         }
         return address;
     }
