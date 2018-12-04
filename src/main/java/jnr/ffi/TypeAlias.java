@@ -18,6 +18,12 @@
 
 package jnr.ffi;
 
+/**
+ * TypeAliases mostly for POSIX 
+ * TODO dprecate this and move this to jnr-posix ???
+ * 
+ * 
+ */
 public enum TypeAlias {
     int8_t,
     u_int8_t,
@@ -31,12 +37,14 @@ public enum TypeAlias {
      * signed long int can be 32 or 64 depending on WORDSIZE or ADRESSSIZE.
      * On 32bit OS this will be 32 bits.
      * On 64bit OS this will be 64 bits.
+     * use this for function params and return values
      */
     signed_long_int,
     /**
      * unsigned long int can be 32 or 64 depending on WORDSIZE or ADRESSSIZE.
      * On 32bit OS this will be 32 bits.
      * On 64bit OS this will be 64 bits.
+     * use this for function params and return values
      */
     unsigned_long_int,
     intptr_t,

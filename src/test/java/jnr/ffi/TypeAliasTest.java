@@ -17,10 +17,15 @@
  */
 package jnr.ffi;
 
+import java.lang.reflect.Field;
+import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jnr.ffi.provider.jffi.NativeRuntime;
-import jnr.ffi.provider.jffi.platform.aarch64.linux.TypeAliases;
 import jnr.ffi.types.*;
 
 import org.junit.AfterClass;
@@ -470,7 +475,7 @@ public class TypeAliasTest {
     @AfterClass
     public static void tearDownClass() throws Exception {
         testlib = null;
-        assertArrayEquals(new TypeAliases[0], ta.toArray(new TypeAlias[0]));
+        assertArrayEquals(new TypeAlias[0], ta.toArray(new TypeAlias[0]));
     }
 
     @Test
@@ -882,6 +887,77 @@ public class TypeAliasTest {
         }
         assertAndRemoveDataType(TypeAlias.HANDLE, getWindowsTestlib().sizeof_HANDLE(), getWindowsTestlib().test__HANDLE(REQ_HEX_5));
     }
+
+    @Test
+    public void jnr_ffi_types_XXX() {
+        ClassLoader cl = getClass().getClassLoader();
+        for (TypeAlias ta : TypeAlias.values()) {
+            try {
+                Class c = cl.loadClass("jnr.ffi.types." + ta.name());
+                assertNotNull(c);
+            } catch (ClassNotFoundException c) {
+                fail("No definitions for " + ta.name());
+            }
+        }
+    }
+
+    @Test
+    public void jnr_ffi_Struct_XXX() {
+        ClassLoader cl = getClass().getClassLoader();
+        for (TypeAlias ta : TypeAlias.values()) {
+            try {
+                Class c = cl.loadClass("jnr.ffi.Struct$" + ta.name());
+                assertNotNull(c);
+            } catch (ClassNotFoundException c) {
+                fail("No definitions in jnr.ffi.Struct for " + ta.name());
+            }
+        }
+    }
+
+    @Test
+    public void jnr_ffi_StructLayout_XXX() {
+        ClassLoader cl = getClass().getClassLoader();
+        for (TypeAlias ta : TypeAlias.values()) {
+            try {
+                Class c = cl.loadClass("jnr.ffi.Struct$" + ta.name());
+                assertNotNull(c);
+            } catch (ClassNotFoundException c) {
+                fail("No definitions in jnr.ffi.Struct for " + ta.name());
+            }
+        }
+    }
+
+    /**
+     * Ensure that all TypeAliases are up to 
+     */
+    @Test
+    public void testArchTypeAliases() {
+        for (Platform.CPU cpu : Platform.CPU.values()) {
+            for (Platform.OS os : Platform.OS.values()) {
+                try {
+                    Class clazz = Class.forName("jnr.ffi.provider.jffi.platform." + cpu + "." + os + ".TypeAliases");
+                    Field aliasesField = clazz.getField("ALIASES");
+                    Map<TypeAlias, jnr.ffi.NativeType> map = new EnumMap<TypeAlias, NativeType>(TypeAlias.class);
+                    map.putAll((Map<TypeAlias, NativeType>) aliasesField.get(clazz));
+                    Logger.getLogger(TypeAliasTest.class.getName()).log(Level.SEVERE, "TypeAliases for cpu: {0} os: {1}", new Object[]{cpu, os});
+                    for (TypeAlias typeAlias: TypeAlias.values()) {
+                        assertNotNull("No definitions for: " + typeAlias.name() + " in " + clazz.getCanonicalName(), map.get(typeAlias));
+                    }
+                    //Never expect this to fail ....
+                    assertTrue(map.isEmpty());
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(TypeAliasTest.class.getName()).log(Level.INFO, "No TypeAliases for cpu: " + cpu + " os: " + os, ex);
+                } catch (NoSuchFieldException ex) {
+                    Logger.getLogger(TypeAliasTest.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SecurityException ex) {
+                    Logger.getLogger(TypeAliasTest.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalAccessException ex) {
+                    Logger.getLogger(TypeAliasTest.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+
 //Prototype
 //    @Test
 //    public void test_() {
