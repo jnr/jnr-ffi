@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -119,60 +120,79 @@ public class TypeAliasTest {
             sizeOf = -sizeOf;
         }
         assertEquals("sizeof mismatch", type.size(), sizeOf);
+        switch (type.getNativeType()) {
+            case SCHAR:
+            case SSHORT:
+            case SINT:
+            case SLONG:
+            case SLONGLONG:
+                assertTrue("Must be signed from sizeof test", signed);
+                break;
+            case UCHAR:
+            case USHORT:
+            case UINT:
+            case ULONG:
+            case ULONGLONG:
+                assertFalse("Must be unsigned from sizeof test", signed);
+                break;
+            default:
+                throw new IllegalArgumentException("Cant handle native type: " + type.getNativeType());
+
+        }
         if (resp == RSP_HEX_5__S_INT_08) {
-            assertTrue("Must be signed", signed);
+            assertTrue("Must be signed from pattern test", signed);
             assertEquals(NativeType.SCHAR, type.getNativeType());
         } else if (resp == RSP_HEX_5__U_INT_08) {
-            assertFalse("Must be unsigned", signed);
+            assertFalse("Must be unsigned from pattern test", signed);
             assertEquals(NativeType.UCHAR, type.getNativeType());
         } else if (resp == RSP_HEX_5__S_INT_16) {
-            assertTrue("Must be signed", signed);
+            assertTrue("Must be signed from pattern test", signed);
             assertEquals(NativeType.SSHORT, type.getNativeType());
         } else if (resp == RSP_HEX_5__U_INT_16) {
-            assertFalse("Must be unsigned", signed);
+            assertFalse("Must be unsigned from pattern test", signed);
             assertEquals(NativeType.USHORT, type.getNativeType());
         } else if (resp == RSP_HEX_5__S_INT_32) {
-            assertTrue("Must be signed", signed);
+            assertTrue("Must be signed from pattern test", signed);
             switch (type.getNativeType()) {
                 case SINT:
                     assertTrue(true);
                     break;
                 case SLONG:
-                    assertEquals(4, rt.longSize());
+                    assertEquals("Expected SLONG size mismatch", 4, rt.longSize());
                     break;
                 default:
-                    fail("Expected DataType signed 4 byte");
+                    fail("Expected DataType signed 4 byte  from pattern test");
             }
         } else if (resp == RSP_HEX_5__U_INT_32) {
-            assertFalse("Must be unsigned", signed);
+            assertFalse("Must be unsigned from pattern test", signed);
             switch (type.getNativeType()) {
                 case UINT:
                     assertTrue(true);
                     break;
                 case ULONG:
-                    assertEquals(4, rt.longSize());
+                    assertEquals("Expected ULONG size mismatch", 4, rt.longSize());
                     break;
                 default:
-                    fail("Expected DataType unsigned 4 byte");
+                    fail("Expected DataType unsigned 4 byte from pattern test");
             }
         } else if ((resp == RSP_HEX_5__S_INT_64) || (resp == RSP_HEX_5__U_INT_64)) {
             switch (type.getNativeType()) {
                 case SLONGLONG:
-                    assertTrue("Must be signed", signed);
+                    assertTrue("Must be signed from pattern test", signed);
                     break;
                 case ULONGLONG:
-                    assertFalse("Must be unsigned", signed);
+                    assertFalse("Must be unsigned from pattern test", signed);
                     break;
                 case SLONG:
-                    assertTrue("Must be signed", signed);
-                    assertEquals(8, rt.longSize());
+                    assertTrue("Must be signed from pattern test", signed);
+                    assertEquals("Expected SLONG size mismatch", 8, rt.longSize());
                     break;
                 case ULONG:
-                    assertFalse("Must be unsigned", signed);
-                    assertEquals(8, rt.longSize());
+                    assertFalse("Must be unsigned from pattern test", signed);
+                    assertEquals("Expected SLONG size mismatch", 8, rt.longSize());
                     break;
                 default:
-                    fail("Expected DataType signed or unsigned 8 byte");
+                    fail("Expected DataType signed or unsigned 8 byte from pattern test");
             }
         } else {
             fail("Should never happen");
@@ -928,10 +948,11 @@ public class TypeAliasTest {
     }
 
     /**
-     * Ensure that all TypeAliases are up to 
+     * Ensure that all TypeAliases are up to
      */
     @Test
     public void testArchTypeAliases() {
+        StringBuilder errorList = new StringBuilder();
         for (Platform.CPU cpu : Platform.CPU.values()) {
             for (Platform.OS os : Platform.OS.values()) {
                 try {
@@ -940,8 +961,10 @@ public class TypeAliasTest {
                     Map<TypeAlias, jnr.ffi.NativeType> map = new EnumMap<TypeAlias, NativeType>(TypeAlias.class);
                     map.putAll((Map<TypeAlias, NativeType>) aliasesField.get(clazz));
                     Logger.getLogger(TypeAliasTest.class.getName()).log(Level.SEVERE, "TypeAliases for cpu: {0} os: {1}", new Object[]{cpu, os});
-                    for (TypeAlias typeAlias: TypeAlias.values()) {
-                        assertNotNull("No definitions for: " + typeAlias.name() + " in " + clazz.getCanonicalName(), map.get(typeAlias));
+                    for (TypeAlias typeAlias : TypeAlias.values()) {
+                        if (null == map.remove(typeAlias)) {
+                            errorList.append("\n\tNo definitions for: ").append(typeAlias.name()).append("\tin ").append(clazz.getCanonicalName());
+                        }
                     }
                     //Never expect this to fail ....
                     assertTrue(map.isEmpty());
@@ -955,6 +978,9 @@ public class TypeAliasTest {
                     Logger.getLogger(TypeAliasTest.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+        }
+        if (errorList.length() != 0) {
+            fail(errorList.toString());
         }
     }
 
