@@ -76,7 +76,7 @@ public final class TypeAliases {
         m.put(TypeAlias.suseconds_t, NativeType.SLONG);
         m.put(TypeAlias.useconds_t, NativeType.UINT);
         m.put(TypeAlias.wint_t, NativeType.UINT);
-        m.put(TypeAlias.wchar_t, NativeType.SINT); //ITS SINT
+        m.put(TypeAlias.wchar_t, NativeType.UINT);
         m.put(TypeAlias.HANDLE, NativeType.ULONG); //DEFINE THIS as ULONG ON LINUX or VOID ???
         return m;
     }
