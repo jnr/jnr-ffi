@@ -214,7 +214,7 @@ public class TypeAliasTest {
                         assertTrue("Must be SINT or SLONG from sizeof test,but was: " + nt, nt == NativeType.SINT || nt == NativeType.SLONG);
                     } else {
                         //SINT only
-                        assertEquals(NativeType.SINT, nt);
+                        assertEquals("Must be SINT from sizeof test", NativeType.SINT, nt);
                     }
                 } else {
                     if (rt.longSize() == 4) {
@@ -222,7 +222,7 @@ public class TypeAliasTest {
                         assertTrue("Must be UINT or ULONG from sizeof test,but was: " + nt, nt == NativeType.UINT || nt == NativeType.ULONG);
                     } else {
                         //UINT only
-                        assertEquals(NativeType.UINT, nt);
+                        assertEquals("Must be UINT from sizeof test", NativeType.UINT, nt);
                     }
                 }
                 break;
@@ -233,7 +233,7 @@ public class TypeAliasTest {
                         assertTrue("Must be SLONG or SLONGLONG from sizeof test,but was: " + nt, nt == NativeType.SLONG || nt == NativeType.SLONGLONG);
                     } else {
                         //SLONGLONG only
-                        assertEquals(NativeType.SLONGLONG, nt);
+                        assertEquals("Must be SLONGLONG from sizeof test", NativeType.SLONGLONG, nt);
                     }
                 } else {
                     if (rt.longSize() == 8) {
@@ -241,7 +241,7 @@ public class TypeAliasTest {
                         assertTrue("Must be ULONG or ULONGLONG from sizeof test,but was: " + nt, nt == NativeType.ULONG || nt == NativeType.ULONGLONG);
                     } else {
                         //ULONGLONG  only
-                        assertEquals(NativeType.ULONGLONG, nt);
+                        assertEquals("Must be ULONGLONG from sizeof test", NativeType.ULONGLONG, nt);
                     }
                 }
                 break;
