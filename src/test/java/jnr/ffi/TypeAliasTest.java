@@ -43,8 +43,7 @@ import static org.junit.Assert.*;
  *
  */
 public class TypeAliasTest {
-    
-    
+
     public static void main(String[] args) {
         List<List<String>> typeMatrix = new LinkedList<List<String>>();
         List<String> header = new LinkedList<String>();
@@ -109,7 +108,7 @@ public class TypeAliasTest {
             }
         }
         System.out.println(typeMatrixBuilder.toString());
-        
+
     }
 
     private final static long REQ_HEX_5 = 0x5555555555555555L;
@@ -187,31 +186,69 @@ public class TypeAliasTest {
     private static Platform platform;
 
     private void assertAndRemoveDataType(TypeAlias ta, int sizeOf, long resp) {
-        Type type = rt.findType(ta);
-        boolean signed = sizeOf < 0;
+        final Type type = rt.findType(ta);
+        final NativeType nt = type.getNativeType();
+        final boolean signed = sizeOf < 0;
         if (signed) {
             sizeOf = -sizeOf;
         }
-        assertEquals("sizeof mismatch", type.size(), sizeOf);
-        switch (type.getNativeType()) {
-            case SCHAR:
-            case SSHORT:
-            case SINT:
-            case SLONG:
-            case SLONGLONG:
-                assertTrue("Must be signed from sizeof test", signed);
+        switch (sizeOf) {
+            case 1:
+                if (signed) {
+                    assertEquals(NativeType.SCHAR, nt);
+                } else {
+                    assertEquals(NativeType.UCHAR, nt);
+                }
                 break;
-            case UCHAR:
-            case USHORT:
-            case UINT:
-            case ULONG:
-            case ULONGLONG:
-                assertFalse("Must be unsigned from sizeof test", signed);
+            case 2:
+                if (signed) {
+                    assertEquals(NativeType.SSHORT, nt);
+                } else {
+                    assertEquals(NativeType.USHORT, nt);
+                }
+                break;
+            case 4:
+                if (signed) {
+                    if (rt.longSize() == 4) {
+                        //SINT or SLONG
+                        assertTrue("Must be SINT or SLONG from sizeof test,but was: " + nt, nt == NativeType.SINT || nt == NativeType.SLONG);
+                    } else {
+                        //SINT only
+                        assertEquals(NativeType.SINT, nt);
+                    }
+                } else {
+                    if (rt.longSize() == 4) {
+                        //UINT or ULONG
+                        assertTrue("Must be UINT or ULONG from sizeof test,but was: " + nt, nt == NativeType.UINT || nt == NativeType.ULONG);
+                    } else {
+                        //UINT only
+                        assertEquals(NativeType.UINT, nt);
+                    }
+                }
+                break;
+            case 8:
+                if (signed) {
+                    if (rt.longSize() == 8) {
+                        //SLONG or SLONGLONG
+                        assertTrue("Must be SLONG or SLONGLONG from sizeof test,but was: " + nt, nt == NativeType.SLONG || nt == NativeType.SLONGLONG);
+                    } else {
+                        //SLONGLONG only
+                        assertEquals(NativeType.SLONGLONG, nt);
+                    }
+                } else {
+                    if (rt.longSize() == 8) {
+                        //ULONG or ULONGLONG
+                        assertTrue("Must be ULONG or ULONGLONG from sizeof test,but was: " + nt, nt == NativeType.ULONG || nt == NativeType.ULONGLONG);
+                    } else {
+                        //ULONGLONG  only
+                        assertEquals(NativeType.ULONGLONG, nt);
+                    }
+                }
                 break;
             default:
-                throw new IllegalArgumentException("Cant handle native type: " + type.getNativeType());
-
+                throw new IllegalArgumentException("Cant handle size: " + sizeOf);
         }
+
         if (resp == RSP_HEX_5__S_INT_08) {
             assertTrue("Must be signed from pattern test", signed);
             assertEquals(NativeType.SCHAR, type.getNativeType());
