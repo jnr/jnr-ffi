@@ -17,11 +17,16 @@
  */
 package jnr.ffi;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -38,6 +43,74 @@ import static org.junit.Assert.*;
  *
  */
 public class TypeAliasTest {
+    
+    
+    public static void main(String[] args) {
+        List<List<String>> typeMatrix = new LinkedList<List<String>>();
+        List<String> header = new LinkedList<String>();
+        header.add("cpu");
+        header.add("os");
+        for (TypeAlias tai : TypeAlias.values()) {
+            header.add(tai.toString());
+        }
+        for (Platform.CPU cpu : Platform.CPU.values()) {
+            for (Platform.OS os : Platform.OS.values()) {
+                LinkedList<String> valueList = new LinkedList<String>();
+                try {
+                    Class clazz = Class.forName("jnr.ffi.provider.jffi.platform." + cpu + "." + os + ".TypeAliases");
+                    Field aliasesField = clazz.getField("ALIASES");
+                    Map<TypeAlias, jnr.ffi.NativeType> map = new EnumMap<TypeAlias, NativeType>(TypeAlias.class);
+                    map.putAll((Map<TypeAlias, NativeType>) aliasesField.get(clazz));
+                    for (TypeAlias typeAlias : TypeAlias.values()) {
+                        NativeType nt = map.remove(typeAlias);
+                        if (null == nt) {
+                            valueList.add("");
+                        } else {
+                            valueList.add(nt.toString());
+                        }
+                    }
+                    if (!valueList.isEmpty()) {
+                        valueList.addFirst(os.toString());
+                        valueList.addFirst(cpu.toString());
+                        typeMatrix.add(valueList);
+                    }
+                } catch (Exception ex) {
+                }
+            }
+        }
+        StringBuilder typeMatrixBuilder = new StringBuilder();
+        try {
+            boolean first = true;
+            for (String header_col : header) {
+                if (first) {
+                    first = false;
+                } else {
+                    typeMatrixBuilder.append(",");
+                }
+                typeMatrixBuilder.append(header_col);
+            }
+            for (List<String> row : typeMatrix) {
+                typeMatrixBuilder.append("\n");
+                first = true;
+                for (String cell : row) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        typeMatrixBuilder.append(",");
+                    }
+                    typeMatrixBuilder.append(cell);
+                }
+
+            }
+
+        } catch (Exception e) {
+            if (e.getMessage() != null) {
+
+            }
+        }
+        System.out.println(typeMatrixBuilder.toString());
+        
+    }
 
     private final static long REQ_HEX_5 = 0x5555555555555555L;
 
@@ -951,7 +1024,7 @@ public class TypeAliasTest {
      * Ensure that all TypeAliases are up to
      */
     @Test
-    public void testArchTypeAliases() {
+    public void testArchTypeAliases() throws Exception {
         StringBuilder errorList = new StringBuilder();
         for (Platform.CPU cpu : Platform.CPU.values()) {
             for (Platform.OS os : Platform.OS.values()) {
@@ -962,7 +1035,8 @@ public class TypeAliasTest {
                     map.putAll((Map<TypeAlias, NativeType>) aliasesField.get(clazz));
                     Logger.getLogger(TypeAliasTest.class.getName()).log(Level.SEVERE, "TypeAliases for cpu: {0} os: {1}", new Object[]{cpu, os});
                     for (TypeAlias typeAlias : TypeAlias.values()) {
-                        if (null == map.remove(typeAlias)) {
+                        NativeType nt = map.remove(typeAlias);
+                        if (null == nt) {
                             errorList.append("\n\tNo definitions for: ").append(typeAlias.name()).append("\tin ").append(clazz.getCanonicalName());
                         }
                     }
