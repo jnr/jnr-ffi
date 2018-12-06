@@ -65,8 +65,31 @@ public class LibraryLoaderTest {
         int sub(int arg0);
         //wrong ret type
         int addd(double arg0, double arg1);
-    }    
+    }
     
+    public static interface TestLibWrongParamType {
+        void wrongParamTypeFunction(LibraryLoaderTest p);
+    }
+
+    @Test
+    public void testWrongFunctionParamType() {
+        try {
+        LibraryLoader<TestLibWrongParamType> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongParamType.class);
+            loader.library("test");
+            TestLibWrongParamType lib = loader.load();
+            lib.wrongParamTypeFunction(this);
+            fail("should throw IllegalArgumentException");
+        } catch (IllegalArgumentException iae) {
+            Assert.assertTrue("No functionName in iae.message", iae.getMessage().contains("wrongParamTypeFunction"));
+            Assert.assertTrue("No param index in iae.message", iae.getMessage().contains("param index"));
+            Assert.assertTrue("No offending type in iae.message", iae.getMessage().contains("jnr.ffi.LibraryLoaderTest"));
+            
+            //TODO check for stacktrace ???
+        }
+    }
+
+
     @Test
     public void testWrongFunctionArgTypes() {
         try {

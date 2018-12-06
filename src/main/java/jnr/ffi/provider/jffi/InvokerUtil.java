@@ -40,6 +40,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 final class InvokerUtil {
 
@@ -177,8 +179,14 @@ final class InvokerUtil {
             Collection<Annotation> allAnnotations = Annotations.mergeAnnotations(annotations, converterAnnotations);
 
             boolean contextRequired = toNativeConverter != null && !hasAnnotation(converterAnnotations, ToNativeConverter.NoContext.class);
+            try {
             parameterTypes[pidx] = getParameterType(runtime, javaParameterTypes[pidx],
                     allAnnotations, toNativeConverter, contextRequired ? toNativeContext : null);
+            } catch (IllegalArgumentException iae) {
+                IllegalArgumentException newIae = new IllegalArgumentException("Error within param index: " + pidx + " " + iae.getMessage(), iae);
+                Logger.getLogger(InvokerUtil.class.getCanonicalName()).log(Level.SEVERE, newIae.getMessage(), iae);
+                throw newIae;
+            }
         }
 
         return parameterTypes;

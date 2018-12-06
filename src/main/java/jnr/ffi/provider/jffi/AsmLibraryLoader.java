@@ -185,6 +185,10 @@ public class AsmLibraryLoader extends LibraryLoader {
                 generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, 
                         function.getMethod().getReturnType(), function.getMethod().getParameterTypes());
                 Logger.getLogger(getClass().getCanonicalName()).log(Level.WARNING, "Function not found msg: " + errorFieldName, ex);
+            } catch (IllegalArgumentException ex) {
+                IllegalArgumentException newEx = new IllegalArgumentException("In functionname: " + functionName + " " + ex.getMessage(), ex);
+                Logger.getLogger(getClass().getCanonicalName()).log(Level.SEVERE, newEx.getMessage(), ex);
+                throw newEx;
             }
         }
 
