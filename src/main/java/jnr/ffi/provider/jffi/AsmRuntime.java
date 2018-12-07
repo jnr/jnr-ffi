@@ -83,11 +83,11 @@ public final class AsmRuntime {
     }
 
     public static long longValue(Buffer ptr) {
-        return ptr != null && ptr.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0L;
+        return ptr != null && ptr.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(ptr) + ptr.position() : 0L;
     }
 
     public static int intValue(Buffer ptr) {
-        return ptr != null && ptr.isDirect()  ? (int) MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0;
+        return ptr != null && ptr.isDirect()  ? (int) MemoryIO.getInstance().getDirectBufferAddress(ptr)  + ptr.position() : 0;
     }
 
     public static ParameterStrategy nullParameterStrategy() {

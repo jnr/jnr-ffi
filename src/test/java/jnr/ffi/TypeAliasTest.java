@@ -36,6 +36,7 @@ import jnr.ffi.types.*;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -1061,6 +1062,7 @@ public class TypeAliasTest {
      * Ensure that all TypeAliases are up to
      */
     @Test
+    @Ignore
     public void testArchTypeAliases() throws Exception {
         StringBuilder errorList = new StringBuilder();
         for (Platform.CPU cpu : Platform.CPU.values()) {

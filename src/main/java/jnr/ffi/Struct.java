@@ -189,16 +189,34 @@ public abstract class Struct {
                 array[i] = c.newInstance(runtime);
             }
 
+            useMemory(runtime, array);
+            return array;
+        } catch (RuntimeException ex) {
+            throw ex;
+
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * This is for protected classes which cant be instanccieated here... to get teir backing memory
+     * @param <T>
+     * @param runtime
+     * @param array
+     * @return 
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Struct> void useMemory(Runtime runtime, T[] array) {
+        try {
             if (array.length > 0) {
                 final int structSize = align(Struct.size(array[0]), Struct.alignment(array[0]));
 
-                jnr.ffi.Pointer memory = runtime.getMemoryManager().allocateDirect(structSize * length);
+                jnr.ffi.Pointer memory = runtime.getMemoryManager().allocateDirect(structSize * array.length);
                 for (int i = 0; i < array.length; ++i) {
                     array[i].useMemory(memory.slice(structSize * i, structSize));
                 }
             }
-
-            return array;
         } catch (RuntimeException ex) {
             throw ex;
 
