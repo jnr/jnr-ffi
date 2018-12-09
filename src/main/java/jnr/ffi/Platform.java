@@ -216,6 +216,8 @@ public abstract class Platform {
             return CPU.S390X;
         } else if (equalsIgnoreCase("aarch64", archString)) {
             return CPU.AARCH64;
+        } else if (equalsIgnoreCase("arm", archString) || equalsIgnoreCase("armv7l", archString)) {
+            return CPU.ARM;
         }
 
         // Try to find by lookup up in the CPU list
@@ -259,8 +261,8 @@ public abstract class Platform {
     }
 
     private static int calculateAddressSize(CPU cpu) {
-        int dataModel = Integer.getInteger("sun.arch.data.model");
-        if (dataModel != 32 && dataModel != 64) {
+        Integer dataModel = Integer.getInteger("sun.arch.data.model");
+        if (dataModel == null || dataModel != 32 && dataModel != 64) {
             switch (cpu) {
                 case I386:
                 case PPC:
