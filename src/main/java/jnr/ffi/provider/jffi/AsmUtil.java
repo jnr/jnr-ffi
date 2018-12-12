@@ -38,6 +38,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.*;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;

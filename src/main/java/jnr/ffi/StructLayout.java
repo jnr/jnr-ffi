@@ -24,7 +24,7 @@ import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 
 /**
- *
+ * TODO split thzis into this and subclass PosixStruct ??
  */
 public class StructLayout extends Type {
     static final Charset ASCII = Charset.forName("ASCII");
@@ -1798,6 +1798,16 @@ public class StructLayout extends Type {
         public u_int64_t(Offset offset) { super(TypeAlias.u_int64_t, offset); }
     }
 
+    public final class signed_long_int extends IntegerAlias {
+        public signed_long_int() { super(TypeAlias.signed_long_int); }
+        public signed_long_int(Offset offset) { super(TypeAlias.signed_long_int, offset); }
+    }
+
+    public final class unsigned_long_int extends IntegerAlias {
+        public unsigned_long_int() { super(TypeAlias.unsigned_long_int); }
+        public unsigned_long_int(Offset offset) { super(TypeAlias.unsigned_long_int, offset); }
+    }
+
     public final class intptr_t extends IntegerAlias {
         public intptr_t() { super(TypeAlias.intptr_t); }
         public intptr_t(Offset offset) { super(TypeAlias.intptr_t, offset); }
@@ -1808,6 +1818,7 @@ public class StructLayout extends Type {
         public uintptr_t(Offset offset) { super(TypeAlias.uintptr_t, offset); }
     }
 
+    @Deprecated
     public final class caddr_t extends IntegerAlias {
         public caddr_t() { super(TypeAlias.caddr_t); }
         public caddr_t(Offset offset) { super(TypeAlias.caddr_t, offset); }
@@ -1913,6 +1924,21 @@ public class StructLayout extends Type {
         public time_t(Offset offset) { super(TypeAlias.time_t, offset); }
     }
 
+    public final class cc_t extends IntegerAlias {
+        public cc_t() { super(TypeAlias.cc_t); }
+        public cc_t(Offset offset) { super(TypeAlias.cc_t, offset); }
+    }
+
+    public final class speed_t extends IntegerAlias {
+        public speed_t() { super(TypeAlias.speed_t); }
+        public speed_t(Offset offset) { super(TypeAlias.speed_t, offset); }
+    }
+
+    public final class tcflag_t extends IntegerAlias {
+        public tcflag_t() { super(TypeAlias.tcflag_t); }
+        public tcflag_t(Offset offset) { super(TypeAlias.tcflag_t, offset); }
+    }
+
     public final class fsblkcnt_t extends IntegerAlias {
         public fsblkcnt_t() { super(TypeAlias.fsblkcnt_t); }
         public fsblkcnt_t(Offset offset) { super(TypeAlias.fsblkcnt_t, offset); }
@@ -1937,25 +1963,35 @@ public class StructLayout extends Type {
         public rlim_t() { super(TypeAlias.rlim_t); }
         public rlim_t(Offset offset) { super(TypeAlias.rlim_t, offset); }
     }
-    
+
     public final class useconds_t extends IntegerAlias {
         public useconds_t() { super(TypeAlias.useconds_t); }
         public useconds_t(Offset offset) { super(TypeAlias.useconds_t, offset); }
     }
 
-    public final class cc_t extends IntegerAlias {
-        public cc_t() { super(TypeAlias.cc_t); }
-        public cc_t(Offset offset) { super(TypeAlias.cc_t, offset); }
+    public final class ptrdiff_t extends IntegerAlias {
+        public ptrdiff_t() { super(TypeAlias.ptrdiff_t); }
+        public ptrdiff_t(Offset offset) { super(TypeAlias.ptrdiff_t, offset); }
     }
 
-    public final class speed_t extends IntegerAlias {
-        public speed_t() { super(TypeAlias.speed_t); }
-        public speed_t(Offset offset) { super(TypeAlias.speed_t, offset); }
+    public final class suseconds_t extends IntegerAlias {
+        public suseconds_t() { super(TypeAlias.suseconds_t); }
+        public suseconds_t(Offset offset) { super(TypeAlias.suseconds_t, offset); }
     }
 
-    public final class tcflag_t extends IntegerAlias {
-        public tcflag_t() { super(TypeAlias.tcflag_t); }
-        public tcflag_t(Offset offset) { super(TypeAlias.tcflag_t, offset); }
+    public final class wchar_t extends IntegerAlias {
+        public wchar_t() { super(TypeAlias.wchar_t); }
+        public wchar_t(Offset offset) { super(TypeAlias.wchar_t, offset); }
+    }
+
+    public final class wint_t extends IntegerAlias {
+        public wint_t() { super(TypeAlias.wint_t); }
+        public wint_t(Offset offset) { super(TypeAlias.wint_t, offset); }
+    }
+
+    public final class HANDLE extends IntegerAlias {
+        public HANDLE() { super(TypeAlias.HANDLE); }
+        public HANDLE(Offset offset) { super(TypeAlias.HANDLE, offset); }
     }
 
     public final class nfds_t extends IntegerAlias {

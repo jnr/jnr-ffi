@@ -27,8 +27,9 @@
 #endif
 
 
+#ifdef unix //we should be able to include all posix headers and therefore __USE_POSIX is defined ...
+#define GENERATE_POSIX_TESTS
 
-#ifdef unix //we shzould be able to include all posix headers and therefore __USE_POSIX is defined ...
 //Include all posix headers....
 #include <aio.h>
 #include <arpa/inet.h>
@@ -113,15 +114,6 @@
 #include <wctype.h>
 #include <wordexp.h>
 
-#ifndef ino64_t
-//Type name mismatch ?? Just fix it TODO investigate later...
-#define ino64_t __ino64_t
-#endif
-
-#ifndef rlim_t
-//Type name mismatch ?? Just fix it TODO investigate later...
-#define rlim_t __rlim_t
-#endif
 #endif
 
 #ifdef linux
@@ -129,7 +121,7 @@
 #endif
 
 struct testTypeAliases {
-#ifdef __USE_POSIX
+#ifdef GENERATE_POSIX_TESTS
     int8_t ta_field_int8_t;
     u_int8_t ta_field_u_int8_t;
     int16_t ta_field_int16_t;
@@ -148,7 +140,9 @@ struct testTypeAliases {
     in_addr_t ta_field_in_addr_t;
     in_port_t ta_field_in_port_t;
     ino_t ta_field_ino_t;
+#ifdef ino64_t
     ino64_t ta_field_ino64_t;
+#endif
     key_t ta_field_key_t;
     mode_t ta_field_mode_t;
     nlink_t ta_field_nlink_t;
@@ -165,7 +159,9 @@ struct testTypeAliases {
     fsfilcnt_t ta_field_fsfilcnt_t;
     sa_family_t ta_field_sa_family_t;
     socklen_t ta_field_socklen_t;
+#ifdef rlim_t
     rlim_t ta_field_rlim_t;
+#endif
     cc_t ta_field_cc_t;
     speed_t ta_field_speed_t;
     tcflag_t ta_field_tcflag_t;
@@ -173,7 +169,7 @@ struct testTypeAliases {
 #ifdef linux
     eventfd_t ta_field_eventfd_t;
 #endif
-#ifdef __USE_POSIX    
+#ifdef GENERATE_POSIX_TESTS    
     nfds_t ta_field_nfds_t;
     useconds_t ta_field_useconds_t; 
     ptrdiff_t ta_field_ptrdiff_t;
@@ -183,8 +179,39 @@ struct testTypeAliases {
 #endif    
 };
 
+//typedef unsigned long int unsigned_long_int;
+//typedef signed long int signed_long_int;
+
+
+int sizeof_unsigned_long_int() {
+    unsigned long int v = -1;
+    if (v > 0) {
+        return sizeof(unsigned long int);
+    } else {
+        return -((long int)sizeof(unsigned long int));
+    }
+}
+
+unsigned long int test__unsigned_long_int(unsigned long int value) {
+    return ~value;
+}
+
+int sizeof_signed_long_int() {
+    signed long int v = -1;
+    if (v > 0) {
+        return sizeof(signed long int);
+    } else {
+        return -((long int)sizeof(signed long int));
+    }
+}
+
+signed long int test__signed_long_int(signed long int value) {
+    return ~value;
+}
+
+
 #define GENERATE_SIZEOF_TEST(dt_name)\
-int sizeOf_##dt_name() {\
+int sizeof_##dt_name() {\
       return sizeof(dt_name);\
 } 
 
@@ -192,7 +219,7 @@ int sizeOf_##dt_name() {\
     dt_name test__##dt_name(dt_name value) {\
       return ~value;\
     } \
-int sizeOf_##dt_name() {\
+int sizeof_##dt_name() {\
     dt_name v = -1;\
     if (v > 0) {\
       return sizeof(dt_name);\
@@ -203,7 +230,7 @@ int sizeOf_##dt_name() {\
 
     
 //#define __USE_POSIX    
-#ifdef __USE_POSIX    
+#ifdef GENERATE_POSIX_TESTS    
 
 GENERATE_INTEGER_TEST(int8_t)
 GENERATE_INTEGER_TEST(u_int8_t)
@@ -230,7 +257,9 @@ GENERATE_INTEGER_TEST(gid_t)
 GENERATE_INTEGER_TEST(id_t)
 GENERATE_INTEGER_TEST(in_addr_t)
 GENERATE_INTEGER_TEST(in_port_t)
+#ifdef ino64_t
 GENERATE_INTEGER_TEST(ino64_t)
+#endif
 GENERATE_INTEGER_TEST(ino_t)
 GENERATE_INTEGER_TEST(intptr_t)
 GENERATE_INTEGER_TEST(key_t)
@@ -240,7 +269,9 @@ GENERATE_INTEGER_TEST(nlink_t)
 GENERATE_INTEGER_TEST(off_t)
 GENERATE_INTEGER_TEST(pid_t)
 GENERATE_INTEGER_TEST(ptrdiff_t)
+#ifdef rlim_t
 GENERATE_INTEGER_TEST(rlim_t)
+#endif
 GENERATE_INTEGER_TEST(sa_family_t)
 GENERATE_INTEGER_TEST(size_t)
 GENERATE_INTEGER_TEST(socklen_t)
@@ -259,6 +290,10 @@ GENERATE_INTEGER_TEST(wchar_t)
 GENERATE_INTEGER_TEST(wint_t)
 #endif    
 
+#ifdef windows
+GENERATE_INTEGER_TEST(HANDLE)
+#endif    
+        
 #ifdef IDE_SETUP
 Do not compile IDE Setup 
 #endif

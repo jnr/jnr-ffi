@@ -18,6 +18,8 @@
 
 package jnr.ffi.provider;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jnr.ffi.*;
 
 /**
@@ -68,6 +70,7 @@ public abstract class FFIProvider {
                 return (FFIProvider) Class.forName(providerName).newInstance();
 
             } catch (Throwable ex) {
+                Logger.getLogger(FFIProvider.class.getCanonicalName()).log(Level.SEVERE, "could not load FFI provider " + providerName, ex);
                 return newInvalidProvider("could not load FFI provider " + providerName, ex);
             }
         }

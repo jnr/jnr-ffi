@@ -27,6 +27,8 @@ import jnr.ffi.provider.*;
 
 import java.nio.*;
 import java.nio.charset.Charset;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Utility methods that are used at runtime by generated code.
@@ -81,11 +83,11 @@ public final class AsmRuntime {
     }
 
     public static long longValue(Buffer ptr) {
-        return ptr != null && ptr.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0L;
+        return ptr != null && ptr.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(ptr) + ptr.position() : 0L;
     }
 
     public static int intValue(Buffer ptr) {
-        return ptr != null && ptr.isDirect()  ? (int) MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0;
+        return ptr != null && ptr.isDirect()  ? (int) MemoryIO.getInstance().getDirectBufferAddress(ptr)  + ptr.position() : 0;
     }
 
     public static ParameterStrategy nullParameterStrategy() {
@@ -218,7 +220,9 @@ public final class AsmRuntime {
     public static void postInvoke(ToNativeConverter.PostInvocation postInvocation, Object j, Object n, ToNativeContext context) {
         try {
             postInvocation.postInvoke(j, n, context);
-        } catch (Throwable t) {}
+        } catch (Throwable t) {
+                        Logger.getLogger(AsmRuntime.class.getCanonicalName()).log(Level.FINEST, "postInvoke", t);
+        }
     }
 
 }

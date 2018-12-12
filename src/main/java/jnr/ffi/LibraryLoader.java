@@ -31,6 +31,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Loads a native library and maps it to a java interface.
@@ -327,11 +329,13 @@ public abstract class LibraryLoader<T> {
         
         } catch (LinkageError error) {
             if (failImmediately) throw error;
+            Logger.getLogger(LibraryLoader.class.getCanonicalName()).log(Level.WARNING, "load library for " + interfaceClass, error);
             return createErrorProxy(error);
         
         } catch (Exception ex) {
             RuntimeException re = ex instanceof RuntimeException ? (RuntimeException) ex : new RuntimeException(ex);
             if (failImmediately) throw re;
+            Logger.getLogger(LibraryLoader.class.getCanonicalName()).log(Level.WARNING, "load library for " + interfaceClass, ex);
             
             return createErrorProxy(re);
         }

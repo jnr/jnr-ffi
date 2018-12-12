@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.provider.FFIProvider;
+import org.junit.Assert;
 
 import org.junit.Test;
 
@@ -40,9 +41,113 @@ public class LibraryLoaderTest {
         }
     }
 
-    @Test(expected = UnsatisfiedLinkError.class)
-    public void failImmediatelyShouldThrowULE() {
-        LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+    @Test
+    public void testNonexistentLibrary() {
+        try {
+            LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No libraryname in error message", ule.getMessage().contains("non-existent-library"));
+            //TODO check for stacktrace ???
+        }
+    }
+
+    // Loadable library interface to test error messages for non existant Functions
+    public static interface TestLibNonExistent {
+    }
+
+    public static interface TestLibWrongArgs {
+        //non existant
+        void nonExistantFunction();
+        //wrong args types
+        int add(double arg0, double arg1);
+        //too few args
+        int sub(int arg0);
+        //wrong ret type
+        int addd(double arg0, double arg1);
+    }
+    
+    public static interface TestLibWrongParamType {
+        void wrongParamTypeFunction(LibraryLoaderTest p);
+    }
+
+    @Test
+    public void testWrongFunctionParamType() {
+        try {
+        LibraryLoader<TestLibWrongParamType> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongParamType.class);
+            loader.library("test");
+            TestLibWrongParamType lib = loader.load();
+            lib.wrongParamTypeFunction(this);
+            fail("should throw IllegalArgumentException");
+        } catch (IllegalArgumentException iae) {
+            Assert.assertTrue("No functionName in iae.message", iae.getMessage().contains("wrongParamTypeFunction"));
+            Assert.assertTrue("No param index in iae.message", iae.getMessage().contains("param index"));
+            Assert.assertTrue("No offending type in iae.message", iae.getMessage().contains("jnr.ffi.LibraryLoaderTest"));
+            
+            //TODO check for stacktrace ???
+        }
+    }
+
+
+    @Test
+    public void testWrongFunctionArgTypes() {
+        try {
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
+            loader.library("test");
+            TestLibWrongArgs lib = loader.load();
+            lib.add(1.0, 2.0);
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("Could not find SymbolAddress of: \"add\" in libraray: \"[test]\""));
+            //TODO check for stacktrace ???
+        }
+    }
+
+    @Test
+    public void testTooFewFunctionArgs() {
+        try {
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
+            loader.library("test");
+            TestLibWrongArgs lib = loader.load();
+            lib.sub(1);
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("Could not find SymbolAddress of: \"sub\" in libraray: \"[test]\""));
+            //TODO check for stacktrace ???
+        }
+    }
+
+    @Test
+    public void testWrongFunctionReturnType() {
+        try {
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
+            loader.library("test");
+            TestLibWrongArgs lib = loader.load();
+            lib.addd(1.0, 2.0);
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("Could not find SymbolAddress of: \"addd\" in libraray: \"[test]\""));
+            //TODO check for stacktrace ???
+        }
+    }
+
+    @Test
+    public void testNonExistantFunction() {
+        try {
+        LibraryLoader<TestLibWrongArgs> loader = FFIProvider.getSystemProvider()
+                .createLibraryLoader(TestLibWrongArgs.class);
+            loader.library("test");
+            TestLibWrongArgs lib = loader.load();
+            lib.nonExistantFunction();
+            fail("should throw UnsatisfiedLinkError");
+        } catch (UnsatisfiedLinkError ule) {
+            Assert.assertTrue("No function name in error message: " + ule.getMessage(), ule.getMessage().contains("nonExistantFunction"));
+            //TODO check for stacktrace ???
+        }
     }
 
     @Test(expected = UnsatisfiedLinkError.class)

@@ -34,21 +34,23 @@ public final class TypeAliases {
         m.put(TypeAlias.u_int32_t, NativeType.UINT);
         m.put(TypeAlias.int64_t, NativeType.SLONGLONG);
         m.put(TypeAlias.u_int64_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.signed_long_int, NativeType.SLONG);
+        m.put(TypeAlias.unsigned_long_int, NativeType.ULONG);
         m.put(TypeAlias.intptr_t, NativeType.SLONG);
         m.put(TypeAlias.uintptr_t, NativeType.ULONG);
         m.put(TypeAlias.caddr_t, NativeType.ADDRESS);
-        m.put(TypeAlias.dev_t, NativeType.SINT);
+        m.put(TypeAlias.dev_t, NativeType.UINT);
         m.put(TypeAlias.blkcnt_t, NativeType.SLONG);
-        m.put(TypeAlias.blksize_t, NativeType.SLONG);
+        m.put(TypeAlias.blksize_t, NativeType.SINT);
         m.put(TypeAlias.gid_t, NativeType.UINT);
         m.put(TypeAlias.in_addr_t, NativeType.UINT);
         m.put(TypeAlias.in_port_t, NativeType.USHORT);
         m.put(TypeAlias.ino_t, NativeType.UINT);
         m.put(TypeAlias.ino64_t, NativeType.ULONGLONG);
         m.put(TypeAlias.key_t, NativeType.SLONG);
-        m.put(TypeAlias.mode_t, NativeType.UINT);
-        m.put(TypeAlias.nlink_t, NativeType.UINT);
-        m.put(TypeAlias.id_t, NativeType.UINT);
+        m.put(TypeAlias.mode_t, NativeType.USHORT);
+        m.put(TypeAlias.nlink_t, NativeType.USHORT);
+        m.put(TypeAlias.id_t, NativeType.SLONG);
         m.put(TypeAlias.pid_t, NativeType.SINT);
         m.put(TypeAlias.off_t, NativeType.SLONGLONG);
         m.put(TypeAlias.swblk_t, NativeType.SINT);
@@ -56,7 +58,7 @@ public final class TypeAliases {
         m.put(TypeAlias.clock_t, NativeType.SINT);
         m.put(TypeAlias.size_t, NativeType.ULONG);
         m.put(TypeAlias.ssize_t, NativeType.SLONG);
-        m.put(TypeAlias.time_t, NativeType.SINT);
+        m.put(TypeAlias.time_t, NativeType.SLONG);
         m.put(TypeAlias.fsblkcnt_t, NativeType.ULONG);
         m.put(TypeAlias.fsfilcnt_t, NativeType.ULONG);
         m.put(TypeAlias.sa_family_t, NativeType.UCHAR);
@@ -65,6 +67,15 @@ public final class TypeAliases {
         m.put(TypeAlias.cc_t, NativeType.UCHAR);
         m.put(TypeAlias.speed_t, NativeType.UINT);
         m.put(TypeAlias.tcflag_t, NativeType.UINT);
+        m.put(TypeAlias.eventfd_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.nfds_t, NativeType.UINT);
+        m.put(TypeAlias.useconds_t, NativeType.UINT);
+        m.put(TypeAlias.ptrdiff_t, NativeType.SLONG);
+        m.put(TypeAlias.suseconds_t, NativeType.SLONG);
+        m.put(TypeAlias.useconds_t, NativeType.UINT);
+        m.put(TypeAlias.wint_t, NativeType.SINT);
+        m.put(TypeAlias.wchar_t, NativeType.SINT); //ITS SINT
+        m.put(TypeAlias.HANDLE, NativeType.ULONG); //DEFINE THIS as ULONG ON LINUX or VOID ???
         return m;
     }
 }

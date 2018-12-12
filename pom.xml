@@ -50,7 +50,7 @@
     <asm.version>5.0.3</asm.version>
     <make>make</make>
   </properties>
-
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -263,7 +263,17 @@
         </plugins>
       </build>
     </profile>
+      <profile>
+          <id>freebsd-profile</id>
+          <activation>
+              <os><name>freebsd</name></os>
+          </activation>
+          <properties>
+              <make>gmake</make>
+          </properties>
+      </profile>
   </profiles>
+
   <reporting>
     <plugins>
       <plugin>

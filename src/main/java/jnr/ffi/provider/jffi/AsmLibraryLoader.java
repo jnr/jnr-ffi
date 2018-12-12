@@ -68,6 +68,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import com.kenai.jffi.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
@@ -182,6 +184,11 @@ public class AsmLibraryLoader extends LibraryLoader {
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
                 generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, 
                         function.getMethod().getReturnType(), function.getMethod().getParameterTypes());
+                Logger.getLogger(getClass().getCanonicalName()).log(Level.WARNING, "Function not found msg: " + errorFieldName, ex);
+            } catch (IllegalArgumentException ex) {
+                IllegalArgumentException newEx = new IllegalArgumentException("In functionname: " + functionName + " " + ex.getMessage(), ex);
+                Logger.getLogger(getClass().getCanonicalName()).log(Level.SEVERE, newEx.getMessage(), ex);
+                throw newEx;
             }
         }
 
@@ -203,6 +210,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 String errorFieldName = "error_" + uniqueId.incrementAndGet();
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
                 generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, m.getReturnType(), m.getParameterTypes());
+                Logger.getLogger(getClass().getCanonicalName()).log(Level.WARNING, "Function not found msg: " + errorFieldName, ex);
             }
         }
 
