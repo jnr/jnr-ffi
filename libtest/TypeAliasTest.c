@@ -16,20 +16,24 @@
  * limitations under the License.
  */
 
-//THESE here to make the IDE Editor happy uncomment 
-//#define linux_ide
-
-#ifdef linux_ide
-#define IDE_SETUP
-#define __USE_POSIX
-#define unix
-#define linux
+#ifdef linux
+#define GENERATE_LINUX_TESTS
 #endif
-
 
 #ifdef unix //we should be able to include all posix headers and therefore __USE_POSIX is defined ...
 #define GENERATE_POSIX_TESTS
+#endif
 
+#ifdef darwin
+#define GENERATE_DARWIN_TESTS
+#endif
+
+#ifdef windows
+#define GENERATE_WINAPI_TESTS
+#endif
+
+
+#ifdef GENERATE_POSIX_TESTS
 //Include all posix headers....
 #include <aio.h>
 #include <arpa/inet.h>
@@ -116,7 +120,7 @@
 
 #endif
 
-#ifdef linux
+#ifdef GENERATE_LINUX_TESTS
 #include <sys/eventfd.h>
 #endif
 
@@ -140,7 +144,7 @@ struct testTypeAliases {
     in_addr_t ta_field_in_addr_t;
     in_port_t ta_field_in_port_t;
     ino_t ta_field_ino_t;
-#ifdef ino64_t
+#ifdef GENERATE_DARWIN_TESTS
     ino64_t ta_field_ino64_t;
 #endif
     key_t ta_field_key_t;
@@ -159,14 +163,14 @@ struct testTypeAliases {
     fsfilcnt_t ta_field_fsfilcnt_t;
     sa_family_t ta_field_sa_family_t;
     socklen_t ta_field_socklen_t;
-#ifdef rlim_t
+#ifdef GENERATE_DARWIN_TESTS
     rlim_t ta_field_rlim_t;
 #endif
     cc_t ta_field_cc_t;
     speed_t ta_field_speed_t;
     tcflag_t ta_field_tcflag_t;
 #endif
-#ifdef linux
+#ifdef GENERATE_LINUX_TESTS
     eventfd_t ta_field_eventfd_t;
 #endif
 #ifdef GENERATE_POSIX_TESTS    
@@ -179,9 +183,16 @@ struct testTypeAliases {
 #endif    
 };
 
-//typedef unsigned long int unsigned_long_int;
-//typedef signed long int signed_long_int;
-
+int8_t testsomething(int64_t arg0) {
+    u_int64_t v0 = arg0;
+    int32_t v1 = v0 ;
+    u_int32_t v2 = v1;
+    int16_t v3 = v2 ;
+    u_int16_t v4 = v3;
+    int8_t v5 = v4 ;
+    u_int8_t v6 = v5;
+    return v6;
+}
 
 int sizeof_unsigned_long_int() {
     unsigned long int v = -1;
@@ -248,7 +259,7 @@ GENERATE_SIZEOF_TEST(caddr_t)
 GENERATE_INTEGER_TEST(cc_t)
 GENERATE_INTEGER_TEST(clock_t)
 GENERATE_INTEGER_TEST(dev_t)
-#ifdef linux
+#ifdef GENERATE_LINUX_TESTS
 GENERATE_INTEGER_TEST(eventfd_t)
 #endif
 GENERATE_INTEGER_TEST(fsblkcnt_t)
@@ -257,7 +268,7 @@ GENERATE_INTEGER_TEST(gid_t)
 GENERATE_INTEGER_TEST(id_t)
 GENERATE_INTEGER_TEST(in_addr_t)
 GENERATE_INTEGER_TEST(in_port_t)
-#ifdef ino64_t
+#ifdef GENERATE_DARWIN_TESTS
 GENERATE_INTEGER_TEST(ino64_t)
 #endif
 GENERATE_INTEGER_TEST(ino_t)
@@ -269,7 +280,7 @@ GENERATE_INTEGER_TEST(nlink_t)
 GENERATE_INTEGER_TEST(off_t)
 GENERATE_INTEGER_TEST(pid_t)
 GENERATE_INTEGER_TEST(ptrdiff_t)
-#ifdef rlim_t
+#ifdef GENERATE_DARWIN_TESTS
 GENERATE_INTEGER_TEST(rlim_t)
 #endif
 GENERATE_INTEGER_TEST(sa_family_t)
@@ -290,12 +301,7 @@ GENERATE_INTEGER_TEST(wchar_t)
 GENERATE_INTEGER_TEST(wint_t)
 #endif    
 
-#ifdef windows
+#ifdef GENERATE_WINAPI_TESTS
 GENERATE_INTEGER_TEST(HANDLE)
 #endif    
-        
-#ifdef IDE_SETUP
-Do not compile IDE Setup 
-#endif
-
 
