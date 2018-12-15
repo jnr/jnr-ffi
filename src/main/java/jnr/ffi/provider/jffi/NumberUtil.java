@@ -20,6 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.SigType;
+import org.objectweb.asm.Label;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -143,7 +144,29 @@ public final class NumberUtil {
 
     public static void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
         if (!from.equals(to)) {
-            if (byte.class == to || short.class == to || char.class == to || int.class == to || boolean.class == to) {
+            if (boolean.class == to) {
+                Label label_0 = new Label();
+                Label label_1 = new Label();
+                if (long.class == from) {
+                    mv.lconst_0();
+                    mv.lcmp();
+                    mv.ifeq(label_0);
+                    mv.iconst_1();
+                    mv.go_to(label_1);
+                    mv.label(label_0);
+                    mv.iconst_0();
+                    mv.label(label_1);
+                } else {
+//                    mv.iconst_0();
+                    mv.ifeq(label_0);
+                    mv.iconst_1();
+                    mv.go_to(label_1);
+                    mv.label(label_0);
+                    mv.iconst_0();
+                    mv.label(label_1);
+                }
+                
+            } else  if (byte.class == to || short.class == to || char.class == to || int.class == to) {
                 if (long.class == from) {
                     mv.l2i();
                 }
@@ -156,11 +179,6 @@ public final class NumberUtil {
 
                 } else if (char.class == to) {
                     mv.i2c();
-
-                } else if (boolean.class == to) {
-                    // Ensure only 0x0 and 0x1 values are used for boolean
-                    mv.iconst_1();
-                    mv.iand();
                 }
             }
         }
