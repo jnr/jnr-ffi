@@ -144,29 +144,7 @@ public final class NumberUtil {
 
     public static void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
         if (!from.equals(to)) {
-            if (boolean.class == to) {
-                Label label_0 = new Label();
-                Label label_1 = new Label();
-                if (long.class == from) {
-                    mv.lconst_0();
-                    mv.lcmp();
-                    mv.ifeq(label_0);
-                    mv.iconst_1();
-                    mv.go_to(label_1);
-                    mv.label(label_0);
-                    mv.iconst_0();
-                    mv.label(label_1);
-                } else {
-//                    mv.iconst_0();
-                    mv.ifeq(label_0);
-                    mv.iconst_1();
-                    mv.go_to(label_1);
-                    mv.label(label_0);
-                    mv.iconst_0();
-                    mv.label(label_1);
-                }
-                
-            } else  if (byte.class == to || short.class == to || char.class == to || int.class == to) {
+            if (byte.class == to || short.class == to || char.class == to || int.class == to) {
                 if (long.class == from) {
                     mv.l2i();
                 }
@@ -180,7 +158,28 @@ public final class NumberUtil {
                 } else if (char.class == to) {
                     mv.i2c();
                 }
-            }
+            } else if (boolean.class == to) {
+                Label label_false_branch = new Label();
+                Label label_end = new Label();
+                if (long.class == from) {
+                    mv.lconst_0();
+                    mv.lcmp();
+                    mv.ifeq(label_false_branch);
+                    mv.iconst_1();
+                    mv.go_to(label_end);
+                    mv.label(label_false_branch);
+                    mv.iconst_0();
+                    mv.label(label_end);
+                } else {
+//                    mv.iconst_0();
+                    mv.ifeq(label_false_branch);
+                    mv.iconst_1();
+                    mv.go_to(label_end);
+                    mv.label(label_false_branch);
+                    mv.iconst_0();
+                    mv.label(label_end);
+                }
+            }    
         }
     }
 
