@@ -22,6 +22,7 @@
 
 #ifdef unix //we should be able to include all posix headers and therefore __USE_POSIX is defined ...
 #define GENERATE_POSIX_TESTS
+#include <stdint.h>
 #endif
 
 #ifdef darwin
