@@ -36,6 +36,8 @@ public final class TypeAliases {
         m.put(TypeAlias.u_int32_t, NativeType.UINT);
         m.put(TypeAlias.int64_t, NativeType.SLONGLONG);
         m.put(TypeAlias.u_int64_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.signed_long_int, NativeType.SLONG);
+        m.put(TypeAlias.unsigned_long_int, NativeType.ULONG);
         m.put(TypeAlias.intptr_t, NativeType.SLONG);
         m.put(TypeAlias.uintptr_t, NativeType.ULONG);
         m.put(TypeAlias.caddr_t, NativeType.ADDRESS);
@@ -67,6 +69,15 @@ public final class TypeAliases {
         m.put(TypeAlias.cc_t, NativeType.UCHAR);
         m.put(TypeAlias.speed_t, NativeType.UINT);
         m.put(TypeAlias.tcflag_t, NativeType.UINT);
+        m.put(TypeAlias.eventfd_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.nfds_t, NativeType.UINT);
+        m.put(TypeAlias.useconds_t, NativeType.UINT);
+        m.put(TypeAlias.ptrdiff_t, NativeType.SLONG);
+        m.put(TypeAlias.suseconds_t, NativeType.SLONG);
+        m.put(TypeAlias.useconds_t, NativeType.UINT);
+        m.put(TypeAlias.wint_t, NativeType.SINT);
+        m.put(TypeAlias.wchar_t, NativeType.SINT); //ITS SINT
+        m.put(TypeAlias.HANDLE, NativeType.ULONG); //DEFINE THIS as ULONG ON LINUX or VOID ???
         return m;
     }
 }
