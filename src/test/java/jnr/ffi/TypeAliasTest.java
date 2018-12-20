@@ -581,6 +581,7 @@ public class TypeAliasTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        ta = EnumSet.allOf(TypeAlias.class);
         platform = Platform.getNativePlatform();
         if (platform.isUnix()) {
             switch (platform.getOS()) {
@@ -600,7 +601,6 @@ public class TypeAliasTest {
             throw new RuntimeException("Unknown Platform! Dont know what to do!");
         }
         rt = NativeRuntime.getRuntime(testlib);
-        ta = EnumSet.allOf(TypeAlias.class);
     }
 
     @AfterClass
