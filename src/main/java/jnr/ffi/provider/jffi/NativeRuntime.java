@@ -39,11 +39,12 @@ import java.util.logging.Logger;
  *
  */
 public final class NativeRuntime extends AbstractRuntime {
+    private final static Logger LOGGER = Logger.getLogger(NativeRuntime.class.getCanonicalName());
     private final NativeMemoryManager mm = new NativeMemoryManager(this);
     private final NativeClosureManager closureManager = new NativeClosureManager(this,
             new SignatureTypeMapperAdapter(new DefaultTypeMapper()));
 
-    private final Type[] aliases;
+    private final Map<TypeAlias, Type> aliases;
 
     public static NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
@@ -55,15 +56,17 @@ public final class NativeRuntime extends AbstractRuntime {
 
     private NativeRuntime() {
         super(ByteOrder.nativeOrder(), buildTypeMap());
-        NativeType[] nativeAliases = buildNativeTypeAliases();
+        Map<TypeAlias, NativeType> nativeAliases = buildNativeTypeAliases();
         EnumSet<TypeAlias> typeAliasSet = EnumSet.allOf(TypeAlias.class);
-        aliases = new Type[typeAliasSet.size()];
-
+        aliases = new EnumMap(TypeAlias.class);
+        
         for (TypeAlias alias : typeAliasSet) {
-            if (nativeAliases.length > alias.ordinal() && nativeAliases[alias.ordinal()] != NativeType.VOID) {
-                aliases[alias.ordinal()] = findType(nativeAliases[alias.ordinal()]);
+            final NativeType nt = nativeAliases.get(alias);
+            if (nt == null || nt == NativeType.VOID) {
+                aliases.put(alias, new BadType(alias.name()));
+                LOGGER.log(Level.SEVERE, "Could not find NativeType for: {0}", alias);
             } else {
-                aliases[alias.ordinal()] = new BadType(alias.name());
+                aliases.put(alias, findType(nativeAliases.get(alias)));
             }
         }
     }
@@ -79,41 +82,40 @@ public final class NativeRuntime extends AbstractRuntime {
         return typeMap;
     }
 
-    private static NativeType[] buildNativeTypeAliases() {
+    private static Map<TypeAlias, NativeType> buildNativeTypeAliases() {
         Platform platform = Platform.getNativePlatform();
         Package pkg = NativeRuntime.class.getPackage();
         String cpu = platform.getCPU().toString();
         String os = platform.getOS().toString();
         EnumSet<TypeAlias> typeAliases = EnumSet.allOf(TypeAlias.class);
-        NativeType[] aliases = {};
-        Class cls;
+        Map<TypeAlias, NativeType> aliases = new EnumMap(TypeAlias.class);
         try {
-            cls = Class.forName(pkg.getName() + ".platform." + cpu + "." + os + ".TypeAliases");
-            Field aliasesField = cls.getField("ALIASES");
-            Map aliasMap = Map.class.cast(aliasesField.get(cls));
-            aliases = new NativeType[typeAliases.size()];
+            Class<NativeTypeLookup> cls = (Class<NativeTypeLookup>)Class.forName(pkg.getName() + ".platform." + cpu + "." + os + ".TypeAliases");
+            NativeTypeLookup ntl = cls.newInstance();
             for (TypeAlias t : typeAliases) {
-                aliases[t.ordinal()] = (NativeType) aliasMap.get(t);
-                if (aliases[t.ordinal()] == null) {
+                aliases.put(t, ntl.get(t));
+                if (aliases.get(t) == null) {
                     //Fail fast otherwise loading of the libraray may fail without meaningful error message!
                     throw new RuntimeException(String.format("TypeAlias for \"%s\" on cpu: \"%s\" and os: \"%s\" not defined!\n\tClass: \"%s\" is is out of date Please file a bug at https://www.github.com/jnr/jnr-ffi !", t, cpu, os, cls.getCanonicalName()));
                     // aliases[t.ordinal()] = NativeType.VOID;
                 }
             }
+            return aliases;
         } catch (ClassNotFoundException cne) {
-            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases: " + cne);
-        } catch (NoSuchFieldException nsfe) {
-            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases: " + nsfe);
+            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases  lookup", cne);
+            throw new RuntimeException(cne);
         } catch (IllegalAccessException iae) {
-            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases: " + iae);
+            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to load type aliases lookup", iae);
+            throw new RuntimeException(iae);
+        } catch (InstantiationException ie) {
+            Logger.getLogger(NativeRuntime.class.getName()).log(Level.SEVERE, "failed to instantiate type aliases lookup ", ie);
+            throw new RuntimeException(ie);
         }
-
-        return aliases;
     }
 
     @Override
     public Type findType(TypeAlias type) {
-        return aliases[type.ordinal()];
+        return aliases.get(type);
     }
 
     public final NativeMemoryManager getMemoryManager() {
@@ -152,14 +154,14 @@ public final class NativeRuntime extends AbstractRuntime {
 
         NativeRuntime that = (NativeRuntime) o;
 
-        return Arrays.equals(aliases, that.aliases) && closureManager.equals(that.closureManager) && mm.equals(that.mm);
+        return aliases.equals(that.aliases) && closureManager.equals(that.closureManager) && mm.equals(that.mm);
     }
 
     @Override
     public int hashCode() {
         int result = mm.hashCode();
         result = 31 * result + closureManager.hashCode();
-        result = 31 * result + Arrays.hashCode(aliases);
+        result = 31 * result + aliases.hashCode();
         return result;
     }
 

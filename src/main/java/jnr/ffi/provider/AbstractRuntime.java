@@ -25,12 +25,16 @@ import jnr.ffi.Type;
 import java.nio.ByteOrder;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  */
 public abstract class AbstractRuntime extends Runtime {
-    private final Type[] types;
+    private final static Logger LOGGER = Logger.getLogger(AbstractRuntime.class.getCanonicalName());
+    private final Map<NativeType, Type> types;
     private final long addressMask;
     private final int addressSize;
     private final int longSize;
@@ -39,21 +43,26 @@ public abstract class AbstractRuntime extends Runtime {
     public AbstractRuntime(ByteOrder byteOrder, EnumMap<NativeType, Type> typeMap) {
         this.byteOrder = byteOrder;
         
-        EnumSet<NativeType> nativeTypes = EnumSet.allOf(NativeType.class);
-        types = new Type[nativeTypes.size()];
-        for (NativeType t : nativeTypes) {
-            types[t.ordinal()] = typeMap.containsKey(t) ? typeMap.get(t) : new BadType(t.toString());
+        types = new EnumMap(NativeType.class);
+        for (NativeType nt : EnumSet.allOf(NativeType.class)) {
+            final Type t = typeMap.get(nt);
+            if (t == null) {
+                types.put(nt, new BadType(nt.toString()));
+                LOGGER.log(Level.SEVERE, "Can't find {0} for {1}", new Object[]{Type.class.getCanonicalName(), nt});
+            } else {
+                types.put(nt, t);
+            }
         }
         
-        this.addressSize = types[NativeType.ADDRESS.ordinal()].size();
-        this.longSize = types[NativeType.SLONG.ordinal()].size();
+        this.addressSize = types.get(NativeType.ADDRESS).size();
+        this.longSize = types.get(NativeType.SLONG).size();
         this.addressMask = addressSize == 4 ? 0xffffffffL : 0xffffffffffffffffL;
     }
 
 
     /** Looks up the runtime-specific that corresponds to the pseudo-type */
     public final Type findType(NativeType type) {
-        return types[type.ordinal()];
+        return types.get(type);
     }
 
     /**

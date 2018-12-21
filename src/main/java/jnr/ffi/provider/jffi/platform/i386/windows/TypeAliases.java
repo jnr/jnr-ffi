@@ -3,7 +3,7 @@
  *
  * This file is part of the JNR project.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License";
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package jnr.ffi.provider.jffi.platform.i386.windows;
 
 import jnr.ffi.NativeType;
@@ -23,50 +22,92 @@ import jnr.ffi.TypeAlias;
 
 import java.util.EnumMap;
 import java.util.Map;
+import jnr.ffi.provider.jffi.NativeTypeLookup;
 
-public final class TypeAliases {
-    public static final Map<TypeAlias, jnr.ffi.NativeType> ALIASES = buildTypeMap();
-    private static Map<TypeAlias, jnr.ffi.NativeType> buildTypeMap() {
-        Map<TypeAlias, jnr.ffi.NativeType> m = new EnumMap<TypeAlias, jnr.ffi.NativeType>(TypeAlias.class);
-        m.put(TypeAlias.int8_t, NativeType.SCHAR);
-        m.put(TypeAlias.u_int8_t, NativeType.UCHAR);
-        m.put(TypeAlias.int16_t, NativeType.SSHORT);
-        m.put(TypeAlias.u_int16_t, NativeType.USHORT);
-        m.put(TypeAlias.int32_t, NativeType.SLONG);
-        m.put(TypeAlias.u_int32_t, NativeType.UINT);
-        m.put(TypeAlias.int64_t, NativeType.SLONGLONG);
-        m.put(TypeAlias.u_int64_t, NativeType.ULONGLONG);
-        m.put(TypeAlias.intptr_t, NativeType.SLONG);
-        m.put(TypeAlias.uintptr_t, NativeType.ULONG);
-        m.put(TypeAlias.caddr_t, NativeType.ADDRESS);
-        m.put(TypeAlias.dev_t, NativeType.ULONG);
-        m.put(TypeAlias.blkcnt_t, NativeType.SLONGLONG);
-        m.put(TypeAlias.blksize_t, NativeType.SLONG);
-        m.put(TypeAlias.gid_t, NativeType.ULONG);
-        m.put(TypeAlias.in_addr_t, NativeType.UINT);
-        m.put(TypeAlias.in_port_t, NativeType.USHORT);
-        m.put(TypeAlias.ino_t, NativeType.ULONGLONG);
-        m.put(TypeAlias.ino64_t, NativeType.ULONGLONG);
-        m.put(TypeAlias.key_t, NativeType.SLONGLONG);
-        m.put(TypeAlias.mode_t, NativeType.USHORT);
-        m.put(TypeAlias.nlink_t, NativeType.USHORT);
-        m.put(TypeAlias.id_t, NativeType.ULONG);
-        m.put(TypeAlias.pid_t, NativeType.SINT);
-        m.put(TypeAlias.off_t, NativeType.SLONGLONG);
-        m.put(TypeAlias.swblk_t, NativeType.SLONG);
-        m.put(TypeAlias.uid_t, NativeType.ULONG);
-        m.put(TypeAlias.clock_t, NativeType.ULONG);
-        m.put(TypeAlias.size_t, NativeType.UINT);
-        m.put(TypeAlias.ssize_t, NativeType.SINT);
-        m.put(TypeAlias.time_t, NativeType.SLONG);
-        m.put(TypeAlias.fsblkcnt_t, NativeType.ULONG);
-        m.put(TypeAlias.fsfilcnt_t, NativeType.ULONG);
-        m.put(TypeAlias.sa_family_t, NativeType.USHORT);
-        m.put(TypeAlias.socklen_t, NativeType.SINT);
-        m.put(TypeAlias.rlim_t, NativeType.ULONG);
-        m.put(TypeAlias.cc_t, NativeType.UCHAR);
-        m.put(TypeAlias.speed_t, NativeType.UINT);
-        m.put(TypeAlias.tcflag_t, NativeType.UINT);
-        return m;
+public final class TypeAliases implements NativeTypeLookup {
+
+    @Override
+    public NativeType get(TypeAlias ta) {
+        switch (ta) {
+            case int8_t:
+                return NativeType.SCHAR;
+            case u_int8_t:
+                return NativeType.UCHAR;
+            case int16_t:
+                return NativeType.SSHORT;
+            case u_int16_t:
+                return NativeType.USHORT;
+            case int32_t:
+                return NativeType.SLONG;
+            case u_int32_t:
+                return NativeType.UINT;
+            case int64_t:
+                return NativeType.SLONGLONG;
+            case u_int64_t:
+                return NativeType.ULONGLONG;
+            case intptr_t:
+                return NativeType.SLONG;
+            case uintptr_t:
+                return NativeType.ULONG;
+            case caddr_t:
+                return NativeType.ADDRESS;
+            case dev_t:
+                return NativeType.ULONG;
+            case blkcnt_t:
+                return NativeType.SLONGLONG;
+            case blksize_t:
+                return NativeType.SLONG;
+            case gid_t:
+                return NativeType.ULONG;
+            case in_addr_t:
+                return NativeType.UINT;
+            case in_port_t:
+                return NativeType.USHORT;
+            case ino_t:
+                return NativeType.ULONGLONG;
+            case ino64_t:
+                return NativeType.ULONGLONG;
+            case key_t:
+                return NativeType.SLONGLONG;
+            case mode_t:
+                return NativeType.USHORT;
+            case nlink_t:
+                return NativeType.USHORT;
+            case id_t:
+                return NativeType.ULONG;
+            case pid_t:
+                return NativeType.SINT;
+            case off_t:
+                return NativeType.SLONGLONG;
+            case swblk_t:
+                return NativeType.SLONG;
+            case uid_t:
+                return NativeType.ULONG;
+            case clock_t:
+                return NativeType.ULONG;
+            case size_t:
+                return NativeType.UINT;
+            case ssize_t:
+                return NativeType.SINT;
+            case time_t:
+                return NativeType.SLONG;
+            case fsblkcnt_t:
+                return NativeType.ULONG;
+            case fsfilcnt_t:
+                return NativeType.ULONG;
+            case sa_family_t:
+                return NativeType.USHORT;
+            case socklen_t:
+                return NativeType.SINT;
+            case rlim_t:
+                return NativeType.ULONG;
+            case cc_t:
+                return NativeType.UCHAR;
+            case speed_t:
+                return NativeType.UINT;
+            case tcflag_t:
+                return NativeType.UINT;
+        }
+        return null;
     }
 }
