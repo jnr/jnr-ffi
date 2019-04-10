@@ -152,10 +152,24 @@ public class AsmLibraryLoader extends LibraryLoader {
                 continue;
             }
 
-            String functionName = functionMapper.mapFunctionName(function.name(), new NativeFunctionMapperContext(library, function.annotations()));
+            String searchName = function.name();
+            String searchVersion = null;
+
+            for (java.lang.annotation.Annotation a : function.annotations()) {
+                if (a.annotationType() == jnr.ffi.annotations.Function.class) {
+                    jnr.ffi.annotations.Function ann = (jnr.ffi.annotations.Function) a;
+                    searchName = ann.value();
+                }
+                if (a.annotationType() == jnr.ffi.annotations.Version.class) {
+                    jnr.ffi.annotations.Version ann = (jnr.ffi.annotations.Version) a;
+                    searchVersion = ann.value();
+                }
+            }
+
+            String functionName = functionMapper.mapFunctionName(searchName, new NativeFunctionMapperContext(library, function.annotations()));
 
             try {
-                long functionAddress = library.findSymbolAddress(functionName);
+                long functionAddress = library.findSymbolAddress(functionName, searchVersion);
                 
                 FromNativeContext resultContext = new MethodResultContext(runtime, function.getMethod());
                 SignatureType signatureType = DefaultSignatureType.create(function.getMethod().getReturnType(), resultContext);
