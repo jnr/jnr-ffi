@@ -55,6 +55,8 @@ public abstract class Platform {
         NETBSD,
         /** OpenBSD */
         OPENBSD,
+	/** DragonFly */
+	DRAGONFLY,
         /** Linux */
         LINUX,
         /** Solaris (and OpenSolaris) */
@@ -152,6 +154,8 @@ public abstract class Platform {
             return OS.OPENBSD;
         } else if (startsWithIgnoreCase(osName, "freebsd")) {
             return OS.FREEBSD;
+        } else if (startsWithIgnoreCase(osName, "dragonfly")) {
+            return OS.DRAGONFLY;
         } else if (startsWithIgnoreCase(osName, "windows")) {
             return OS.WINDOWS;
         } else {
@@ -318,7 +322,7 @@ public abstract class Platform {
     }
     
     public final boolean isBSD() {
-        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
+        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN || os == OS.DRAGONFLY;
     }
     public final boolean isUnix() {
         return os != OS.WINDOWS;
@@ -364,6 +368,7 @@ public abstract class Platform {
             return "libc.so.6";
         case SOLARIS:
             return "c";
+        case DRAGONFLY:
         case FREEBSD:
         case NETBSD:
             return "c";

@@ -29,7 +29,7 @@ typedef void* pointer;
 #ifdef _WIN32
 typedef char* caddr_t;
 #endif
-#if !defined(_STDINT_H) && !defined(_SYS__STDINT_H_)
+#if !defined(_STDINT_H_) && !defined(_STDINT_H) && !defined(_SYS__STDINT_H_)
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed int int32_t;

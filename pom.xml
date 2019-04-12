@@ -237,6 +237,30 @@
   </build>
   <profiles>
     <profile>
+      <id>linux-profile</id>
+      <activation>
+        <os><name>linux</name></os>
+      </activation>
+    </profile>
+    <profile>
+      <id>freebsd-profile</id>
+      <activation>
+        <os><name>freebsd</name></os>
+      </activation>
+      <properties>
+        <make>gmake</make>
+      </properties>
+    </profile>
+    <profile>
+      <id>dragonfly-profile</id>
+      <activation>
+        <os><name>dragonflybsd</name></os>
+      </activation>
+      <properties>
+        <make>gmake</make>
+      </properties>
+    </profile>
+    <profile>
       <id>release-sign-artifacts</id>
       <activation>
         <property>
