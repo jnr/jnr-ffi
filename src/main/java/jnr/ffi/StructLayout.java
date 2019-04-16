@@ -312,7 +312,7 @@ public class StructLayout extends Type {
         }
 
         public final boolean get(jnr.ffi.Pointer ptr) {
-            return (ptr.getByte(offset()) & 0x1) != 0;
+            return ptr.getByte(offset()) != 0;
         }
 
         public final void set(jnr.ffi.Pointer ptr, boolean value) {
@@ -333,7 +333,7 @@ public class StructLayout extends Type {
         }
 
         public final boolean get(jnr.ffi.Pointer ptr) {
-            return (ptr.getInt(offset()) & 0x1) != 0;
+            return ptr.getInt(offset()) != 0;
         }
 
         public final void set(jnr.ffi.Pointer ptr, boolean value) {
@@ -341,6 +341,25 @@ public class StructLayout extends Type {
         }
     }
 
+    public final class BOOL16 extends AbstractBoolean {
+        protected BOOL16() {
+            super(NativeType.SSHORT);
+        }
+
+        protected BOOL16(Offset offset) {
+            super(NativeType.SSHORT, offset);
+        }
+
+        public final boolean get(jnr.ffi.Pointer ptr) {
+            return ptr.getShort(offset()) != 0;
+        }
+
+        public final void set(jnr.ffi.Pointer ptr, boolean value) {
+            ptr.putShort(offset(), (short) (value ? 1 : 0));
+        }
+    }
+
+    
     /**
      * Base class for all Number structure fields.
      */
