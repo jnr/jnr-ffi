@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package jnr.ffi.provider.jffi.platform.ppc.aix;
+package jnr.ffi.provider.jffi.platform.ppc64.aix;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;
