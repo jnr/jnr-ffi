@@ -24,6 +24,8 @@ import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.CPU;
+import jnr.a64asm.Assembler_A64;
+import jnr.a64asm.CPU_A64;
 
 /**
  * Compiles asm trampoline stubs for java class methods
@@ -40,12 +42,17 @@ abstract class StubCompiler {
             switch (Platform.getPlatform().getCPU()) {
                 case I386:
                     if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
-                        return new X86_32StubCompiler(runtime);
+                        return new X86_32StubCompiler(runtime);  //currently supporting only A64
                     }
                     break;
                 case X86_64:
                     if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
-                        return new X86_64StubCompiler(runtime);
+                        return new X86_64StubCompiler(runtime);	//currently supporting only A64
+                    }
+                    break;
+                case AARCH64:
+                    if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
+                        return new ARM_64StubCompiler(runtime);
                     }
                     break;
             }
@@ -108,6 +115,9 @@ abstract class StubCompiler {
                     return true;
                 case X86_64:
                     new Assembler(CPU.X86_64);
+                    return true;
+                case AARCH64:
+                    new Assembler_A64(CPU_A64.A64);
                     return true;
                 default:
                     return false;

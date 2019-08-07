@@ -9,7 +9,7 @@
   <groupId>com.github.jnr</groupId>
   <artifactId>jnr-ffi</artifactId>
   <packaging>jar</packaging>
-  <version>2.1.9-SNAPSHOT</version>
+  <version>2.1.11-SNAPSHOT</version>
   <name>jnr-ffi</name>
   <description>A library for invoking native functions from java</description>
   <url>http://github.com/jnr/jnr-ffi</url>
@@ -47,7 +47,7 @@
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <github.global.server>github</github.global.server>
-    <asm.version>5.0.3</asm.version>
+    <asm.version>7.1</asm.version>
     <make>make</make>
   </properties>
 
@@ -61,13 +61,13 @@
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.2.17</version>
+      <version>1.2.19</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.2.17</version>
+      <version>1.2.19</version>
       <scope>runtime</scope>
       <classifier>native</classifier>
     </dependency>
@@ -99,6 +99,12 @@
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
       <version>${asm.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.jnr</groupId>
+      <artifactId>jnr-a64asm</artifactId>
+      <version>1.0.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -230,6 +236,30 @@
     </plugins>
   </build>
   <profiles>
+    <profile>
+      <id>linux-profile</id>
+      <activation>
+        <os><name>linux</name></os>
+      </activation>
+    </profile>
+    <profile>
+      <id>freebsd-profile</id>
+      <activation>
+        <os><name>freebsd</name></os>
+      </activation>
+      <properties>
+        <make>gmake</make>
+      </properties>
+    </profile>
+    <profile>
+      <id>dragonfly-profile</id>
+      <activation>
+        <os><name>dragonflybsd</name></os>
+      </activation>
+      <properties>
+        <make>gmake</make>
+      </properties>
+    </profile>
     <profile>
       <id>release-sign-artifacts</id>
       <activation>
