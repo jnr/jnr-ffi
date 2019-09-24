@@ -118,6 +118,9 @@ public abstract class Platform {
         /** 64 bit ARM */
         AARCH64,
 
+        /** MIPS 64 bit little endian */
+        MIPS64EL,
+
         /**
          * Unknown CPU architecture.  A best effort will be made to infer architecture
          * specific values such as address and long size.
