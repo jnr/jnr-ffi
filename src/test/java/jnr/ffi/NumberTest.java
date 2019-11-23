@@ -18,22 +18,24 @@
 
 package jnr.ffi;
 
+import jnr.ffi.annotations.LongLong;
+import jnr.ffi.types.int32_t;
+import jnr.ffi.types.pid_t;
+import jnr.ffi.types.u_int32_t;
+import org.junit.*;
+
 import java.util.Random;
 
-import jnr.ffi.annotations.LongLong;
-import jnr.ffi.types.*;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  *
  * @author wayne
  */
 public class NumberTest {
+
+    public static final long LONG_WITH_ONLY_THIRD_WORD_NOT_ZERO = 0xFF00000000L;
 
     public NumberTest() {
     }
@@ -70,6 +72,7 @@ public class NumberTest {
     public static interface TestBoolean {
 
         public boolean ret_int32_t(int l);
+        public @LongLong boolean ret_int64_t(@LongLong long l);
     }
     static TestBoolean testboolean;
 
@@ -356,5 +359,14 @@ public class NumberTest {
         assertEquals(true, testboolean.ret_int32_t(-1));
         assertEquals(true, testboolean.ret_int32_t(1));
         assertEquals(true, testboolean.ret_int32_t(2));
+    }
+
+    @Test public void testBooleanFromLong() throws Exception {
+        assertEquals(false, testboolean.ret_int64_t(0));
+        assertEquals(true, testboolean.ret_int64_t(-1));
+        assertEquals(true, testboolean.ret_int64_t(-5));
+        assertEquals(true, testboolean.ret_int64_t(1));
+        assertEquals(true, testboolean.ret_int64_t(2));
+        assertEquals(true, testboolean.ret_int64_t(LONG_WITH_ONLY_THIRD_WORD_NOT_ZERO));
     }
 }

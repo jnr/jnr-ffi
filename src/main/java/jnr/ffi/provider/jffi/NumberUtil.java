@@ -20,6 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.SigType;
+import org.objectweb.asm.Label;
 
 public final class NumberUtil {
     private NumberUtil() {}
@@ -144,23 +145,40 @@ public final class NumberUtil {
     public static void narrow(SkinnyMethodAdapter mv, Class from, Class to) {
         if (!from.equals(to)) {
             if (byte.class == to || short.class == to || char.class == to || int.class == to || boolean.class == to) {
-                if (long.class == from) {
-                    mv.l2i();
-                }
+                if (boolean.class == to) {
+                    if (long.class == from) {
+                        mv.lconst_0();
+                        mv.lcmp();
 
-                if (byte.class == to) {
-                    mv.i2b();
+                    } else {
+                        /* Equivalent to
+                           return result == 0 ? true : false;
+                         */
+                        Label zero = new Label();
+                        Label ret = new Label();
+                        mv.iconst_0();
+                        mv.if_icmpeq(zero);
+                        mv.iconst_1();
+                        mv.go_to(ret);
+                        mv.label(zero);
+                        mv.iconst_0();
+                        mv.label(ret);
+                    }
+                } else {
+                    if (long.class == from) {
+                        mv.l2i();
+                    }
 
-                } else if (short.class == to) {
-                    mv.i2s();
+                    if (byte.class == to) {
+                        mv.i2b();
 
-                } else if (char.class == to) {
-                    mv.i2c();
+                    } else if (short.class == to) {
+                        mv.i2s();
 
-                } else if (boolean.class == to) {
-                    // Ensure only 0x0 and 0x1 values are used for boolean
-                    mv.iconst_1();
-                    mv.iand();
+                    } else if (char.class == to) {
+                        mv.i2c();
+
+                    }
                 }
             }
         }
