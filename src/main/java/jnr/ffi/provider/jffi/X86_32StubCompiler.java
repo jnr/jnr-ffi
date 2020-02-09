@@ -150,16 +150,22 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
             a.mov(dword_ptr(esp, dstoff), eax);
 
             if (dstParameterSize > 4) {
-                if (parameterTypes[i].getNativeType() == NativeType.SLONGLONG && long.class != parameterClasses[i]) {
-                    // sign extend from int.class -> long long
-                    a.sar(eax, imm(31));
-
-                } else if (parameterTypes[i].getNativeType() == NativeType.ULONGLONG && long.class != parameterClasses[i]) {
-                    // zero extend from int.class -> unsigned long long
-                    a.mov(dword_ptr(esp, dstoff + 4), imm(0));
-
-                } else {
-                    a.mov(eax, dword_ptr(esp, disp + 4));
+                switch (parameterTypes[i].getNativeType()) {
+                    case SLONGLONG:
+                    case ULONGLONG:
+                        if (long.class != parameterClasses[i]) {
+                            // sign extend from int.class -> long long
+                            a.sar(eax, imm(31));
+                        } else {
+                            a.mov(eax, dword_ptr(esp, disp + 4));
+                        }
+                        break;
+                    case DOUBLE:
+                        a.mov(eax, dword_ptr(esp, disp + 4));
+                        break;
+                    default:
+                        // impossible
+                        break;
                 }
                 a.mov(dword_ptr(esp, dstoff + 4), eax);
             }
@@ -283,6 +289,18 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
             }
 
         }
+        if (boolean.class == resultClass) {
+            switch (resultType.getNativeType()) {
+                case SLONGLONG:
+                case ULONGLONG:
+                    a.or_(eax, edx);
+                    break;
+                default:
+                    a.test(eax, eax);
+                    break;
+            }
+            a.setne(al);
+        }
         // Restore esp to the original position and return
         a.add(esp, imm(stackadj));
         a.ret();
@@ -315,7 +333,7 @@ final class X86_32StubCompiler extends AbstractX86StubCompiler {
     }
 
     static int parameterSize(Class t) {
-        if (byte.class == t || short.class == t || char.class == t | int.class == t || float.class == t) {
+        if (boolean.class == t || byte.class == t || short.class == t || char.class == t | int.class == t || float.class == t) {
             return 4;
 
         } else if (long.class == t || double.class == t) {

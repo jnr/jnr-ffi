@@ -101,7 +101,7 @@ public class NumberByReference extends AbstractNumberReference<Number> {
 
             case SLONG:
             case ULONG:
-                value = memory.getLong(offset);
+                value = memory.getNativeLong(offset);
                 break;
 
             case SLONGLONG:
@@ -146,7 +146,7 @@ public class NumberByReference extends AbstractNumberReference<Number> {
 
             case SLONG:
             case ULONG:
-                memory.putLong(offset, value.longValue());
+                memory.putNativeLong(offset, value.longValue());
                 break;
 
             case SLONGLONG:
