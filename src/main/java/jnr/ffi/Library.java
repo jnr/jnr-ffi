@@ -111,20 +111,7 @@ public final class Library {
      */
     public static <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames) {
-        LibraryLoader<T> loader = FFIProvider.getSystemProvider().createLibraryLoader(interfaceClass);
-
-        for (String libraryName : libraryNames) {
-            loader.library(libraryName);
-            for (String path : getLibraryPath(libraryName)) {
-                loader.search(path);
-            }
-        }
-
-        for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
-            loader.option(option.getKey(), option.getValue());
-        }
-
-        return loader.failImmediately().load();
+        return LibraryLoader.loadLibrary(interfaceClass, libraryOptions, customSearchPaths, libraryNames);
     }
     
     /**
