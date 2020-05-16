@@ -171,13 +171,30 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.4.2</version>
         <configuration>
-          <systemProperties>
+          <forkMode>always</forkMode>
+          <systemProperties combine.children="append">
             <property>
               <name>jnr.ffi.library.path</name>
               <value>${project.build.directory}</value>
             </property>
           </systemProperties>
         </configuration>
+        <executions>
+          <execution>
+            <id>proxy implementation</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>jnr.ffi.asm.enabled</name>
+                  <value>false</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>com.github.github</groupId>
