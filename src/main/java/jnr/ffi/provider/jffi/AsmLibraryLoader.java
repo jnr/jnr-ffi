@@ -51,14 +51,11 @@ import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.mapper.MethodResultContext;
 import jnr.ffi.mapper.SignatureType;
 import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.SignatureTypeMapperAdapter;
-import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.IdentityFunctionMapper;
 import jnr.ffi.provider.InterfaceScanner;
 import jnr.ffi.provider.Invoker;
 import jnr.ffi.provider.NativeFunction;
 import jnr.ffi.provider.NativeVariable;
-import jnr.ffi.provider.NullTypeMapper;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.jffi.AsmBuilder.ObjectField;
@@ -78,7 +75,8 @@ public class AsmLibraryLoader extends LibraryLoader {
     private final NativeRuntime runtime = NativeRuntime.getInstance();
 
     @Override
-    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
+                      boolean failImmediately /* ignored, asm loader eagerly binds everything */) {
         AsmClassLoader oldClassLoader = classLoader.get();
 
         // Only create a new class loader if this was not a recursive call (i.e. loading a library as a result of loading another library)
@@ -107,19 +105,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
-        SignatureTypeMapper typeMapper;
-        if (libraryOptions.containsKey(LibraryOption.TypeMapper)) {
-            Object tm = libraryOptions.get(LibraryOption.TypeMapper);
-            if (tm instanceof SignatureTypeMapper) {
-                typeMapper = (SignatureTypeMapper) tm;
-            } else if (tm instanceof TypeMapper) {
-                typeMapper = new SignatureTypeMapperAdapter((TypeMapper) tm);
-            } else {
-                throw new IllegalArgumentException("TypeMapper option is not a valid TypeMapper instance");
-            }
-        } else {
-            typeMapper = new NullTypeMapper();
-        }
+        SignatureTypeMapper typeMapper = getSignatureTypeMapper(libraryOptions);
 
         CompositeTypeMapper closureTypeMapper = new CompositeTypeMapper(typeMapper, 
                 new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)),

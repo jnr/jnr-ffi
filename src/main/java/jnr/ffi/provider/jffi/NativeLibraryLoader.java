@@ -36,13 +36,13 @@ class NativeLibraryLoader<T>  extends jnr.ffi.LibraryLoader<T> {
     }
 
     public T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths,
-                             Map<LibraryOption, Object> options) {
+                             Map<LibraryOption, Object> options, boolean failImmediately) {
         NativeLibrary nativeLibrary = new NativeLibrary(libraryNames, searchPaths);
 
         try {
             return ASM_ENABLED
-                ? new AsmLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, options)
-                : new ReflectionLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, options);
+                ? new AsmLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, options, failImmediately)
+                : new ReflectionLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, options, failImmediately);
 
         } catch (RuntimeException ex) {
             throw ex;

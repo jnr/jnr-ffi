@@ -390,7 +390,7 @@ public abstract class LibraryLoader<T> {
 
         try {
             return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
-                Collections.unmodifiableMap(optionMap));
+                Collections.unmodifiableMap(optionMap), failImmediately);
         
         } catch (LinkageError error) {
             if (failImmediately) throw error;
@@ -432,7 +432,8 @@ public abstract class LibraryLoader<T> {
      * @return an instance of {@code interfaceClass} that will call the native methods.
      */
     protected abstract T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames,
-                                         Collection<String> searchPaths, Map<LibraryOption, Object> options);
+                                     Collection<String> searchPaths, Map<LibraryOption, Object> options,
+                                     boolean failImmediately);
 
 
     private static final class StaticDataHolder {
