@@ -43,7 +43,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import jnr.ffi.CallingConvention;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.annotations.Synchronized;
-import jnr.ffi.mapper.CachingTypeMapper;
 import jnr.ffi.mapper.CompositeTypeMapper;
 import jnr.ffi.mapper.DefaultSignatureType;
 import jnr.ffi.mapper.FromNativeContext;
@@ -106,14 +105,9 @@ public class AsmLibraryLoader extends LibraryLoader {
                 ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
         SignatureTypeMapper typeMapper = getSignatureTypeMapper(libraryOptions);
+        CompositeTypeMapper closureTypeMapper = newClosureTypeMapper(classLoader, typeMapper);
 
-        CompositeTypeMapper closureTypeMapper = new CompositeTypeMapper(typeMapper, 
-                new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)),
-                new CachingTypeMapper(new AnnotationTypeMapper()));
-        
-        typeMapper = new CompositeTypeMapper(typeMapper, 
-                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, closureTypeMapper), classLoader, NativeLibraryLoader.ASM_ENABLED)),
-                new CachingTypeMapper(new AnnotationTypeMapper()));
+        typeMapper = newCompositeTypeMapper(runtime, classLoader, typeMapper, closureTypeMapper);
         
         CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 

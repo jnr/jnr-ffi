@@ -19,6 +19,9 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.LibraryOption;
+import jnr.ffi.Runtime;
+import jnr.ffi.mapper.CachingTypeMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
 import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.SignatureTypeMapperAdapter;
 import jnr.ffi.mapper.TypeMapper;
@@ -44,6 +47,18 @@ public abstract class LibraryLoader {
             typeMapper = new NullTypeMapper();
         }
         return typeMapper;
+    }
+
+    static CompositeTypeMapper newCompositeTypeMapper(Runtime runtime, AsmClassLoader classLoader, SignatureTypeMapper typeMapper, CompositeTypeMapper closureTypeMapper) {
+        return new CompositeTypeMapper(typeMapper,
+                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, closureTypeMapper), classLoader, NativeLibraryLoader.ASM_ENABLED)),
+                new CachingTypeMapper(new AnnotationTypeMapper()));
+    }
+
+    static CompositeTypeMapper newClosureTypeMapper(AsmClassLoader classLoader, SignatureTypeMapper typeMapper) {
+        return new CompositeTypeMapper(typeMapper,
+                    new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)),
+                    new CachingTypeMapper(new AnnotationTypeMapper()));
     }
 
     abstract <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, boolean failImmediately);

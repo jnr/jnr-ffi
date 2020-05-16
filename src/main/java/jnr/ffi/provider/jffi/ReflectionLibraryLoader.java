@@ -130,22 +130,11 @@ class ReflectionLibraryLoader extends LibraryLoader {
             this.functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                     ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
-            SignatureTypeMapper typeMapper;
-            if (libraryOptions.containsKey(LibraryOption.TypeMapper)) {
-                Object tm = libraryOptions.get(LibraryOption.TypeMapper);
-                if (tm instanceof SignatureTypeMapper) {
-                    typeMapper = (SignatureTypeMapper) tm;
-                } else if (tm instanceof TypeMapper) {
-                    typeMapper = new SignatureTypeMapperAdapter((TypeMapper) tm);
-                } else {
-                    throw new IllegalArgumentException("TypeMapper option is not a valid TypeMapper instance");
-                }
-            } else {
-                typeMapper = new NullTypeMapper();
-            }
+            SignatureTypeMapper typeMapper = getSignatureTypeMapper(libraryOptions);
+            CompositeTypeMapper closureTypeMapper = newClosureTypeMapper(classLoader, typeMapper);
 
-            this.typeMapper = new CompositeTypeMapper(typeMapper,
-                    new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper), classLoader, NativeLibraryLoader.ASM_ENABLED)));
+            this.typeMapper = newCompositeTypeMapper(runtime, classLoader, typeMapper, closureTypeMapper);
+
             libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
             libraryIsSynchronized = interfaceClass.isAnnotationPresent(Synchronized.class);
             invokerFactory = new DefaultInvokerFactory(runtime, library, this.typeMapper, functionMapper, libraryCallingConvention, libraryOptions, libraryIsSynchronized);
