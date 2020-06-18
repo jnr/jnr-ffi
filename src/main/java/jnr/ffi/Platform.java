@@ -118,6 +118,9 @@ public abstract class Platform {
         /** 64 bit ARM */
         AARCH64,
 
+        /** 64 bit MIPS */
+        MIPS64EL,
+
         /**
          * Unknown CPU architecture.  A best effort will be made to infer architecture
          * specific values such as address and long size.
@@ -222,6 +225,8 @@ public abstract class Platform {
             return CPU.AARCH64;
         } else if (equalsIgnoreCase("arm", archString) || equalsIgnoreCase("armv7l", archString)) {
             return CPU.ARM;
+        } else if (equalsIgnoreCase("mips64", archString) || equalsIgnoreCase("mips64el", archString)) {
+            return CPU.MIPS64EL;
         }
 
         // Try to find by lookup up in the CPU list
@@ -279,6 +284,7 @@ public abstract class Platform {
                 case SPARCV9:
                 case S390X:
                 case AARCH64:
+		case MIPS64EL:
                     dataModel = 64;
                     break;
                 default:
