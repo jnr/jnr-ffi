@@ -28,7 +28,9 @@ import java.nio.ByteBuffer;
 public interface MemoryManager {
     public abstract Pointer allocate(int size);
     public abstract Pointer allocateDirect(int size);
+    public abstract Pointer allocateDirect(long size);
     public abstract Pointer allocateDirect(int size, boolean clear);
+    public abstract Pointer allocateDirect(long size, boolean clear);
     public abstract Pointer allocateTemporary(int size, boolean clear);
     public abstract Pointer newPointer(ByteBuffer buffer);
     public abstract Pointer newPointer(long address);

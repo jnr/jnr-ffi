@@ -96,6 +96,19 @@ public final class Memory {
      * accessor.
      *
      * @param runtime The current runtime.
+     * @param size The size in bytes of memory to allocate.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static Pointer allocateDirect(Runtime runtime, long size) {
+        return runtime.getMemoryManager().allocateDirect(size);
+    }
+
+    /**
+     * Allocates a new block of native memory and wraps it in a {@link Pointer}
+     * accessor.
+     *
+     * @param runtime The current runtime.
      * @param type The native type to allocate memory for.
      *
      * @return a {@code Pointer} instance that can access the memory.
@@ -129,6 +142,21 @@ public final class Memory {
      * @return a {@code Pointer} instance that can access the memory.
      */
     public static Pointer allocateDirect(Runtime runtime, int size, boolean clear) {
+        return runtime.getMemoryManager().allocateDirect(size, clear);
+    }
+
+    /**
+     * Allocates a new block of native memory and wraps it in a {@link Pointer}
+     * accessor.
+     *
+     * @param runtime The current runtime.
+     * @param size The size in bytes of memory to allocate.
+     * @param clear Whether the memory contents should be cleared, or left as
+     * random data.
+     *
+     * @return a {@code Pointer} instance that can access the memory.
+     */
+    public static Pointer allocateDirect(Runtime runtime, long size, boolean clear) {
         return runtime.getMemoryManager().allocateDirect(size, clear);
     }
 
