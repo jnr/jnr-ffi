@@ -21,6 +21,11 @@
 #ifndef __mips__
 # include <stdint.h>
 #endif
+
+#ifdef __mips64
+# include <stdint.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
