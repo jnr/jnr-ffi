@@ -57,6 +57,8 @@ public abstract class Platform {
         NETBSD,
         /** OpenBSD */
         OPENBSD,
+	/** DragonFly */
+	DRAGONFLY,
         /** Linux */
         LINUX,
         /** Solaris (and OpenSolaris) */
@@ -120,6 +122,9 @@ public abstract class Platform {
         /** 64 bit ARM */
         AARCH64,
 
+        /** 64 bit MIPS */
+        MIPS64EL,
+
         /**
          * Unknown CPU architecture.  A best effort will be made to infer architecture
          * specific values such as address and long size.
@@ -156,6 +161,8 @@ public abstract class Platform {
             return OS.OPENBSD;
         } else if (startsWithIgnoreCase(osName, "freebsd")) {
             return OS.FREEBSD;
+        } else if (startsWithIgnoreCase(osName, "dragonfly")) {
+            return OS.DRAGONFLY;
         } else if (startsWithIgnoreCase(osName, "windows")) {
             return OS.WINDOWS;
         } else if (startsWithIgnoreCase(osName, "midnightbsd")) {
@@ -222,6 +229,10 @@ public abstract class Platform {
             return CPU.S390X;
         } else if (equalsIgnoreCase("aarch64", archString)) {
             return CPU.AARCH64;
+        } else if (equalsIgnoreCase("arm", archString) || equalsIgnoreCase("armv7l", archString)) {
+            return CPU.ARM;
+        } else if (equalsIgnoreCase("mips64", archString) || equalsIgnoreCase("mips64el", archString)) {
+            return CPU.MIPS64EL;
         }
 
         // Try to find by lookup up in the CPU list
@@ -265,8 +276,8 @@ public abstract class Platform {
     }
 
     private static int calculateAddressSize(CPU cpu) {
-        int dataModel = Integer.getInteger("sun.arch.data.model");
-        if (dataModel != 32 && dataModel != 64) {
+        Integer dataModel = Integer.getInteger("sun.arch.data.model");
+        if (dataModel == null || dataModel != 32 && dataModel != 64) {
             switch (cpu) {
                 case I386:
                 case PPC:
@@ -279,6 +290,7 @@ public abstract class Platform {
                 case SPARCV9:
                 case S390X:
                 case AARCH64:
+		case MIPS64EL:
                     dataModel = 64;
                     break;
                 default:
@@ -322,7 +334,7 @@ public abstract class Platform {
     }
     
     public final boolean isBSD() {
-        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN || os == OS.MIDNIGHTBSD;
+        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN || os == OS.DRAGONFLY | os == OS.MIDNIGHTBSD;
     }
     public final boolean isUnix() {
         return os != OS.WINDOWS;
@@ -368,6 +380,7 @@ public abstract class Platform {
             return "libc.so.6";
         case SOLARIS:
             return "c";
+        case DRAGONFLY:
         case FREEBSD:
         case MIDNIGHTBSD:
         case NETBSD:

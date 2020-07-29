@@ -19,6 +19,7 @@
 package jnr.ffi;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import jnr.ffi.mapper.FunctionMapper;
@@ -145,5 +146,32 @@ public class LibraryLoaderTest {
 
         double a = lib.subd(lib.addd(30.0, 20.0), 8.0);
         assertEquals(a, 42.0, 1e-4);
+    }
+
+    public interface DefaultGetpid {
+        long getpid();
+    }
+
+    @Test
+    public void searchDefault() {
+        // explicit default search
+        LibraryLoader<DefaultGetpid> loader = FFIProvider.getSystemProvider().createLibraryLoader(DefaultGetpid.class);
+
+        loader.searchDefault();
+
+        DefaultGetpid dgp = loader.load();
+
+        assertNotNull(dgp);
+        assertTrue(dgp.getpid() > 0);
+
+        // try with default name
+        loader = FFIProvider.getSystemProvider().createLibraryLoader(DefaultGetpid.class);
+
+        loader.library(LibraryLoader.DEFAULT_LIBRARY);
+
+        dgp = loader.load();
+
+        assertNotNull(dgp);
+        assertTrue(dgp.getpid() > 0);
     }
 }

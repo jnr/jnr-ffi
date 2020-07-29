@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import jnr.ffi.CallingConvention;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.Runtime;
 import jnr.ffi.Variable;
@@ -40,9 +41,12 @@ import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.SignatureTypeMapperAdapter;
 import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.IdentityFunctionMapper;
+import jnr.ffi.provider.InterfaceScanner;
 import jnr.ffi.provider.Invoker;
 import jnr.ffi.provider.LoadedLibrary;
+import jnr.ffi.provider.NativeFunction;
 import jnr.ffi.provider.NativeInvocationHandler;
+import jnr.ffi.provider.NativeVariable;
 import jnr.ffi.provider.NullTypeMapper;
 
 /**
@@ -51,9 +55,27 @@ import jnr.ffi.provider.NullTypeMapper;
 class ReflectionLibraryLoader extends LibraryLoader {
 
     @Override
-    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, boolean failImmediately) {
+        Map<Method, Invoker> invokers = new LazyLoader<T>(library, interfaceClass, libraryOptions);
+
+        if (failImmediately) {
+            SignatureTypeMapper typeMapper = getSignatureTypeMapper(libraryOptions);
+            CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
+            InterfaceScanner scanner = new InterfaceScanner(interfaceClass, typeMapper, libraryCallingConvention);
+
+            // force all functions to bind
+            for (NativeFunction function : scanner.functions()) {
+                invokers.get(function.getMethod());
+            }
+
+            // force all variables to bind
+            for (NativeVariable variable : scanner.variables()) {
+                invokers.get(variable.getMethod());
+            }
+        }
+
         return interfaceClass.cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(),
-                new Class[]{ interfaceClass, LoadedLibrary.class }, new NativeInvocationHandler(new LazyLoader<T>(library, interfaceClass, libraryOptions))));
+                new Class[]{ interfaceClass, LoadedLibrary.class }, new NativeInvocationHandler(invokers)));
     }
 
     private static final class FunctionNotFoundInvoker implements Invoker {
@@ -108,22 +130,11 @@ class ReflectionLibraryLoader extends LibraryLoader {
             this.functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                     ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
-            SignatureTypeMapper typeMapper;
-            if (libraryOptions.containsKey(LibraryOption.TypeMapper)) {
-                Object tm = libraryOptions.get(LibraryOption.TypeMapper);
-                if (tm instanceof SignatureTypeMapper) {
-                    typeMapper = (SignatureTypeMapper) tm;
-                } else if (tm instanceof TypeMapper) {
-                    typeMapper = new SignatureTypeMapperAdapter((TypeMapper) tm);
-                } else {
-                    throw new IllegalArgumentException("TypeMapper option is not a valid TypeMapper instance");
-                }
-            } else {
-                typeMapper = new NullTypeMapper();
-            }
+            SignatureTypeMapper typeMapper = getSignatureTypeMapper(libraryOptions);
+            CompositeTypeMapper closureTypeMapper = newClosureTypeMapper(classLoader, typeMapper);
 
-            this.typeMapper = new CompositeTypeMapper(typeMapper,
-                    new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, typeMapper), classLoader, NativeLibraryLoader.ASM_ENABLED)));
+            this.typeMapper = newCompositeTypeMapper(runtime, classLoader, typeMapper, closureTypeMapper);
+
             libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
             libraryIsSynchronized = interfaceClass.isAnnotationPresent(Synchronized.class);
             invokerFactory = new DefaultInvokerFactory(runtime, library, this.typeMapper, functionMapper, libraryCallingConvention, libraryOptions, libraryIsSynchronized);

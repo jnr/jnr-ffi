@@ -158,9 +158,10 @@ public final class NumberUtil {
                     mv.i2c();
 
                 } else if (boolean.class == to) {
-                    // Ensure only 0x0 and 0x1 values are used for boolean
-                    mv.iconst_1();
-                    mv.iand();
+                    // allow all non-zero values to be treated as true
+                    mv.i2l();
+                    mv.lconst_0();
+                    mv.lcmp();
                 }
             }
         }

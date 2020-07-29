@@ -41,7 +41,15 @@ public class NativeMemoryManager implements jnr.ffi.provider.MemoryManager {
         return new BoundedMemoryIO(TransientNativeMemory.allocate(runtime, size, 8, true), 0, size);
     }
 
+    public Pointer allocateDirect(long size) {
+        return new BoundedMemoryIO(TransientNativeMemory.allocate(runtime, size, 8, true), 0, size);
+    }
+
     public Pointer allocateDirect(int size, boolean clear) {
+        return new BoundedMemoryIO(TransientNativeMemory.allocate(runtime, size, 8, clear), 0, size);
+    }
+
+    public Pointer allocateDirect(long size, boolean clear) {
         return new BoundedMemoryIO(TransientNativeMemory.allocate(runtime, size, 8, clear), 0, size);
     }
 

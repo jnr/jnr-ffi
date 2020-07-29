@@ -44,7 +44,7 @@ final class InvalidProvider extends FFIProvider {
     public <T> LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass) {
         return new LibraryLoader<T>(interfaceClass) {
             @Override
-            protected T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths, Map<LibraryOption, Object> options) {
+            protected T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths, Map<LibraryOption, Object> options, boolean failImmediately) {
                 UnsatisfiedLinkError error = new UnsatisfiedLinkError(message);
                 error.initCause(cause);
                 throw error;

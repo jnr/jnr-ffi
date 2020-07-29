@@ -19,11 +19,47 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.LibraryOption;
+import jnr.ffi.Runtime;
+import jnr.ffi.mapper.CachingTypeMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapperAdapter;
+import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.NativeFunction;
+import jnr.ffi.provider.NullTypeMapper;
 
 import java.util.Map;
 
 public abstract class LibraryLoader {
 
-    abstract <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions);
+    static SignatureTypeMapper getSignatureTypeMapper(Map<LibraryOption, ?> libraryOptions) {
+        SignatureTypeMapper typeMapper;
+        if (libraryOptions.containsKey(LibraryOption.TypeMapper)) {
+            Object tm = libraryOptions.get(LibraryOption.TypeMapper);
+            if (tm instanceof SignatureTypeMapper) {
+                typeMapper = (SignatureTypeMapper) tm;
+            } else if (tm instanceof TypeMapper) {
+                typeMapper = new SignatureTypeMapperAdapter((TypeMapper) tm);
+            } else {
+                throw new IllegalArgumentException("TypeMapper option is not a valid TypeMapper instance");
+            }
+        } else {
+            typeMapper = new NullTypeMapper();
+        }
+        return typeMapper;
+    }
+
+    static CompositeTypeMapper newCompositeTypeMapper(Runtime runtime, AsmClassLoader classLoader, SignatureTypeMapper typeMapper, CompositeTypeMapper closureTypeMapper) {
+        return new CompositeTypeMapper(typeMapper,
+                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, closureTypeMapper), classLoader, NativeLibraryLoader.ASM_ENABLED)),
+                new CachingTypeMapper(new AnnotationTypeMapper()));
+    }
+
+    static CompositeTypeMapper newClosureTypeMapper(AsmClassLoader classLoader, SignatureTypeMapper typeMapper) {
+        return new CompositeTypeMapper(typeMapper,
+                    new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)),
+                    new CachingTypeMapper(new AnnotationTypeMapper()));
+    }
+
+    abstract <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, boolean failImmediately);
 }
