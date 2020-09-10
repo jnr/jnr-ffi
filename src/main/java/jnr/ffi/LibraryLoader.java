@@ -93,6 +93,11 @@ public abstract class LibraryLoader<T> {
      * IM      | ignr | ignr | ignr | ignr |
      * SM + IM | save | save | save | save |
      * </pre>
+     *
+     * @param options options
+     * @param methodHasSave whether the method has error-saving enabled
+     * @param methodHasIgnore whether the method ignores errors
+     * @return true if the error was saved, false otherwise
      */
     public static boolean saveError(Map<LibraryOption, ?> options, boolean methodHasSave, boolean methodHasIgnore) {
 
@@ -156,6 +161,12 @@ public abstract class LibraryLoader<T> {
      * Same as calling {@link #loadLibrary(Class, Map, Map, String...)} with an empty search path map.
      *
      * @see #loadLibrary(Class, Map, Map, String...)
+     *
+     * @param interfaceClass the interface to implement
+     * @param libraryOptions options
+     * @param libraryNames names to try when searching for the library
+     * @param <T> the interface type
+     * @return a new object implementing the interface and bound to the library
      */
     public static <T> T loadLibrary(
             Class<T> interfaceClass,
@@ -429,6 +440,7 @@ public abstract class LibraryLoader<T> {
      * @param libraryNames A list of libraries to load and search for symbols.
      * @param searchPaths The paths to search for libraries to be loaded.
      * @param options The options to apply when loading the library.
+     * @param failImmediately whether to fast-fail when the library does not implement the requested functions
      * @return an instance of {@code interfaceClass} that will call the native methods.
      */
     protected abstract T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames,

@@ -135,6 +135,7 @@ public abstract class Struct {
     /**
      * Creates a new <code>Struct</code>.
      *
+     * @param runtime the current jnr-ffi runtime
      * @param isUnion if this Struct is a Union
      */
     protected Struct(Runtime runtime, final boolean isUnion) {
@@ -2083,6 +2084,7 @@ public abstract class Struct {
         }
 
         /**
+         * @param length the length of struct in memory to get
          * @return struct from memory
          */
         public final T[] get(int length) {

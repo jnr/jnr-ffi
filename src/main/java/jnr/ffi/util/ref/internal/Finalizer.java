@@ -29,11 +29,11 @@ import java.util.logging.Logger;
 /**
  * Thread that finalizes referents. All references should implement
  * {@code com.google.common.base.FinalizableReference}.
- * <p>
+ *
  * <p>While this class is public, we consider it to be *internal* and not part
  * of our published API. It is public so we can access it reflectively across
  * class loaders in secure environments.
- * <p>
+ * </p>
  * <p>This class can't depend on other Google Collections code. If we were
  * to load this class in the same class loader as the rest of
  * Google Collections, this thread would keep an indirect strong reference
@@ -41,11 +41,12 @@ import java.util.logging.Logger;
  * poses a problem for environments where you want to throw away the class
  * loader. For example, dynamically reloading a web application or unloading
  * an OSGi bundle.
- * <p>
+ * </p>
  * <p>{@code com.google.common.base.FinalizableReferenceQueue} loads this class
  * in its own class loader. That way, this class doesn't prevent the main
  * class loader from getting garbage collected, and this class can detect when
  * the main class loader has been garbage collected and stop itself.
+ * </p>
  */
 public class Finalizer implements Runnable {
 
