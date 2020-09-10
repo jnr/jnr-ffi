@@ -27,6 +27,7 @@ import jnr.ffi.mapper.ToNativeConverter;
 
 import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.*;
@@ -120,16 +121,19 @@ public class CharSequenceParameterConverter implements ToNativeConverter<CharSeq
 
         // ensure native memory is NUL terminated (assume max wchar_t 4 byte termination needed)
         if (byteBuffer.remaining() <= 4) byteBuffer = grow(byteBuffer);
-        byteBuffer.position(byteBuffer.position() + 4);
+        // force Java 8 compatible Buffer method
+        Buffer buf = byteBuffer;
+        buf.position(buf.position() + 4);
 
-        byteBuffer.flip();
+        buf.flip();
 
         return byteBuffer;
     }
 
     private static ByteBuffer grow(ByteBuffer oldBuffer) {
         ByteBuffer buf = ByteBuffer.wrap(new byte[oldBuffer.capacity() * 2]);
-        oldBuffer.flip();
+        // force Java 8 compatible Buffer method
+        ((Buffer) oldBuffer).flip();
         buf.put(oldBuffer);
         return buf;
     }

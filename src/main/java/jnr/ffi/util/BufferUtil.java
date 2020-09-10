@@ -18,6 +18,7 @@
 
 package jnr.ffi.util;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.*;
@@ -62,9 +63,11 @@ public final class BufferUtil {
         // StringBuffer/StringBuilder does not have superfluous NUL chars
         int end = indexOf(buffer, (byte) 0);
         if (end < 0) {
-            end = buffer.limit();
+            // force Java 8 compatible Buffer method
+            end = ((Buffer) buffer).limit();
         }
-        buffer.position(0).limit(end);
+        // force Java 8 compatible Buffer method
+        ((Buffer) buffer).position(0).limit(end);
         return charset.decode(buffer);
     }
 
@@ -74,9 +77,11 @@ public final class BufferUtil {
         // StringBuffer/StringBuilder does not have superfluous NUL chars
         int end = indexOf(buffer, (byte) 0);
         if (end < 0) {
-            end = buffer.limit();
+            // force Java 8 compatible Buffer method
+            end = ((Buffer) buffer).limit();
         }
-        buffer.position(0).limit(end);
+        // force Java 8 compatible Buffer method
+        ((Buffer) buffer).position(0).limit(end);
         try {
             return decoder.reset().onMalformedInput(CodingErrorAction.REPLACE)
                 .onUnmappableCharacter(CodingErrorAction.REPLACE).decode(buffer);
@@ -97,16 +102,20 @@ public final class BufferUtil {
         if (buf.hasArray()) {
             final byte[] array = buf.array();
             final int offset = buf.arrayOffset();
-            final int limit = buf.limit();
-            for (int pos = buf.position(); pos < limit; ++pos) {
+            // force Java 8 compatible Buffer method
+            Buffer buf2 = buf;
+            final int limit = buf2.limit();
+            for (int pos = buf2.position(); pos < limit; ++pos) {
                 if (array[offset + pos] == value) {
                     return pos;
                 }
             }
 
         } else {
-            final int limit = buf.limit();
-            for (int pos = buf.position(); pos < limit; ++pos) {
+            // force Java 8 compatible Buffer method
+            Buffer buf2 = buf;
+            final int limit = buf2.limit();
+            for (int pos = buf2.position(); pos < limit; ++pos) {
                 if (buf.get(pos) == value) {
                     return pos;
                 }
@@ -119,16 +128,20 @@ public final class BufferUtil {
     public static int indexOf(ByteBuffer buf, byte value) {
         if (buf.hasArray()) {
             byte[] array = buf.array();
-            int begin = buf.arrayOffset() + buf.position();
-            int end = buf.arrayOffset() + buf.limit();
+            // force Java 8 compatible Buffer method
+            Buffer buf2 = buf;
+            int begin = buf.arrayOffset() + buf2.position();
+            int end = buf.arrayOffset() + buf2.limit();
             for (int offset = 0; offset < end && offset > -1; ++offset) {
                 if (array[begin + offset] == value) {
                     return offset;
                 }
             }
         } else {
-            int begin = buf.position();
-            for (int offset = 0; offset < buf.limit(); ++offset) {
+            // force Java 8 compatible Buffer method
+            Buffer buf2 = buf;
+            int begin = buf2.position();
+            for (int offset = 0; offset < buf2.limit(); ++offset) {
                 if (buf.get(begin + offset) == value) {
                     return offset;
                 }
@@ -140,16 +153,20 @@ public final class BufferUtil {
     public static int indexOf(ByteBuffer buf, int offset, byte value) {
         if (buf.hasArray()) {
             byte[] array = buf.array();
-            int begin = buf.arrayOffset() + buf.position() + offset;
-            int end = buf.arrayOffset() + buf.limit();
+            // force Java 8 compatible Buffer method
+            Buffer buf2 = buf;
+            int begin = buf.arrayOffset() + buf2.position() + offset;
+            int end = buf.arrayOffset() + buf2.limit();
             for (int idx = 0; idx < end && idx > -1; ++idx) {
                 if (array[begin + idx] == value) {
                     return idx;
                 }
             }
         } else {
-            int begin = buf.position();
-            for (int idx = 0; idx < buf.limit(); ++idx) {
+            // force Java 8 compatible Buffer method
+            Buffer buf2 = buf;
+            int begin = buf2.position();
+            for (int idx = 0; idx < buf2.limit(); ++idx) {
                 if (buf.get(begin + idx) == value) {
                     return idx;
                 }
@@ -160,12 +177,14 @@ public final class BufferUtil {
     
     public static ByteBuffer slice(final ByteBuffer buffer, final int position) {
         final ByteBuffer tmp = buffer.duplicate();
-        tmp.position(position);
+        // force Java 8 compatible Buffer method
+        ((Buffer) tmp).position(position);
         return tmp.slice();
     }
     public static ByteBuffer slice(final ByteBuffer buffer, final int position, final int size) {
         final ByteBuffer tmp = buffer.duplicate();
-        tmp.position(position).limit(position + size);
+        // force Java 8 compatible Buffer method
+        ((Buffer) tmp).position(position).limit(position + size);
         return tmp.slice();
     }
     

@@ -24,6 +24,7 @@ import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.BufferUtil;
 
 import java.lang.ref.Reference;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.*;
@@ -66,12 +67,15 @@ public class StringBuilderParameterConverter implements ToNativeConverter<String
             ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[parameter.capacity() * (int) Math.ceil(encoder.maxBytesPerChar()) + 4]);
 
             if (ParameterFlags.isIn(parameterFlags)) {
-                byteBuffer.mark();
+                // force Java 8 compatible Buffer method
+                ((Buffer) byteBuffer).mark();
                 encoder.reset();
                 CoderResult result = encoder.encode(CharBuffer.wrap(parameter), byteBuffer, true);
                 if (result.isUnderflow()) result = encoder.flush(byteBuffer);
                 if (result.isError()) throwException(result);
-                byteBuffer.reset();
+
+                // force Java 8 compatible Buffer method
+                ((Buffer) byteBuffer).reset();
             }
 
             return byteBuffer;
@@ -83,7 +87,8 @@ public class StringBuilderParameterConverter implements ToNativeConverter<String
         // Copy the string back out if its an OUT parameter
         //
         if (ParameterFlags.isOut(parameterFlags) && stringBuilder != null && buf != null) {
-            buf.limit(stringLength(buf, terminatorWidth));
+            // force Java 8 compatible Buffer method
+            ((Buffer) buf).limit(stringLength(buf, terminatorWidth));
             try {
                 stringBuilder.delete(0, stringBuilder.length()).append(getDecoder(charset, localDecoder).reset().decode(buf));
             } catch (CharacterCodingException cce) {

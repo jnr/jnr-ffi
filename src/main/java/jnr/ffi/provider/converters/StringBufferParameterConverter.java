@@ -23,6 +23,7 @@ import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.util.BufferUtil;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -75,7 +76,8 @@ public class StringBufferParameterConverter implements ToNativeConverter<StringB
         // Copy the string back out if its an OUT parameter
         //
         if (ParameterFlags.isOut(parameterFlags) && stringBuffer != null && buf != null) {
-            buf.limit(buf.capacity());
+            // force Java 8 compatible Buffer method
+            ((Buffer) buf).limit(buf.capacity());
             stringBuffer.delete(0, stringBuffer.length()).append(BufferUtil.getCharSequence(buf, charset));
         }
     }
