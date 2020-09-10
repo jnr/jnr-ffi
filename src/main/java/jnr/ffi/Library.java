@@ -135,7 +135,7 @@ public final class Library {
      *
      * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
      * @param libraryName The library to retrieve the path for.
-     * @return A <tt>List</tt> of <tt>String</tt> instances.
+     * @return A <code>List</code> of <code>String</code> instances.
      */
     public static List<String> getLibraryPath(String libraryName) {
         List<String> customPaths = customSearchPaths.get(libraryName);

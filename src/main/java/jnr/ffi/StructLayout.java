@@ -40,7 +40,7 @@ public class StructLayout extends Type {
     int paddedSize = 0;
 
     /**
-     * Creates a new <tt>StructLayout</tt>.
+     * Creates a new <code>StructLayout</code>.
      *
      * @param runtime The current runtime.
      */
@@ -140,9 +140,9 @@ public class StructLayout extends Type {
         }
 
         /**
-         * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
+         * Gets the <code>Struct</code> this <code>Member</code> is a member of.
          *
-         * @return a <tt>Struct</tt>.
+         * @return a <code>Struct</code>.
          */
         public final StructLayout enclosing() {
             return StructLayout.this;
@@ -173,9 +173,9 @@ public class StructLayout extends Type {
     }
 
     /**
-     * Creates an array of <tt>Member</tt> instances.
+     * Creates an array of <code>Member</code> instances.
      *
-     * @param <T> The type of the <tt>Member</tt> subclass to create.
+     * @param <T> The type of the <code>Member</code> subclass to create.
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -375,58 +375,58 @@ public class StructLayout extends Type {
         public abstract void set(jnr.ffi.Pointer ptr, java.lang.Number value);
 
         /**
-         * Returns an {@code float} representation of this <tt>Number</tt>.
+         * Returns an {@code float} representation of this <code>Number</code>.
          *
          * @param ptr The pointer to the field.
-         * @return an {@code float} value for this <tt>Number</tt>.
+         * @return an {@code float} value for this <code>Number</code>.
          */
         public double doubleValue(jnr.ffi.Pointer ptr) {
             return (double) longValue(ptr);
         }
 
         /**
-         * Returns an {@code float} representation of this <tt>Number</tt>.
+         * Returns an {@code float} representation of this <code>Number</code>.
          *
          * @param ptr The pointer to the field.
-         * @return an {@code float} value for this <tt>Number</tt>.
+         * @return an {@code float} value for this <code>Number</code>.
          */
         public float floatValue(jnr.ffi.Pointer ptr) {
             return (float) intValue(ptr);
         }
 
         /**
-         * Returns a {@code byte} representation of this <tt>Number</tt>.
+         * Returns a {@code byte} representation of this <code>Number</code>.
          *
          * @param ptr The pointer to the field.
-         * @return a {@code byte} value for this <tt>Number</tt>.
+         * @return a {@code byte} value for this <code>Number</code>.
          */
         public byte byteValue(jnr.ffi.Pointer ptr) {
             return (byte) intValue(ptr);
         }
 
         /**
-         * Returns a {@code short} representation of this <tt>Number</tt>.
+         * Returns a {@code short} representation of this <code>Number</code>.
          *
          * @param ptr The pointer to the field.
-         * @return a {@code short} value for this <tt>Number</tt>.
+         * @return a {@code short} value for this <code>Number</code>.
          */
         public short shortValue(jnr.ffi.Pointer ptr) {
             return (short) intValue(ptr);
         }
 
         /**
-         * Returns a {@code int} representation of this <tt>Number</tt>.
+         * Returns a {@code int} representation of this <code>Number</code>.
          *
          * @param ptr The pointer to the field.
-         * @return a {@code int} value for this <tt>Number</tt>.
+         * @return a {@code int} value for this <code>Number</code>.
          */
         public abstract int intValue(jnr.ffi.Pointer ptr);
 
         /**
-         * Returns a {@code long} representation of this <tt>Number</tt>.
+         * Returns a {@code long} representation of this <code>Number</code>.
          *
          * @param ptr The pointer to the field.
-         * @return a {@code long} value for this <tt>Number</tt>.
+         * @return a {@code long} value for this <code>Number</code>.
          */
         public long longValue(jnr.ffi.Pointer ptr) {
             return intValue(ptr);
@@ -1278,7 +1278,7 @@ public class StructLayout extends Type {
      */
     public class Pointer extends NumberField {
         /**
-         * Creates a new <tt>Address</tt> field.
+         * Creates a new <code>Address</code> field.
          */
         public Pointer() {
             super(NativeType.ADDRESS);
@@ -1437,7 +1437,7 @@ public class StructLayout extends Type {
          * Sets the native integer value using a java Enum value.
          *
          * @param ptr The pointer to the field.
-         * @param value the java <tt>Enum</tt> value.
+         * @param value the java <code>Enum</code> value.
          */
         public final void set(jnr.ffi.Pointer ptr, E value) {
             ptr.putByte(offset(), (byte) enumMapper.intValue(value));

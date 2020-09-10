@@ -141,7 +141,7 @@ public abstract class Platform {
     /**
      * Determines the operating system jffi is running on
      *
-     * @return An member of the <tt>OS</tt> enum.
+     * @return An member of the <code>OS</code> enum.
      */
     private static OS determineOS() {
         String osName = System.getProperty("os.name").split(" ")[0];
@@ -167,10 +167,10 @@ public abstract class Platform {
     }
 
     /**
-     * Determines the <tt>Platform</tt> that best describes the <tt>OS</tt>
+     * Determines the <code>Platform</code> that best describes the <code>OS</code>
      *
      * @param os The operating system.
-     * @return An instance of <tt>Platform</tt>
+     * @return An instance of <code>Platform</code>
      */
     private static Platform determinePlatform(OS os) {
         switch (os) {
@@ -296,7 +296,7 @@ public abstract class Platform {
     }
 
     /**
-     * Gets the native <tt>Platform</tt>
+     * Gets the native <code>Platform</code>
      *
      * @return The current platform.
      */
@@ -312,7 +312,7 @@ public abstract class Platform {
     /**
      * Gets the current Operating System.
      *
-     * @return A <tt>OS</tt> value representing the current Operating System.
+     * @return A <code>OS</code> value representing the current Operating System.
      */
     public final OS getOS() {
         return os;
@@ -321,7 +321,7 @@ public abstract class Platform {
     /**
      * Gets the current processor architecture the JVM is running on.
      *
-     * @return A <tt>CPU</tt> value representing the current processor architecture.
+     * @return A <code>CPU</code> value representing the current processor architecture.
      */
     public final CPU getCPU() {
         return cpu;
@@ -355,7 +355,7 @@ public abstract class Platform {
     }
 
     /**
-     * Gets the name of this <tt>Platform</tt>.
+     * Gets the name of this <code>Platform</code>.
      *
      * @return The name of this platform.
      */

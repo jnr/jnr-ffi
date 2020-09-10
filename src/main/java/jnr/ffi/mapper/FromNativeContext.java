@@ -34,7 +34,7 @@ public interface FromNativeContext {
     public abstract Collection<Annotation> getAnnotations();
 
     /**
-     * Gets the <tt>Runtime</tt> used for the conversion.
+     * Gets the <code>Runtime</code> used for the conversion.
      *
      * @return The runtime used for the conversion.
      */

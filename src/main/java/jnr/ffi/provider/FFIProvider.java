@@ -27,9 +27,9 @@ import jnr.ffi.*;
  */
 public abstract class FFIProvider {
     /**
-     * Gets an instance of <tt>FFIProvider</tt>
+     * Gets an instance of <code>FFIProvider</code>
      *
-     * @return an instance of <tt>FFIProvider</tt>
+     * @return an instance of <code>FFIProvider</code>
      */
     public static FFIProvider getSystemProvider() {
         return SystemProviderSingletonHolder.INSTANCE;
@@ -38,7 +38,7 @@ public abstract class FFIProvider {
     protected FFIProvider() {}
 
     /** 
-     * Gets the default <tt>Runtime</tt> for this provider.
+     * Gets the default <code>Runtime</code> for this provider.
      *
      * @return the runtime.
      */

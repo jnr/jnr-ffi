@@ -78,7 +78,7 @@ public final class ParameterFlags {
      * Checks if the annotation is a recognised parameter flag.
      * 
      * @param annotation the annotation to check.
-     * @return <tt>true</tt> if the annotation is a parameter flag
+     * @return <code>true</code> if the annotation is a parameter flag
      */
     public static boolean isFlag(Annotation annotation) {
         return parse(annotation) != 0;
