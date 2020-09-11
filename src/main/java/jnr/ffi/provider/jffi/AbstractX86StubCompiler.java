@@ -27,7 +27,6 @@ import jnr.ffi.Runtime;
 import jnr.x86asm.Assembler;
 
 import java.io.PrintStream;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
@@ -136,8 +135,7 @@ abstract class AbstractX86StubCompiler extends StubCompiler {
             fn = align(fn, 8);
             ByteBuffer buf = ByteBuffer.allocate(asm.codeSize()).order(ByteOrder.LITTLE_ENDIAN);
             stub.assembler.relocCode(buf, fn);
-            // force Java 8 compatible Buffer method
-            ((Buffer) buf).flip();
+            buf.flip();
             MemoryIO.getInstance().putByteArray(fn, buf.array(), buf.arrayOffset(), buf.limit());
 
             if (DEBUG && X86Disassembler.isAvailable()) {

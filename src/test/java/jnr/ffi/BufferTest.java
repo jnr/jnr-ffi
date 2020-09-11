@@ -133,8 +133,7 @@ public class BufferTest {
         buf.put(0, (byte)0xDE);
         buf.put(buf.limit() - 1, (byte) 0xDE);
         ByteBuffer dup = buf.duplicate();
-        // force Java 8 compatible Buffer method
-        ((Buffer) dup).position(1).limit(buf.limit() - 1);
+        dup.position(1).limit(buf.limit() - 1);
         ByteBuffer slice = dup.slice();
         lib.fillByteBuffer(slice, MAGIC, slice.capacity());
         assertEquals("Value at position 0 overwritten", (byte)0xde, buf.get(0));
@@ -181,12 +180,11 @@ public class BufferTest {
         final short GUARD = (short) 0xdead;
         buf.put(0, GUARD).put(buf.limit() - 1, GUARD);
         ShortBuffer dup = buf.duplicate();
-        // force Java 8 compatible Buffer method
-        ((Buffer) dup).position(1).limit(buf.limit() - 1);
+        dup.position(1).limit(buf.limit() - 1);
         ShortBuffer slice = dup.slice();
         lib.fillShortBuffer(slice, FILL, slice.capacity());
         assertEquals("Value at position 0 overwritten", GUARD, buf.get(0));
-        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten",
+        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten", 
                 GUARD, buf.get(buf.limit() - 1));
         for (int i = 1; i < buf.limit() - 1; i++) {
             assertEquals("Bad value at index " + i, FILL, buf.get(i));
@@ -226,12 +224,11 @@ public class BufferTest {
         final int GUARD = 0xdeadbeef;
         buf.put(0, GUARD).put(buf.limit() - 1, GUARD);
         IntBuffer dup = buf.duplicate();
-        // force Java 8 compatible Buffer method
-        ((Buffer) dup).position(1).limit(buf.limit() - 1);
+        dup.position(1).limit(buf.limit() - 1);
         IntBuffer slice = dup.slice();
         lib.fillIntBuffer(slice, FILL, slice.capacity());
         assertEquals("Value at position 0 overwritten", GUARD, buf.get(0));
-        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten",
+        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten", 
                 GUARD, buf.get(buf.limit() - 1));
         for (int i = 1; i < buf.limit() - 1; i++) {
             assertEquals("Bad value at index " + i, FILL, buf.get(i));
@@ -264,12 +261,11 @@ public class BufferTest {
         final long FILL = 0x1234567887654321L;
         buf.put(0, GUARD).put(buf.limit() - 1, GUARD);
         LongBuffer dup = buf.duplicate();
-        // force Java 8 compatible Buffer method
-        ((Buffer) dup).position(1).limit(buf.limit() - 1);
+        dup.position(1).limit(buf.limit() - 1);
         LongBuffer slice = dup.slice();
         lib.fillLongBuffer(dup.slice(), FILL, slice.capacity());
         assertEquals("Value at position 0 overwritten", GUARD, buf.get(0));
-        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten",
+        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten", 
                 GUARD, buf.get(buf.limit() - 1));
         for (int i = 1; i < buf.limit() - 1; i++) {
             assertEquals("Bad value at index " + i, FILL, buf.get(i));
@@ -299,8 +295,7 @@ public class BufferTest {
     public void fillDirectShortBufferSlice() {
         ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*2).order(runtime.byteOrder());
         ShortBuffer shortBuf = buf.asShortBuffer();
-        // force Java 8 compatible Buffer method
-        ((Buffer) buf).position(2);
+        buf.position(2);
         ShortBuffer sliced = buf.slice().asShortBuffer();
         final short MAGIC = (short)0xABED;
         lib.fillShortBuffer(sliced, MAGIC, SMALL - 1);
@@ -314,8 +309,7 @@ public class BufferTest {
     public void fillDirectShortBufferSliceAsBuffer() {
         ByteBuffer buf  = ByteBuffer.allocateDirect(SMALL*2).order(runtime.byteOrder());
         ShortBuffer shortBuf = buf.asShortBuffer();
-        // force Java 8 compatible Buffer method
-        ((Buffer) buf).position(2);
+        buf.position(2);
         Buffer sliced = buf.slice().asShortBuffer();
         final short MAGIC = (short)0xABED;
         lib.fillShortBuffer(sliced, MAGIC, SMALL - 1);
