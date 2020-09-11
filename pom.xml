@@ -117,6 +117,11 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+      </plugin>
+      <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.1</version>
         <executions>
@@ -306,6 +311,24 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>java9</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <!-- Use -release compiler option rather than source/target if 9+ -->
+              <release>${maven.compiler.target}</release>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
     </profile>
   </profiles>
   <reporting>
