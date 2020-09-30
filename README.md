@@ -29,12 +29,12 @@ Supported Types
 
 All Java primitives are mapped simply to the equivalent C types.
 
-* `byte` - 8 bit signed integer
-* `short` - 16 bit signed integer
-* `int` - 32 bit signed integer
-* `long` - natural long (i.e. 32 bits wide on 32-bit systems, 64 bits wide on 64-bit systems)
-* `float` - 32 bit float
-* `double` - 64 bit float
+* `byte` - 8 bit signed integer.
+* `short` - 16 bit signed integer.
+* `int` - 32 bit signed integer.
+* `long` - natural long (i.e. 32 bits wide on 32-bit systems, 64 bits wide on 64-bit systems).
+* `float` - 32 bit float.
+* `double` - 64 bit float.
 
 The width and/or signed-ness of these basic types can be specified using one of the type alias annotations.
  e.g.
