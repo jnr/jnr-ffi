@@ -18,8 +18,6 @@
 
 package jnr.ffi;
 
-import org.omg.CORBA.UNKNOWN;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.LinkedHashMap;
