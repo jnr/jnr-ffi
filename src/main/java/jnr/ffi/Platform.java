@@ -55,8 +55,8 @@ public abstract class Platform {
         NETBSD,
         /** OpenBSD */
         OPENBSD,
-	/** DragonFly */
-	DRAGONFLY,
+        /** DragonFly */
+        DRAGONFLY,
         /** Linux */
         LINUX,
         /** Solaris (and OpenSolaris) */
