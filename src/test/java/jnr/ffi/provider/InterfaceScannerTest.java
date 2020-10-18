@@ -6,15 +6,16 @@ import org.junit.Assume;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 
 public class InterfaceScannerTest {
     private static final Method SPLITERATOR;
 
+    public interface Collection<T> extends java.util.Collection<T>{}
+
     static {
         Method s = null;
         try {
-            Collection.class.getMethod("spliterator");
+            s = Collection.class.getMethod("spliterator");
         } catch (Exception e) {
             // leave null, tests will be skipped
         }
@@ -31,6 +32,6 @@ public class InterfaceScannerTest {
         Object spliterator = SPLITERATOR.invoke(lib);
 
         Assert.assertNotNull(spliterator);
-        Assert.assertEquals("java.util.Spliterator", spliterator.getClass().getName());
+        Assert.assertEquals("java.util.Spliterators$IteratorSpliterator", spliterator.getClass().getName());
     }
 }
