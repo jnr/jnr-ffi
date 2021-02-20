@@ -30,6 +30,10 @@ import java.lang.annotation.Target;
  * Instead, the JVM memory is locked and passed directly to the native code.
  * </p>
  * <p>
+ * Because the data is passed to native code unconverted, care must be taken to
+ * ensure element widths align for types wider than <code>byte</code>.
+ * </p>
+ * <p>
  * <b>IMPORTANT:</b> This should not be used for functions that may block on 
  * network or filesystem access such as read(2), write(2), stat(2).
  * </p>
