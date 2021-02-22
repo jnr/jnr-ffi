@@ -392,4 +392,33 @@ public class BufferTest {
 //            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
 //        }
 //    }
+
+    @Test
+    public void fillDirectBufferStartingAtCurrentPosition() {
+        ByteBuffer foo = ByteBuffer.allocateDirect(SMALL);
+        foo.position(SMALL / 2);
+        fillAndCheck(foo);
+    }
+
+    @Test
+    public void fillHeapBufferStartingAtCurrentPosition() {
+        ByteBuffer fpp = ByteBuffer.allocate(SMALL);
+        fpp.position(SMALL / 2);
+        fillAndCheck(fpp);
+    }
+
+    private void fillAndCheck(ByteBuffer buffer) {
+        int startAt = buffer.position();
+        byte fillWith = (byte) 0x01;
+
+        lib.fillByteBuffer(buffer, fillWith, buffer.remaining());
+
+        buffer.position(0);
+        while (buffer.hasRemaining()) {
+            int position = buffer.position();
+            byte expected = position < startAt ? 0 : fillWith;
+            byte actual = buffer.get();
+            assertEquals("Value at position " + position + " should be " + expected, expected, actual);
+        }
+    }
 }

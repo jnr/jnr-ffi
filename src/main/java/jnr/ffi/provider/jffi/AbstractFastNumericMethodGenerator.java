@@ -241,7 +241,7 @@ abstract class AbstractFastNumericMethodGenerator extends BaseMethodGenerator {
 
         } else if (Buffer.class.isAssignableFrom(javaParameterClass)) {
             mv.aload(parameter);
-            mv.invokestatic(AsmRuntime.class, "longValue", long.class, Buffer.class);
+            mv.invokestatic(BufferParameterStrategy.class, "address", long.class, Buffer.class);
             narrow(mv, long.class, nativeIntType);
             mv.aload(parameter);
             mv.invokevirtual(Buffer.class, "isDirect", boolean.class);
