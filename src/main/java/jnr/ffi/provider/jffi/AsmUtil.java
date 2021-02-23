@@ -353,6 +353,7 @@ final class AsmUtil {
         int nflags = 0;
         nflags |= ParameterFlags.isIn(flags) ? com.kenai.jffi.ArrayFlags.IN : 0;
         nflags |= ParameterFlags.isOut(flags) ? com.kenai.jffi.ArrayFlags.OUT : 0;
+        nflags |= ParameterFlags.isPinned(flags) ? com.kenai.jffi.ArrayFlags.PINNED : 0;
         nflags |= (ParameterFlags.isNulTerminate(flags) || ParameterFlags.isIn(flags))
                 ? com.kenai.jffi.ArrayFlags.NULTERMINATE : 0;
         return nflags;
