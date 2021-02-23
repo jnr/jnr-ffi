@@ -18,8 +18,9 @@
 
 package jnr.ffi.byref;
 
-import jnr.ffi.*;
+import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import jnr.ffi.TypeAlias;
 
 /**
  * NumberByReference is used when the address of a primitive integral value must be passed

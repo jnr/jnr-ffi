@@ -20,7 +20,6 @@ package jnr.ffi.mapper;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Context for conversion from native to Java.

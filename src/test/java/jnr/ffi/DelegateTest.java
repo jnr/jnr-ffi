@@ -21,7 +21,11 @@ package jnr.ffi;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.types.u_int32_t;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

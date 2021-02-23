@@ -22,9 +22,9 @@ import com.kenai.jffi.CallContext;
 import com.kenai.jffi.HeapInvocationBuffer;
 import com.kenai.jffi.Invoker;
 import com.kenai.jffi.ObjectParameterStrategy;
+import jnr.ffi.CallingConvention;
 import jnr.ffi.NativeType;
 import jnr.ffi.provider.InvocationSession;
-import jnr.ffi.CallingConvention;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 
@@ -35,7 +35,8 @@ import java.util.Map;
 import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitParameterStrategyLookup;
 import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.hasPointerParameterStrategy;
 import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.NumberUtil.convertPrimitive;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 

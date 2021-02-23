@@ -18,7 +18,7 @@
 
 package jnr.ffi.provider.converters;
 
-import jnr.ffi.*;
+import jnr.ffi.Pointer;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.MemoryManager;

@@ -18,7 +18,8 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.*;
+import jnr.ffi.Pointer;
+import jnr.ffi.Struct;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.provider.converters.StructByReferenceFromNativeConverter;

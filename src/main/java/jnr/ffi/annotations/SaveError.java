@@ -19,7 +19,6 @@
 package jnr.ffi.annotations;
 
 import jnr.ffi.LibraryLoader;
-import jnr.ffi.LibraryOption;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -17,8 +17,10 @@
  */
 
 package jnr.ffi.provider.jffi.platform.i386.freebsd;
-import jnr.ffi.TypeAlias;
+
 import jnr.ffi.NativeType;
+import jnr.ffi.TypeAlias;
+
 import java.util.EnumMap;
 import java.util.Map;
 

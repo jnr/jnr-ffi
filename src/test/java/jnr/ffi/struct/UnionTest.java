@@ -18,8 +18,6 @@
 
 package jnr.ffi.struct;
 
-import java.nio.ByteOrder;
-
 import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
 import jnr.ffi.TstUtil;
@@ -29,7 +27,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.nio.ByteOrder;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *

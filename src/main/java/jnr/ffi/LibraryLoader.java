@@ -18,7 +18,15 @@
 
 package jnr.ffi;
 
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.CompositeFunctionMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.DataConverter;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapperAdapter;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 
@@ -29,7 +37,13 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Loads a native library and maps it to a java interface.

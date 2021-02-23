@@ -20,9 +20,9 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Platform;
+import jnr.ffi.CallingConvention;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.CallingConvention;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.SigType;

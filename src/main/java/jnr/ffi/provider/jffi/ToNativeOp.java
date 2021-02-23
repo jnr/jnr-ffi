@@ -27,7 +27,9 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
+import static jnr.ffi.provider.jffi.AsmUtil.boxedType;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxPointer;
 import static jnr.ffi.provider.jffi.NumberUtil.narrow;
 import static jnr.ffi.provider.jffi.NumberUtil.widen;
 

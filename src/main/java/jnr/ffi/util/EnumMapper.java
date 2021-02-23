@@ -18,10 +18,15 @@
 
 package jnr.ffi.util;
 
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeConverter;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * Provides mapping from Enum values to native integers and vice-versa

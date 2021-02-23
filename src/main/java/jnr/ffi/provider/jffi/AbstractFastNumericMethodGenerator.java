@@ -18,8 +18,9 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
-import jnr.ffi.NativeType;
+import com.kenai.jffi.CallContext;
+import com.kenai.jffi.ObjectParameterInfo;
+import com.kenai.jffi.ObjectParameterStrategy;
 import jnr.ffi.Pointer;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
@@ -27,13 +28,25 @@ import org.objectweb.asm.Label;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.nio.*;
-import java.util.*;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.NumberUtil.*;
+import static jnr.ffi.provider.jffi.NumberUtil.convertPrimitive;
+import static jnr.ffi.provider.jffi.NumberUtil.narrow;
+import static jnr.ffi.provider.jffi.NumberUtil.widen;
 
 /**
  *

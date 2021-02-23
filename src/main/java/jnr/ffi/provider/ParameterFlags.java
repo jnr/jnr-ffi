@@ -18,7 +18,12 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.annotations.*;
+import jnr.ffi.annotations.Direct;
+import jnr.ffi.annotations.In;
+import jnr.ffi.annotations.NulTerminate;
+import jnr.ffi.annotations.Out;
+import jnr.ffi.annotations.Pinned;
+import jnr.ffi.annotations.Transient;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;

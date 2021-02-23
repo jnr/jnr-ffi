@@ -18,18 +18,26 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.*;
+import jnr.ffi.Memory;
+import jnr.ffi.NativeLong;
+import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-import jnr.ffi.annotations.LongLong;
+import jnr.ffi.Struct;
 import jnr.ffi.TstUtil;
-import jnr.ffi.types.*;
+import jnr.ffi.TypeAlias;
+import jnr.ffi.annotations.LongLong;
+import jnr.ffi.types.size_t;
+import jnr.ffi.types.ssize_t;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static jnr.ffi.TypeAlias.*;
+
+import static jnr.ffi.TypeAlias.ssize_t;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  *

@@ -18,7 +18,7 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.*;
+import jnr.ffi.LibraryLoader;
 
 /**
  * This class defines the facilities a JNR FFI provider must provide.

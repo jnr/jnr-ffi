@@ -18,7 +18,8 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.*;
+import jnr.ffi.LibraryLoader;
+import jnr.ffi.LibraryOption;
 import jnr.ffi.Runtime;
 
 import java.util.Collection;

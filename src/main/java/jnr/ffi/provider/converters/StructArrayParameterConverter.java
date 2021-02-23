@@ -20,7 +20,6 @@ package jnr.ffi.provider.converters;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.Struct;
-import jnr.ffi.annotations.LongLong;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.DelegatingMemoryIO;

@@ -18,8 +18,8 @@
 
 package jnr.ffi;
 
-import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.In;
+import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;
 import org.junit.After;
@@ -28,10 +28,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.lang.*;
 import java.util.function.ToLongFunction;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 public class ArrayTest {

@@ -18,8 +18,10 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.*;
+import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import jnr.ffi.Struct;
+import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.provider.AbstractArrayMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
@@ -28,7 +30,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 
 public class ArrayTest {

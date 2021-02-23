@@ -21,12 +21,15 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.Platform;
 import jnr.ffi.Address;
 import jnr.ffi.Pointer;
-import jnr.ffi.annotations.Delegate;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.provider.*;
+import jnr.ffi.provider.FromNativeType;
+import jnr.ffi.provider.ParameterFlags;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.SigType;
+import jnr.ffi.provider.ToNativeType;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -39,9 +42,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.NumberUtil.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.NumberUtil.convertPrimitive;
+import static jnr.ffi.provider.jffi.NumberUtil.getBoxedClass;
+import static jnr.ffi.provider.jffi.NumberUtil.narrow;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
+import static jnr.ffi.provider.jffi.NumberUtil.widen;
 
 final class AsmUtil {
     private AsmUtil() {}

@@ -18,11 +18,17 @@
 
 package jnr.ffi;
 
-import jnr.ffi.annotations.*;
+import jnr.ffi.annotations.In;
+import jnr.ffi.annotations.LongLong;
+import jnr.ffi.annotations.Out;
 import jnr.ffi.types.int32_t;
 import jnr.ffi.types.int8_t;
 import jnr.ffi.types.size_t;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;

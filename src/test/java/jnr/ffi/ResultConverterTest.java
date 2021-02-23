@@ -18,19 +18,28 @@
 
 package jnr.ffi;
 
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.AbstractSignatureTypeMapper;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  *

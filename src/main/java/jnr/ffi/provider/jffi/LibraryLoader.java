@@ -25,7 +25,6 @@ import jnr.ffi.mapper.CompositeTypeMapper;
 import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.SignatureTypeMapperAdapter;
 import jnr.ffi.mapper.TypeMapper;
-import jnr.ffi.provider.NativeFunction;
 import jnr.ffi.provider.NullTypeMapper;
 
 import java.util.Map;

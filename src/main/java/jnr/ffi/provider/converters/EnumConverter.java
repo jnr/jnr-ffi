@@ -18,7 +18,11 @@
 
 package jnr.ffi.provider.converters;
 
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.DataConverter;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.util.EnumMapper;
 
 

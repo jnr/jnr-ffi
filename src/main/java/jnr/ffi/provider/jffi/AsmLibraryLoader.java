@@ -19,27 +19,7 @@
 
 package jnr.ffi.provider.jffi;
 
-import static jnr.ffi.provider.jffi.CodegenUtils.ci;
-import static jnr.ffi.provider.jffi.CodegenUtils.p;
-import static jnr.ffi.provider.jffi.CodegenUtils.sig;
-import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
-import static jnr.ffi.provider.jffi.InvokerUtil.getCallingConvention;
-import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
-import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
-import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.V1_6;
-
-import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.kenai.jffi.Function;
 import jnr.ffi.CallingConvention;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.annotations.Synchronized;
@@ -58,12 +38,30 @@ import jnr.ffi.provider.NativeVariable;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.jffi.AsmBuilder.ObjectField;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
-import com.kenai.jffi.Function;
+import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallingConvention;
+import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
+import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.V1_6;
 
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");

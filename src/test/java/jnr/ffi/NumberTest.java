@@ -18,16 +18,20 @@
 
 package jnr.ffi;
 
-import java.util.Random;
-
 import jnr.ffi.annotations.LongLong;
-import jnr.ffi.types.*;
+import jnr.ffi.types.int32_t;
+import jnr.ffi.types.pid_t;
+import jnr.ffi.types.u_int32_t;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  *

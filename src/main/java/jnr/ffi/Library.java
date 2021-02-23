@@ -18,7 +18,6 @@
 
 package jnr.ffi;
 
-import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 
 import java.io.File;

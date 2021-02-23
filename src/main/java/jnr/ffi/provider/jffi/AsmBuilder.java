@@ -21,8 +21,7 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
 import com.kenai.jffi.ObjectParameterInfo;
-import jnr.ffi.*;
-import jnr.ffi.Runtime;
+import jnr.ffi.Variable;
 import jnr.ffi.mapper.FromNativeContext;
 import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.ToNativeContext;
@@ -30,7 +29,11 @@ import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassVisitor;
 
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static jnr.ffi.provider.jffi.AsmUtil.boxedType;
 import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;

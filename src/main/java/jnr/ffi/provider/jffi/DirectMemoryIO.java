@@ -18,7 +18,6 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.MemoryIO;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.AbstractMemoryIO;

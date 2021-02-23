@@ -18,8 +18,21 @@
 
 package jnr.ffi.provider.jffi;
 
-import static jnr.ffi.provider.jffi.InvokerUtil.getCallingConvention;
-import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.LibraryOption;
+import jnr.ffi.Runtime;
+import jnr.ffi.Variable;
+import jnr.ffi.annotations.Synchronized;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.provider.IdentityFunctionMapper;
+import jnr.ffi.provider.InterfaceScanner;
+import jnr.ffi.provider.Invoker;
+import jnr.ffi.provider.LoadedLibrary;
+import jnr.ffi.provider.NativeFunction;
+import jnr.ffi.provider.NativeInvocationHandler;
+import jnr.ffi.provider.NativeVariable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -29,25 +42,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import jnr.ffi.CallingConvention;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.Runtime;
-import jnr.ffi.Variable;
-import jnr.ffi.annotations.Synchronized;
-import jnr.ffi.mapper.CachingTypeMapper;
-import jnr.ffi.mapper.CompositeTypeMapper;
-import jnr.ffi.mapper.FunctionMapper;
-import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.SignatureTypeMapperAdapter;
-import jnr.ffi.mapper.TypeMapper;
-import jnr.ffi.provider.IdentityFunctionMapper;
-import jnr.ffi.provider.InterfaceScanner;
-import jnr.ffi.provider.Invoker;
-import jnr.ffi.provider.LoadedLibrary;
-import jnr.ffi.provider.NativeFunction;
-import jnr.ffi.provider.NativeInvocationHandler;
-import jnr.ffi.provider.NativeVariable;
-import jnr.ffi.provider.NullTypeMapper;
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallingConvention;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 /**
  *

@@ -18,7 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.*;
+import jnr.ffi.LibraryOption;
 
 import java.util.Collection;
 import java.util.Map;

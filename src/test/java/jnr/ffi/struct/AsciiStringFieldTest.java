@@ -18,20 +18,20 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.Library;
+import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
+import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;
 import jnr.ffi.annotations.Transient;
-import jnr.ffi.Runtime;
-import jnr.ffi.TstUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *

@@ -18,7 +18,17 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.AbstractSignatureTypeMapper;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.FromNativeType;
+import jnr.ffi.mapper.FromNativeTypes;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.ToNativeType;
+import jnr.ffi.mapper.ToNativeTypes;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;

@@ -18,10 +18,10 @@
 
 package jnr.ffi;
 
+import jnr.ffi.provider.ClosureManager;
 import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 import jnr.ffi.provider.MemoryManager;
-import jnr.ffi.provider.ClosureManager;
 
 import java.nio.ByteOrder;
 

@@ -18,10 +18,13 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
+import com.kenai.jffi.CallContext;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.ObjectParameterInfo;
+import com.kenai.jffi.Platform;
+import jnr.ffi.CallingConvention;
 import jnr.ffi.NativeType;
 import jnr.ffi.Pointer;
-import jnr.ffi.CallingConvention;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.SigType;
@@ -29,14 +32,23 @@ import org.objectweb.asm.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.*;
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitDirectCheck;
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.emitParameterStrategyLookup;
+import static jnr.ffi.provider.jffi.AbstractFastNumericMethodGenerator.hasPointerParameterStrategy;
 import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.emitEpilogue;
 import static jnr.ffi.provider.jffi.BaseMethodGenerator.loadAndConvertParameter;
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.NumberUtil.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.NumberUtil.convertPrimitive;
+import static jnr.ffi.provider.jffi.NumberUtil.narrow;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static jnr.ffi.provider.jffi.Util.getBooleanProperty;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_NATIVE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 /**
  *

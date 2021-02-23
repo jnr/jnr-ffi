@@ -19,12 +19,17 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.annotations.Delegate;
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.util.Collection;
 
 import static jnr.ffi.util.Annotations.sortedAnnotationCollection;

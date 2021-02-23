@@ -18,18 +18,23 @@
 
 package jnr.ffi;
 
-import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.In;
+import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.Out;
-
-import java.nio.*;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
+
 import static org.junit.Assert.assertEquals;
 
 /**

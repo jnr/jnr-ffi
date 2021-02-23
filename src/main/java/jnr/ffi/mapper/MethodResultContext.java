@@ -18,11 +18,9 @@
 
 package jnr.ffi.mapper;
 
-import jnr.ffi.*;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
 
 import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
