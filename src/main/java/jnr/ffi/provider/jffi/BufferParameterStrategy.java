@@ -21,13 +21,22 @@ package jnr.ffi.provider.jffi;
 import com.kenai.jffi.MemoryIO;
 import com.kenai.jffi.ObjectParameterType;
 
-import java.nio.Buffer;
+import java.nio.*;
 import java.util.EnumSet;
 
 /**
  *
  */
 public final class BufferParameterStrategy extends ParameterStrategy {
+    private static final int BYTE_POSITION_SHIFT = 0;
+    private static final int SHORT_POSITION_SHIFT = 1;
+    private static final int CHAR_POSITION_SHIFT = 1;
+    private static final int BOOLEAN_POSITION_SHIFT = 2;
+    private static final int INT_POSITION_SHIFT = 2;
+    private static final int FLOAT_POSITION_SHIFT = 2;
+    private static final int LONG_POSITION_SHIFT = 3;
+    private static final int DOUBLE_POSITION_SHIFT = 3;
+
     private final int shift;
 
     private BufferParameterStrategy(StrategyType type, ObjectParameterType.ComponentType componentType) {
@@ -35,13 +44,71 @@ public final class BufferParameterStrategy extends ParameterStrategy {
         this.shift = calculateShift(componentType);
     }
 
-    public long address(Buffer buffer) {
-        return buffer != null && buffer.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(buffer) + (buffer.position() << shift) : 0L;
+    public static long address(ByteBuffer ptr) {
+        return address(ptr, BYTE_POSITION_SHIFT);
+    }
+
+    public static long address(ShortBuffer ptr) {
+        return address(ptr, SHORT_POSITION_SHIFT);
+    }
+
+    public static long address(CharBuffer ptr) {
+        return address(ptr, CHAR_POSITION_SHIFT);
+    }
+
+    public static long address(IntBuffer ptr) {
+        return address(ptr, INT_POSITION_SHIFT);
+    }
+
+    public static long address(FloatBuffer ptr) {
+        return address(ptr, FLOAT_POSITION_SHIFT);
+    }
+
+    public static long address(LongBuffer ptr) {
+        return address(ptr, LONG_POSITION_SHIFT);
+    }
+
+    public static long address(DoubleBuffer ptr) {
+        return address(ptr, DOUBLE_POSITION_SHIFT);
+    }
+
+    public static long address(Buffer buffer) {
+        if (buffer instanceof ByteBuffer) {
+            return address(buffer, BYTE_POSITION_SHIFT);
+
+        } else if (buffer instanceof ShortBuffer) {
+            return address(buffer, SHORT_POSITION_SHIFT);
+
+        } else if (buffer instanceof CharBuffer) {
+            return address(buffer, CHAR_POSITION_SHIFT);
+
+        } else if (buffer instanceof IntBuffer) {
+            return address(buffer, INT_POSITION_SHIFT);
+
+        } else if (buffer instanceof LongBuffer) {
+            return address(buffer, LONG_POSITION_SHIFT);
+
+        } else if (buffer instanceof FloatBuffer) {
+            return address(buffer, FLOAT_POSITION_SHIFT);
+
+        } else if (buffer instanceof DoubleBuffer) {
+            return address(buffer, DOUBLE_POSITION_SHIFT);
+
+        } else if (buffer == null) {
+            return address(buffer, BYTE_POSITION_SHIFT);
+
+        } else {
+            throw new IllegalArgumentException("unsupported java.nio.Buffer subclass: " + buffer.getClass());
+        }
+    }
+
+    private static long address(Buffer ptr, int shift) {
+        return ptr != null && ptr.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(ptr) + (ptr.position() << shift) : 0L;
     }
 
     @Override
     public long address(Object o) {
-        return address((Buffer) o);
+        return address((Buffer) o, shift);
     }
 
     @Override
@@ -63,20 +130,29 @@ public final class BufferParameterStrategy extends ParameterStrategy {
     static int calculateShift(ObjectParameterType.ComponentType componentType) {
         switch (componentType) {
             case BYTE:
-                return 0;
+                return BYTE_POSITION_SHIFT;
 
             case SHORT:
+                return SHORT_POSITION_SHIFT;
+
             case CHAR:
-                return 1;
+                return CHAR_POSITION_SHIFT;
 
             case INT:
+                return INT_POSITION_SHIFT;
+
             case BOOLEAN:
+                return BOOLEAN_POSITION_SHIFT;
+
             case FLOAT:
-                return 2;
+                return FLOAT_POSITION_SHIFT;
 
             case LONG:
+                return LONG_POSITION_SHIFT;
+
             case DOUBLE:
-                return 3;
+                return DOUBLE_POSITION_SHIFT;
+
             default:
                 throw new IllegalArgumentException("unsupported component type: " + componentType);
         }
