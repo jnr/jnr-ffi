@@ -98,8 +98,6 @@ public class PlatformTest {
         Assert.assertFalse(platform.canFindLibrary("shouldNotFind", null));
         Assert.assertTrue(platform.canFindLibrary("test", null));
 
-        Assert.assertTrue(platform.canFindLibrary("c", null));
-
         if (platform.getOS() == Platform.OS.LINUX) {
             // try known system lib
             Assert.assertTrue(platform.canFindLibrary("curl", null));
