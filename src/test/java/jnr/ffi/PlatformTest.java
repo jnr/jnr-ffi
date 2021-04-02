@@ -91,4 +91,18 @@ public class PlatformTest {
     public void testMultiComponentVersionComparison() throws Exception {
         testVersionComparison("42.1.3.4", "", "5", "6.1", "42", "42.1", "42.0.5", "42.1.3.4");
     }
+
+    @Test
+    public void testCanFindLibrary() {
+        Platform platform = Platform.getNativePlatform();
+        Assert.assertFalse(platform.canFindLibrary("shouldNotFind", null));
+        Assert.assertTrue(platform.canFindLibrary("test", null));
+
+        Assert.assertTrue(platform.canFindLibrary("c", null));
+
+        if (platform.getOS() == Platform.OS.LINUX) {
+            // try known system lib
+            Assert.assertTrue(platform.canFindLibrary("curl", null));
+        }
+    }
 }

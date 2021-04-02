@@ -20,6 +20,7 @@ package jnr.ffi;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -428,6 +429,32 @@ public abstract class Platform {
         // Default to letting the system search for it
         return mappedName;
     }
+
+    /**
+     * Checks to see if a library will be found, you can use this to see if the system has a library installed,
+     * useful to check if an optional library exists (such as JACK, "libjack.so") without having to load it.
+     *
+     * This checks the default library directories in addition to the paths provided in {@code libPaths}
+     *
+     * @param libName  the base name (e.g. "c") of the library to locate
+     * @param libPaths the list of directories to search, or null if checking the system
+     * @return true if the library was found, false otherwise
+     */
+    public boolean canFindLibrary(String libName, List<String> libPaths) {
+        ArrayList<String> paths = new ArrayList<>(LibraryLoader.StaticDataHolder.USER_LIBRARY_PATH);
+        if (libPaths != null) paths.addAll(libPaths);
+
+        // locateLibrary can either give us an absolute path with the version at the end (for Linux)
+        //  or just the name (forwards to mapLibraryName), either way we only want the name, we will
+        //  add the parent later from paths
+        String name = new File(locateLibrary(libName, paths)).getName();
+        for (String path : paths) {
+            File libFile = new File(path, name);
+            if (libFile.exists()) return true;
+        }
+        return false;
+    }
+
     private static class Supported extends Platform {
         public Supported(OS os) {
             super(os);

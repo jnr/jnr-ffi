@@ -462,8 +462,8 @@ public abstract class LibraryLoader<T> {
                                      boolean failImmediately);
 
 
-    private static final class StaticDataHolder {
-        private static final List<String> USER_LIBRARY_PATH;
+    static final class StaticDataHolder {
+        static final List<String> USER_LIBRARY_PATH;
         private static void addPaths(List<String> paths, File file) {
             if (!file.isFile() || !file.exists()) return;
             BufferedReader in = null;
