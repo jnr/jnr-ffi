@@ -431,24 +431,23 @@ public abstract class Platform {
     }
 
     /**
-     * Checks to see if a library will be found, you can use this to see if the system has a library installed,
-     * useful to check if an optional library exists (such as JACK, "libjack.so") without having to load it.
+     * Returns a list of absolute paths to the found locations of a library with the base name {@code libName},
+     * if the returned list is empty then the library could not be found and will fail to be loaded.
      *
-     * This checks the default library directories in addition to the paths provided in {@code libPaths}
+     * Even if a library is found, this does not guarantee that it will successfully be loaded, it only guarantees
+     * that the reason for the failure was not that it was not found.
      *
-     * @param libName  the base name (e.g. "c") of the library to locate
-     * @param libPaths the list of directories to search, or null if checking the system
-     * @return true if the library was found, false otherwise
+     * @param libName         the base name (e.g. "c") of the library to locate
+     * @param additionalPaths additional paths to search, these take precedence over default paths,
+     *                        (as is the behavior in {@link LibraryLoader})
+     *                        pass null or an empty list to only search in the default paths
+     * @return the list of absolute paths where the library was found
      */
-    public boolean canFindLibrary(String libName, List<String> libPaths) {
-        // TODO basshelal remove? in favor of just libraryLocations
-        return !libraryLocations(libName, libPaths).isEmpty();
-    }
-
     public List<String> libraryLocations(String libName, List<String> additionalPaths) {
         ArrayList<String> result = new ArrayList<>();
-        ArrayList<String> libDirs = new ArrayList<>(LibraryLoader.DefaultLibPaths.PATHS);
-        if (additionalPaths != null) libDirs.addAll(additionalPaths);
+        ArrayList<String> libDirs = new ArrayList<>();
+        if (additionalPaths != null) libDirs.addAll(additionalPaths); // customPaths first!
+        libDirs.addAll(LibraryLoader.DefaultLibPaths.PATHS);
 
         // locateLibrary can either give us an absolute path with the version at the end (for Linux)
         //  or just the name (forwards to mapLibraryName), either way we only want the name, we will
