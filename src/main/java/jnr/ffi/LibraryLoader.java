@@ -498,6 +498,12 @@ public abstract class LibraryLoader<T> {
             } catch (Exception ignored) {
             }
 
+            if (Platform.getNativePlatform().isUnix()) {
+                // TODO basshelal Add the Unix default lib paths
+                //  then put the ld.so.conf code here for more
+                //  but make sure we don't add the same dir twice
+            }
+
             switch (Platform.getNativePlatform().getOS()) {
                 case FREEBSD:
                 case OPENBSD:
@@ -533,6 +539,8 @@ public abstract class LibraryLoader<T> {
         String value = System.getProperty(propName);
         if (value != null) {
             String[] paths = value.split(File.pathSeparator);
+            System.out.println(propName);
+            System.out.println(Arrays.toString(paths));
             return new ArrayList<String>(Arrays.asList(paths));
         }
         return Collections.emptyList();
