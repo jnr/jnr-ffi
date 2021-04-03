@@ -441,8 +441,9 @@ public abstract class LibraryLoader<T> {
     }
 
     private Collection<String> getSearchPaths() {
+        // custom paths before default paths because user may have same name as a system lib
         List<String> paths = new ArrayList<String>(searchPaths);
-        paths.addAll(StaticDataHolder.USER_LIBRARY_PATH);
+        paths.addAll(DefaultLibPaths.PATHS);
 
         return Collections.unmodifiableList(paths);
     }
@@ -462,9 +463,9 @@ public abstract class LibraryLoader<T> {
                                      boolean failImmediately);
 
 
-    static final class StaticDataHolder {
-        static final List<String> USER_LIBRARY_PATH;
-        private static void addPaths(List<String> paths, File file) {
+    static final class DefaultLibPaths {
+        static final List<String> PATHS;
+        private static void addPathsFromFile(List<String> paths, File file) {
             if (!file.isFile() || !file.exists()) return;
             BufferedReader in = null;
             try {
@@ -472,7 +473,7 @@ public abstract class LibraryLoader<T> {
                 String line = in.readLine();
                 while( line != null ) {
                     if (new File(line).exists()) {
-                        paths.add(line);
+                        addPath(paths, line);
                     }
                     line = in.readLine();
                 }
@@ -484,6 +485,13 @@ public abstract class LibraryLoader<T> {
                     try { in.close(); }
                     catch(IOException ignored) {}
                 }
+            }
+        }
+
+        private static void addPath(List<String> paths, String path) {
+            File dir = new File(path);
+            if (dir.isDirectory()) {
+                if (!paths.contains(path)) paths.add(path);
             }
         }
 
@@ -499,9 +507,10 @@ public abstract class LibraryLoader<T> {
             }
 
             if (Platform.getNativePlatform().isUnix()) {
-                // TODO basshelal Add the Unix default lib paths
-                //  then put the ld.so.conf code here for more
-                //  but make sure we don't add the same dir twice
+                // order is intentional!
+                addPath(paths,"/usr/local/lib");
+                addPath(paths,"/usr/lib");
+                addPath(paths,"/lib");
             }
 
             switch (Platform.getNativePlatform().getOS()) {
@@ -520,17 +529,17 @@ public abstract class LibraryLoader<T> {
                     File ldSoConfD = new File("/etc/ld.so.conf.d");
 
                     if (ldSoConf.exists()) {
-                        addPaths(paths, ldSoConf);
+                        addPathsFromFile(paths, ldSoConf);
                     }
 
                     if (ldSoConfD.isDirectory()) {
                         for (File file : ldSoConfD.listFiles()) {
-                            addPaths(paths, file);
+                            addPathsFromFile(paths, file);
                         }
                     }
                     break;
             }
-            USER_LIBRARY_PATH = Collections.unmodifiableList(new ArrayList<String>(paths));
+            PATHS = Collections.unmodifiableList(new ArrayList<String>(paths));
         }
     }
 
@@ -539,8 +548,6 @@ public abstract class LibraryLoader<T> {
         String value = System.getProperty(propName);
         if (value != null) {
             String[] paths = value.split(File.pathSeparator);
-            System.out.println(propName);
-            System.out.println(Arrays.toString(paths));
             return new ArrayList<String>(Arrays.asList(paths));
         }
         return Collections.emptyList();

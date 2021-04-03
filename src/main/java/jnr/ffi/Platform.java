@@ -441,18 +441,26 @@ public abstract class Platform {
      * @return true if the library was found, false otherwise
      */
     public boolean canFindLibrary(String libName, List<String> libPaths) {
-        ArrayList<String> paths = new ArrayList<>(LibraryLoader.StaticDataHolder.USER_LIBRARY_PATH);
-        if (libPaths != null) paths.addAll(libPaths);
+        // TODO basshelal remove? in favor of just libraryLocations
+        return !libraryLocations(libName, libPaths).isEmpty();
+    }
+
+    public List<String> libraryLocations(String libName, List<String> additionalPaths) {
+        ArrayList<String> result = new ArrayList<>();
+        ArrayList<String> libDirs = new ArrayList<>(LibraryLoader.DefaultLibPaths.PATHS);
+        if (additionalPaths != null) libDirs.addAll(additionalPaths);
 
         // locateLibrary can either give us an absolute path with the version at the end (for Linux)
         //  or just the name (forwards to mapLibraryName), either way we only want the name, we will
-        //  add the parent later from paths
-        String name = new File(locateLibrary(libName, paths)).getName();
-        for (String path : paths) {
-            File libFile = new File(path, name);
-            if (libFile.exists()) return true;
+        //  add the parent later from libDirs
+        String name = new File(locateLibrary(libName, libDirs)).getName();
+        for (String libDir : libDirs) {
+            File libFile = new File(libDir, name);
+            if (libFile.exists()) {
+                result.add(libFile.getAbsolutePath());
+            }
         }
-        return false;
+        return result;
     }
 
     private static class Supported extends Platform {
