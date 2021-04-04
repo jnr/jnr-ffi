@@ -432,7 +432,7 @@ public abstract class Platform {
 
     /**
      * Returns a list of absolute paths to the found locations of a library with the base name {@code libName},
-     * if the returned list is empty then the library could not be found and will fail to be loaded.
+     * if the returned list is empty then the library could not be found and will fail to be loaded as a result.
      *
      * Even if a library is found, this does not guarantee that it will successfully be loaded, it only guarantees
      * that the reason for the failure was not that it was not found.
@@ -440,7 +440,7 @@ public abstract class Platform {
      * @param libName         the base name (e.g. "c") of the library to locate
      * @param additionalPaths additional paths to search, these take precedence over default paths,
      *                        (as is the behavior in {@link LibraryLoader})
-     *                        pass null or an empty list to only search in the default paths
+     *                        pass null to only search in the default paths
      * @return the list of absolute paths where the library was found
      */
     public List<String> libraryLocations(String libName, List<String> additionalPaths) {

@@ -8,6 +8,8 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 public class PlatformTest {
     private File tmpDir;
@@ -92,13 +94,52 @@ public class PlatformTest {
         testVersionComparison("42.1.3.4", "", "5", "6.1", "42", "42.1", "42.0.5", "42.1.3.4");
     }
 
-    // TODO basshelal test should really just ensure that we are truthful and that if we said it was found,
-    //  the library would successfully load later, and of course the reverse, BUT a load error because of badly named
-    //  or symbols not found is not on us
+    // library should not be found AND should fail to load
     @Test
-    public void testCanFindLibrary() {
-        Platform platform = Platform.getNativePlatform();
+    public void testLibraryLocationsFailNotFound() {
+        String libName = "should-not-find-me";
+        List<String> libLocations = Platform.getNativePlatform().libraryLocations(libName, null);
+        Assert.assertTrue(libLocations.isEmpty());
+        boolean failed = false;
+        try {
+            LibraryLoader.loadLibrary(TestLib.class, new HashMap<>(), libName);
+        } catch (LinkageError e) {
+            failed = true;
+        }
+        Assert.assertTrue(failed);
+    }
 
-        System.out.println(platform.libraryLocations("asound", null));
+    // library should be found but client had unknown symbols, so failed to load even though it exists
+    @Test
+    public void testLibraryLocationsFailBadSymbol() {
+        String libName = "test";
+        List<String> libLocations = Platform.getNativePlatform().libraryLocations(libName, null);
+        Assert.assertFalse(libLocations.isEmpty());
+        boolean failed = false;
+        try {
+            TestLibIncorrect lib = LibraryLoader.loadLibrary(TestLibIncorrect.class, new HashMap<>(), libName);
+            lib.incorrectFunctionShouldNotBeFound(0);
+        } catch (LinkageError e) {
+            failed = true;
+        }
+        Assert.assertTrue(failed);
+    }
+
+    // library should be found AND should load correctly because correct symbols
+    @Test
+    public void testLibraryLocationsSuccessful() {
+        String libName = "test";
+        List<String> libLocations = Platform.getNativePlatform().libraryLocations(libName, null);
+        Assert.assertFalse(libLocations.isEmpty());
+        TestLib lib = LibraryLoader.loadLibrary(TestLib.class, new HashMap<>(), libName); // should succeed
+        Assert.assertNotNull(lib);
+    }
+
+    public static interface TestLib {
+        int setLastError(int error);
+    }
+
+    public static interface TestLibIncorrect {
+        int incorrectFunctionShouldNotBeFound(int error);
     }
 }

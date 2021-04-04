@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -465,16 +466,16 @@ public abstract class LibraryLoader<T> {
 
     static final class DefaultLibPaths {
         static final List<String> PATHS;
-        private static void addPathsFromFile(List<String> paths, File file) {
+
+        private static void addPathsFromFile(Collection<String> paths, File file) {
             if (!file.isFile() || !file.exists()) return;
             BufferedReader in = null;
             try {
                 in = new BufferedReader(new FileReader(file));
                 String line = in.readLine();
-                while( line != null ) {
-                    if (new File(line).exists()) {
-                        addPath(paths, line);
-                    }
+                while (line != null) {
+                    // add even if doesn't exist! We're just adding the default paths, we check for validity elsewhere
+                    paths.add(line);
                     line = in.readLine();
                 }
             }
@@ -488,29 +489,24 @@ public abstract class LibraryLoader<T> {
             }
         }
 
-        private static void addPath(List<String> paths, String path) {
-            File dir = new File(path);
-            if (dir.isDirectory()) {
-                if (!paths.contains(path)) paths.add(path);
-            }
-        }
-
         static {
-            List<String> paths = new ArrayList<String>();
+            // paths should have no duplicate entries and have insertion order
+            LinkedHashSet<String> paths = new LinkedHashSet<String>();
             try {
                 paths.addAll(getPropertyPaths("jnr.ffi.library.path"));
                 paths.addAll(getPropertyPaths("jaffl.library.path"));
                 // Add JNA paths for compatibility
                 paths.addAll(getPropertyPaths("jna.library.path"));
+                // java.library.path should take care of Windows defaults
                 paths.addAll(getPropertyPaths("java.library.path"));
             } catch (Exception ignored) {
             }
 
             if (Platform.getNativePlatform().isUnix()) {
                 // order is intentional!
-                addPath(paths,"/usr/local/lib");
-                addPath(paths,"/usr/lib");
-                addPath(paths,"/lib");
+                paths.add("/usr/local/lib");
+                paths.add("/usr/lib");
+                paths.add("/lib");
             }
 
             switch (Platform.getNativePlatform().getOS()) {
