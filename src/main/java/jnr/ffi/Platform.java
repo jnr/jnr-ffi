@@ -63,6 +63,8 @@ public abstract class Platform {
         WINDOWS,
         /** IBM AIX */
         AIX,
+        /** IBM i */
+        IBM i,
         /** IBM zOS **/
         ZLINUX,
         /** No idea what the operating system is */
@@ -148,6 +150,8 @@ public abstract class Platform {
             return OS.SOLARIS;
         } else if (startsWithIgnoreCase(osName, "aix")) {
             return OS.AIX;
+        } else if (startsWithIgnoreCase(osName, "os400") || startsWithIgnoreCase(osName, "os/400")) {
+            return OS.IBMI;
         } else if (startsWithIgnoreCase(osName, "openbsd")) {
             return OS.OPENBSD;
         } else if (startsWithIgnoreCase(osName, "freebsd")) {
@@ -366,6 +370,7 @@ public abstract class Platform {
         case NETBSD:
             return "c";
         case AIX:
+        case IBMI:
             return addressSize == 32
                 ? "libc.a(shr.o)"
                 : "libc.a(shr_64.o)";
