@@ -19,7 +19,11 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.Pointer;
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.CachingTypeMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ClosureManager;
 
 import java.util.IdentityHashMap;

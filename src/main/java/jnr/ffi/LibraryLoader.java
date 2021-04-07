@@ -18,10 +18,17 @@
 
 package jnr.ffi;
 
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.CompositeFunctionMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.DataConverter;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapperAdapter;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
-import jnr.ffi.provider.NativeInvocationHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,7 +37,13 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Loads a native library and maps it to a java interface.
@@ -51,6 +64,8 @@ import java.util.*;
  * </pre>
  */
 public abstract class LibraryLoader<T> {
+    public static final String DEFAULT_LIBRARY = "RTLD_DEFAULT";
+
     private final List<String> searchPaths = new ArrayList<String>();
     private final List<String> libraryNames = new ArrayList<String>();
     private final List<SignatureTypeMapper> typeMappers = new ArrayList<SignatureTypeMapper>();
@@ -92,6 +107,11 @@ public abstract class LibraryLoader<T> {
      * IM      | ignr | ignr | ignr | ignr |
      * SM + IM | save | save | save | save |
      * </pre>
+     *
+     * @param options options
+     * @param methodHasSave whether the method has error-saving enabled
+     * @param methodHasIgnore whether the method ignores errors
+     * @return true if the error was saved, false otherwise
      */
     public static boolean saveError(Map<LibraryOption, ?> options, boolean methodHasSave, boolean methodHasIgnore) {
 
@@ -113,6 +133,63 @@ public abstract class LibraryLoader<T> {
     }
 
     /**
+     * Loads a native library and links the methods defined in {@code interfaceClass}
+     * to native methods in the library.
+     *
+     * @param <T> the interface type.
+     * @param libraryNames the name of the library to load
+     * @param interfaceClass the interface that describes the native library interface
+     * @param searchPaths a map of library names to paths that should be searched
+     * @param libraryOptions options
+     * @return an instance of {@code interfaceclass} that will call the native methods.
+     */
+    public static <T> T loadLibrary(
+            Class<T> interfaceClass,
+            Map<LibraryOption, ?> libraryOptions,
+            Map<String, List<String>> searchPaths,
+            String... libraryNames) {
+        LibraryLoader<T> loader = FFIProvider.getSystemProvider().createLibraryLoader(interfaceClass);
+
+        for (String libraryName : libraryNames) {
+            if (libraryName.equals(LibraryLoader.DEFAULT_LIBRARY)) {
+                loader.searchDefault();
+                continue;
+            }
+
+            loader.library(libraryName);
+
+            List<String> paths = searchPaths.get(libraryName);
+            if (paths != null) for (String path : paths) {
+                loader.search(path);
+            }
+        }
+
+        for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
+            loader.option(option.getKey(), option.getValue());
+        }
+
+        return loader.failImmediately().load();
+    }
+
+    /**
+     * Same as calling {@link #loadLibrary(Class, Map, Map, String...)} with an empty search path map.
+     *
+     * @see #loadLibrary(Class, Map, Map, String...)
+     *
+     * @param interfaceClass the interface to implement
+     * @param libraryOptions options
+     * @param libraryNames names to try when searching for the library
+     * @param <T> the interface type
+     * @return a new object implementing the interface and bound to the library
+     */
+    public static <T> T loadLibrary(
+            Class<T> interfaceClass,
+            Map<LibraryOption, ?> libraryOptions,
+            String... libraryNames) {
+        return (T) loadLibrary(interfaceClass, libraryOptions, Collections.EMPTY_MAP, libraryNames);
+    }
+
+    /**
      * Adds a library to be loaded.  Multiple libraries can be specified using additional calls
      * to this method, and all libraries will be searched to resolve symbols (e.g. functions, variables).
      *
@@ -120,7 +197,22 @@ public abstract class LibraryLoader<T> {
      * @return The {@code LibraryLoader} instance.
      */
     public LibraryLoader<T> library(String libraryName) {
+        if (libraryName.equals(DEFAULT_LIBRARY)) {
+            return searchDefault();
+        }
+
         this.libraryNames.add(libraryName);
+        return this;
+    }
+
+    /**
+     * Add the default library to the search order. This will search all loaded libraries in the current process
+     * according to the system's implementation of dlsym(RTLD_DEFAULT).
+     *
+     * @return The {@code LibraryLoader} instance.
+     */
+    public LibraryLoader<T> searchDefault() {
+        this.libraryNames.add(DEFAULT_LIBRARY);
         return this;
     }
 
@@ -323,7 +415,7 @@ public abstract class LibraryLoader<T> {
 
         try {
             return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
-                Collections.unmodifiableMap(optionMap));
+                Collections.unmodifiableMap(optionMap), failImmediately);
         
         } catch (LinkageError error) {
             if (failImmediately) throw error;
@@ -362,10 +454,12 @@ public abstract class LibraryLoader<T> {
      * @param libraryNames A list of libraries to load and search for symbols.
      * @param searchPaths The paths to search for libraries to be loaded.
      * @param options The options to apply when loading the library.
+     * @param failImmediately whether to fast-fail when the library does not implement the requested functions
      * @return an instance of {@code interfaceClass} that will call the native methods.
      */
     protected abstract T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames,
-                                         Collection<String> searchPaths, Map<LibraryOption, Object> options);
+                                     Collection<String> searchPaths, Map<LibraryOption, Object> options,
+                                     boolean failImmediately);
 
 
     private static final class StaticDataHolder {
@@ -410,6 +504,7 @@ public abstract class LibraryLoader<T> {
                 case NETBSD:
                 case LINUX:
                 case ZLINUX:
+                case MIDNIGHTBSD:
                     // only for oracle jdk on Linux and non-OSX BSD parse /etc/ld.so.conf and /etc/ld.so.conf.d/*
                     // more details:
                     // https://github.com/jruby/jruby/issues/2913

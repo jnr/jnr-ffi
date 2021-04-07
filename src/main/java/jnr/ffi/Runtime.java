@@ -18,10 +18,10 @@
 
 package jnr.ffi;
 
+import jnr.ffi.provider.ClosureManager;
 import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 import jnr.ffi.provider.MemoryManager;
-import jnr.ffi.provider.ClosureManager;
 
 import java.nio.ByteOrder;
 
@@ -166,7 +166,7 @@ public abstract class Runtime {
     public abstract ByteOrder byteOrder();
 
     /**
-     * Indicates whether this <tt>Runtime</tt> instance is compatible with another <tt>Runtime</tt> instance.
+     * Indicates whether this <code>Runtime</code> instance is compatible with another <code>Runtime</code> instance.
      *
      * <p>
      * This is not the same as calling {@link #equals} - this method only indicates whether or not artifacts from the

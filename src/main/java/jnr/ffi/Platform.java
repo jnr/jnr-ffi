@@ -55,6 +55,8 @@ public abstract class Platform {
         NETBSD,
         /** OpenBSD */
         OPENBSD,
+        /** DragonFly */
+        DRAGONFLY,
         /** Linux */
         LINUX,
         /** Solaris (and OpenSolaris) */
@@ -67,6 +69,8 @@ public abstract class Platform {
         IBM i,
         /** IBM zOS **/
         ZLINUX,
+        /** MidnightBSD **/
+        MIDNIGHTBSD,
         /** No idea what the operating system is */
         UNKNOWN;
 
@@ -118,6 +122,9 @@ public abstract class Platform {
         /** 64 bit ARM */
         AARCH64,
 
+        /** 64 bit MIPS */
+        MIPS64EL,
+
         /**
          * Unknown CPU architecture.  A best effort will be made to infer architecture
          * specific values such as address and long size.
@@ -138,7 +145,7 @@ public abstract class Platform {
     /**
      * Determines the operating system jffi is running on
      *
-     * @return An member of the <tt>OS</tt> enum.
+     * @return An member of the <code>OS</code> enum.
      */
     private static OS determineOS() {
         String osName = System.getProperty("os.name").split(" ")[0];
@@ -156,18 +163,22 @@ public abstract class Platform {
             return OS.OPENBSD;
         } else if (startsWithIgnoreCase(osName, "freebsd")) {
             return OS.FREEBSD;
+        } else if (startsWithIgnoreCase(osName, "dragonfly")) {
+            return OS.DRAGONFLY;
         } else if (startsWithIgnoreCase(osName, "windows")) {
             return OS.WINDOWS;
+        } else if (startsWithIgnoreCase(osName, "midnightbsd")) {
+            return OS.MIDNIGHTBSD;
         } else {
             return OS.UNKNOWN;
         }
     }
 
     /**
-     * Determines the <tt>Platform</tt> that best describes the <tt>OS</tt>
+     * Determines the <code>Platform</code> that best describes the <code>OS</code>
      *
      * @param os The operating system.
-     * @return An instance of <tt>Platform</tt>
+     * @return An instance of <code>Platform</code>
      */
     private static Platform determinePlatform(OS os) {
         switch (os) {
@@ -220,6 +231,10 @@ public abstract class Platform {
             return CPU.S390X;
         } else if (equalsIgnoreCase("aarch64", archString)) {
             return CPU.AARCH64;
+        } else if (equalsIgnoreCase("arm", archString) || equalsIgnoreCase("armv7l", archString)) {
+            return CPU.ARM;
+        } else if (equalsIgnoreCase("mips64", archString) || equalsIgnoreCase("mips64el", archString)) {
+            return CPU.MIPS64EL;
         }
 
         // Try to find by lookup up in the CPU list
@@ -263,8 +278,8 @@ public abstract class Platform {
     }
 
     private static int calculateAddressSize(CPU cpu) {
-        int dataModel = Integer.getInteger("sun.arch.data.model");
-        if (dataModel != 32 && dataModel != 64) {
+        Integer dataModel = Integer.getInteger("sun.arch.data.model");
+        if (dataModel == null || dataModel != 32 && dataModel != 64) {
             switch (cpu) {
                 case I386:
                 case PPC:
@@ -277,6 +292,7 @@ public abstract class Platform {
                 case SPARCV9:
                 case S390X:
                 case AARCH64:
+		case MIPS64EL:
                     dataModel = 64;
                     break;
                 default:
@@ -288,7 +304,7 @@ public abstract class Platform {
     }
 
     /**
-     * Gets the native <tt>Platform</tt>
+     * Gets the native <code>Platform</code>
      *
      * @return The current platform.
      */
@@ -304,7 +320,7 @@ public abstract class Platform {
     /**
      * Gets the current Operating System.
      *
-     * @return A <tt>OS</tt> value representing the current Operating System.
+     * @return A <code>OS</code> value representing the current Operating System.
      */
     public final OS getOS() {
         return os;
@@ -313,14 +329,14 @@ public abstract class Platform {
     /**
      * Gets the current processor architecture the JVM is running on.
      *
-     * @return A <tt>CPU</tt> value representing the current processor architecture.
+     * @return A <code>CPU</code> value representing the current processor architecture.
      */
     public final CPU getCPU() {
         return cpu;
     }
     
     public final boolean isBSD() {
-        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN;
+        return os == OS.FREEBSD || os == OS.OPENBSD || os == OS.NETBSD || os == OS.DARWIN || os == OS.DRAGONFLY | os == OS.MIDNIGHTBSD;
     }
     public final boolean isUnix() {
         return os != OS.WINDOWS;
@@ -347,7 +363,7 @@ public abstract class Platform {
     }
 
     /**
-     * Gets the name of this <tt>Platform</tt>.
+     * Gets the name of this <code>Platform</code>.
      *
      * @return The name of this platform.
      */
@@ -366,7 +382,9 @@ public abstract class Platform {
             return "libc.so.6";
         case SOLARIS:
             return "c";
+        case DRAGONFLY:
         case FREEBSD:
+        case MIDNIGHTBSD:
         case NETBSD:
             return "c";
         case AIX:

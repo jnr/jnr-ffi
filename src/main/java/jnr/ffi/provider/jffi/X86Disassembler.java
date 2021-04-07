@@ -18,8 +18,9 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.*;
 import jnr.ffi.LibraryLoader;
+import jnr.ffi.Memory;
+import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.mapper.DefaultTypeMapper;
 import jnr.ffi.mapper.ToNativeContext;
@@ -28,11 +29,6 @@ import jnr.ffi.types.intptr_t;
 import jnr.ffi.types.size_t;
 import jnr.ffi.types.u_int64_t;
 import jnr.ffi.types.u_int8_t;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  *

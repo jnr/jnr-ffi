@@ -26,9 +26,9 @@ import java.util.List;
 /**
  * A native memory address.
  *
- * This class provides operations on a native memory address.  Most <tt>Pointer</tt>instances will represent direct
+ * This class provides operations on a native memory address.  Most <code>Pointer</code>instances will represent direct
  * memory (that is, a fixed address in the process address space, directly accessible by native code), however,
- * it is possible to wrap a java <tt>byte</tt> array in a <tt>Pointer</tt>instance to pass to a native function
+ * it is possible to wrap a java <code>byte</code> array in a <code>Pointer</code>instance to pass to a native function
  * as a memory address.  See {@link #isDirect()} for more information.
  */
 abstract public class Pointer {
@@ -165,7 +165,7 @@ abstract public class Pointer {
     abstract public long size();
 
     /**
-     * Indicates whether this <tt>Pointer</tt> instance is backed by an array.
+     * Indicates whether this <code>Pointer</code> instance is backed by an array.
      *
      * @return true if, and only if, this memory object is backed by an array
      */

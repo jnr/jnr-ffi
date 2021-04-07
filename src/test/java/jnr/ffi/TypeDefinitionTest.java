@@ -18,13 +18,15 @@
 
 package jnr.ffi;
 
-import jnr.ffi.annotations.LongLong;
-import jnr.ffi.types.*;
-
+import jnr.ffi.types.int8_t;
+import jnr.ffi.types.size_t;
+import jnr.ffi.types.u_int32_t;
+import jnr.ffi.types.u_int8_t;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *

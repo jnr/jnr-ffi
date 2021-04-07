@@ -24,9 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class AllocatedDirectMemoryIO extends DirectMemoryIO {
     private final AtomicBoolean allocated = new AtomicBoolean(true);
-    private final int size;
+    private final long size;
     
-    public AllocatedDirectMemoryIO(Runtime runtime, int size, boolean clear) {
+    public AllocatedDirectMemoryIO(Runtime runtime, long size, boolean clear) {
         super(runtime, IO.allocateMemory(size, clear));
         this.size = size;
         if (address() == 0L) {

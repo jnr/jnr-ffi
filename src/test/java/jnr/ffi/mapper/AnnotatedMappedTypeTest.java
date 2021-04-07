@@ -19,18 +19,14 @@
 package jnr.ffi.mapper;
 
 
-import jnr.ffi.*;
+import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-import jnr.ffi.annotations.In;
-import jnr.ffi.annotations.LongLong;
-import jnr.ffi.annotations.Out;
-import jnr.ffi.provider.converters.EnumSetConverter;
+import jnr.ffi.TstUtil;
 import jnr.ffi.types.size_t;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static junit.framework.TestCase.*;
+import static junit.framework.TestCase.assertSame;
 
 public class AnnotatedMappedTypeTest {
     public static final class CustomPointer {

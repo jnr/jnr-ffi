@@ -21,9 +21,9 @@ package jnr.ffi;
 /**
  * Represents a C long.
  * <p>
- * In C, a <tt>long</tt> can be either 32 bits or 64bits, depending on the platform.
+ * In C, a <code>long</code> can be either 32 bits or 64bits, depending on the platform.
  * </p>
- * Replace any function parameters which are <tt>long</tt> in the C definition with 
+ * Replace any function parameters which are <code>long</code> in the C definition with
  * a NativeLong.
  */
 public final class NativeLong extends Number implements Comparable<NativeLong> {
@@ -35,7 +35,7 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     private final long value;
     
     /**
-     * Creates a new <tt>NativeLong</tt> instance with the supplied value.
+     * Creates a new <code>NativeLong</code> instance with the supplied value.
      * 
      * @param value a long or integer.
      */
@@ -44,7 +44,7 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     }
 
     /**
-     * Creates a new <tt>NativeLong</tt> instance with the supplied value.
+     * Creates a new <code>NativeLong</code> instance with the supplied value.
      *
      * @param value an integer.
      */
@@ -53,9 +53,9 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     }
     
     /**
-     * Returns an integer representation of this <tt>NativeLong</tt>.
+     * Returns an integer representation of this <code>NativeLong</code>.
      * 
-     * @return an integer value for this <tt>NativeLong</tt>.
+     * @return an integer value for this <code>NativeLong</code>.
      */
     @Override
     public final int intValue() {
@@ -63,9 +63,9 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     }
     
     /**
-     * Returns an {@code long} representation of this <tt>NativeLong</tt>.
+     * Returns an {@code long} representation of this <code>NativeLong</code>.
      * 
-     * @return an {@code long} value for this <tt>NativeLong</tt>.
+     * @return an {@code long} value for this <code>NativeLong</code>.
      */
     @Override
     public final long longValue() {
@@ -73,9 +73,9 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     }
     
     /**
-     * Returns an {@code float} representation of this <tt>NativeLong</tt>.
+     * Returns an {@code float} representation of this <code>NativeLong</code>.
      * 
-     * @return an {@code float} value for this <tt>NativeLong</tt>.
+     * @return an {@code float} value for this <code>NativeLong</code>.
      */
     @Override
     public final float floatValue() {
@@ -83,9 +83,9 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     }
     
     /**
-     * Returns an {@code double} representation of this <tt>NativeLong</tt>.
+     * Returns an {@code double} representation of this <code>NativeLong</code>.
      * 
-     * @return an {@code double} value for this <tt>NativeLong</tt>.
+     * @return an {@code double} value for this <code>NativeLong</code>.
      */
     @Override
     public final double doubleValue() {
@@ -103,11 +103,11 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     }
 
     /**
-     * Compares this <tt>NativeLong</tt> to another <tt>NativeLong</tt>.
+     * Compares this <code>NativeLong</code> to another <code>NativeLong</code>.
      * 
-     * @param obj the other <tt>NativeLong</tt> to compare to.
-     * @return {@code true} if this <tt>NativeLong</tt> is equal to the other 
-     * <tt>NativeLong</tt>, else false.
+     * @param obj the other <code>NativeLong</code> to compare to.
+     * @return {@code true} if this <code>NativeLong</code> is equal to the other
+     * <code>NativeLong</code>, else false.
      */
     @Override
     public final boolean equals(Object obj) {
@@ -115,9 +115,9 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
     }
     
     /**
-     * Returns a string representation of this <tt>NativeLong</tt>.
+     * Returns a string representation of this <code>NativeLong</code>.
      *
-     * @return a string representation of this <tt>NativeLong</tt>.
+     * @return a string representation of this <code>NativeLong</code>.
      */
     @Override
     public String toString() {
@@ -170,7 +170,7 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
      * Returns a NativeLong instance representing the specified long value
      *
      * @param value a long value
-     * @return a <tt>NativeLong</tt> instance representing <tt>value</tt>
+     * @return a <code>NativeLong</code> instance representing <code>value</code>
      */
     public static NativeLong valueOf(final long value) {
         return value == 0 ? ZERO : value == 1 ? ONE : value == -1 ? MINUS_ONE : _valueOf(value);
@@ -180,7 +180,7 @@ public final class NativeLong extends Number implements Comparable<NativeLong> {
      * Returns a NativeLong instance representing the specified int value
      *
      * @param value a 32bit integer value
-     * @return a <tt>NativeLong</tt> instance representing <tt>value</tt>
+     * @return a <code>NativeLong</code> instance representing <code>value</code>
      */
     public static NativeLong valueOf(final int value) {
         return value == 0 ? ZERO : value == 1 ? ONE : value == -1 ? MINUS_ONE : _valueOf(value);

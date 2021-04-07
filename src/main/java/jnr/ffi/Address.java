@@ -174,7 +174,7 @@ public final class Address extends Number implements Comparable<Address> {
     }
 
     /**
-     * Tests if this <tt>Address</tt> is equivalent to C NULL
+     * Tests if this <code>Address</code> is equivalent to C NULL
      * 
      * @return true if the address is 0
      */

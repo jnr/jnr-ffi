@@ -18,15 +18,23 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
+import com.kenai.jffi.CallContext;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.HeapInvocationBuffer;
+import com.kenai.jffi.ObjectParameterType;
 import jnr.ffi.Address;
 import jnr.ffi.Pointer;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.provider.*;
 
-import java.nio.*;
-import java.nio.charset.Charset;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 
 /**
  * Utility methods that are used at runtime by generated code.
@@ -78,14 +86,6 @@ public final class AsmRuntime {
 
     public static int intValue(Address ptr) {
         return ptr != null ? ptr.intValue() : 0;
-    }
-
-    public static long longValue(Buffer ptr) {
-        return ptr != null && ptr.isDirect() ? MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0L;
-    }
-
-    public static int intValue(Buffer ptr) {
-        return ptr != null && ptr.isDirect()  ? (int) MemoryIO.getInstance().getDirectBufferAddress(ptr) : 0;
     }
 
     public static ParameterStrategy nullParameterStrategy() {

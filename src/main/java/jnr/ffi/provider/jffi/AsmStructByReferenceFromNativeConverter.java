@@ -36,8 +36,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static org.objectweb.asm.Opcodes.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.V1_5;
 
 @FromNativeConverter.NoContext
 @FromNativeConverter.Cacheable

@@ -19,22 +19,19 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Function;
-import jnr.ffi.*;
-import jnr.ffi.provider.ParameterType;
-import jnr.ffi.provider.ResultType;
 import jnr.a64asm.Assembler_A64;
-import jnr.a64asm.REG;
-import jnr.a64asm.Register;
 import jnr.a64asm.CPU_A64;
 import jnr.a64asm.Immediate;
-
-import jnr.a64asm.Pre_index;
-import jnr.a64asm.Post_index;
 import jnr.a64asm.Offset;
+import jnr.a64asm.Post_index;
+import jnr.a64asm.Pre_index;
+import jnr.a64asm.Register;
 import jnr.a64asm.Shift;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
-import static jnr.a64asm.Asm.*;
 
 /**
  * Compilers method trampoline stubs for x86_64

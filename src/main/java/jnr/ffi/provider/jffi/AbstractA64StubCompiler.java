@@ -22,14 +22,19 @@ import com.kenai.jffi.MemoryIO;
 import com.kenai.jffi.NativeMethod;
 import com.kenai.jffi.NativeMethods;
 import com.kenai.jffi.PageManager;
-import jnr.ffi.*;
-import jnr.ffi.Runtime;
-/*import jnr.x86asm.Assembler; */
 import jnr.a64asm.Assembler_A64;
+import jnr.ffi.Platform;
+import jnr.ffi.Runtime;
+
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.logging.Level;
 import java.util.logging.Logger;

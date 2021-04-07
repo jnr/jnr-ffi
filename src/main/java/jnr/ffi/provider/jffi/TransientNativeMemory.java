@@ -39,9 +39,13 @@ public class TransientNativeMemory extends DirectMemoryIO {
     private static final int PAGES_PER_MAGAZINE = 2;
 
     private final Sentinel sentinel;
-    private final int size;
-    
+    private final long size;
+
     public static DirectMemoryIO allocate(jnr.ffi.Runtime runtime, int size, int align, boolean clear) {
+        return allocate(runtime, (long) size, align, clear);
+    }
+    
+    public static DirectMemoryIO allocate(jnr.ffi.Runtime runtime, long size, int align, boolean clear) {
         if (size < 0) {
             throw new IllegalArgumentException("negative size: " + size);
         }
@@ -77,7 +81,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
     }
 
 
-    TransientNativeMemory(jnr.ffi.Runtime runtime, Sentinel sentinel, long address, int size) {
+    TransientNativeMemory(jnr.ffi.Runtime runtime, Sentinel sentinel, long address, long size) {
         super(runtime, address);
         this.sentinel = sentinel;
         this.size = size;
@@ -137,7 +141,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
             return sentinelReference.get();
         }
 
-        long allocate(int size, int align) {
+        long allocate(long size, int align) {
             long address = align(this.memory, align);
             if (address + size <= end) {
                 memory = address + size;

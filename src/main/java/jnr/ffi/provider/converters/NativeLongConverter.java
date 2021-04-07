@@ -19,11 +19,16 @@
 package jnr.ffi.provider.converters;
 
 import jnr.ffi.NativeLong;
+import jnr.ffi.mapper.AbstractDataConverter;
+import jnr.ffi.mapper.DataConverter;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
 
 /**
  * Parameter and return type support for the old NativeLong type
  */
-import jnr.ffi.mapper.*;
 
 @ToNativeConverter.NoContext
 @FromNativeConverter.NoContext

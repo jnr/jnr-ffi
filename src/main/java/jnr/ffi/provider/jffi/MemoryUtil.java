@@ -19,7 +19,6 @@
 package jnr.ffi.provider.jffi;
 
 import jnr.ffi.provider.BoundedMemoryIO;
-import jnr.ffi.provider.NullMemoryIO;
 
 public final class MemoryUtil {
     private MemoryUtil() {}

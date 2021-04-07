@@ -18,8 +18,12 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.*;
+import jnr.ffi.NativeType;
+import jnr.ffi.ObjectReferenceManager;
+import jnr.ffi.Platform;
 import jnr.ffi.Runtime;
+import jnr.ffi.Type;
+import jnr.ffi.TypeAlias;
 import jnr.ffi.mapper.DefaultTypeMapper;
 import jnr.ffi.mapper.SignatureTypeMapperAdapter;
 import jnr.ffi.provider.AbstractRuntime;

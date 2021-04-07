@@ -18,28 +18,10 @@
 
 package jnr.ffi.provider.jffi;
 
-import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
-import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
-import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
-import static jnr.ffi.provider.jffi.NumberUtil.getBoxedClass;
-import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
-import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
+import com.kenai.jffi.Function;
+import com.kenai.jffi.HeapInvocationBuffer;
+import com.kenai.jffi.ObjectParameterStrategy;
+import com.kenai.jffi.ObjectParameterType;
 import jnr.ffi.Address;
 import jnr.ffi.CallingConvention;
 import jnr.ffi.LibraryLoader;
@@ -69,10 +51,27 @@ import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.SigType;
 import jnr.ffi.util.AnnotationProxy;
 
-import com.kenai.jffi.Function;
-import com.kenai.jffi.HeapInvocationBuffer;
-import com.kenai.jffi.ObjectParameterStrategy;
-import com.kenai.jffi.ObjectParameterType;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
+import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
+import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
+import static jnr.ffi.provider.jffi.NumberUtil.getBoxedClass;
+import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
+import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 
 final class DefaultInvokerFactory {
     private final Runtime runtime;

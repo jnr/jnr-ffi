@@ -20,7 +20,6 @@ package jnr.ffi.mapper;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Context for conversion from native to Java.
@@ -34,7 +33,7 @@ public interface FromNativeContext {
     public abstract Collection<Annotation> getAnnotations();
 
     /**
-     * Gets the <tt>Runtime</tt> used for the conversion.
+     * Gets the <code>Runtime</code> used for the conversion.
      *
      * @return The runtime used for the conversion.
      */

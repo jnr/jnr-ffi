@@ -18,15 +18,19 @@
 
 package jnr.ffi.struct;
 
-import jnr.ffi.*;
+import jnr.ffi.NativeType;
 import jnr.ffi.Runtime;
+import jnr.ffi.Struct;
+import jnr.ffi.TstUtil;
+import jnr.ffi.Type;
 import jnr.ffi.struct.PaddingTest.TestLib.LongPadding;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 
 public class PaddingTest {

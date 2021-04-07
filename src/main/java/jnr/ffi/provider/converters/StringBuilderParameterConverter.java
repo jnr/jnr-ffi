@@ -21,14 +21,22 @@ package jnr.ffi.provider.converters;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ParameterFlags;
-import jnr.ffi.util.BufferUtil;
 
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.*;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
 
-import static jnr.ffi.provider.converters.StringUtil.*;
+import static jnr.ffi.provider.converters.StringUtil.getCharset;
+import static jnr.ffi.provider.converters.StringUtil.getDecoder;
+import static jnr.ffi.provider.converters.StringUtil.getEncoder;
+import static jnr.ffi.provider.converters.StringUtil.stringLength;
+import static jnr.ffi.provider.converters.StringUtil.terminatorWidth;
+import static jnr.ffi.provider.converters.StringUtil.throwException;
 
 @ToNativeConverter.NoContext
 @ToNativeConverter.Cacheable

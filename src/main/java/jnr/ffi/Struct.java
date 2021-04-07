@@ -133,8 +133,9 @@ public abstract class Struct {
     }
 
     /**
-     * Creates a new <tt>Struct</tt>.
+     * Creates a new <code>Struct</code>.
      *
+     * @param runtime the current jnr-ffi runtime
      * @param isUnion if this Struct is a Union
      */
     protected Struct(Runtime runtime, final boolean isUnion) {
@@ -325,9 +326,9 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Member</tt> instances.
+     * Creates an array of <code>Member</code> instances.
      *
-     * @param <T> The type of the <tt>Member</tt> subclass to create.
+     * @param <T> The type of the <code>Member</code> subclass to create.
      * @param array the array to store the instances in
      * @return the array that was passed in
      */
@@ -349,11 +350,11 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Enum8</tt> instances.
+     * Creates an array of <code>Enum8</code> instances.
      *
      * @param array     the array to store the instances in
-     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum8</tt> instances will represent
-     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @param enumClass class of <code>java.lang.Enum</code>, these <code>Enum8</code> instances will represent
+     * @param <T>       The type of the <code>java.lang.Enum</code>
      * @return the array that was passed in
      */
     protected <T extends java.lang.Enum<T>> Enum8<T>[] array(Enum8<T>[] array, Class<T> enumClass) {
@@ -366,11 +367,11 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Enum16</tt> instances.
+     * Creates an array of <code>Enum16</code> instances.
      *
      * @param array     the array to store the instances in
-     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum16</tt> instances will represent
-     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @param enumClass class of <code>java.lang.Enum</code>, these <code>Enum16</code> instances will represent
+     * @param <T>       The type of the <code>java.lang.Enum</code>
      * @return the array that was passed in
      */
     protected <T extends java.lang.Enum<T>> Enum16<T>[] array(Enum16<T>[] array, Class<T> enumClass) {
@@ -383,11 +384,11 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Enum32</tt> instances.
+     * Creates an array of <code>Enum32</code> instances.
      *
      * @param array     the array to store the instances in
-     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum32</tt> instances will represent
-     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @param enumClass class of <code>java.lang.Enum</code>, these <code>Enum32</code> instances will represent
+     * @param <T>       The type of the <code>java.lang.Enum</code>
      * @return the array that was passed in
      */
     protected <T extends java.lang.Enum<T>> Enum32<T>[] array(Enum32<T>[] array, Class<T> enumClass) {
@@ -400,11 +401,11 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Enum64</tt> instances.
+     * Creates an array of <code>Enum64</code> instances.
      *
      * @param array     the array to store the instances in
-     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum64</tt> instances will represent
-     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @param enumClass class of <code>java.lang.Enum</code>, these <code>Enum64</code> instances will represent
+     * @param <T>       The type of the <code>java.lang.Enum</code>
      * @return the array that was passed in
      */
     protected <T extends java.lang.Enum<T>> Enum64<T>[] array(Enum64<T>[] array, Class<T> enumClass) {
@@ -417,11 +418,11 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Enum</tt> instances.
+     * Creates an array of <code>Enum</code> instances.
      *
      * @param array     the array to store the instances in
-     * @param enumClass class of <tt>java.lang.Enum</tt>, these <tt>Enum</tt> instances will represent
-     * @param <T>       The type of the <tt>java.lang.Enum</tt>
+     * @param enumClass class of <code>java.lang.Enum</code>, these <code>Enum</code> instances will represent
+     * @param <T>       The type of the <code>java.lang.Enum</code>
      * @return the array that was passed in
      */
     protected <T extends java.lang.Enum<T>> Enum<T>[] array(Enum<T>[] array, Class<T> enumClass) {
@@ -434,7 +435,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Struct</tt> instances.
+     * Creates an array of <code>Struct</code> instances.
      *
      * @param array the array to store the instances in
      * @param <T> the type of Struct
@@ -457,7 +458,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Signed8</tt> instances.
+     * Creates an array of <code>Signed8</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -472,7 +473,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Unsigned8</tt> instances.
+     * Creates an array of <code>Unsigned8</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -487,7 +488,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Signed16</tt> instances.
+     * Creates an array of <code>Signed16</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -502,7 +503,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Unsigned16</tt> instances.
+     * Creates an array of <code>Unsigned16</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -517,7 +518,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Signed32</tt> instances.
+     * Creates an array of <code>Signed32</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -532,7 +533,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Unsigned32</tt> instances.
+     * Creates an array of <code>Unsigned32</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -547,7 +548,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Signed64</tt> instances.
+     * Creates an array of <code>Signed64</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -562,7 +563,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Unsigned64</tt> instances.
+     * Creates an array of <code>Unsigned64</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -577,7 +578,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>SignedLong</tt> instances.
+     * Creates an array of <code>SignedLong</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -592,7 +593,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>UnsignedLong</tt> instances.
+     * Creates an array of <code>UnsignedLong</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -607,7 +608,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Float</tt> instances.
+     * Creates an array of <code>Float</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -622,7 +623,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Double</tt> instances.
+     * Creates an array of <code>Double</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -637,7 +638,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Address</tt> instances.
+     * Creates an array of <code>Address</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -652,7 +653,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>Pointer</tt> instances.
+     * Creates an array of <code>Pointer</code> instances.
      *
      * @param array the array to store the instances in
      * @return the array that was passed in
@@ -667,7 +668,7 @@ public abstract class Struct {
     }
 
     /**
-     * Creates an array of <tt>UTF8String</tt> instances.
+     * Creates an array of <code>UTF8String</code> instances.
      *
      * @param array        the array to store the instances in
      * @param stringLength length of each string in array
@@ -721,9 +722,9 @@ public abstract class Struct {
         }
 
         /**
-         * Gets the <tt>Struct</tt> this <tt>Member</tt> is a member of.
+         * Gets the <code>Struct</code> this <code>Member</code> is a member of.
          *
-         * @return a <tt>Struct</tt>.
+         * @return a <code>Struct</code>.
          */
         public final Struct struct() {
             return Struct.this;
@@ -863,7 +864,7 @@ public abstract class Struct {
      */
     public abstract class NumberField extends Member {
         /**
-         * Offset from the start of the <tt>Struct</tt> memory this field is located at.
+         * Offset from the start of the <code>Struct</code> memory this field is located at.
          */
         private final int offset;
         protected final Type type;
@@ -895,9 +896,9 @@ public abstract class Struct {
 
 
         /**
-         * Gets the <tt>Struct</tt> this <tt>Member</tt> is in.
+         * Gets the <code>Struct</code> this <code>Member</code> is in.
          *
-         * @return a <tt>Struct</tt>.
+         * @return a <code>Struct</code>.
          */
         public final Struct struct() {
             return Struct.this;
@@ -918,52 +919,52 @@ public abstract class Struct {
         public abstract void set(java.lang.Number value);
 
         /**
-         * Returns an {@code float} representation of this <tt>Number</tt>.
+         * Returns an {@code float} representation of this <code>Number</code>.
          *
-         * @return an {@code float} value for this <tt>Number</tt>.
+         * @return an {@code float} value for this <code>Number</code>.
          */
         public double doubleValue() {
             return (double) longValue();
         }
 
         /**
-         * Returns an {@code float} representation of this <tt>Number</tt>.
+         * Returns an {@code float} representation of this <code>Number</code>.
          *
-         * @return an {@code float} value for this <tt>Number</tt>.
+         * @return an {@code float} value for this <code>Number</code>.
          */
         public float floatValue() {
             return (float) intValue();
         }
 
         /**
-         * Returns a {@code byte} representation of this <tt>Number</tt>.
+         * Returns a {@code byte} representation of this <code>Number</code>.
          *
-         * @return a {@code byte} value for this <tt>Number</tt>.
+         * @return a {@code byte} value for this <code>Number</code>.
          */
         public byte byteValue() {
             return (byte) intValue();
         }
 
         /**
-         * Returns a {@code short} representation of this <tt>Number</tt>.
+         * Returns a {@code short} representation of this <code>Number</code>.
          *
-         * @return a {@code short} value for this <tt>Number</tt>.
+         * @return a {@code short} value for this <code>Number</code>.
          */
         public short shortValue() {
             return (short) intValue();
         }
 
         /**
-         * Returns a {@code int} representation of this <tt>Number</tt>.
+         * Returns a {@code int} representation of this <code>Number</code>.
          *
-         * @return a {@code int} value for this <tt>Number</tt>.
+         * @return a {@code int} value for this <code>Number</code>.
          */
         public abstract int intValue();
 
         /**
-         * Returns a {@code long} representation of this <tt>Number</tt>.
+         * Returns a {@code long} representation of this <code>Number</code>.
          *
-         * @return a {@code long} value for this <tt>Number</tt>.
+         * @return a {@code long} value for this <code>Number</code>.
          */
         public long longValue() {
             return intValue();
@@ -1802,7 +1803,7 @@ public abstract class Struct {
     public class Address extends NumberField {
 
         /**
-         * Creates a new <tt>Address</tt> field.
+         * Creates a new <code>Address</code> field.
          */
         public Address() {
             super(NativeType.ADDRESS);
@@ -1867,7 +1868,7 @@ public abstract class Struct {
     public abstract class PointerField extends NumberField {
         private jnr.ffi.Pointer finalPointer;
         /**
-         * Creates a new <tt>Address</tt> field.
+         * Creates a new <code>Address</code> field.
          */
         public PointerField() {
             super(NativeType.ADDRESS);
@@ -1951,7 +1952,7 @@ public abstract class Struct {
      */
     public class Pointer extends PointerField {
         /**
-         * Creates a new <tt>Address</tt> field.
+         * Creates a new <code>Address</code> field.
          */
         public Pointer() {
         }
@@ -2083,6 +2084,7 @@ public abstract class Struct {
         }
 
         /**
+         * @param length the length of struct in memory to get
          * @return struct from memory
          */
         public final T[] get(int length) {
@@ -2168,7 +2170,7 @@ public abstract class Struct {
         /**
          * Sets the native integer value using a java Enum value.
          *
-         * @param value the java <tt>Enum</tt> value.
+         * @param value the java <code>Enum</code> value.
          */
         public final void set(E value) {
             getMemory().putByte(offset(), (byte) EnumMapper.getInstance(enumClass).intValue(value));

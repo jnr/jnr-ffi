@@ -18,15 +18,17 @@
 
 package jnr.ffi;
 
-import java.nio.ByteBuffer;
-
 import jnr.ffi.annotations.LongLong;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.nio.ByteBuffer;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 /**

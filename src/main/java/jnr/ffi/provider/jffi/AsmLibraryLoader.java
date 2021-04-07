@@ -19,6 +19,36 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.Function;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.LibraryOption;
+import jnr.ffi.annotations.Synchronized;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.MethodResultContext;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.provider.IdentityFunctionMapper;
+import jnr.ffi.provider.InterfaceScanner;
+import jnr.ffi.provider.Invoker;
+import jnr.ffi.provider.NativeFunction;
+import jnr.ffi.provider.NativeVariable;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
+import jnr.ffi.provider.jffi.AsmBuilder.ObjectField;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+
+import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
@@ -33,42 +63,6 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.V1_6;
 
-import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
-import jnr.ffi.CallingConvention;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.annotations.Synchronized;
-import jnr.ffi.mapper.CachingTypeMapper;
-import jnr.ffi.mapper.CompositeTypeMapper;
-import jnr.ffi.mapper.DefaultSignatureType;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.FunctionMapper;
-import jnr.ffi.mapper.MethodResultContext;
-import jnr.ffi.mapper.SignatureType;
-import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.SignatureTypeMapperAdapter;
-import jnr.ffi.mapper.TypeMapper;
-import jnr.ffi.provider.IdentityFunctionMapper;
-import jnr.ffi.provider.InterfaceScanner;
-import jnr.ffi.provider.Invoker;
-import jnr.ffi.provider.NativeFunction;
-import jnr.ffi.provider.NativeVariable;
-import jnr.ffi.provider.NullTypeMapper;
-import jnr.ffi.provider.ParameterType;
-import jnr.ffi.provider.ResultType;
-import jnr.ffi.provider.jffi.AsmBuilder.ObjectField;
-
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-
-import com.kenai.jffi.Function;
-
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
     private static final AtomicLong nextClassID = new AtomicLong(0);
@@ -78,7 +72,8 @@ public class AsmLibraryLoader extends LibraryLoader {
     private final NativeRuntime runtime = NativeRuntime.getInstance();
 
     @Override
-    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions) {
+    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
+                      boolean failImmediately /* ignored, asm loader eagerly binds everything */) {
         AsmClassLoader oldClassLoader = classLoader.get();
 
         // Only create a new class loader if this was not a recursive call (i.e. loading a library as a result of loading another library)
@@ -107,27 +102,10 @@ public class AsmLibraryLoader extends LibraryLoader {
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
 
-        SignatureTypeMapper typeMapper;
-        if (libraryOptions.containsKey(LibraryOption.TypeMapper)) {
-            Object tm = libraryOptions.get(LibraryOption.TypeMapper);
-            if (tm instanceof SignatureTypeMapper) {
-                typeMapper = (SignatureTypeMapper) tm;
-            } else if (tm instanceof TypeMapper) {
-                typeMapper = new SignatureTypeMapperAdapter((TypeMapper) tm);
-            } else {
-                throw new IllegalArgumentException("TypeMapper option is not a valid TypeMapper instance");
-            }
-        } else {
-            typeMapper = new NullTypeMapper();
-        }
+        SignatureTypeMapper typeMapper = getSignatureTypeMapper(libraryOptions);
+        CompositeTypeMapper closureTypeMapper = newClosureTypeMapper(classLoader, typeMapper);
 
-        CompositeTypeMapper closureTypeMapper = new CompositeTypeMapper(typeMapper, 
-                new CachingTypeMapper(new InvokerTypeMapper(null, classLoader, NativeLibraryLoader.ASM_ENABLED)),
-                new CachingTypeMapper(new AnnotationTypeMapper()));
-        
-        typeMapper = new CompositeTypeMapper(typeMapper, 
-                new CachingTypeMapper(new InvokerTypeMapper(new NativeClosureManager(runtime, closureTypeMapper), classLoader, NativeLibraryLoader.ASM_ENABLED)),
-                new CachingTypeMapper(new AnnotationTypeMapper()));
+        typeMapper = newCompositeTypeMapper(runtime, classLoader, typeMapper, closureTypeMapper);
         
         CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 

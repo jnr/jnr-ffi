@@ -18,7 +18,6 @@
 
 package jnr.ffi;
 
-import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 
 import java.io.File;
@@ -111,20 +110,7 @@ public final class Library {
      */
     public static <T> T loadLibrary(Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
             String... libraryNames) {
-        LibraryLoader<T> loader = FFIProvider.getSystemProvider().createLibraryLoader(interfaceClass);
-
-        for (String libraryName : libraryNames) {
-            loader.library(libraryName);
-            for (String path : getLibraryPath(libraryName)) {
-                loader.search(path);
-            }
-        }
-
-        for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
-            loader.option(option.getKey(), option.getValue());
-        }
-
-        return loader.failImmediately().load();
+        return LibraryLoader.loadLibrary(interfaceClass, libraryOptions, customSearchPaths, libraryNames);
     }
     
     /**
@@ -148,7 +134,7 @@ public final class Library {
      *
      * @deprecated see {@link LibraryLoader} for the preferred interface to loading libraries.
      * @param libraryName The library to retrieve the path for.
-     * @return A <tt>List</tt> of <tt>String</tt> instances.
+     * @return A <code>List</code> of <code>String</code> instances.
      */
     public static List<String> getLibraryPath(String libraryName) {
         List<String> customPaths = customSearchPaths.get(libraryName);

@@ -18,7 +18,12 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.annotations.*;
+import jnr.ffi.annotations.Direct;
+import jnr.ffi.annotations.In;
+import jnr.ffi.annotations.NulTerminate;
+import jnr.ffi.annotations.Out;
+import jnr.ffi.annotations.Pinned;
+import jnr.ffi.annotations.Transient;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -78,7 +83,7 @@ public final class ParameterFlags {
      * Checks if the annotation is a recognised parameter flag.
      * 
      * @param annotation the annotation to check.
-     * @return <tt>true</tt> if the annotation is a parameter flag
+     * @return <code>true</code> if the annotation is a parameter flag
      */
     public static boolean isFlag(Annotation annotation) {
         return parse(annotation) != 0;

@@ -19,7 +19,8 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Function;
-import jnr.ffi.*;
+import jnr.ffi.CallingConvention;
+import jnr.ffi.NativeType;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.x86asm.Assembler;
@@ -27,7 +28,17 @@ import jnr.x86asm.Mem;
 import jnr.x86asm.Register;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.sig;
-import static jnr.x86asm.Asm.*;
+import static jnr.x86asm.Asm.X86_32;
+import static jnr.x86asm.Asm.al;
+import static jnr.x86asm.Asm.ax;
+import static jnr.x86asm.Asm.byte_ptr;
+import static jnr.x86asm.Asm.dword_ptr;
+import static jnr.x86asm.Asm.eax;
+import static jnr.x86asm.Asm.edx;
+import static jnr.x86asm.Asm.esp;
+import static jnr.x86asm.Asm.imm;
+import static jnr.x86asm.Asm.qword_ptr;
+import static jnr.x86asm.Asm.word_ptr;
 
 /**
  * Stub compiler for i386 unix

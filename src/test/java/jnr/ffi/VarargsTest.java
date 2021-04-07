@@ -1,17 +1,16 @@
 package jnr.ffi;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-
 import jnr.ffi.annotations.Encoding;
 import jnr.ffi.annotations.Meta;
 import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.types.size_t;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 public class VarargsTest {
     public static interface C {

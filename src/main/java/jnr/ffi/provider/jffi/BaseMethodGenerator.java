@@ -20,11 +20,20 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
 import com.kenai.jffi.Function;
-import jnr.ffi.mapper.*;
-import jnr.ffi.provider.*;
+import jnr.ffi.mapper.ToNativeContext;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.provider.ParameterType;
+import jnr.ffi.provider.ResultType;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.AsmUtil.emitFromNativeConversion;
+import static jnr.ffi.provider.jffi.AsmUtil.emitReturnOp;
+import static jnr.ffi.provider.jffi.AsmUtil.emitToNativeConversion;
+import static jnr.ffi.provider.jffi.AsmUtil.getfield;
+import static jnr.ffi.provider.jffi.AsmUtil.tryfinally;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxedReturnType;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 

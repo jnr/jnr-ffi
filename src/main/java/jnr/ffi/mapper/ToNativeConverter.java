@@ -18,8 +18,6 @@
 
 package jnr.ffi.mapper;
 
-import jnr.ffi.Pointer;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

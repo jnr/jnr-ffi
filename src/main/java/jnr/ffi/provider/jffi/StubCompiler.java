@@ -18,14 +18,17 @@
 
 package jnr.ffi.provider.jffi;
 
-import com.kenai.jffi.*;
+import com.kenai.jffi.Function;
+import com.kenai.jffi.Internals;
+import com.kenai.jffi.PageManager;
+import com.kenai.jffi.Platform;
+import jnr.a64asm.Assembler_A64;
+import jnr.a64asm.CPU_A64;
 import jnr.ffi.CallingConvention;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.x86asm.Assembler;
 import jnr.x86asm.CPU;
-import jnr.a64asm.Assembler_A64;
-import jnr.a64asm.CPU_A64;
 
 /**
  * Compiles asm trampoline stubs for java class methods

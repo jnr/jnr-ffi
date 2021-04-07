@@ -22,7 +22,12 @@ import com.kenai.jffi.CallContext;
 import jnr.ffi.CallingConvention;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.StdCall;
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.MethodResultContext;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.provider.InAccessibleMemoryIO;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
@@ -36,9 +41,15 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.ClosureUtil.getDelegateMethod;
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
-import static jnr.ffi.provider.jffi.InvokerUtil.*;
-import static org.objectweb.asm.Opcodes.*;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
+import static jnr.ffi.provider.jffi.InvokerUtil.getCallContext;
+import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
+import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.V1_6;
 
 /**
  *

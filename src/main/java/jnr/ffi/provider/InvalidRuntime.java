@@ -18,17 +18,18 @@
 
 package jnr.ffi.provider;
 
-import jnr.ffi.*;
+import jnr.ffi.NativeType;
+import jnr.ffi.ObjectReferenceManager;
 import jnr.ffi.Runtime;
-import jnr.ffi.provider.MemoryManager;
-import jnr.ffi.provider.ClosureManager;
+import jnr.ffi.Type;
+import jnr.ffi.TypeAlias;
 
 import java.nio.ByteOrder;
 
 /**
  * A {@link jnr.ffi.Runtime} subclass that throws exceptions for all methods
  */
-class InvalidRuntime extends jnr.ffi.Runtime {
+class InvalidRuntime extends Runtime {
     private final String message;
     private final Throwable cause;
 

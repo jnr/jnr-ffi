@@ -20,7 +20,9 @@ package jnr.ffi.provider.converters;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.Encoding;
-import jnr.ffi.mapper.*;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.MethodResultContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;

@@ -32,11 +32,21 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static jnr.ffi.provider.jffi.AsmUtil.*;
-import static jnr.ffi.provider.jffi.CodegenUtils.*;
+import static jnr.ffi.provider.jffi.AsmUtil.emitFromNativeConversion;
+import static jnr.ffi.provider.jffi.AsmUtil.emitReturnOp;
+import static jnr.ffi.provider.jffi.AsmUtil.emitToNativeConversion;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxNumber;
+import static jnr.ffi.provider.jffi.AsmUtil.unboxedType;
+import static jnr.ffi.provider.jffi.CodegenUtils.c;
+import static jnr.ffi.provider.jffi.CodegenUtils.ci;
+import static jnr.ffi.provider.jffi.CodegenUtils.p;
+import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static jnr.ffi.provider.jffi.NumberUtil.convertPrimitive;
 import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.V1_6;
 
 /**
  *
