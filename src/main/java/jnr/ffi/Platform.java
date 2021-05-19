@@ -20,6 +20,7 @@ package jnr.ffi;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -428,6 +429,39 @@ public abstract class Platform {
         // Default to letting the system search for it
         return mappedName;
     }
+
+    /**
+     * Returns a list of absolute paths to the found locations of a library with the base name {@code libName},
+     * if the returned list is empty then the library could not be found and will fail to be loaded as a result.
+     *
+     * Even if a library is found, this does not guarantee that it will successfully be loaded, it only guarantees
+     * that the reason for the failure was not that it was not found.
+     *
+     * @param libName         the base name (e.g. "c") of the library to locate
+     * @param additionalPaths additional paths to search, these take precedence over default paths,
+     *                        (as is the behavior in {@link LibraryLoader})
+     *                        pass null to only search in the default paths
+     * @return the list of absolute paths where the library was found
+     */
+    public List<String> libraryLocations(String libName, List<String> additionalPaths) {
+        ArrayList<String> result = new ArrayList<>();
+        ArrayList<String> libDirs = new ArrayList<>();
+        if (additionalPaths != null) libDirs.addAll(additionalPaths); // customPaths first!
+        libDirs.addAll(LibraryLoader.DefaultLibPaths.PATHS);
+
+        // locateLibrary can either give us an absolute path with the version at the end (for Linux)
+        //  or just the name (forwards to mapLibraryName), either way we only want the name, we will
+        //  add the parent later from libDirs
+        String name = new File(locateLibrary(libName, libDirs)).getName();
+        for (String libDir : libDirs) {
+            File libFile = new File(libDir, name);
+            if (libFile.exists()) {
+                result.add(libFile.getAbsolutePath());
+            }
+        }
+        return result;
+    }
+
     private static class Supported extends Platform {
         public Supported(OS os) {
             super(os);

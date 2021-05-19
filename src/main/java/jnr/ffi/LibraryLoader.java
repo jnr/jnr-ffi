@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -441,8 +442,9 @@ public abstract class LibraryLoader<T> {
     }
 
     private Collection<String> getSearchPaths() {
+        // custom paths before default paths because user may have same name as a system lib
         List<String> paths = new ArrayList<String>(searchPaths);
-        paths.addAll(StaticDataHolder.USER_LIBRARY_PATH);
+        paths.addAll(DefaultLibPaths.PATHS);
 
         return Collections.unmodifiableList(paths);
     }
@@ -462,18 +464,18 @@ public abstract class LibraryLoader<T> {
                                      boolean failImmediately);
 
 
-    private static final class StaticDataHolder {
-        private static final List<String> USER_LIBRARY_PATH;
-        private static void addPaths(List<String> paths, File file) {
+    static final class DefaultLibPaths {
+        static final List<String> PATHS;
+
+        private static void addPathsFromFile(Collection<String> paths, File file) {
             if (!file.isFile() || !file.exists()) return;
             BufferedReader in = null;
             try {
                 in = new BufferedReader(new FileReader(file));
                 String line = in.readLine();
-                while( line != null ) {
-                    if (new File(line).exists()) {
-                        paths.add(line);
-                    }
+                while (line != null) {
+                    // add even if doesn't exist! We're just adding the default paths, we check for validity elsewhere
+                    paths.add(line);
                     line = in.readLine();
                 }
             }
@@ -488,14 +490,23 @@ public abstract class LibraryLoader<T> {
         }
 
         static {
-            List<String> paths = new ArrayList<String>();
+            // paths should have no duplicate entries and have insertion order
+            LinkedHashSet<String> paths = new LinkedHashSet<String>();
             try {
                 paths.addAll(getPropertyPaths("jnr.ffi.library.path"));
                 paths.addAll(getPropertyPaths("jaffl.library.path"));
                 // Add JNA paths for compatibility
                 paths.addAll(getPropertyPaths("jna.library.path"));
+                // java.library.path should take care of Windows defaults
                 paths.addAll(getPropertyPaths("java.library.path"));
             } catch (Exception ignored) {
+            }
+
+            if (Platform.getNativePlatform().isUnix()) {
+                // order is intentional!
+                paths.add("/usr/local/lib");
+                paths.add("/usr/lib");
+                paths.add("/lib");
             }
 
             switch (Platform.getNativePlatform().getOS()) {
@@ -514,17 +525,17 @@ public abstract class LibraryLoader<T> {
                     File ldSoConfD = new File("/etc/ld.so.conf.d");
 
                     if (ldSoConf.exists()) {
-                        addPaths(paths, ldSoConf);
+                        addPathsFromFile(paths, ldSoConf);
                     }
 
                     if (ldSoConfD.isDirectory()) {
                         for (File file : ldSoConfD.listFiles()) {
-                            addPaths(paths, file);
+                            addPathsFromFile(paths, file);
                         }
                     }
                     break;
             }
-            USER_LIBRARY_PATH = Collections.unmodifiableList(new ArrayList<String>(paths));
+            PATHS = Collections.unmodifiableList(new ArrayList<String>(paths));
         }
     }
 
