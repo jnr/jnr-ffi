@@ -1,9 +1,36 @@
-jnr-ffi [![Build Status](https://travis-ci.org/jnr/jnr-ffi.svg)](https://travis-ci.org/jnr/jnr-ffi)
-======
+# jnr-ffi [![Build Status](https://travis-ci.org/jnr/jnr-ffi.svg)](https://travis-ci.org/jnr/jnr-ffi)
 
 [jnr-ffi](https://github.com/jnr/jnr-ffi) is a Java library for loading native libraries without writing JNI code by hand, or using tools such as SWIG.
 
-Example
+## Installation
+------
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jnr/jnr-ffi/badge.svg)](https://search.maven.org/artifact/com.github.jnr/jnr-ffi)
+
+Maven:
+
+```xml
+<dependency>
+  <groupId>com.github.jnr</groupId>
+  <artifactId>jnr-ffi</artifactId>
+  <version>2.2.3</version>
+</dependency>
+```
+
+Gradle Kotlin:
+
+```kotlin
+implementation("com.github.jnr:jnr-ffi:2.2.3")
+```
+
+Gradle Groovy:
+
+```groovy
+implementation 'com.github.jnr:jnr-ffi:2.2.3'
+```
+
+
+## Example
 ------
 
 ```java
@@ -24,7 +51,7 @@ public class HelloWorld {
 }
 ```
 
-Supported Types
+## Supported Types
 ------
 
 All Java primitives are mapped simply to the equivalent C types.
