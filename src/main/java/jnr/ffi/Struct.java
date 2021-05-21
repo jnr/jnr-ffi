@@ -790,7 +790,7 @@ public abstract class Struct {
         }
 
         public final boolean get() {
-            return (getMemory().getByte(offset()) & 0x1) != 0;
+            return getMemory().getByte(offset()) != 0;
         }
 
         public final void set(boolean value) {
@@ -807,7 +807,7 @@ public abstract class Struct {
         }
 
         public final boolean get() {
-            return (getMemory().getInt(offset()) & 0x1) != 0;
+            return getMemory().getInt(offset()) != 0;
         }
 
         public final void set(boolean value) {
@@ -821,7 +821,7 @@ public abstract class Struct {
     }
 
     public final boolean get() {
-      return (getMemory().getShort(offset()) & 0x1) != 0;
+      return getMemory().getShort(offset()) != 0;
     }
 
     public final void set(boolean value) {

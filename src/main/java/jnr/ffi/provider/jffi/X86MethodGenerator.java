@@ -118,8 +118,8 @@ class X86MethodGenerator implements MethodGenerator {
         }
 
         Class nativeReturnType;
-        wrapperNeeded |= resultType.getFromNativeConverter() != null || !resultType.effectiveJavaType().isPrimitive();
-        if (resultType.effectiveJavaType().isPrimitive()) {
+        wrapperNeeded |= resultType.getFromNativeConverter() != null || !resultType.effectiveJavaType().isPrimitive() || boolean.class.equals(resultType.effectiveJavaType());
+        if (resultType.effectiveJavaType().isPrimitive() && !boolean.class.equals(resultType.effectiveJavaType())) {
             nativeReturnType = resultType.effectiveJavaType();
         } else {
             nativeReturnType = getNativeClass(resultType.getNativeType());
