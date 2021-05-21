@@ -57,3 +57,6 @@ We are welcome to contributions to the project and would appreciate your support
 Before sending a pull request, please file an issue ([see the previous section](#i-have-an-issue-or-feature-request))
 with the details of what you have changed or are going to change. This way, your time is not wasted if the change does
 not meet our goals, and we can discuss the changes in depth within the issue.
+
+If you are adding new functionality, ensure that you add unit tests that will test the behavior of your new code and, if
+it is a public API, add descriptive javadoc comments for the new code.
