@@ -35,14 +35,14 @@ implementation 'com.github.jnr:jnr-ffi:2.2.3'
 import jnr.ffi.LibraryLoader;
 
 public class HelloWorld {
-    public static interface LibC {
-        int puts(String s);
+    public interface LibC { // A representation of libC in Java
+        int puts(String s); // mapping of the puts function, in C `int puts(const char *s);`
     }
 
     public static void main(String[] args) {
-        LibC libc = LibraryLoader.create(LibC.class).load("c");
+        LibC libc = LibraryLoader.create(LibC.class).load("c"); // load the "c" library into the libc variable
 
-        libc.puts("Hello, World");
+        libc.puts("Hello World!"); // prints "Hello World!" to console
     }
 }
 ```
@@ -75,7 +75,7 @@ In addition, the following Java types are mapped to a C pointer
 * Pointer - equivalent to `void *`
 * Buffer - equivalent to `void *`
 
-# LICENSE
+## LICENSE
 
 ```
   Licensed under the Apache License, Version 2.0 (the "License");
