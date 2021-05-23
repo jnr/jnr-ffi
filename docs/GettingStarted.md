@@ -5,9 +5,6 @@
 Hello World is as easy as:
 
 ```java
-
-package helloworld;
-
 import jnr.ffi.LibraryLoader;
 
 public class HelloWorld {
@@ -25,7 +22,7 @@ public class HelloWorld {
 
 ## Step-by-Step
 
-This process is simple even for more complex and useful examples.
+The mapping process is simple even for larger, more complex use cases.
 
 For the example below we'll use some of the C functions regarding environment variables.
 
@@ -93,6 +90,7 @@ public class Example {
         libraryOptions.put(LibraryOption.LoadNow, true); // load immediately instead of lazily (ie on first use)
         libraryOptions.put(LibraryOption.IgnoreError, true); // calls shouldn't save last errno after call
         String libName = Platform.getNativePlatform().getStandardCLibraryName(); // platform specific name for libC
+
         LibC libc = LibraryLoader.loadLibrary(
                 LibC.class,
                 libraryOptions,
@@ -124,6 +122,7 @@ public class Example {
         libraryOptions.put(LibraryOption.LoadNow, true);
         libraryOptions.put(LibraryOption.IgnoreError, true);
         String libName = Platform.getNativePlatform().getStandardCLibraryName();
+
         LibC libc = LibraryLoader.loadLibrary(
                 LibC.class,
                 libraryOptions,
@@ -149,3 +148,7 @@ public class Example {
     }
 }
 ```
+
+If you are interested in using POSIX functions in Java, check out our other
+library [JNR-POSIX](https://github.com/jnr/jnr-posix) it uses JNR-FFI to call POSIX functions and is a good place to see
+production code that uses JNR-FFI.

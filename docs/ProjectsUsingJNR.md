@@ -1,8 +1,12 @@
 # Projects Using JNR-FFI
 
-## JRuby
+## Our Projects
 
-## JNR-POSIX
+### JRuby
+
+### JNR-POSIX
+
+## Other Projects
 
 https://github.com/lmdbjava/lmdbjava
 
