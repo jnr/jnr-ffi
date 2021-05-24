@@ -1,10 +1,20 @@
 # Why Use JNR-FFI?
 
-Before using library such as JNR-FFI or others that allow you to interact with native libraries you need to be fully
+Before using a library such as JNR-FFI or others that allow you to interact with native libraries you need to be fully
 sure that this is something you actually need, as there are (sometimes hidden) costs to making such a decision.
 
 If you're looking for why to use JNR-FFI over some other similar
 library [see the document that aims to answer that exact question.](ComparisonToSimilarProjects.md)
+
+* [Why Go Native?](#why-go-native)
+  * [Improving Performance](#improving-performance)
+  * [Using Low Level APIs](#using-low-level-apis)
+* [The Cost of Leaving the JVM](#the-cost-of-leaving-the-jvm)
+  * [Compatibility](#compatibility)
+  * [JVM Crashes](#jvm-crashes)
+  * [Increased Complexity](#increased-complexity)
+  * [Possible *Reduced* Performance](#possible-reduced-performance)
+* [Endless Possibilities](#endless-possibilities)
 
 ## Why Go Native?
 
@@ -21,7 +31,7 @@ improve your *Java* code than to go native. This is simply because switching to 
 is not uncommon to have pure Java code (especially well optimized) perform much better than Java with native code,
 including with well written JNI code.
 
-If your only reason for thinking about going native is for performance improvements you may want to think carefully
+If your only reason for thinking about going native is for performance improvements, you may want to think carefully
 about that as the performance improvement is not a guarantee, and the additional costs of adding native components to
 your codebase is not insignificant, see [the below section for more.](#the-cost-of-leaving-the-jvm)
 
@@ -65,12 +75,43 @@ Operating System *AND* CPU Architecture.
 
 ### JVM Crashes
 
+One of the more hidden costs of going native is that you are more likely to experience JVM crashes which can occur if
+your native library is used incorrectly and throws some error such as a segfault (SIGSEGV). The JVM will not know how to
+handle this, and you cannot catch these errors as you would with exceptions. Debugging them however, (at least for the
+source of error), is not too tricky as the JVM will provide extremely detailed crash logs. A well tested and robust
+code-base will be well protected against these kinds of crashes but this is something that needs to be known beforehand.
+
 ### Increased Complexity
 
-### Increased Knowledge Requirements
+Becoming dependent on a native library can increase overall project complexity, especially when debugging, as you may
+need to be somewhat knowledgeable in C, and the native library in general to avoid the aforementioned crashes and have
+generally correct behavior and performance. Increased complexity is natural when depending on other APIs, but it is
+important to note that debugging an error from a pure Java API will be much easier than that from a native library.
 
-need to be knowledgable in C
+### Possible *Reduced* Performance
 
-### Reduced Performance
+Contrary to popular belief, it is possible to actually *lose* performance when using a native library over using a pure
+Java implementation. There is a significant overhead incurred when switching between the JVM and the native world that
+is unavoidable even if you use well optimized JNI code. In addition, many optimizations that are made for the JVM are
+completely circumvented by going to the native world as the VM is no longer in control of that code.
 
-## A Changing Ecosystem
+For all intents and purposes, JNR-FFI and other similar libraries will be performant enough for almost all applications
+and needs, even very realtime necessary ones, however, it will often be *more* performant to stay on the JVM (ie, use a
+pure Java implementation) than to go native. As mentioned [above](#improving-performance), **if your only reason for
+thinking about going native is for performance improvements, you may want to think carefully about that as the
+performance improvement is not a guarantee.**
+
+## Endless Possibilities
+
+Even though [the previous section](#the-cost-of-leaving-the-jvm) made it may seem like going native has more downsides
+than upsides, the truth is going native unleashes many possibilities and unshackles you from the limits of the JDK.
+
+Think about this, if all Java libraries were built upon only the JDK, we would be much more limited in functionality in
+what we can do with Java, but because there are those who ventured outside the JDK and provided us with functionality
+that the JDK was never willing to provide, we are wealthier in options and functionality than we were otherwise. It's a
+high cost, high reward endeavor that if done well, will expand the Java Ecosystem further than ever imagined . Game
+engines, GPU libraries, clustered computing, and many more were all made possible by creating a Java API that connected
+to a native library and that would have otherwise never been possible by only using the JDK or pure Java
+implementations. If you have an idea and the only way to do it is by using a native library, JNR-FFI will make that
+endeavor much easier taking care of all the hassle for you and leaving you to focus on the important bits so that you
+can be the next innovator of the Java ecosystem.
