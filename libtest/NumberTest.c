@@ -17,11 +17,11 @@
  */
 
 #include <stdio.h>
-#ifndef __mips__
+#if !defined(__mips___) || defined(__PASE__)
 # include <stdint.h>
 #endif
 
-#if !defined (_STDINT_H_) && !defined(_STDINT_H) && !defined(_SYS__STDINT_H_)
+#if !defined (_STDINT_H_) && !defined(_STDINT_H) && !defined(_SYS__STDINT_H_) && !defined(_H_STDINT)
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed int int32_t;
