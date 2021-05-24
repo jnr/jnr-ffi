@@ -144,11 +144,11 @@ public class Example {
         System.out.println(libc.getenv(shellKey)); // prints system shell, /bin/bash on most Unixes
         libc.clearenv(); // clear all environment variables
         System.out.println(libc.getenv(shellKey)); // prints null (it is null not the String "null")
-        System.out.println(libc.getenv("_")); // even the special "_" environment variable is null
+        System.out.println(libc.getenv("_")); // even the special "_" environment variable is now null
     }
 }
 ```
 
 If you are interested in using POSIX functions in Java, check out our other
-library [JNR-POSIX](https://github.com/jnr/jnr-posix) it uses JNR-FFI to call POSIX functions and is a good place to see
-production code that uses JNR-FFI.
+library [JNR-POSIX](https://github.com/jnr/jnr-posix), it uses JNR-FFI to call POSIX functions and is a good place to
+see production code that uses JNR-FFI.
