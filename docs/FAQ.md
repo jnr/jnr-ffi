@@ -30,7 +30,7 @@ can see more details about this in [the comparisons to similar projects here](Co
 
 ## How does JNR-FFI work?
 
-TODO @basshelal
+[See here.](./HowItWorks.md)
 
 ## I have a question, where should I ask it?
 
