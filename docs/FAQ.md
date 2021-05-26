@@ -1,12 +1,11 @@
 # Frequently Asked Questions
 
-- [Frequently Asked Questions](#frequently-asked-questions)
-  - [Why Use JNR-FFI?](#why-use-jnr-ffi)
-  - [Should I switch to JNR-FFI from the library I'm currently using?](#should-i-switch-to-jnr-ffi-from-the-library-im-currently-using)
-  - [How does JNR-FFI work?](#how-does-jnr-ffi-work)
-  - [I have a question, where should I ask it?](#i-have-a-question-where-should-i-ask-it)
-  - [I have an issue or feature request](#i-have-an-issue-or-feature-request)
-  - [How can I contribute to the project?](#how-can-i-contribute-to-the-project)
+* [Why Use JNR-FFI?](#why-use-jnr-ffi)
+* [Should I switch to JNR-FFI from the library I'm currently using?](#should-i-switch-to-jnr-ffi-from-the-library-im-currently-using)
+* [How does JNR-FFI work?](#how-does-jnr-ffi-work)
+* [I have a question, where should I ask it?](#i-have-a-question-where-should-i-ask-it)
+* [I have an issue or feature request](#i-have-an-issue-or-feature-request)
+* [How can I contribute to the project?](#how-can-i-contribute-to-the-project)
 
 ## Why Use JNR-FFI?
 
