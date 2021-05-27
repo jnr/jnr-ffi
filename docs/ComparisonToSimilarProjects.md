@@ -21,8 +21,8 @@ before choosing which one to use.
 JNR-FFI has a much more complete and modern API. JNR-FFI encourages you to use type alias annotations as much as
 possible to help keep width and size of parameters correct on different platforms. On JNA you need to create a
 special `SizeT` class type for your `size_t` types but with JNR-FFI all you need is an annotation `@size_t`. JNA
-requires you to create inner classes to support a by-reference parameter whereas in JNR-FFI you can use the generic
-class `ByReference<T>` or any of its siblings for primitives such as `DoubleByReference`.
+requires you to create inner classes to support a by-reference parameter whereas in JNR-FFI you can use any of the
+`ByReference` classes such as `DoubleByReference` or `PointerByReference`.
 
 JNR-FFI has significantly superior performance, nearing that of hand-written JNI in some cases, even in comparison to
 JNA's *"direct mapping"*.
