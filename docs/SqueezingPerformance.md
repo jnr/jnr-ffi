@@ -5,7 +5,7 @@ tricks.
 
 These are ordered from least to most inconvenient (and drastic)
 
-## @IgnoreError
+## `@IgnoreError`
 
 A huge performance improvement can be gained by telling JNR-FFI to note save the last errno. By default, JNR-FFI will
 always save the last errno for your convenience and for better debugging, this does have a cost to performance which, if
@@ -17,7 +17,7 @@ library. You can also do the exact opposite using the `@SaveError` annotation an
 `LibraryOption`. It is best to combine these together, most often done by annotating the performance sensitive methods
 with `@IgnoreError` and keeping the default behavior of saving the error on.
 
-## Use Parameter Annotations such as @In and @Out
+## Use Parameter Annotations such as `@In` and `@Out`
 
 The main performance overhead is in the conversion from Java types to native types, ie going to and from the native
 world. The `jnr.ffi.annotations` package contains many annotations you can use to increase information to JNR-FFI about
