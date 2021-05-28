@@ -2,7 +2,6 @@
 
 * [Why Use JNR-FFI?](#why-use-jnr-ffi)
 * [Should I switch to JNR-FFI from the library I'm currently using?](#should-i-switch-to-jnr-ffi-from-the-library-im-currently-using)
-* [How does JNR-FFI work?](#how-does-jnr-ffi-work)
 * [I have a question, where should I ask it?](#i-have-a-question-where-should-i-ask-it)
 * [I have an issue or feature request](#i-have-an-issue-or-feature-request)
 * [How can I contribute to the project?](#how-can-i-contribute-to-the-project)
@@ -26,10 +25,6 @@ account when thinking about this.
 However, if performance is your highest priority *AND* writing manual JNI code is out of the question for you, then
 switching to JNR-FFI is more valuable as JNR-FFI is the most performant no-JNI native interop tool we are aware of. You
 can see more details about this in [the comparisons to similar projects here](ComparisonToSimilarProjects.md).
-
-## How does JNR-FFI work?
-
-[See here.](./HowItWorks.md)
 
 ## I have a question, where should I ask it?
 
