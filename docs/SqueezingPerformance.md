@@ -7,7 +7,7 @@ These are ordered from least to most inconvenient (and drastic)
 
 ## `@IgnoreError`
 
-A huge performance improvement can be gained by telling JNR-FFI to note save the last errno. By default, JNR-FFI will
+A huge performance improvement can be gained by telling JNR-FFI to not save the last errno. By default, JNR-FFI will
 always save the last errno for your convenience and for better debugging, this does have a cost to performance which, if
 you're willing to lose some debugging information, can be omitted.
 
