@@ -86,7 +86,7 @@ public class NumberTest {
     }
     static Test_Boolean test_Boolean;
 
-    public static interface Test_boolean {
+    public static interface Test_boolean2 {
 
         public boolean ret_int8_t(byte l);
         public boolean ret_uint8_t(byte l);
@@ -97,12 +97,12 @@ public class NumberTest {
         public boolean ret_int64_t(long l);
         public boolean ret_uint64_t(long l);
     }
-    static Test_boolean test_boolean;
+    static Test_boolean2 test_boolean;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
-        test_boolean = TstUtil.loadTestLib(Test_boolean.class);
+        test_boolean = TstUtil.loadTestLib(Test_boolean2.class);
         test_Boolean = TstUtil.loadTestLib(Test_Boolean.class);
     }
 
