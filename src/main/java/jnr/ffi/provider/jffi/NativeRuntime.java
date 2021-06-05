@@ -18,7 +18,6 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.LoadedLibraryData;
 import jnr.ffi.NativeType;
 import jnr.ffi.ObjectReferenceManager;
 import jnr.ffi.Platform;
@@ -55,7 +54,7 @@ public final class NativeRuntime extends AbstractRuntime {
     private final Type[] aliases;
 
     // WeakHashMap to auto remove GC'd NativeLibraries
-    final WeakHashMap<NativeLibrary, LoadedLibraryData> loadedLibraries = new WeakHashMap<>();
+    final WeakHashMap<NativeLibrary, NativeLibrary.LoadedLibraryData> loadedLibraries = new WeakHashMap<>();
 
     public static NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
@@ -64,7 +63,7 @@ public final class NativeRuntime extends AbstractRuntime {
     /**
      * See and use {@link Runtime#getLoadedLibraries()} (which forwards here) instead of this directly
      */
-    public static List<LoadedLibraryData> getLoadedLibraries() {
+    public static List<NativeLibrary.LoadedLibraryData> getLoadedLibraries() {
         if (getSystemRuntime() instanceof NativeRuntime) {
             return new ArrayList<>(((NativeRuntime) getSystemRuntime()).loadedLibraries.values());
         } else return Collections.emptyList();

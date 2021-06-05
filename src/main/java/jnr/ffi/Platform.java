@@ -566,6 +566,12 @@ public abstract class Platform {
             for (String path : libraryPaths) {
                 // TODO: 05-Jun-2021 @basshelal: What if custom path IS a system path??
                 //  meaning, consumer passed something like /usr/lib/ ?
+                //  A safe assumption is that custom paths always come before system paths
+                //  so, we can just assume that the last paths are system
+                //  so custom paths size is the size of all paths - size of system paths
+                //  so do it by a split based on this assumption
+                //  hmm, no not really, since user can call this function with their own ordering
+                //  we can build upon this assumption though and of course verify it later
                 if (!LibraryLoader.DefaultLibPaths.PATHS.contains(path)) customPaths.add(path);
             }
 

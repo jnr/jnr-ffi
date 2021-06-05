@@ -22,6 +22,7 @@ import jnr.ffi.provider.ClosureManager;
 import jnr.ffi.provider.FFIProvider;
 import jnr.ffi.provider.LoadedLibrary;
 import jnr.ffi.provider.MemoryManager;
+import jnr.ffi.provider.jffi.NativeLibrary;
 import jnr.ffi.provider.jffi.NativeRuntime;
 
 import java.nio.ByteOrder;
@@ -80,8 +81,8 @@ public abstract class Runtime {
     }
 
     /**
-     * Gets a list of {@link LoadedLibraryData} which represents all currently loaded libraries, or an empty list if
-     * none are loaded.
+     * Gets a list of {@link NativeLibrary.LoadedLibraryData} which represents all currently loaded libraries,
+     * or an empty list if none are loaded.
      * <br>
      * A library is <i>"loaded"</i> if the native library's file (.so, .dylib, .dll etc) was opened and loaded into
      * memory successfully, ie a call to {@code dlopen()} was successful. If you don't see a library here then either:
@@ -94,10 +95,10 @@ public abstract class Runtime {
      * When a library is unloaded (all references to your interface mapping have been GC'd), calling this method
      * again will reflect the unload and you will no longer see the unloaded library.
      *
-     * @return the list of {@link LoadedLibraryData} which represents all currently loaded libraries
-     * @see LoadedLibraryData
+     * @return the list of {@link NativeLibrary.LoadedLibraryData} which represents all currently loaded libraries
+     * @see NativeLibrary.LoadedLibraryData
      */
-    public static List<LoadedLibraryData> getLoadedLibraries() {
+    public static List<NativeLibrary.LoadedLibraryData> getLoadedLibraries() {
         return NativeRuntime.getLoadedLibraries();
     }
 

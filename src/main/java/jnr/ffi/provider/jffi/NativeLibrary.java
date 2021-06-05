@@ -22,7 +22,6 @@ import com.kenai.jffi.Library;
 
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.LibraryOption;
-import jnr.ffi.LoadedLibraryData;
 import jnr.ffi.Platform;
 import jnr.ffi.Runtime;
 
@@ -37,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -171,6 +171,62 @@ public class NativeLibrary {
         if (Runtime.getSystemRuntime() instanceof NativeRuntime) {
             ((NativeRuntime) Runtime.getSystemRuntime())
                     .loadedLibraries.put(this, new LoadedLibraryData(libraryNames, searchPaths, successfulPaths));
+        }
+    }
+
+    /**
+     * Data class containing information about a loaded native library.
+     *
+     * A list of all currently loaded libraries can be queried using {@link Runtime#getLoadedLibraries()} which will
+     * return a list of {@link LoadedLibraryData}s.
+     */
+    // TODO: 30-May-2021 @basshelal: Better docs everywhere here!
+    public static class LoadedLibraryData {
+
+        private final List<String> libraryNames;
+        private final List<String> searchPaths;
+        private final List<String> successfulPaths;
+
+        LoadedLibraryData(List<String> libraryNames, List<String> searchPaths, List<String> successfulPaths) {
+            this.libraryNames = Collections.unmodifiableList(libraryNames);
+            this.searchPaths = Collections.unmodifiableList(searchPaths);
+            this.successfulPaths = Collections.unmodifiableList(successfulPaths);
+        }
+
+        public List<String> getLibraryNames() {
+            return libraryNames;
+        }
+
+        public List<String> getSearchPaths() {
+            return searchPaths;
+        }
+
+        public List<String> getSuccessfulPaths() {
+            return successfulPaths;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof LoadedLibraryData)) return false;
+            LoadedLibraryData that = (LoadedLibraryData) o;
+            return Objects.equals(libraryNames, that.libraryNames) &&
+                    Objects.equals(searchPaths, that.searchPaths) &&
+                    Objects.equals(successfulPaths, that.successfulPaths);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(libraryNames, searchPaths, successfulPaths);
+        }
+
+        @Override
+        public String toString() {
+            return "LoadedLibraryData {" +
+                    "libraryNames=" + libraryNames +
+                    ", searchPaths=" + searchPaths +
+                    ", successfulPaths=" + successfulPaths +
+                    '}';
         }
     }
 }
