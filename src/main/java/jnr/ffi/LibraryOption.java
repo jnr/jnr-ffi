@@ -51,9 +51,10 @@ public enum LibraryOption {
      * A function mapper which maps from java function names to native function names.
      */
     FunctionMapper,
-    
+
     /**
      * The type of calling convention.
+     *
      * @see CallingConvention
      */
     CallingConvention,
@@ -61,5 +62,8 @@ public enum LibraryOption {
     /**
      * Load the library into memory immediately, instead of lazily loading it
      */
-    LoadNow
+    LoadNow,
+
+    // TODO: 30-May-2021 @basshelal: doc!
+    PreferCustomPaths
 }

@@ -6,6 +6,7 @@
 *.iml
 *.iws
 *.ipr
+*.log
 nbproject/private
 build
 dist

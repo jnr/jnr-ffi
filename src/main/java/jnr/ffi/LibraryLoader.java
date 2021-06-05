@@ -165,7 +165,7 @@ public abstract class LibraryLoader<T> {
             }
         }
 
-        for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
+        if (libraryOptions != null) for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
             loader.option(option.getKey(), option.getValue());
         }
 
@@ -474,8 +474,12 @@ public abstract class LibraryLoader<T> {
                 in = new BufferedReader(new FileReader(file));
                 String line = in.readLine();
                 while (line != null) {
-                    // add even if doesn't exist! We're just adding the default paths, we check for validity elsewhere
-                    paths.add(line);
+                    // ignore empties, comments and include directives
+                    if (!line.isEmpty() && !line.trim().isEmpty()
+                            && !line.startsWith("#") && !line.startsWith("include ")) {
+                        // add even if doesn't exist! We're just adding the default paths, we check for validity elsewhere
+                        paths.add(line);
+                    }
                     line = in.readLine();
                 }
             }
