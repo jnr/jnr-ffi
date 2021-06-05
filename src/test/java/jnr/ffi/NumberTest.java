@@ -31,6 +31,7 @@ import org.junit.Test;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -71,16 +72,38 @@ public class NumberTest {
     }
     static TestLib testlib;
 
-    public static interface TestBoolean {
+    
+    public static interface Test_Boolean {
 
-        public boolean ret_int32_t(int l);
+        public Boolean ret_int8_t(byte l);
+        public Boolean ret_uint8_t(byte l);
+        public Boolean ret_int16_t(short l);
+        public Boolean ret_uint16_t(short l);
+        public Boolean ret_int32_t(int l);
+        public Boolean ret_uint32_t(int l);
+        public Boolean ret_int64_t(long l);
+        public Boolean ret_uint64_t(long l);
     }
-    static TestBoolean testboolean;
+    static Test_Boolean test_Boolean;
+
+    public static interface Test_boolean2 {
+
+        public boolean ret_int8_t(byte l);
+        public boolean ret_uint8_t(byte l);
+        public boolean ret_int16_t(short l);
+        public boolean ret_uint16_t(short l);
+        public boolean ret_int32_t(int l);
+        public boolean ret_uint32_t(int l);
+        public boolean ret_int64_t(long l);
+        public boolean ret_uint64_t(long l);
+    }
+    static Test_boolean2 test_boolean;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
-        testboolean = TstUtil.loadTestLib(TestBoolean.class);
+        test_boolean = TstUtil.loadTestLib(Test_boolean2.class);
+        test_Boolean = TstUtil.loadTestLib(Test_Boolean.class);
     }
 
     @AfterClass
@@ -356,9 +379,67 @@ public class NumberTest {
     }
 
     @Test public void testBooleanFromInt() throws Exception {
-        assertEquals(false, testboolean.ret_int32_t(0));
-        assertEquals(true, testboolean.ret_int32_t(-1));
-        assertEquals(true, testboolean.ret_int32_t(1));
-        assertEquals(true, testboolean.ret_int32_t(2));
+        assertEquals(false, test_boolean.ret_int32_t(0));
+        assertEquals(true, test_boolean.ret_int32_t(-1));
+        assertEquals(true, test_boolean.ret_int32_t(1));
+        assertEquals(true, test_boolean.ret_int32_t(2));
+
+        int value = 0x00000001;
+        for (int i = 0; i < 32; i++) {
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_int32_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_uint32_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_int32_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_uint32_t(value));
+            value <<= 1;
+        }
     }
+    
+    @Test public void testBooleanFromByte() throws Exception {
+        assertEquals(false, test_boolean.ret_int32_t(0));
+        assertEquals(true, test_boolean.ret_int32_t(-1));
+        assertEquals(true, test_boolean.ret_int32_t(1));
+        assertEquals(true, test_boolean.ret_int32_t(2));
+
+        byte value = 0x01;
+        for (int i = 0; i < 8; i++) {
+            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_boolean.ret_int8_t((byte)value));
+            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_boolean.ret_uint8_t((byte)value));
+            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_Boolean.ret_int8_t((byte)value));
+            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_Boolean.ret_uint8_t((byte)value));
+            value <<= 1;
+        }
+    }
+    
+    @Test public void testBooleanFromShort() throws Exception {
+        assertEquals(false, test_boolean.ret_int32_t(0));
+        assertEquals(true, test_boolean.ret_int32_t(-1));
+        assertEquals(true, test_boolean.ret_int32_t(1));
+        assertEquals(true, test_boolean.ret_int32_t(2));
+
+        short value = 0x0001;
+        for (int i = 0; i < 16; i++) {
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_int16_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_uint16_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_int16_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_uint16_t(value));
+            value <<= 1;
+        }
+    }
+    
+        @Test public void testBooleanFromLong() throws Exception {
+        assertEquals(false, test_boolean.ret_int64_t(0));
+        assertEquals(true, test_boolean.ret_int64_t(-1));
+        assertEquals(true, test_boolean.ret_int64_t(1));
+        assertEquals(true, test_boolean.ret_int64_t(2));
+        
+        long value = 0x0000000000000001;
+        for (int i = 0; i < 32; i++) {
+            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_boolean.ret_int64_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_boolean.ret_uint64_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_Boolean.ret_int64_t(value));
+            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_Boolean.ret_uint64_t(value));
+            value <<= 1;
+        }
+    }
+
 }
