@@ -2,6 +2,7 @@ package jnr.ffi;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -238,6 +239,29 @@ public class PlatformTest {
 
         // locatedFile is in tmpDir, ie our custom won because prefer custom is true
         Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+    }
+
+    // Prefer custom but custom is actually a default path so that custom wins
+    @Test
+    public void testPreferCustomLocateLibrarySystemPath() {
+        List<String> libCLocations = LINUX.libraryLocations("c", null);
+        Assume.assumeTrue(LINUX.getCPU() == Platform.CPU.X86_64);
+        Assume.assumeTrue(libCLocations.size() > 2);
+
+        Map<LibraryOption, Object> options = Collections.singletonMap(LibraryOption.PreferCustomPaths, true);
+
+        String customSystemPath = "/usr/lib/x86_64-linux-gnu"; // force this location instead of /lib/x86_64-linux-gnu
+        Assert.assertTrue(LibraryLoader.DefaultLibPaths.PATHS.contains(customSystemPath));
+
+        ArrayList<String> libPaths = new ArrayList<>();
+        libPaths.add(customSystemPath); // custom paths are always first
+        libPaths.addAll(DEFAULT_LIB_PATHS);
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, options);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is in customSystemPath, ie our custom won because prefer custom is true
+        Assert.assertEquals(customSystemPath, locatedFile.getParentFile().getAbsolutePath());
     }
 
 }
