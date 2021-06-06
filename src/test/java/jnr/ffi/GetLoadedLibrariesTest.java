@@ -3,10 +3,7 @@ package jnr.ffi;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jnr.ffi.provider.jffi.NativeLibrary;
 
@@ -20,10 +17,7 @@ public class GetLoadedLibrariesTest {
     // A correct library has loaded correctly, is shown in getLoadedLibraries, and when GC'd, is removed
     @Test
     public void testLoadedLibraryCorrect() {
-        Map<String, List<String>> searchPaths = new HashMap<>(); // TODO: 06-Jun-2021 @basshelal: remove this before submitting
-        searchPaths.put(LIB_NAME, Arrays.asList("./target"));
-
-        TestLib testLib = LibraryLoader.loadLibrary(TestLib.class, null, searchPaths, LIB_NAME);
+        TestLib testLib = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
         Assert.assertNotNull(testLib);
         List<NativeLibrary.LoadedLibraryData> loadedLibraries = Runtime.getLoadedLibraries();
         Assert.assertFalse(loadedLibraries.isEmpty());
@@ -68,14 +62,11 @@ public class GetLoadedLibrariesTest {
     // Multiple instances of same library show up as a loaded library for each one
     @Test
     public void testMultipleInstancesOfSameLibrary() {
-        Map<String, List<String>> searchPaths = new HashMap<>(); // TODO: 06-Jun-2021 @basshelal: remove this before submitting
-        searchPaths.put(LIB_NAME, Arrays.asList("./target"));
-
-        TestLib testLib0 = LibraryLoader.loadLibrary(TestLib.class, null, searchPaths, LIB_NAME);
+        TestLib testLib0 = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
         Assert.assertNotNull(testLib0);
-        TestLib testLib1 = LibraryLoader.loadLibrary(TestLib.class, null, searchPaths, LIB_NAME);
+        TestLib testLib1 = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
         Assert.assertNotNull(testLib1);
-        TestLib testLib2 = LibraryLoader.loadLibrary(TestLib.class, null, searchPaths, LIB_NAME);
+        TestLib testLib2 = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
         Assert.assertNotNull(testLib2);
 
         List<NativeLibrary.LoadedLibraryData> loadedLibraries = Runtime.getLoadedLibraries();
