@@ -64,6 +64,20 @@ public enum LibraryOption {
      */
     LoadNow,
 
-    // TODO: 30-May-2021 @basshelal: doc!
+    /**
+     * Relevant for GNU/Linux {@link Platform.Linux} only
+     *
+     * Prefer custom paths over system paths when loading a library, even if the custom path has a lower version.
+     *
+     * By default JNR-FFI will choose the library of the desired name with the highest version, whether in the custom
+     * paths or the system default paths.
+     *
+     * This can be a problem if you are distributing your own library for example {@code libfoo.so} and the system
+     * paths <i>happen</i> to have a {@code libfoo.so.4} for example, in which case JNR-FFI will prefer the
+     * higher version despite your explicit custom paths.
+     *
+     * By using this option, JNR-FFI will know to prefer the custom paths, even if they have a lower version, this
+     * ensures consistent behaviors across environments.
+     */
     PreferCustomPaths
 }

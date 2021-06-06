@@ -430,7 +430,15 @@ public abstract class Platform {
         return mappedName;
     }
 
-    // TODO: 05-Jun-2021 @basshelal: doc!
+    /**
+     * Searches through a list of directories for a native library.
+     *
+     * @param libName      the base name (e.g. "c") of the library to locate
+     * @param libraryPaths the list of directories to search
+     * @param options      map of {@link LibraryOption}s to customize search behavior
+     *                     such as {@link LibraryOption#PreferCustomPaths}
+     * @return the path of the library
+     */
     public String locateLibrary(String libName, List<String> libraryPaths, Map<LibraryOption, Object> options) {
         return locateLibrary(libName, libraryPaths);
     }

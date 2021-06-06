@@ -20,11 +20,6 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Library;
 
-import jnr.ffi.LibraryLoader;
-import jnr.ffi.LibraryOption;
-import jnr.ffi.Platform;
-import jnr.ffi.Runtime;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +34,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import jnr.ffi.LibraryLoader;
+import jnr.ffi.LibraryOption;
+import jnr.ffi.Platform;
+import jnr.ffi.Runtime;
 
 public class NativeLibrary {
     private final List<String> libraryNames;
@@ -180,7 +180,6 @@ public class NativeLibrary {
      * A list of all currently loaded libraries can be queried using {@link Runtime#getLoadedLibraries()} which will
      * return a list of {@link LoadedLibraryData}s.
      */
-    // TODO: 30-May-2021 @basshelal: Better docs everywhere here!
     public static class LoadedLibraryData {
 
         private final List<String> libraryNames;
@@ -193,14 +192,25 @@ public class NativeLibrary {
             this.successfulPaths = Collections.unmodifiableList(successfulPaths);
         }
 
+        /**
+         * @return the list of library names that were provided when this library was loaded
+         */
         public List<String> getLibraryNames() {
             return libraryNames;
         }
 
+        /**
+         * @return the list of paths that were used to search for the library, custom paths will always appear before
+         *         any system default paths
+         */
         public List<String> getSearchPaths() {
             return searchPaths;
         }
 
+        /**
+         * @return the list of absolute paths of the loaded library files (.so, .dylib, .dll etc) that were actually
+         *         loaded, these are the native library files that are being used for this library
+         */
         public List<String> getSuccessfulPaths() {
             return successfulPaths;
         }
