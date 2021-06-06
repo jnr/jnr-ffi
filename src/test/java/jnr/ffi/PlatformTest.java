@@ -247,18 +247,28 @@ public class PlatformTest {
         List<String> libCLocations = LINUX.libraryLocations("c", null);
         Assume.assumeTrue(libCLocations.size() > 2);
 
+        System.out.println("libCLocations: " + libCLocations);
+
         Map<LibraryOption, Object> options = Collections.singletonMap(LibraryOption.PreferCustomPaths, true);
 
         String location = libCLocations.get(1); // get second best location, often something like /usr/lib/
         String customSystemPath = new File(location).getParentFile().getAbsolutePath();
+
+        System.out.println("location: " + location);
+        System.out.println("customSystemPath: " + customSystemPath);
 
         ArrayList<String> libPaths = new ArrayList<>();
         // user added a path from DEFAULT_LIB_PATHS as a custom path
         libPaths.add(customSystemPath);
         libPaths.addAll(DEFAULT_LIB_PATHS);
 
+        System.out.println("libPaths: " + libPaths);
+
         String locatedPath = LINUX.locateLibrary("c", libPaths, options);
         File locatedFile = new File(locatedPath);
+
+        System.out.println("locatedPath: " + locatedPath);
+        System.out.println("locatedFile: " + locatedFile);
 
         // locatedFile is in customSystemPath, ie our custom won because prefer custom is true
         //    Assert.assertEquals(customSystemPath, locatedFile.getParentFile().getAbsolutePath());
