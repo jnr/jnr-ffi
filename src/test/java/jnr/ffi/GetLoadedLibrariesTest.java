@@ -10,6 +10,9 @@ import java.util.Map;
 
 import jnr.ffi.provider.jffi.NativeLibrary;
 
+/**
+ * Tests {@link Runtime#getLoadedLibraries()}
+ */
 public class GetLoadedLibrariesTest {
 
     private static final String LIB_NAME = "test";
