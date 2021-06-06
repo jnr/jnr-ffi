@@ -563,16 +563,19 @@ public abstract class Platform {
 
         private List<Match> getMatches(String libName, List<String> libraryPaths) {
             List<String> customPaths = new ArrayList<>();
-            for (String path : libraryPaths) {
-                // TODO: 05-Jun-2021 @basshelal: What if custom path IS a system path??
-                //  meaning, consumer passed something like /usr/lib/ ?
-                //  A safe assumption is that custom paths always come before system paths
-                //  so, we can just assume that the last paths are system
-                //  so custom paths size is the size of all paths - size of system paths
-                //  so do it by a split based on this assumption
-                //  hmm, no not really, since user can call this function with their own ordering
-                //  we can build upon this assumption though and of course verify it later
-                if (!LibraryLoader.DefaultLibPaths.PATHS.contains(path)) customPaths.add(path);
+            if (LibraryLoader.DefaultLibPaths.PATHS.size() > 0 &&
+                    libraryPaths.size() >= LibraryLoader.DefaultLibPaths.PATHS.size()) {
+                // we were probably called by JNR-FFI, customs will always be before system paths
+                String firstSystemPath = LibraryLoader.DefaultLibPaths.PATHS.get(0);
+
+                // everything before last occurrence of first system path is custom
+                int firstSystemPathIndex = libraryPaths.lastIndexOf(firstSystemPath);
+                for (int i = 0; i < firstSystemPathIndex; i++) {
+                    customPaths.add(libraryPaths.get(i));
+                }
+            } else {
+                // we were probably called by user and not by JNR-FFI, assume all paths are custom
+                customPaths.addAll(libraryPaths);
             }
 
             Pattern exclude;
