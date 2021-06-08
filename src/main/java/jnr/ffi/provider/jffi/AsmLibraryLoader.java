@@ -20,6 +20,18 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Function;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+
+import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
 import jnr.ffi.CallingConvention;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.annotations.Synchronized;
@@ -38,16 +50,6 @@ import jnr.ffi.provider.NativeVariable;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
 import jnr.ffi.provider.jffi.AsmBuilder.ObjectField;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-
-import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
 import static jnr.ffi.provider.jffi.CodegenUtils.p;
@@ -61,7 +63,7 @@ import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.V1_6;
+import static org.objectweb.asm.Opcodes.V1_8;
 
 public class AsmLibraryLoader extends LibraryLoader {
     public final static boolean DEBUG = Boolean.getBoolean("jnr.ffi.compile.dump");
@@ -96,8 +98,8 @@ public class AsmLibraryLoader extends LibraryLoader {
 
         AsmBuilder builder = new AsmBuilder(runtime, p(interfaceClass) + "$jnr$ffi$" + nextClassID.getAndIncrement(), cv, classLoader);
 
-        cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(AbstractAsmLibraryInterface.class),
-                new String[] { p(interfaceClass) });
+        cv.visit(V1_8, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(AbstractAsmLibraryInterface.class),
+                new String[]{p(interfaceClass)});
 
         FunctionMapper functionMapper = libraryOptions.containsKey(LibraryOption.FunctionMapper)
                 ? (FunctionMapper) libraryOptions.get(LibraryOption.FunctionMapper) : IdentityFunctionMapper.getInstance();
@@ -106,7 +108,7 @@ public class AsmLibraryLoader extends LibraryLoader {
         CompositeTypeMapper closureTypeMapper = newClosureTypeMapper(classLoader, typeMapper);
 
         typeMapper = newCompositeTypeMapper(runtime, classLoader, typeMapper, closureTypeMapper);
-        
+
         CallingConvention libraryCallingConvention = getCallingConvention(interfaceClass, libraryOptions);
 
         StubCompiler compiler = StubCompiler.newCompiler(runtime);

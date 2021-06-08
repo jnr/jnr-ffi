@@ -488,11 +488,9 @@ public abstract class Platform {
     }
 
     private static final class Default extends Supported {
-
         public Default(OS os) {
             super(os);
         }
-
     }
     /**
      * A {@link Platform} subclass representing the MacOS system.
@@ -512,11 +510,6 @@ public abstract class Platform {
                 return libName;
             }
             return "lib" + libName + ".dylib";
-        }
-        
-        @Override
-        public String getName() {
-            return "Darwin";
         }
 
     }
