@@ -34,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -75,8 +76,8 @@ public abstract class LibraryLoader<T> {
     private final TypeMapper.Builder typeMapperBuilder = new TypeMapper.Builder();
     private final FunctionMapper.Builder functionMapperBuilder = new FunctionMapper.Builder();
     private final Class<T> interfaceClass;
+    private final MethodHandles.Lookup lookup;
     private boolean failImmediately = false;
-
 
     /**
      * Creates a new {@code LibraryLoader} instance.
@@ -89,8 +90,26 @@ public abstract class LibraryLoader<T> {
         return FFIProvider.getSystemProvider().createLibraryLoader(interfaceClass);
     }
 
+    /**
+     * Creates a new {@code LibraryLoader} instance.
+     *
+     * @param <T> The library type.
+     * @param interfaceClass the interface that describes the native library functions
+     * @param lookup the {@link java.lang.invoke.MethodHandles.Lookup} to use for invoking default functions
+     * @return A {@code LibraryLoader} instance.
+     */
+    public static <T> LibraryLoader<T> create(Class<T> interfaceClass, MethodHandles.Lookup lookup) {
+        return FFIProvider.getSystemProvider().createLibraryLoader(interfaceClass, lookup);
+    }
+
     protected LibraryLoader(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
+        this.lookup = null;
+    }
+
+    protected LibraryLoader(Class<T> interfaceClass, MethodHandles.Lookup lookup) {
+        this.interfaceClass = interfaceClass;
+        this.lookup = lookup;
     }
 
     /**
@@ -415,7 +434,7 @@ public abstract class LibraryLoader<T> {
         optionMap.put(LibraryOption.FunctionMapper, functionMappers.size() > 1 ? new CompositeFunctionMapper(functionMappers) : functionMappers.get(0));
 
         try {
-            return loadLibrary(interfaceClass, Collections.unmodifiableList(libraryNames), getSearchPaths(),
+            return loadLibrary(interfaceClass, lookup, Collections.unmodifiableList(libraryNames), getSearchPaths(),
                 Collections.unmodifiableMap(optionMap), failImmediately);
         
         } catch (LinkageError error) {
@@ -453,13 +472,14 @@ public abstract class LibraryLoader<T> {
      * Implemented by FFI providers to load the actual library.
      *
      * @param interfaceClass The java class that describes the functions to be mapped.
+     * @param lookup The lookup to use for invoking default methods, if necessary
      * @param libraryNames A list of libraries to load and search for symbols.
      * @param searchPaths The paths to search for libraries to be loaded.
      * @param options The options to apply when loading the library.
      * @param failImmediately whether to fast-fail when the library does not implement the requested functions
      * @return an instance of {@code interfaceClass} that will call the native methods.
      */
-    protected abstract T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames,
+    protected abstract T loadLibrary(Class<T> interfaceClass, MethodHandles.Lookup lookup, Collection<String> libraryNames,
                                      Collection<String> searchPaths, Map<LibraryOption, Object> options,
                                      boolean failImmediately);
 

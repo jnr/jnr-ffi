@@ -18,6 +18,8 @@
 
 package jnr.ffi.provider;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -30,6 +32,7 @@ import java.util.Map;
 public class NativeInvocationHandler implements InvocationHandler {
     private volatile Map<Method, Invoker> fastLookupTable;
     private final Map<Method, Invoker> invokerMap;
+    private final MethodHandles.Lookup lookup;
 
     /**
      * Creates a new InvocationHandler instance.
@@ -37,12 +40,26 @@ public class NativeInvocationHandler implements InvocationHandler {
      * @param invokers A map of method invokers
      *
      */
-    public NativeInvocationHandler(Map<Method, Invoker> invokers) {
+    public NativeInvocationHandler(Map<Method, Invoker> invokers, MethodHandles.Lookup lookup) {
         this.invokerMap = invokers;
         this.fastLookupTable = Collections.emptyMap();
+        this.lookup = lookup;
     }
 
     public Object invoke(Object self, Method method, Object[] argArray) throws Throwable {
+        // skip default methods
+        if (method.isDefault()) {
+            if (lookup == null) {
+                throw new AbstractMethodError("default methods not supported without Lookup or code generation");
+            }
+
+            MethodHandle handle = lookup.unreflectSpecial(method, method.getDeclaringClass());
+            Object[] newArgs = new Object[argArray.length + 1];
+            System.arraycopy(argArray, 0, newArgs, 1, argArray.length);
+            newArgs[0] = self;
+            return handle.invokeWithArguments(newArgs);
+        }
+
         Invoker invoker = fastLookupTable.get(method);
         return invoker != null ? invoker.invoke(self, argArray) : lookupAndCacheInvoker(method).invoke(self, argArray);
     }

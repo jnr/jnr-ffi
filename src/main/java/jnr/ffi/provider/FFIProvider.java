@@ -20,6 +20,8 @@ package jnr.ffi.provider;
 
 import jnr.ffi.LibraryLoader;
 
+import java.lang.invoke.MethodHandles;
+
 /**
  * This class defines the facilities a JNR FFI provider must provide.
  *
@@ -52,6 +54,16 @@ public abstract class FFIProvider {
      *  @return the {@code LibraryLoader} instance.
      */
     public abstract <T> LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass);
+
+    /**
+     * Creates a new {@link LibraryLoader} instance.
+     *
+     * @param <T> The library type.
+     * @param interfaceClass The library interface class.
+     * @param lookup the {@link java.lang.invoke.MethodHandles.Lookup} to use for invoking default functions
+     * @return the {@code LibraryLoader} instance.
+     */
+    public abstract <T> LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass, MethodHandles.Lookup lookup);
 
     private static final class SystemProviderSingletonHolder {
         private static final FFIProvider INSTANCE = getInstance();

@@ -35,6 +35,7 @@ import jnr.ffi.provider.NativeInvocationHandler;
 import jnr.ffi.provider.NativeVariable;
 
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.AbstractMap;
@@ -51,7 +52,7 @@ import static jnr.ffi.util.Annotations.sortedAnnotationCollection;
 class ReflectionLibraryLoader extends LibraryLoader {
 
     @Override
-    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, boolean failImmediately) {
+    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, MethodHandles.Lookup lookup, Map<LibraryOption, ?> libraryOptions, boolean failImmediately) {
         Map<Method, Invoker> invokers = new LazyLoader<T>(library, interfaceClass, libraryOptions);
 
         if (failImmediately) {
@@ -61,6 +62,7 @@ class ReflectionLibraryLoader extends LibraryLoader {
 
             // force all functions to bind
             for (NativeFunction function : scanner.functions()) {
+                if (function.getMethod().isDefault()) continue;
                 invokers.get(function.getMethod());
             }
 
@@ -71,7 +73,7 @@ class ReflectionLibraryLoader extends LibraryLoader {
         }
 
         return interfaceClass.cast(Proxy.newProxyInstance(interfaceClass.getClassLoader(),
-                new Class[]{ interfaceClass, LoadedLibrary.class }, new NativeInvocationHandler(invokers)));
+                new Class[]{ interfaceClass, LoadedLibrary.class }, new NativeInvocationHandler(invokers, lookup)));
     }
 
     private static final class FunctionNotFoundInvoker implements Invoker {
