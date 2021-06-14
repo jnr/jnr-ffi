@@ -22,6 +22,7 @@ import jnr.ffi.LibraryLoader;
 import jnr.ffi.LibraryOption;
 import jnr.ffi.Runtime;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.Map;
 
@@ -45,11 +46,16 @@ final class InvalidProvider extends FFIProvider {
     public <T> LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass) {
         return new LibraryLoader<T>(interfaceClass) {
             @Override
-            protected T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths, Map<LibraryOption, Object> options, boolean failImmediately) {
+            protected T loadLibrary(Class<T> interfaceClass, MethodHandles.Lookup lookup, Collection<String> libraryNames, Collection<String> searchPaths, Map<LibraryOption, Object> options, boolean failImmediately) {
                 UnsatisfiedLinkError error = new UnsatisfiedLinkError(message);
                 error.initCause(cause);
                 throw error;
             }
         };
+    }
+
+    @Override
+    public <T> LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass, MethodHandles.Lookup lookup) {
+        return createLibraryLoader(interfaceClass);
     }
 }

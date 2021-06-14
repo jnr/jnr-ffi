@@ -21,6 +21,8 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.FFIProvider;
 
+import java.lang.invoke.MethodHandles;
+
 
 public final class Provider extends FFIProvider {
     private final NativeRuntime runtime;
@@ -35,5 +37,9 @@ public final class Provider extends FFIProvider {
 
     public <T> jnr.ffi.LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass) {
         return new NativeLibraryLoader<T>(interfaceClass);
+    }
+
+    public <T> jnr.ffi.LibraryLoader<T> createLibraryLoader(Class<T> interfaceClass, MethodHandles.Lookup lookup) {
+        return new NativeLibraryLoader<T>(interfaceClass, lookup);
     }
 }

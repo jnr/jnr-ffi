@@ -43,6 +43,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import java.io.PrintWriter;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -72,8 +73,13 @@ public class AsmLibraryLoader extends LibraryLoader {
     private final NativeRuntime runtime = NativeRuntime.getInstance();
 
     @Override
-    <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions,
-                      boolean failImmediately /* ignored, asm loader eagerly binds everything */) {
+    <T> T loadLibrary(
+            NativeLibrary library,
+            Class<T> interfaceClass,
+            MethodHandles.Lookup lookup /* ignored, asm loader avoids binding default methods */,
+            Map<LibraryOption, ?> libraryOptions,
+            boolean failImmediately /* ignored, asm loader eagerly binds everything */) {
+
         AsmClassLoader oldClassLoader = classLoader.get();
 
         // Only create a new class loader if this was not a recursive call (i.e. loading a library as a result of loading another library)

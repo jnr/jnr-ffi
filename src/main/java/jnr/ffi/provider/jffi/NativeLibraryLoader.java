@@ -20,6 +20,7 @@ package jnr.ffi.provider.jffi;
 
 import jnr.ffi.LibraryOption;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.Map;
 
@@ -35,14 +36,18 @@ class NativeLibraryLoader<T>  extends jnr.ffi.LibraryLoader<T> {
         super(interfaceClass);
     }
 
-    public T loadLibrary(Class<T> interfaceClass, Collection<String> libraryNames, Collection<String> searchPaths,
-                             Map<LibraryOption, Object> options, boolean failImmediately) {
+    NativeLibraryLoader(Class<T> interfaceClass, MethodHandles.Lookup lookup) {
+        super(interfaceClass, lookup);
+    }
+
+    public T loadLibrary(Class<T> interfaceClass, MethodHandles.Lookup lookup, Collection<String> libraryNames, Collection<String> searchPaths,
+                         Map<LibraryOption, Object> options, boolean failImmediately) {
         NativeLibrary nativeLibrary = new NativeLibrary(libraryNames, searchPaths);
 
         try {
             return ASM_ENABLED
-                ? new AsmLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, options, failImmediately)
-                : new ReflectionLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, options, failImmediately);
+                ? new AsmLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, lookup, options, failImmediately)
+                : new ReflectionLibraryLoader().loadLibrary(nativeLibrary, interfaceClass, lookup, options, failImmediately);
 
         } catch (RuntimeException ex) {
             throw ex;

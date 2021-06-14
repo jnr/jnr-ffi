@@ -27,6 +27,7 @@ import jnr.ffi.mapper.SignatureTypeMapperAdapter;
 import jnr.ffi.mapper.TypeMapper;
 import jnr.ffi.provider.NullTypeMapper;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 public abstract class LibraryLoader {
@@ -60,5 +61,5 @@ public abstract class LibraryLoader {
                     new CachingTypeMapper(new AnnotationTypeMapper()));
     }
 
-    abstract <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, Map<LibraryOption, ?> libraryOptions, boolean failImmediately);
+    abstract <T> T loadLibrary(NativeLibrary library, Class<T> interfaceClass, MethodHandles.Lookup lookup, Map<LibraryOption, ?> libraryOptions, boolean failImmediately);
 }
