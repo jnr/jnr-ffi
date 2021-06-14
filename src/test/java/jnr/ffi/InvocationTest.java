@@ -21,6 +21,8 @@ package jnr.ffi;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.lang.invoke.MethodHandles;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -29,6 +31,14 @@ import static org.junit.Assert.assertEquals;
 public class InvocationTest {
     public static interface TestLib {
         int ret_int32_t(int i);
+    }
+
+    public static interface TestLibWithDefault {
+        static final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        int ret_int32_t(int i);
+        default int doesNotExist(int i) {
+            return ret_int32_t(i);
+        }
     }
 
     static TestLib testlib;
@@ -43,5 +53,12 @@ public class InvocationTest {
         for (int i = 0; i < 1000000; i++) {
             assertEquals(i, testlib.ret_int32_t(i));
         }
+    }
+
+    @Test
+    public void testDefault() throws Throwable {
+        TestLibWithDefault withDefault = TstUtil.loadTestLib(TestLibWithDefault.class, TestLibWithDefault.lookup);
+
+        assertEquals(testlib.ret_int32_t(1234), withDefault.doesNotExist(1234));
     }
 }
