@@ -19,22 +19,18 @@
 package jnr.ffi;
 
 import jnr.ffi.annotations.LongLong;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-
-/**
- *
- * @author wayne
- */
 public class MemoryIOTest {
     public static interface TestLib {
         byte ptr_ret_int8_t(Pointer p, int offset);
@@ -61,21 +57,21 @@ public class MemoryIOTest {
     public MemoryIOTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     private Pointer direct(int size) {
@@ -99,73 +95,73 @@ public class MemoryIOTest {
     private void testPutByte(Pointer io, int size) {
         for (int i = 0; i < size; ++i) {
             io.putByte(i, (byte) (i + 5));
-            assertEquals("Incorrect value at offset " + i, (byte) (i + 5), testlib.ptr_ret_int8_t(io, i));
+            assertEquals((byte) (i + 5), testlib.ptr_ret_int8_t(io, i), "Incorrect value at offset " + i);
         }
     }
     private void testGetByte(Pointer io, int size) {
         for (int i = 0; i < size; ++i) {
             testlib.ptr_set_int8_t(io, i, (byte) (i + 5));
-            assertEquals("Incorrect value at offset " + i, (byte) (i + 5), io.getByte(i));
+            assertEquals((byte) (i + 5), io.getByte(i), "Incorrect value at offset " + i);
         }
     }
     private void testPutShort(Pointer io, int size) {
         for (int i = 0; i <= size - 2; i += 2) {
             io.putShort(i, (short) i);
-            assertEquals("Incorrect value at offset " + i, (short) i, testlib.ptr_ret_int16_t(io, i));
+            assertEquals((short) i, testlib.ptr_ret_int16_t(io, i), "Incorrect value at offset " + i);
         }
     }
     private void testGetShort(Pointer io, int size) {
         for (int i = 0; i <= size - 2; i += 2) {
             testlib.ptr_set_int16_t(io, i, (short) i);
-            assertEquals("Incorrect value at offset " + i, (short) i, io.getShort(i));
+            assertEquals((short) i, io.getShort(i), "Incorrect value at offset " + i);
         }
     }
     private void testPutInt(Pointer io, int size) {
         for (int i = 0; i <= size - 4; i += 4) {
             io.putInt(i, i);
-            assertEquals("Incorrect value at offset " + i, i, testlib.ptr_ret_int32_t(io, i));
+            assertEquals(i, testlib.ptr_ret_int32_t(io, i), "Incorrect value at offset " + i);
         }
     }
     private void testGetInt(Pointer io, int size) {
         for (int i = 0; i <= size - 4; i += 4) {
             testlib.ptr_set_int32_t(io, i, i);
-            assertEquals("Incorrect value at offset " + i, i, io.getInt(i));
+            assertEquals(i, io.getInt(i), "Incorrect value at offset " + i);
         }
     }
     private void testPutLongLong(Pointer io, int size) {
         for (int i = 0; i <= size - 8; i += 8) {
             io.putLongLong(i, i);
-            assertEquals("Incorrect value at offset " + i, (long) i, testlib.ptr_ret_int64_t(io, i));
+            assertEquals((long) i, testlib.ptr_ret_int64_t(io, i), "Incorrect value at offset " + i);
         }
     }
     private void testGetLongLong(Pointer io, int size) {
         for (int i = 0; i <= size - 8; i += 8) {
             testlib.ptr_set_int64_t(io, i, i);
-            assertEquals("Incorrect value at offset " + i, (long) i, io.getLongLong(i));
+            assertEquals((long) i, io.getLongLong(i), "Incorrect value at offset " + i);
         }
     }
     private void testPutFloat(Pointer io, int size) {
         for (int i = 0; i <= size - FLOAT_BYTE_SIZE; i += FLOAT_BYTE_SIZE) {
             io.putFloat(i, i);
-            assertEquals("Incorrect value at offset " + i, (float) i, testlib.ptr_ret_float(io, i), 0.00001);
+            assertEquals((float) i, testlib.ptr_ret_float(io, i), 0.00001, "Incorrect value at offset " + i);
         }
     }
     private void testGetFloat(Pointer io, int size) {
         for (int i = 0; i <= size - FLOAT_BYTE_SIZE; i += FLOAT_BYTE_SIZE) {
             testlib.ptr_set_float(io, i, (float) i);
-            assertEquals("Incorrect value at offset " + i, (float) i, io.getFloat(i), 0.00001);
+            assertEquals((float) i, io.getFloat(i), 0.00001, "Incorrect value at offset " + i);
         }
     }
     private void testPutDouble(Pointer io, int size) {
         for (int i = 0; i <= size - DOUBLE_BYTE_SIZE; i += DOUBLE_BYTE_SIZE) {
             io.putDouble(i, (double) i);
-            assertEquals("Incorrect value at offset " + i, (double) i, testlib.ptr_ret_double(io, i), 0d);
+            assertEquals((double) i, testlib.ptr_ret_double(io, i), 0d, "Incorrect value at offset " + i);
         }
     }
     private void testGetDouble(Pointer io, int size) {
         for (int i = 0; i <= size - DOUBLE_BYTE_SIZE; i += DOUBLE_BYTE_SIZE) {
             testlib.ptr_set_double(io, i, (double) i);
-            assertEquals("Incorrect value at offset " + i, (double) i, io.getDouble(i), 0d);
+            assertEquals((double) i, io.getDouble(i), 0d, "Incorrect value at offset " + i);
         }
     }
 
@@ -388,10 +384,10 @@ public class MemoryIOTest {
         src.put(0, MAGIC, 0, MAGIC.length);
         src.transferTo(0, dst, 0, MAGIC.length);
         for (int i = 0; i < MAGIC.length; ++i) {
-            assertEquals("Wrong byte at index " + i, MAGIC[i], dst.getByte(i));
+            assertEquals(MAGIC[i], dst.getByte(i), "Wrong byte at index " + i);
         }
         for (int i = 0; i < MAGIC.length; ++i) {
-            assertEquals("Wrong byte at index " + i, MAGIC[i], buf.get(i));
+            assertEquals(MAGIC[i], buf.get(i), "Wrong byte at index " + i);
         }
     }
     @Test public void transferDirectToDirect() throws Exception {
@@ -403,7 +399,7 @@ public class MemoryIOTest {
         src.put(SRCOFF, MAGIC, 0, MAGIC.length);
         src.transferTo(SRCOFF, dst, DSTOFF, MAGIC.length);
         for (int i = 0; i < MAGIC.length; ++i) {
-            assertEquals("Wrong byte at index " + i, MAGIC[i], dst.getByte(DSTOFF + i));
+            assertEquals(MAGIC[i], dst.getByte(DSTOFF + i), "Wrong byte at index " + i);
         }
     }
 

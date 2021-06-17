@@ -19,20 +19,16 @@
 package jnr.ffi;
 
 import jnr.ffi.annotations.In;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- *
- * @author wayne
- */
 public class StringTest {
 
     public StringTest() {
@@ -47,20 +43,20 @@ public class StringTest {
         String ptr_return_array_element(@In String[] array, int index);
     }
     static TestLib testlib;
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
     }
     
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -68,9 +64,9 @@ public class StringTest {
     @Test
     public void testReadOnlyString() {
         String MAGIC = "deadbeef\u0000";
-        assertTrue("String did not equal byte array", testlib.string_equals(MAGIC, MAGIC.getBytes()));
-        assertTrue("StringBuffer did not equal byte array", testlib.string_equals(new StringBuffer(MAGIC), MAGIC.getBytes()));
-        assertTrue("StringBuilder did not equal byte array", testlib.string_equals(new StringBuilder(MAGIC), MAGIC.getBytes()));        
+        assertTrue(testlib.string_equals(MAGIC, MAGIC.getBytes()), "String did not equal byte array");
+        assertTrue(testlib.string_equals(new StringBuffer(MAGIC), MAGIC.getBytes()), "StringBuffer did not equal byte array");
+        assertTrue(testlib.string_equals(new StringBuilder(MAGIC), MAGIC.getBytes()), "StringBuilder did not equal byte array");
     }
     
     @Test
@@ -78,14 +74,14 @@ public class StringTest {
         String MAGIC = "deadbeef";
         StringBuffer buffer = new StringBuffer(1024);
         testlib.string_set(buffer, MAGIC);
-        assertEquals("StringBuffer was not set", MAGIC, buffer.toString());        
+        assertEquals(MAGIC, buffer.toString(), "StringBuffer was not set");
     }
     @Test
     public void testSetStringBuilder() {
         String MAGIC = "deadbeef";
         StringBuilder buffer = new StringBuilder(1024);
         testlib.string_set(buffer, MAGIC);
-        assertEquals("StringBuilder was not set", MAGIC, buffer.toString());        
+        assertEquals(MAGIC, buffer.toString(), "StringBuilder was not set");
     }
     @Test
     public void testStringBufferAppend() {
@@ -94,7 +90,7 @@ public class StringTest {
         StringBuffer buffer = new StringBuffer(1024);
         buffer.append(ORIG);
         testlib.string_concat(buffer, MAGIC);
-        assertEquals("StringBuilder was not set", ORIG + MAGIC, buffer.toString());        
+        assertEquals(ORIG + MAGIC, buffer.toString(), "StringBuilder was not set");
     }
     @Test
     public void testStringBuilderAppend() {
@@ -103,12 +99,12 @@ public class StringTest {
         StringBuilder buffer = new StringBuilder(1024);
         buffer.append(ORIG);
         testlib.string_concat(buffer, MAGIC);
-        assertEquals("StringBuilder was not set", ORIG + MAGIC, buffer.toString());        
+        assertEquals(ORIG + MAGIC, buffer.toString(), "StringBuilder was not set");
     }
 
     @Test public void testStringParams() {
-        assertTrue("strings should be equal", testlib.string_equals("test", "test"));
-        assertFalse("strings should not be equal", testlib.string_equals("test", "deadbeef"));
+        assertTrue(testlib.string_equals("test", "test"), "strings should be equal");
+        assertFalse(testlib.string_equals("test", "deadbeef"), "strings should not be equal");
     }
 
     @Test public void stringResult() {

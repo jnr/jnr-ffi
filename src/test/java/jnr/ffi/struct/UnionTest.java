@@ -22,19 +22,16 @@ import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
 import jnr.ffi.TstUtil;
 import jnr.ffi.Union;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteOrder;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- */
 public class UnionTest {
     public static interface TestLib {
 
@@ -46,21 +43,21 @@ public class UnionTest {
     static TestLib testlib;
     static Runtime runtime;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
     
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -101,21 +98,21 @@ public class UnionTest {
 
     @Test public void offsetTest() {
         union u = new union();
-        assertEquals("Not at offset 0", 0L, u.s8.offset());
-        assertEquals("Not at offset 0", 0L, u.u8.offset());
-        assertEquals("Not at offset 0", 0L, u.s16.offset());
-        assertEquals("Not at offset 0", 0L, u.u16.offset());
-        assertEquals("Not at offset 0", 0L, u.s32.offset());
-        assertEquals("Not at offset 0", 0L, u.s32.offset());
-        assertEquals("Not at offset 0", 0L, u.s64.offset());
-        assertEquals("Not at offset 0", 0L, u.u64.offset());
+        assertEquals(0L, u.s8.offset(), "Not at offset 0");
+        assertEquals(0L, u.u8.offset(), "Not at offset 0");
+        assertEquals(0L, u.s16.offset(), "Not at offset 0");
+        assertEquals(0L, u.u16.offset(), "Not at offset 0");
+        assertEquals(0L, u.s32.offset(), "Not at offset 0");
+        assertEquals(0L, u.s32.offset(), "Not at offset 0");
+        assertEquals(0L, u.s64.offset(), "Not at offset 0");
+        assertEquals(0L, u.u64.offset(), "Not at offset 0");
     }
     @Test public void s8s16() {
         union u = new union();
         final int MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xef00 : 0x00ef;
         u.s16.set((short) MAGIC);
-        assertEquals("Wrong value", (byte) 0xef, u.s8.get());
+        assertEquals((byte) 0xef, u.s8.get(), "Wrong value");
     }
     
     @Test public void s8s32() {
@@ -123,7 +120,7 @@ public class UnionTest {
         final int MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xef000000 : 0x000000ef;
         u.s32.set(MAGIC);
-        assertEquals("Wrong value", (byte) 0xef, u.s8.get());
+        assertEquals((byte) 0xef, u.s8.get(), "Wrong value");
     }
     
     @Test public void s16s32() {
@@ -131,14 +128,14 @@ public class UnionTest {
         final int MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xdead0000 : 0x0000dead;
         u.s32.set(MAGIC);
-        assertEquals("Wrong value", (short) 0xdead, u.s16.get());
+        assertEquals((short) 0xdead, u.s16.get(), "Wrong value");
     }
     @Test public void s8s64() {
         union u = new union();
         final long MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xef00000000000000L : 0xefL;
         u.s64.set(MAGIC);
-        assertEquals("Wrong value", (byte) 0xef, u.s8.get());
+        assertEquals((byte) 0xef, u.s8.get(), "Wrong value");
     }
     
     @Test public void s16s64() {
@@ -146,7 +143,7 @@ public class UnionTest {
         final long MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xbeef000000000000L : 0xbeefL;
         u.s64.set(MAGIC);
-        assertEquals("Wrong value", (short) 0xbeef, u.s16.get());
+        assertEquals((short) 0xbeef, u.s16.get(), "Wrong value");
     }
     
     @Test public void s32s64() {
@@ -154,7 +151,7 @@ public class UnionTest {
         final long MAGIC = runtime.byteOrder().equals(ByteOrder.BIG_ENDIAN)
                 ? 0xdeadbeef00000000L : 0xdeadbeefL;
         u.s64.set(MAGIC);
-        assertEquals("Wrong value", 0xdeadbeef, u.s32.get());
+        assertEquals(0xdeadbeef, u.s32.get(), "Wrong value");
     }
 
     @Test

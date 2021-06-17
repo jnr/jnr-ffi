@@ -20,15 +20,10 @@ package jnr.ffi.struct;
 
 import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @see https://github.com/jnr/jnr-ffi/pull/176
- *
- * @author gdiet
- */
 public class StructToStringTest {
 
     public StructToStringTest() {
@@ -45,9 +40,8 @@ public class StructToStringTest {
     public void illegalAccessInToString() throws Exception {
         String expectation = "pad1 = - IllegalAccessException -";
         String string = new IllegalAccessInToString().toString();
-        assertTrue(
-            "Struct.toString doesn't contain expected '" + expectation + "':\n" + string,
-            string.contains(expectation)
+        assertTrue(string.contains(expectation),
+                "Struct.toString doesn't contain expected '" + expectation + "':\n" + string
         );
     }
 
@@ -62,9 +56,8 @@ public class StructToStringTest {
     public void nullPointerInToString() throws Exception {
         String expectation = "pad3 = - null -";
         String string = new NullPointerInToString().toString();
-        assertTrue(
-            "Struct.toString doesn't contain expected '" + expectation + "':\n" + string,
-            string.contains(expectation)
+        assertTrue(string.contains(expectation),
+                "Struct.toString doesn't contain expected '" + expectation + "':\n" + string
         );
     }
 

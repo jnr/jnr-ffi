@@ -1,9 +1,8 @@
 package jnr.ffi;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,15 +10,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class PlatformTest {
     private File tmpDir;
 
-    @Before
+    @BeforeEach
     public void createTempDir() throws IOException {
         tmpDir = mkTmpDir();
     }
 
-    @After
+    @AfterEach
     public void deleteTempDir() throws IOException {
         rmDir(tmpDir);
     }
@@ -68,7 +72,7 @@ public class PlatformTest {
         }
 
         String locatedLibrary = linux.locateLibrary(libName, Collections.singletonList(tmpDir.getAbsolutePath()));
-        Assert.assertEquals(new File(tmpDir, versionedLibName(mappedLibName, expected)).getAbsolutePath(), locatedLibrary);
+        assertEquals(new File(tmpDir, versionedLibName(mappedLibName, expected)).getAbsolutePath(), locatedLibrary);
     }
 
     private String versionedLibName(String mappedLibName, String version) {
@@ -99,14 +103,14 @@ public class PlatformTest {
     public void testLibraryLocationsFailNotFound() {
         String libName = "should-not-find-me";
         List<String> libLocations = Platform.getNativePlatform().libraryLocations(libName, null);
-        Assert.assertTrue(libLocations.isEmpty());
+        assertTrue(libLocations.isEmpty());
         boolean failed = false;
         try {
             LibraryLoader.loadLibrary(TestLib.class, new HashMap<>(), libName);
         } catch (LinkageError e) {
             failed = true;
         }
-        Assert.assertTrue(failed);
+        assertTrue(failed);
     }
 
     // library should be found but client had unknown symbols, so failed to load even though it exists
@@ -114,7 +118,7 @@ public class PlatformTest {
     public void testLibraryLocationsFailBadSymbol() {
         String libName = "test";
         List<String> libLocations = Platform.getNativePlatform().libraryLocations(libName, null);
-        Assert.assertFalse(libLocations.isEmpty());
+        assertFalse(libLocations.isEmpty());
         boolean failed = false;
         try {
             TestLibIncorrect lib = LibraryLoader.loadLibrary(TestLibIncorrect.class, new HashMap<>(), libName);
@@ -122,7 +126,7 @@ public class PlatformTest {
         } catch (LinkageError e) {
             failed = true;
         }
-        Assert.assertTrue(failed);
+        assertTrue(failed);
     }
 
     // library should be found AND should load correctly because correct symbols
@@ -130,9 +134,9 @@ public class PlatformTest {
     public void testLibraryLocationsSuccessful() {
         String libName = "test";
         List<String> libLocations = Platform.getNativePlatform().libraryLocations(libName, null);
-        Assert.assertFalse(libLocations.isEmpty());
+        assertFalse(libLocations.isEmpty());
         TestLib lib = LibraryLoader.loadLibrary(TestLib.class, new HashMap<>(), libName); // should succeed
-        Assert.assertNotNull(lib);
+        assertNotNull(lib);
     }
 
     public static interface TestLib {

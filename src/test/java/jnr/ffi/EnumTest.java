@@ -18,22 +18,19 @@
 
 package jnr.ffi;
 
-import jnr.ffi.util.EnumMapper;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import jnr.ffi.util.EnumMapper;
 
-/**
- *
- * @author wayne
- */
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class EnumTest {
 
     public EnumTest() {
@@ -84,21 +81,21 @@ public class EnumTest {
     }
     static TestLib testlib;
     static ReturnEnumLib retenum;
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         retenum = TstUtil.loadTestLib(ReturnEnumLib.class);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -109,13 +106,13 @@ public class EnumTest {
     // public void hello() {}
     @Test
     public void enumArgument() {
-        assertEquals("Wrong value returned for enum", TestEnum.Z.intValue(), testlib.ret_int32_t(TestEnum.Z));
-        assertEquals("Wrong value returned for enum", TestEnum.C.intValue(), testlib.add_int32_t(TestEnum.A, TestEnum.B));
+        assertEquals(TestEnum.Z.intValue(), testlib.ret_int32_t(TestEnum.Z), "Wrong value returned for enum");
+        assertEquals(TestEnum.C.intValue(), testlib.add_int32_t(TestEnum.A, TestEnum.B), "Wrong value returned for enum");
     }
     @Test
     public void returnEnum() {
-        assertEquals("Wrong value returned for enum", TestEnum.Z, retenum.ret_int32_t(TestEnum.Z.intValue()));
-        assertEquals("Wrong value returned for enum", TestEnum.C, retenum.add_int32_t(1, 2));
+        assertEquals(TestEnum.Z, retenum.ret_int32_t(TestEnum.Z.intValue()), "Wrong value returned for enum");
+        assertEquals(TestEnum.C, retenum.add_int32_t(1, 2), "Wrong value returned for enum");
     }
 
     @Test

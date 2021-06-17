@@ -21,10 +21,10 @@ package jnr.ffi;
 
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.types.u_int32_t;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class GlobalVariableTest {
     public static interface ClosureIrV {

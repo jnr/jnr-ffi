@@ -20,12 +20,13 @@ package jnr.ffi;
 
 import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.provider.FFIProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class LibraryLoaderTest {
 
@@ -41,15 +42,19 @@ public class LibraryLoaderTest {
         }
     }
 
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void failImmediatelyShouldThrowULE() {
-        LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+        assertThrows(UnsatisfiedLinkError.class, () -> {
+            LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+        });
     }
 
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void invocationOnFailedLoadShouldThrowULE() {
-        TestLib lib = LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
-        lib.setLastError(0);
+        assertThrows(UnsatisfiedLinkError.class, () -> {
+            TestLib lib = LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+            lib.setLastError(0);
+        });
     }
 
     // Loadable library interface to test function mapping
@@ -136,7 +141,7 @@ public class LibraryLoaderTest {
         loader.map("subd", "sub_double");
 
         TestLibMath lib = loader.load();
-        assertNotNull("Could not load libtest", lib);
+        assertNotNull(lib, "Could not load libtest");
 
         // Do some arithmetic with the library to prove methods exist
         int sum = lib.sub(lib.add(10, 5), 3); // 10+5-3 = 12

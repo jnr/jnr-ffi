@@ -22,17 +22,17 @@ import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.function.ToLongFunction;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ArrayTest {
     public static interface TestLib {
@@ -110,20 +110,20 @@ public class ArrayTest {
     public ArrayTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -131,35 +131,35 @@ public class ArrayTest {
     public void byteByReference() {
         final byte MAGIC = (byte) 0xfe;
         byte[] ref = { MAGIC };
-        assertEquals("byte reference not read correctly", MAGIC, testlib.ptr_ret_int8_t(ref, 0));
+        assertEquals(MAGIC, testlib.ptr_ret_int8_t(ref, 0), "byte reference not read correctly");
         final byte MAGIC2 = (byte) 0xca;
         testlib.ptr_set_int8_t(ref, 0, MAGIC2);
-        assertEquals("byte reference not written correctly", MAGIC2, ref[0]);
+        assertEquals(MAGIC2, ref[0], "byte reference not written correctly");
     }
     @Test
     public void shortByReference() {
         final short MAGIC = (short) 0xfee1;
         short[] ref = { MAGIC };
-        assertEquals("short reference not read correctly", MAGIC, testlib.ptr_ret_int16_t(ref, 0));
+        assertEquals(MAGIC, testlib.ptr_ret_int16_t(ref, 0), "short reference not read correctly");
         final short MAGIC2 = (short) 0xcafe;
         testlib.ptr_set_int16_t(ref, 0, MAGIC2);
-        assertEquals("short reference not written correctly", MAGIC2, ref[0]);
+        assertEquals(MAGIC2, ref[0], "short reference not written correctly");
     }
     @Test
     public void intByReference() {
         final int MAGIC = (int) 0xfee1dead;
         int[] ref = { MAGIC };
-        assertEquals("int reference not read correctly", MAGIC, testlib.ptr_ret_int32_t(ref, 0));
+        assertEquals(MAGIC, testlib.ptr_ret_int32_t(ref, 0), "int reference not read correctly");
         final int MAGIC2 = (int) 0xcafebabe;
         testlib.ptr_set_int32_t(ref, 0, MAGIC2);
-        assertEquals("int reference not written correctly", MAGIC2, ref[0]);
+        assertEquals(MAGIC2, ref[0], "int reference not written correctly");
     }
 
     @Test
     public void getLongByReference() {
         final long MAGIC = 0x1234fee1dead6789L;
         long[] ref = { MAGIC };
-        assertEquals("long reference not read correctly", MAGIC, testlib.ptr_ret_int64_t(ref, 0));
+        assertEquals(MAGIC, testlib.ptr_ret_int64_t(ref, 0), "long reference not read correctly");
     }
 
     @Test
@@ -168,7 +168,7 @@ public class ArrayTest {
         final long MAGIC = 0xcafebabe12345678L;
         long[] ref = { 0L };
         testlib.ptr_set_int64_t(ref, 0, MAGIC);
-        assertEquals("long reference not written correctly", MAGIC, ref[0]);
+        assertEquals(MAGIC, ref[0], "long reference not written correctly");
     }
     
     @Test
@@ -178,7 +178,7 @@ public class ArrayTest {
             final long MAGIC = 0x12345678L;
             long[] ref = {0L};
             testlib.ptr_set_int32_t(ref, 0, MAGIC);
-            assertEquals("long reference not written correctly", MAGIC, ref[0]);
+            assertEquals(MAGIC, ref[0], "long reference not written correctly");
         }
     }
     
@@ -195,19 +195,19 @@ public class ArrayTest {
     public void floatByReference() {
         final float MAGIC = (float) 0xfee1dead;
         float[] ref = { MAGIC };
-        assertEquals("float reference not read correctly", MAGIC, testlib.ptr_ret_float(ref, 0), 0.00001);
+        assertEquals(MAGIC, testlib.ptr_ret_float(ref, 0), 0.00001, "float reference not read correctly");
         final float MAGIC2 = (float) 0xcafebabe;
         testlib.ptr_set_float(ref, 0, MAGIC2);
-        assertEquals("float reference not written correctly", MAGIC2, ref[0], 0.00001);
+        assertEquals(MAGIC2, ref[0], 0.00001, "float reference not written correctly");
     }
     @Test
     public void doubleByReference() {
         final double MAGIC = 0x1234fee1dead6789L;
         double[] ref = { MAGIC };
-        assertEquals("double reference not read correctly", MAGIC, testlib.ptr_ret_double(ref, 0), 0.00001);
+        assertEquals(MAGIC, testlib.ptr_ret_double(ref, 0), 0.00001, "double reference not read correctly");
         final double MAGIC2 = (double) 0xcafebabe12345678L;
         testlib.ptr_set_double(ref, 0, MAGIC2);
-        assertEquals("double reference not written correctly", MAGIC2, ref[0], 0d);
+        assertEquals(MAGIC2, ref[0], 0d, "double reference not written correctly");
     }
     
     //@Test
@@ -215,10 +215,10 @@ public class ArrayTest {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final byte MAGIC = (byte) 0xfe;
         byte[] ref = { MAGIC };
-        assertEquals("byte reference not read correctly", MAGIC, lib.ptr_ret_int8_t(ref, 0));
+        assertEquals(MAGIC, lib.ptr_ret_int8_t(ref, 0), "byte reference not read correctly");
         final byte MAGIC2 = (byte) 0xca;
         lib.ptr_set_int8_t(ref, 0, MAGIC2);
-        assertEquals("byte array read from native memory when it should not be", MAGIC, ref[0]);
+        assertEquals(MAGIC, ref[0], "byte array read from native memory when it should not be");
     }
     //@Test
     public void inOnlyByteArray() {
@@ -226,10 +226,10 @@ public class ArrayTest {
         final byte MAGIC = (byte) 0xfe;
         byte[] ref = new byte[1024];
         ref[0] = MAGIC;
-        assertEquals("byte array not read correctly", MAGIC, lib.ptr_ret_int8_t(ref, 0));
+        assertEquals(MAGIC, lib.ptr_ret_int8_t(ref, 0), "byte array not read correctly");
         final byte MAGIC2 = (byte) 0xca;
         lib.ptr_set_int8_t(ref, 0, MAGIC2);
-        assertEquals("byte array read from native memory when it should not be", MAGIC, ref[0]);
+        assertEquals(MAGIC, ref[0], "byte array read from native memory when it should not be");
     }
     //@Test
     public void outOnlyByteByReference() {
@@ -239,7 +239,7 @@ public class ArrayTest {
         
         final byte MAGIC2 = (byte) 0xca;
         lib.ptr_set_int8_t(ref, 0, MAGIC2);
-        assertEquals("byte reference not copied from native memory", MAGIC2, ref[0]);
+        assertEquals(MAGIC2, ref[0], "byte reference not copied from native memory");
     }
 
     @Test
@@ -251,7 +251,7 @@ public class ArrayTest {
 
         final byte MAGIC2 = (byte) 0xca;
         lib.ptr_set_int8_t(ref, 0, MAGIC2);
-        assertEquals("byte reference not copied from native memory", MAGIC2, ref[0]);
+        assertEquals(MAGIC2, ref[0], "byte reference not copied from native memory");
     }
 
     @Test
@@ -268,7 +268,7 @@ public class ArrayTest {
 
         final int MAGIC2 = 0xca;
         lib.ptr_set_int32_t(ref, 0, MAGIC2);
-        assertEquals("int reference not copied from native memory", MAGIC2, ref[0]);
+        assertEquals(MAGIC2, ref[0], "int reference not copied from native memory");
     }
 
     @Test

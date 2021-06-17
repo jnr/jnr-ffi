@@ -21,11 +21,12 @@ package jnr.ffi;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.annotations.Out;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -35,12 +36,8 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- * @author wayne
- */
 public class BufferTest {
 
     public BufferTest() {
@@ -79,22 +76,22 @@ public class BufferTest {
     }
     static TestLib lib;
     static Runtime runtime;
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         lib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(lib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
         lib = null;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     // SMALL sized heap buffers can be done using direct buffers
@@ -108,7 +105,7 @@ public class BufferTest {
         final byte MAGIC = (byte)0xED;
         lib.fillByteBuffer(buf, MAGIC, buf.remaining());
         for (int i=0;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -125,9 +122,9 @@ public class BufferTest {
         final byte MAGIC = (byte)0xED;
         buf.put((byte)0xDE);
         lib.fillByteBuffer(buf.slice(), MAGIC, SMALL - 1);
-        assertEquals("Value at position 0 overwritten", (byte)0xde, buf.get(0));
+        assertEquals((byte) 0xde, buf.get(0), "Value at position 0 overwritten");
         for (int i=buf.position();i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -141,11 +138,11 @@ public class BufferTest {
         dup.position(1).limit(buf.limit() - 1);
         ByteBuffer slice = dup.slice();
         lib.fillByteBuffer(slice, MAGIC, slice.capacity());
-        assertEquals("Value at position 0 overwritten", (byte)0xde, buf.get(0));
-        assertEquals("Value at position " + (SIZE - 1) + " overwritten", 
-                (byte)0xde, buf.get(SIZE - 1));
+        assertEquals((byte) 0xde, buf.get(0), "Value at position 0 overwritten");
+        assertEquals((byte) 0xde, buf.get(SIZE - 1),
+                "Value at position " + (SIZE - 1) + " overwritten");
         for (int i = 1; i < buf.capacity() - 1; i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
 
@@ -154,7 +151,7 @@ public class BufferTest {
         final short MAGIC = (short)0xABED;
         lib.fillShortBuffer(buf, MAGIC, size);
         for (int i=0;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     
@@ -173,9 +170,9 @@ public class BufferTest {
         final short MAGIC = (short)0xABED;
         buf.put((short)0xDEAD);
         lib.fillShortBuffer(buf.slice(), MAGIC, SMALL - 1);
-        assertEquals("Value at position 0 overwritten", (short)0xdead, buf.get(0));
+        assertEquals((short) 0xdead, buf.get(0), "Value at position 0 overwritten");
         for (int i=1;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -188,11 +185,11 @@ public class BufferTest {
         dup.position(1).limit(buf.limit() - 1);
         ShortBuffer slice = dup.slice();
         lib.fillShortBuffer(slice, FILL, slice.capacity());
-        assertEquals("Value at position 0 overwritten", GUARD, buf.get(0));
-        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten", 
-                GUARD, buf.get(buf.limit() - 1));
+        assertEquals(GUARD, buf.get(0), "Value at position 0 overwritten");
+        assertEquals(GUARD, buf.get(buf.limit() - 1),
+                "Value at position " + (buf.limit() - 1) + " overwritten");
         for (int i = 1; i < buf.limit() - 1; i++) {
-            assertEquals("Bad value at index " + i, FILL, buf.get(i));
+            assertEquals(FILL, buf.get(i), "Bad value at index " + i);
         }
     }
     public void testIntBufferArgument(int size) {        
@@ -200,7 +197,7 @@ public class BufferTest {
         final int MAGIC = 0xABEDCF23;
         lib.fillIntBuffer(buf, MAGIC, size);
         for (int i=0;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -217,11 +214,12 @@ public class BufferTest {
         final int MAGIC = 0xABEDCF23;
         buf.put(0xdeadbeef);
         lib.fillIntBuffer(buf.slice(), MAGIC, SMALL - 1);
-        assertEquals("Value at position 0 overwritten", 0xdeadbeef, buf.get(0));
-        for (int i=1;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+        assertEquals(0xdeadbeef, buf.get(0), "Value at position 0 overwritten");
+        for (int i = 1; i < buf.capacity(); i++) {
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
+
     @Test
     public void fillIntBufferSlice() {        
         IntBuffer buf = IntBuffer.allocate(SMALL);
@@ -232,11 +230,11 @@ public class BufferTest {
         dup.position(1).limit(buf.limit() - 1);
         IntBuffer slice = dup.slice();
         lib.fillIntBuffer(slice, FILL, slice.capacity());
-        assertEquals("Value at position 0 overwritten", GUARD, buf.get(0));
-        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten", 
-                GUARD, buf.get(buf.limit() - 1));
+        assertEquals(GUARD, buf.get(0), "Value at position 0 overwritten");
+        assertEquals(GUARD, buf.get(buf.limit() - 1),
+                "Value at position " + (buf.limit() - 1) + " overwritten");
         for (int i = 1; i < buf.limit() - 1; i++) {
-            assertEquals("Bad value at index " + i, FILL, buf.get(i));
+            assertEquals(FILL, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -245,7 +243,7 @@ public class BufferTest {
         final long MAGIC = 0x1234567887654321L;
         lib.fillLongBuffer(buf, MAGIC, SMALL);
         for (int i=0;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -254,9 +252,9 @@ public class BufferTest {
         final long MAGIC = 0x1234567887654321L;
         buf.put(0xdeadbeefL);
         lib.fillLongBuffer(buf.slice(), MAGIC, SMALL - 1);
-        assertEquals("Value at position 0 overwritten", 0xdeadbeefL, buf.get(0));
+        assertEquals(0xdeadbeefL, buf.get(0), "Value at position 0 overwritten");
         for (int i=1;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -269,11 +267,11 @@ public class BufferTest {
         dup.position(1).limit(buf.limit() - 1);
         LongBuffer slice = dup.slice();
         lib.fillLongBuffer(dup.slice(), FILL, slice.capacity());
-        assertEquals("Value at position 0 overwritten", GUARD, buf.get(0));
-        assertEquals("Value at position " + (buf.limit() - 1) + " overwritten", 
-                GUARD, buf.get(buf.limit() - 1));
+        assertEquals(GUARD, buf.get(0), "Value at position 0 overwritten");
+        assertEquals(GUARD, buf.get(buf.limit() - 1),
+                "Value at position " + (buf.limit() - 1) + " overwritten");
         for (int i = 1; i < buf.limit() - 1; i++) {
-            assertEquals("Bad value at index " + i, FILL, buf.get(i));
+            assertEquals(FILL, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -282,7 +280,7 @@ public class BufferTest {
         final byte MAGIC = (byte)0xED;
         lib.fillByteBuffer(buf, MAGIC, SMALL);
         for (int i=0;i < buf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, buf.get(i));
+            assertEquals(MAGIC, buf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -292,7 +290,7 @@ public class BufferTest {
         final short MAGIC = (short)0xABED;
         lib.fillShortBuffer(shortBuf, MAGIC, SMALL);
         for (int i=0;i < shortBuf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, shortBuf.get(i));
+            assertEquals(MAGIC, shortBuf.get(i), "Bad value at index " + i);
         }
     }
 
@@ -304,9 +302,9 @@ public class BufferTest {
         ShortBuffer sliced = buf.slice().asShortBuffer();
         final short MAGIC = (short)0xABED;
         lib.fillShortBuffer(sliced, MAGIC, SMALL - 1);
-        assertEquals("Bad value at index " + 0, 0, shortBuf.get(0));
+        assertEquals(0, shortBuf.get(0), "Bad value at index " + 0);
         for (int i=1; i < shortBuf.capacity() - 1; i++) {
-            assertEquals("Bad value at index " + i, MAGIC, shortBuf.get(i));
+            assertEquals(MAGIC, shortBuf.get(i), "Bad value at index " + i);
         }
     }
 
@@ -318,9 +316,9 @@ public class BufferTest {
         Buffer sliced = buf.slice().asShortBuffer();
         final short MAGIC = (short)0xABED;
         lib.fillShortBuffer(sliced, MAGIC, SMALL - 1);
-        assertEquals("Bad value at index " + 0, 0, shortBuf.get(0));
+        assertEquals(0, shortBuf.get(0), "Bad value at index " + 0);
         for (int i=1; i < shortBuf.capacity() - 1; i++) {
-            assertEquals("Bad value at index " + i, MAGIC, shortBuf.get(i));
+            assertEquals(MAGIC, shortBuf.get(i), "Bad value at index " + i);
         }
     }
 
@@ -331,7 +329,7 @@ public class BufferTest {
         final int MAGIC = 0xABEDCF23;
         lib.fillIntBuffer(intBuf, MAGIC, SMALL);
         for (int i=0;i < intBuf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, intBuf.get(i));
+            assertEquals(MAGIC, intBuf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -341,7 +339,7 @@ public class BufferTest {
         final long MAGIC = 0x1234567887654321L;
         lib.fillLongBuffer(longBuf, MAGIC, SMALL);
         for (int i=0;i < longBuf.capacity();i++) {
-            assertEquals("Bad value at index " + i, MAGIC, longBuf.get(i));
+            assertEquals(MAGIC, longBuf.get(i), "Bad value at index " + i);
         }
     }
     @Test
@@ -368,7 +366,7 @@ public class BufferTest {
         byte[] dst = new byte[size];
         lib.copyByteBuffer(dst, src, size);
         for (int i = 0; i < size; ++i) {
-            assertEquals("Bad value at index " + i, (byte) i, dst[i]);
+            assertEquals((byte) i, dst[i], "Bad value at index " + i);
         }
     }
     // FIXME: re-enable when read-only buffers are supported
@@ -382,7 +380,7 @@ public class BufferTest {
         byte[] dst = new byte[size];
         lib.copyByteBuffer(dst, src.asReadOnlyBuffer(), size);
         for (int i = 0; i < size; ++i) {
-            assertEquals("Bad value at index " + i, (byte) i, dst[i]);
+            assertEquals((byte) i, dst[i], "Bad value at index " + i);
         }
     }
 //    @Test
@@ -423,7 +421,7 @@ public class BufferTest {
             int position = buffer.position();
             byte expected = position < startAt ? 0 : fillWith;
             byte actual = buffer.get();
-            assertEquals("Value at position " + position + " should be " + expected, expected, actual);
+            assertEquals(expected, actual, "Value at position " + position + " should be " + expected);
         }
     }
 }

@@ -29,19 +29,16 @@ import jnr.ffi.TypeAlias;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.types.size_t;
 import jnr.ffi.types.ssize_t;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static jnr.ffi.TypeAlias.ssize_t;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- *
- */
 public class StructureTest {
 
     public StructureTest() {
@@ -66,22 +63,22 @@ public class StructureTest {
     static TestLib testlib;
     static Runtime runtime;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
     
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     public static class struct1 extends Struct {
@@ -146,14 +143,14 @@ public class StructureTest {
 
     @Test public void testInt8InitialValue() {
         struct1 s = new struct1(runtime);
-        assertEquals("default value not zero", (byte) 0, s.b.get());
+        assertEquals((byte) 0, s.b.get(), "default value not zero");
     }
 
     @Test public void testInt8Set() {
         struct1 s = new struct1(runtime);
         final byte MAGIC = (byte) 0xfe;
         s.b.set(MAGIC);
-        assertEquals("Byte value not set correctly", MAGIC, s.b.get());
+        assertEquals(MAGIC, s.b.get(), "Byte value not set correctly");
     }
 
     @Test
@@ -161,10 +158,10 @@ public class StructureTest {
         final byte MAGIC = (byte) 0xbe;
         struct1 s = new struct1(runtime);
         s.b.set(MAGIC);
-        
-        assertEquals("byte field not set", MAGIC, testlib.struct_field_Signed8(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed8(s), "byte field not set");
         s.b.set((byte) 0);
-        assertEquals("byte field not cleared", (byte) 0, testlib.struct_field_Signed8(s));
+        assertEquals((byte) 0, testlib.struct_field_Signed8(s), "byte field not cleared");
     }
 
     @Test
@@ -172,10 +169,10 @@ public class StructureTest {
         final short MAGIC = (short) 0xbeef;
         struct1 s = new struct1(runtime);
         s.s.set(MAGIC);
-        
-        assertEquals("short field not set", MAGIC, testlib.struct_field_Signed16(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed16(s), "short field not set");
         s.s.set((short) 0);
-        assertEquals("short field not cleared", (short) 0, testlib.struct_field_Signed16(s));
+        assertEquals((short) 0, testlib.struct_field_Signed16(s), "short field not cleared");
     }
 
     @Test
@@ -183,52 +180,52 @@ public class StructureTest {
         final int MAGIC = 0xdeadbeef;
         struct1 s = new struct1(runtime);
         s.i.set(MAGIC);
-        
-        assertEquals("int field not set", MAGIC, testlib.struct_field_Signed32(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed32(s), "int field not set");
         s.i.set(0);
-        assertEquals("int field not cleared", 0, testlib.struct_field_Signed32(s));
+        assertEquals(0, testlib.struct_field_Signed32(s), "int field not cleared");
     }
     @Test 
     public void int64Field() {
         final long MAGIC = 0x1234deadbeef5678L;
         struct1 s = new struct1(runtime);
         s.i64.set(MAGIC);
-        
-        assertEquals("long field not set", MAGIC, testlib.struct_field_Signed64(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed64(s), "long field not set");
         s.i64.set(0);
-        assertEquals("long field not cleared", 0L, testlib.struct_field_Signed64(s));
+        assertEquals(0L, testlib.struct_field_Signed64(s), "long field not cleared");
     }
     @Test 
     public void alignInt16Field() {
         final short MAGIC = (short) 0xbeef;
         Int16Align s = new Int16Align(runtime);
         s.s.set(MAGIC);
-        
-        assertEquals("short field not aligned", MAGIC, testlib.struct_align_Signed16(s));
+
+        assertEquals(MAGIC, testlib.struct_align_Signed16(s), "short field not aligned");
     }
     @Test 
     public void alignSigned32Field() {
         final int MAGIC = (int) 0xdeadbeef;
         Int32Align s = new Int32Align(runtime);
         s.i.set(MAGIC);
-        
-        assertEquals("int field not aligned", MAGIC, testlib.struct_align_Signed32(s));
+
+        assertEquals(MAGIC, testlib.struct_align_Signed32(s), "int field not aligned");
     }
     @Test 
     public void alignSigned64Field() {
         final long MAGIC = 0x1234deadbeef5678L;
         Int64Align s = new Int64Align(runtime);
         s.l.set(MAGIC);
-        
-        assertEquals("long field not aligned", MAGIC, testlib.struct_align_Signed64(s));
+
+        assertEquals(MAGIC, testlib.struct_align_Signed64(s), "long field not aligned");
     }
     @Test 
     public void alignSignedLongField() {
         final NativeLong MAGIC = new NativeLong(0xdeadbeef);
         LongAlign s = new LongAlign(runtime);
         s.l.set(MAGIC);
-        
-        assertEquals("native long field not aligned", MAGIC, testlib.struct_align_SignedLong(s));
+
+        assertEquals(MAGIC, testlib.struct_align_SignedLong(s), "native long field not aligned");
     }
     @Test
     public void returnStructAddress() throws Throwable {
@@ -239,13 +236,13 @@ public class StructureTest {
         final float F = (float) 0x55555555;
         final double D = (double) 0x6666666666666666L;
         struct1 s = testlib.struct_make_struct(B, S, I, L, F, D);
-        assertEquals("Incorrect byte value in struct", B, s.b.get());
-        assertEquals("Incorrect short value in struct", S, s.s.get());
-        assertEquals("Incorrect int value in struct", I, s.i.get());
-        assertEquals("Incorrect int64 value in struct", L, s.i64.get());
-        assertEquals("Incorrect float value in struct", F, s.f.get(), 0.0001);
-        assertEquals("Incorrect double value in struct", D, s.d.get(), 0.0001);
-        
+        assertEquals(B, s.b.get(), "Incorrect byte value in struct");
+        assertEquals(S, s.s.get(), "Incorrect short value in struct");
+        assertEquals(I, s.i.get(), "Incorrect int value in struct");
+        assertEquals(L, s.i64.get(), "Incorrect int64 value in struct");
+        assertEquals(F, s.f.get(), 0.0001, "Incorrect float value in struct");
+        assertEquals(D, s.d.get(), 0.0001, "Incorrect double value in struct");
+
     }
     private static final class ArrayTest extends Struct {
         public final Signed8[] byteArray = array(new Signed8[8]);
@@ -258,9 +255,9 @@ public class StructureTest {
     @Test
     public void arrayMember() {
         ArrayTest s = new ArrayTest();
-        assertEquals("First element not at correct offset", 0L, s.byteArray[0].offset());
-        assertEquals("Second element not at correct offset", 1L, s.byteArray[1].offset());
-        assertEquals("Last element not at correct offset", 7L, s.byteArray[7].offset());
+        assertEquals(0L, s.byteArray[0].offset(), "First element not at correct offset");
+        assertEquals(1L, s.byteArray[1].offset(), "Second element not at correct offset");
+        assertEquals(7L, s.byteArray[7].offset(), "Last element not at correct offset");
     }
     private static final class Unsigned8Test extends Struct {
         public final Unsigned8 u8 = new Unsigned8();
@@ -278,9 +275,9 @@ public class StructureTest {
         struct1 s = new struct1(runtime);
         s.i.set(12);
         structWithStructRef.mStructRef.set(s);
-        assertEquals("Struct field not equals", s.i.get(), structWithStructRef.mStructRef.get().i.get());
+        assertEquals(s.i.get(), structWithStructRef.mStructRef.get().i.get(), "Struct field not equals");
         structWithStructRef.mStructRef.set(new struct1[]{s});
-        assertEquals("Struct field not equals", s.i.get(), structWithStructRef.mStructRef.get(1)[0].i.get());
+        assertEquals(s.i.get(), structWithStructRef.mStructRef.get(1)[0].i.get(), "Struct field not equals");
     }
 
     @Test
@@ -288,7 +285,7 @@ public class StructureTest {
         Unsigned8Test s = new Unsigned8Test();
         final short MAGIC = (short) Byte.MAX_VALUE + 1;
         s.u8.set(MAGIC);
-        assertEquals("Incorrect unsigned byte value", MAGIC, s.u8.shortValue());
+        assertEquals(MAGIC, s.u8.shortValue(), "Incorrect unsigned byte value");
     }
     private static final class Unsigned16Test extends Struct {
         public final Unsigned16 u16 = new Unsigned16();
@@ -303,7 +300,7 @@ public class StructureTest {
         Unsigned16Test s = new Unsigned16Test();
         final int MAGIC = (int) Short.MAX_VALUE + 1;
         s.u16.set(MAGIC);
-        assertEquals("Incorrect unsigned short value", MAGIC, s.u16.intValue());
+        assertEquals(MAGIC, s.u16.intValue(), "Incorrect unsigned short value");
     }
     private static final class Unsigned32Test extends Struct {
         public final Unsigned32 u32 = new Unsigned32();
@@ -318,7 +315,7 @@ public class StructureTest {
         Unsigned32Test s = new Unsigned32Test();
         final long MAGIC = (long) Integer.MAX_VALUE + 1;
         s.u32.set(MAGIC);
-        assertEquals("Incorrect unsigned int value", MAGIC, s.u32.longValue());
+        assertEquals(MAGIC, s.u32.longValue(), "Incorrect unsigned int value");
     }
     
     private static final class Unsigned64Test extends Struct {
@@ -334,10 +331,10 @@ public class StructureTest {
         Unsigned64Test s = new Unsigned64Test();
         final long MAGIC = Long.MAX_VALUE;
         s.u64.set(MAGIC);
-        assertEquals("Incorrect unsigned long long value", MAGIC, s.u64.longValue());
+        assertEquals(MAGIC, s.u64.longValue(), "Incorrect unsigned long long value");
         // Just make sure that an Unsigned64 doesn't do anything weird with negative values
         s.u64.set(Long.MIN_VALUE);
-        assertEquals("Incorrect unsigned long long value", Long.MIN_VALUE, s.u64.longValue());
+        assertEquals(Long.MIN_VALUE, s.u64.longValue(), "Incorrect unsigned long long value");
     }
     
     private static final class UnsignedLongTest extends Struct {
@@ -353,7 +350,7 @@ public class StructureTest {
         UnsignedLongTest s = new UnsignedLongTest();
         final long MAGIC = (long) Integer.MAX_VALUE;
         s.ul.set(MAGIC);
-        assertEquals("Incorrect unsigned long value", MAGIC, s.ul.longValue());
+        assertEquals(MAGIC, s.ul.longValue(), "Incorrect unsigned long value");
     }
 
     private class InnerStruct extends Struct {
@@ -389,7 +386,7 @@ public class StructureTest {
         Pointer io = Struct.getMemory(t);
         io.putInt(0, 0xdeadbeef);
         io.putByte(4, (byte) 0x12);
-        assertEquals("incorrect inner struct field value", (byte) 0x12, t.s.s8.get());
+        assertEquals((byte) 0x12, t.s.s8.get(), "incorrect inner struct field value");
     }
 
     @Test public void doubleInnerStruct() {
@@ -414,8 +411,8 @@ public class StructureTest {
         Pointer p = Memory.allocate(s.getRuntime(), NativeType.UCHAR);
         p.putByte(0, (byte) 0xff);
         s.pointer.set(p);
-        assertNotNull("Abstract pointer was not copied", s.pointer.get());
-        assertEquals("Abstract pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+        assertNotNull(s.pointer.get(), "Abstract pointer was not copied");
+        assertEquals(p.getByte(0), s.pointer.get().getByte(0), "Abstract pointer value does not match");
     }
 
     @Test
@@ -424,8 +421,8 @@ public class StructureTest {
         Pointer p = Memory.allocateTemporary(s.getRuntime(), NativeType.UCHAR);
         p.putByte(0, (byte) 0xff);
         s.pointer.set(p);
-        assertNotNull("Temp pointer was not copied", s.pointer.get());
-        assertEquals("Temp pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+        assertNotNull(s.pointer.get(), "Temp pointer was not copied");
+        assertEquals(p.getByte(0), s.pointer.get().getByte(0), "Temp pointer value does not match");
     }
 
     @Test
@@ -434,8 +431,8 @@ public class StructureTest {
         Pointer p = Memory.allocateDirect(s.getRuntime(), NativeType.UCHAR);
         p.putByte(0, (byte) 0xff);
         s.pointer.set(p);
-        assertNotNull("Direct pointer was not copied", s.pointer.get());
-        assertEquals("Direct pointer value does not match", p.getByte(0), s.pointer.get().getByte(0));
+        assertNotNull(s.pointer.get(), "Direct pointer was not copied");
+        assertEquals(p.getByte(0), s.pointer.get().getByte(0), "Direct pointer value does not match");
     }
 
     private class TypeTest extends Struct {

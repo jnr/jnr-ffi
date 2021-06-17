@@ -23,36 +23,32 @@ import jnr.ffi.Address;
 import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-/**
- *
- * @author wayne
- */
 public class AddressByReferenceTest {
     public AddressByReferenceTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     public static interface TestLib {
@@ -72,7 +68,7 @@ public class AddressByReferenceTest {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final Address MAGIC = Address.valueOf(0xdeadbeef);
         AddressByReference ref = new AddressByReference(MAGIC);
-        assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_pointer(ref, 0));
+        assertEquals(MAGIC, lib.ptr_ret_pointer(ref, 0), "Wrong value passed");
     }
 
     @Test public void inOnlyIntReferenceNotWritten() {
@@ -80,14 +76,14 @@ public class AddressByReferenceTest {
         final Address MAGIC = Address.valueOf(0xdeadbeefL);
         AddressByReference ref = new AddressByReference(MAGIC);
         lib.ptr_set_pointer(ref, 0, Address.valueOf(0));
-        assertEquals("Int reference written when it should not be", MAGIC, ref.getValue());
+        assertEquals(MAGIC, ref.getValue(), "Int reference written when it should not be");
     }
 
     @Test public void outOnlyIntReferenceNotRead() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final Address MAGIC = Address.valueOf(0xdeadbeef);
         AddressByReference ref = new AddressByReference(MAGIC);
-        assertTrue("Reference value passed to native code when it should not be", !MAGIC.equals(lib.ptr_ret_pointer(ref, 0)));
+        assertNotEquals(MAGIC, lib.ptr_ret_pointer(ref, 0), "Reference value passed to native code when it should not be");
     }
 
     @Test public void outOnlyIntReferenceGet() {
@@ -95,6 +91,6 @@ public class AddressByReferenceTest {
         final Address MAGIC = Address.valueOf(0xdeadbeef);
         AddressByReference ref = new AddressByReference(Address.valueOf(0));
         lib.ptr_set_pointer(ref, 0, MAGIC);
-        assertEquals("Reference value not set", MAGIC, ref.getValue());
+        assertEquals(MAGIC, ref.getValue(), "Reference value not set");
     }
 }

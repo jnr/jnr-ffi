@@ -23,18 +23,14 @@ import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
 import jnr.ffi.TstUtil;
 import jnr.ffi.util.EnumMapper;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- * @author wayne
- */
 public class EnumTest {
 
     public EnumTest() {
@@ -73,23 +69,22 @@ public class EnumTest {
     }
     static TestLib testlib;
     static Runtime runtime;
-    
-    @BeforeClass
+
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
-    
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -135,84 +130,84 @@ public class EnumTest {
     }
     @Test public void testInt8InitialValue() {
         struct1 s = new struct1();
-        assertEquals("default value not zero", TestEnum.ZERO, s.b.get());
+        assertEquals(TestEnum.ZERO, s.b.get(), "default value not zero");
     }
     @Test public void testInt8Set() {
         struct1 s = new struct1();
         final TestEnum MAGIC = TestEnum.MAGIC;
         s.b.set(MAGIC);
-        assertEquals("Byte value not set correctly", MAGIC, s.b.get());
+        assertEquals(MAGIC, s.b.get(), "Byte value not set correctly");
     }
     @Test 
     public void byteField() {
         final byte MAGIC = (byte) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.b.set(TestEnum.MAGIC);
-        
-        assertEquals("byte field not set", MAGIC, testlib.struct_field_Signed8(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed8(s), "byte field not set");
         s.b.set(TestEnum.ZERO);
-        assertEquals("byte field not cleared", (byte) 0, testlib.struct_field_Signed8(s));
+        assertEquals((byte) 0, testlib.struct_field_Signed8(s), "byte field not cleared");
     }
     @Test 
     public void shortField() {
         final short MAGIC = (short) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.s.set(TestEnum.MAGIC);
-        
-        assertEquals("short field not set", MAGIC, testlib.struct_field_Signed16(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed16(s), "short field not set");
         s.s.set(TestEnum.ZERO);
-        assertEquals("short field not cleared", (short) 0, testlib.struct_field_Signed16(s));
+        assertEquals((short) 0, testlib.struct_field_Signed16(s), "short field not cleared");
     }
     @Test 
     public void intField() {
         final int MAGIC = EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.i.set(TestEnum.MAGIC);
-        
-        assertEquals("int field not set", MAGIC, testlib.struct_field_Signed32(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed32(s), "int field not set");
         s.i.set(TestEnum.ZERO);
-        assertEquals("int field not cleared", 0, testlib.struct_field_Signed32(s));
+        assertEquals(0, testlib.struct_field_Signed32(s), "int field not cleared");
     }
     @Test 
     public void int64Field() {
         final long MAGIC = EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         struct1 s = new struct1();
         s.i64.set(TestEnum.MAGIC);
-        
-        assertEquals("long field not set", MAGIC, testlib.struct_field_Signed64(s));
+
+        assertEquals(MAGIC, testlib.struct_field_Signed64(s), "long field not set");
         s.i64.set(TestEnum.ZERO);
-        assertEquals("long field not cleared", 0L, testlib.struct_field_Signed64(s));
+        assertEquals(0L, testlib.struct_field_Signed64(s), "long field not cleared");
     }
     @Test 
     public void alignInt16Field() {
         final short MAGIC = (short) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         Int16Align s = new Int16Align();
         s.s.set(TestEnum.MAGIC);
-        
-        assertEquals("short field not aligned", MAGIC, testlib.struct_align_Signed16(s));
+
+        assertEquals(MAGIC, testlib.struct_align_Signed16(s), "short field not aligned");
     }
     @Test 
     public void alignSigned32Field() {
         final int MAGIC = (int) EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         Int32Align s = new Int32Align();
         s.i.set(TestEnum.MAGIC);
-        
-        assertEquals("int field not aligned", MAGIC, testlib.struct_align_Signed32(s));
+
+        assertEquals(MAGIC, testlib.struct_align_Signed32(s), "int field not aligned");
     }
     @Test 
     public void alignSigned64Field() {
         final long MAGIC = EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC);
         Int64Align s = new Int64Align();
         s.l.set(TestEnum.MAGIC);
-        
-        assertEquals("long field not aligned", MAGIC, testlib.struct_align_Signed64(s));
+
+        assertEquals(MAGIC, testlib.struct_align_Signed64(s), "long field not aligned");
     }
     @Test 
     public void alignSignedLongField() {
         final NativeLong MAGIC = new NativeLong(EnumMapper.getInstance(TestEnum.class).intValue(TestEnum.MAGIC));
         LongAlign s = new LongAlign();
         s.l.set(TestEnum.MAGIC);
-        
-        assertEquals("native long field not aligned", MAGIC, testlib.struct_align_SignedLong(s));
+
+        assertEquals(MAGIC, testlib.struct_align_SignedLong(s), "native long field not aligned");
     }
 }
