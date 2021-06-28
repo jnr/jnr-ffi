@@ -18,18 +18,6 @@
 
 package jnr.ffi;
 
-import jnr.ffi.mapper.CompositeFunctionMapper;
-import jnr.ffi.mapper.CompositeTypeMapper;
-import jnr.ffi.mapper.DataConverter;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.FunctionMapper;
-import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.SignatureTypeMapperAdapter;
-import jnr.ffi.mapper.ToNativeConverter;
-import jnr.ffi.mapper.TypeMapper;
-import jnr.ffi.provider.FFIProvider;
-import jnr.ffi.provider.LoadedLibrary;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -45,6 +33,18 @@ import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+
+import jnr.ffi.mapper.CompositeFunctionMapper;
+import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.DataConverter;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.FunctionMapper;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.SignatureTypeMapperAdapter;
+import jnr.ffi.mapper.ToNativeConverter;
+import jnr.ffi.mapper.TypeMapper;
+import jnr.ffi.provider.FFIProvider;
+import jnr.ffi.provider.LoadedLibrary;
 
 /**
  * Loads a native library and maps it to a java interface.
@@ -165,8 +165,10 @@ public abstract class LibraryLoader<T> {
             }
         }
 
-        for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
-            loader.option(option.getKey(), option.getValue());
+        if (libraryOptions != null) {
+            for (Map.Entry<LibraryOption, ?> option : libraryOptions.entrySet()) {
+                loader.option(option.getKey(), option.getValue());
+            }
         }
 
         return loader.failImmediately().load();
@@ -474,8 +476,12 @@ public abstract class LibraryLoader<T> {
                 in = new BufferedReader(new FileReader(file));
                 String line = in.readLine();
                 while (line != null) {
-                    // add even if doesn't exist! We're just adding the default paths, we check for validity elsewhere
-                    paths.add(line);
+                    // ignore empties, comments and include directives
+                    if (!line.trim().isEmpty()
+                            && !line.startsWith("#") && !line.startsWith("include ")) {
+                        // add even if doesn't exist! We're just adding the default paths, we check for validity elsewhere
+                        paths.add(line);
+                    }
                     line = in.readLine();
                 }
             }

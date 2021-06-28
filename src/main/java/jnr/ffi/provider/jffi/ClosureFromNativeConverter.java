@@ -19,6 +19,16 @@
 package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.CallContext;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+
+import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicLong;
+
 import jnr.ffi.CallingConvention;
 import jnr.ffi.Pointer;
 import jnr.ffi.annotations.StdCall;
@@ -31,14 +41,6 @@ import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.provider.InAccessibleMemoryIO;
 import jnr.ffi.provider.ParameterType;
 import jnr.ffi.provider.ResultType;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-
-import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static jnr.ffi.provider.jffi.ClosureUtil.getDelegateMethod;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -49,7 +51,7 @@ import static jnr.ffi.provider.jffi.InvokerUtil.getParameterTypes;
 import static jnr.ffi.provider.jffi.InvokerUtil.getResultType;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.V1_6;
+import static org.objectweb.asm.Opcodes.V1_8;
 
 /**
  *
@@ -111,8 +113,8 @@ abstract public class ClosureFromNativeConverter implements FromNativeConverter<
         final String className = p(closureClass) + "$jnr$fromNativeConverter$" + nextClassID.getAndIncrement();
         AsmBuilder builder = new AsmBuilder(runtime, className, cv, classLoader);
 
-        cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractClosurePointer.class),
-                new String[] { p(closureClass) } );
+        cv.visit(V1_8, ACC_PUBLIC | ACC_FINAL, className, null, p(AbstractClosurePointer.class),
+                new String[]{p(closureClass)});
 
         cv.visitAnnotation(ci(FromNativeConverter.NoContext.class), true);
 

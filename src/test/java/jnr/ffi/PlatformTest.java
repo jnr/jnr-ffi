@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -16,6 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PlatformTest {
+
+    private static final Platform.Linux LINUX = new Platform.Linux();
+    private static final List<String> DEFAULT_LIB_PATHS = LibraryLoader.DefaultLibPaths.PATHS;
     private File tmpDir;
 
     @BeforeEach
@@ -60,19 +65,25 @@ public class PlatformTest {
         throw new IOException("Could not create temp dir");
     }
 
+    private void mkLib(String mappedLibName, String version) throws IOException {
+        String name = versionedLibName(mappedLibName, version);
+        File file = new File(tmpDir, name);
+        if (!file.createNewFile())
+            throw new IOException("Could not create file " + name);
+    }
+
     private void testVersionComparison(String expected, String... versions) throws Exception {
         Platform.Linux linux = new Platform.Linux();
         String libName = "test";
         String mappedLibName = "lib" + libName + ".so";
         for (String version : versions) {
-            String name = versionedLibName(mappedLibName, version);
-            if (!new File(tmpDir, name).createNewFile()) {
-                throw new IOException("Could not create file " + name);
-            }
+            mkLib(mappedLibName, version);
         }
 
         String locatedLibrary = linux.locateLibrary(libName, Collections.singletonList(tmpDir.getAbsolutePath()));
         assertEquals(new File(tmpDir, versionedLibName(mappedLibName, expected)).getAbsolutePath(), locatedLibrary);
+        String locatedLibrary = LINUX.locateLibrary(libName, Collections.singletonList(tmpDir.getAbsolutePath()));
+        Assert.assertEquals(new File(tmpDir, versionedLibName(mappedLibName, expected)).getAbsolutePath(), locatedLibrary);
     }
 
     private String versionedLibName(String mappedLibName, String version) {
@@ -146,4 +157,117 @@ public class PlatformTest {
     public static interface TestLibIncorrect {
         int incorrectFunctionShouldNotBeFound(int error);
     }
+
+    private List<String> libPaths() {
+        ArrayList<String> libPaths = new ArrayList<>();
+        libPaths.add(tmpDir.getAbsolutePath()); // custom first because this how we do it in LibraryLoader
+        libPaths.addAll(DEFAULT_LIB_PATHS);
+        return libPaths;
+    }
+
+    // No preference but custom and system have same version so first found wins which is always custom
+    @Test
+    public void testDefaultLocateLibrarySameVersions() throws IOException {
+        mkLib("libc.so", "6");
+        List<String> libPaths = libPaths();
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, null);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is in tmpDir, ie our custom won because it had same version
+        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+    }
+
+    // No preference but custom has lower version so system wins
+    @Test
+    public void testDefaultLocateLibraryLowerCustomVersion() throws IOException {
+        mkLib("libc.so", "4");
+        List<String> libPaths = libPaths();
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, null);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is not in tmpDir, ie system won
+        Assert.assertNotEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+    }
+
+    // No preference but custom has no version so system wins
+    @Test
+    public void testDefaultLocateLibraryNoCustomVersion() throws IOException {
+        mkLib("libc.so", "");
+        List<String> libPaths = libPaths();
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, null);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is not in tmpDir, ie system won
+        Assert.assertNotEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+    }
+
+    // No preference but custom has higher version so custom wins
+    @Test
+    public void testDefaultLocateLibraryHigherCustomVersion() throws IOException {
+        mkLib("libc.so", "9");
+        List<String> libPaths = libPaths();
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, null);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is in tmpDir, ie our custom won because it had same version
+        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+    }
+
+    // Prefer custom but custom has no version so custom wins
+    @Test
+    public void testPreferCustomLocateLibraryNoVersion() throws IOException {
+        mkLib("libc.so", "");
+        List<String> libPaths = libPaths();
+
+        Map<LibraryOption, Object> options = Collections.singletonMap(LibraryOption.PreferCustomPaths, true);
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, options);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is in tmpDir, ie our custom won because prefer custom is true
+        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+    }
+
+    // Prefer custom but custom has no version so custom wins
+    @Test
+    public void testPreferCustomLocateLibraryLowerVersion() throws IOException {
+        mkLib("libc.so", "2");
+        List<String> libPaths = libPaths();
+
+        Map<LibraryOption, Object> options = Collections.singletonMap(LibraryOption.PreferCustomPaths, true);
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, options);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is in tmpDir, ie our custom won because prefer custom is true
+        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+    }
+
+    // Prefer custom but custom is actually a default path so that custom wins
+    @Test
+    public void testPreferCustomLocateLibrarySystemPath() {
+        List<String> libCLocations = LINUX.libraryLocations("c", null);
+        Assume.assumeTrue(LINUX.getCPU() == Platform.CPU.X86_64);
+        Assume.assumeTrue(libCLocations.size() > 2);
+
+        Map<LibraryOption, Object> options = Collections.singletonMap(LibraryOption.PreferCustomPaths, true);
+
+        String customSystemPath = "/usr/lib/x86_64-linux-gnu"; // force this location instead of /lib/x86_64-linux-gnu
+        Assert.assertTrue(LibraryLoader.DefaultLibPaths.PATHS.contains(customSystemPath));
+
+        ArrayList<String> libPaths = new ArrayList<>();
+        libPaths.add(customSystemPath); // custom paths are always first
+        libPaths.addAll(DEFAULT_LIB_PATHS);
+
+        String locatedPath = LINUX.locateLibrary("c", libPaths, options);
+        File locatedFile = new File(locatedPath);
+
+        // locatedFile is in customSystemPath, ie our custom won because prefer custom is true
+        Assert.assertEquals(customSystemPath, locatedFile.getParentFile().getAbsolutePath());
+    }
+
 }
