@@ -20,7 +20,14 @@ package jnr.ffi;
 
 import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.provider.FFIProvider;
+import jnr.ffi.provider.jffi.NativeLibrary;
+
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -173,5 +180,26 @@ public class LibraryLoaderTest {
 
         assertNotNull(dgp);
         assertTrue(dgp.getpid() > 0);
+    }
+
+    public static interface EmptyLib {
+    }
+
+    // Incorrect empty lib doesn't fail because of lazy loading
+    @Test
+    public void testLazyLoadedIncorrectLib() {
+        String libName = "should-not-find-me";
+        // because of lazy loading behavior, empty mappings don't load anything, so this doesn't fail
+        EmptyLib testLib = LibraryLoader.loadLibrary(EmptyLib.class, null, libName);
+        Assert.assertNotNull(testLib);
+    }
+
+    // Incorrect empty lib fails when we set LibraryOption.LoadNow
+    @Test(expected = UnsatisfiedLinkError.class)
+    public void testLoadNowIncorrectLib() {
+        String libName = "should-not-find-me";
+        Map<LibraryOption, Object> options = new HashMap<>();
+        options.put(LibraryOption.LoadNow, true);
+        EmptyLib testLib = LibraryLoader.loadLibrary(EmptyLib.class, options, libName); // fails because LoadNow
     }
 }
