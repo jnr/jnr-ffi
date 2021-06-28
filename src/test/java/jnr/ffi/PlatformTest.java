@@ -14,8 +14,10 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class PlatformTest {
 
@@ -73,17 +75,14 @@ public class PlatformTest {
     }
 
     private void testVersionComparison(String expected, String... versions) throws Exception {
-        Platform.Linux linux = new Platform.Linux();
         String libName = "test";
         String mappedLibName = "lib" + libName + ".so";
         for (String version : versions) {
             mkLib(mappedLibName, version);
         }
 
-        String locatedLibrary = linux.locateLibrary(libName, Collections.singletonList(tmpDir.getAbsolutePath()));
-        assertEquals(new File(tmpDir, versionedLibName(mappedLibName, expected)).getAbsolutePath(), locatedLibrary);
         String locatedLibrary = LINUX.locateLibrary(libName, Collections.singletonList(tmpDir.getAbsolutePath()));
-        Assert.assertEquals(new File(tmpDir, versionedLibName(mappedLibName, expected)).getAbsolutePath(), locatedLibrary);
+        assertEquals(new File(tmpDir, versionedLibName(mappedLibName, expected)).getAbsolutePath(), locatedLibrary);
     }
 
     private String versionedLibName(String mappedLibName, String version) {
@@ -175,7 +174,7 @@ public class PlatformTest {
         File locatedFile = new File(locatedPath);
 
         // locatedFile is in tmpDir, ie our custom won because it had same version
-        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+        assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
     }
 
     // No preference but custom has lower version so system wins
@@ -188,7 +187,7 @@ public class PlatformTest {
         File locatedFile = new File(locatedPath);
 
         // locatedFile is not in tmpDir, ie system won
-        Assert.assertNotEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+        assertNotEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
     }
 
     // No preference but custom has no version so system wins
@@ -201,7 +200,7 @@ public class PlatformTest {
         File locatedFile = new File(locatedPath);
 
         // locatedFile is not in tmpDir, ie system won
-        Assert.assertNotEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+        assertNotEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
     }
 
     // No preference but custom has higher version so custom wins
@@ -214,7 +213,7 @@ public class PlatformTest {
         File locatedFile = new File(locatedPath);
 
         // locatedFile is in tmpDir, ie our custom won because it had same version
-        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+        assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
     }
 
     // Prefer custom but custom has no version so custom wins
@@ -229,7 +228,7 @@ public class PlatformTest {
         File locatedFile = new File(locatedPath);
 
         // locatedFile is in tmpDir, ie our custom won because prefer custom is true
-        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+        assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
     }
 
     // Prefer custom but custom has no version so custom wins
@@ -244,20 +243,20 @@ public class PlatformTest {
         File locatedFile = new File(locatedPath);
 
         // locatedFile is in tmpDir, ie our custom won because prefer custom is true
-        Assert.assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
+        assertEquals(tmpDir.getAbsolutePath(), locatedFile.getParentFile().getAbsolutePath());
     }
 
     // Prefer custom but custom is actually a default path so that custom wins
     @Test
     public void testPreferCustomLocateLibrarySystemPath() {
         List<String> libCLocations = LINUX.libraryLocations("c", null);
-        Assume.assumeTrue(LINUX.getCPU() == Platform.CPU.X86_64);
-        Assume.assumeTrue(libCLocations.size() > 2);
+        assumeTrue(LINUX.getCPU() == Platform.CPU.X86_64);
+        assumeTrue(libCLocations.size() > 2);
 
         Map<LibraryOption, Object> options = Collections.singletonMap(LibraryOption.PreferCustomPaths, true);
 
         String customSystemPath = "/usr/lib/x86_64-linux-gnu"; // force this location instead of /lib/x86_64-linux-gnu
-        Assert.assertTrue(LibraryLoader.DefaultLibPaths.PATHS.contains(customSystemPath));
+        assertTrue(LibraryLoader.DefaultLibPaths.PATHS.contains(customSystemPath));
 
         ArrayList<String> libPaths = new ArrayList<>();
         libPaths.add(customSystemPath); // custom paths are always first
@@ -267,7 +266,7 @@ public class PlatformTest {
         File locatedFile = new File(locatedPath);
 
         // locatedFile is in customSystemPath, ie our custom won because prefer custom is true
-        Assert.assertEquals(customSystemPath, locatedFile.getParentFile().getAbsolutePath());
+        assertEquals(customSystemPath, locatedFile.getParentFile().getAbsolutePath());
     }
 
 }

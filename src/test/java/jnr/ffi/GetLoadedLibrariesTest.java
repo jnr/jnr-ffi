@@ -1,11 +1,16 @@
 package jnr.ffi;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import jnr.ffi.provider.jffi.NativeLibrary;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests {@link Runtime#getLoadedLibraries()}
@@ -18,10 +23,10 @@ public class GetLoadedLibrariesTest {
     @Test
     public void testLoadedLibraryCorrect() {
         TestLib testLib = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
-        Assert.assertNotNull(testLib);
+        assertNotNull(testLib);
         List<NativeLibrary.LoadedLibraryData> loadedLibraries = Runtime.getLoadedLibraries();
-        Assert.assertFalse(loadedLibraries.isEmpty());
-        Assert.assertTrue(loadedLibraries.stream().anyMatch((NativeLibrary.LoadedLibraryData libData) ->
+        assertFalse(loadedLibraries.isEmpty());
+        assertTrue(loadedLibraries.stream().anyMatch((NativeLibrary.LoadedLibraryData libData) ->
                 libData.getLibraryNames().contains(LIB_NAME)
         ));
 
@@ -30,9 +35,9 @@ public class GetLoadedLibrariesTest {
         System.gc();
 
         // testLib is completely gone
-        Assert.assertNull(testLib);
+        assertNull(testLib);
         loadedLibraries = Runtime.getLoadedLibraries();
-        Assert.assertTrue(loadedLibraries.isEmpty());
+        assertTrue(loadedLibraries.isEmpty());
     }
 
     // Library that didn't load yet doesn't show up in getLoadedLibraries
@@ -40,10 +45,10 @@ public class GetLoadedLibrariesTest {
     public void testLazyLoadedLibrary() {
         // because of lazy loading behavior, empty mappings don't load anything
         EmptyLib testLib = LibraryLoader.loadLibrary(EmptyLib.class, null, LIB_NAME);
-        Assert.assertNotNull(testLib);
+        assertNotNull(testLib);
         System.gc(); // in case there are lingering libraries
         List<NativeLibrary.LoadedLibraryData> loadedLibraries = Runtime.getLoadedLibraries();
-        Assert.assertTrue(loadedLibraries.isEmpty());
+        assertTrue(loadedLibraries.isEmpty());
     }
 
     // Library that failed to load obviously won't show up in getLoadedLibraries
@@ -55,7 +60,7 @@ public class GetLoadedLibrariesTest {
             if (!(e instanceof UnsatisfiedLinkError))
                 throw new AssertionError("Expected to throw UnsatisfiedLinkError but actually didn't");
             List<NativeLibrary.LoadedLibraryData> loadedLibraries = Runtime.getLoadedLibraries();
-            Assert.assertTrue(loadedLibraries.isEmpty());
+            assertTrue(loadedLibraries.isEmpty());
         }
     }
 
@@ -63,15 +68,15 @@ public class GetLoadedLibrariesTest {
     @Test
     public void testMultipleInstancesOfSameLibrary() {
         TestLib testLib0 = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
-        Assert.assertNotNull(testLib0);
+        assertNotNull(testLib0);
         TestLib testLib1 = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
-        Assert.assertNotNull(testLib1);
+        assertNotNull(testLib1);
         TestLib testLib2 = LibraryLoader.loadLibrary(TestLib.class, null, LIB_NAME);
-        Assert.assertNotNull(testLib2);
+        assertNotNull(testLib2);
 
         List<NativeLibrary.LoadedLibraryData> loadedLibraries = Runtime.getLoadedLibraries();
-        Assert.assertEquals(3, loadedLibraries.size()); // each instance has its own entry
-        Assert.assertEquals(1, loadedLibraries.stream().distinct().count()); // but they are all identical in data
+        assertEquals(3, loadedLibraries.size()); // each instance has its own entry
+        assertEquals(1, loadedLibraries.stream().distinct().count()); // but they are all identical in data
     }
 
     public static interface TestLib {

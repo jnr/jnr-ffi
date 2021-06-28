@@ -21,7 +21,6 @@ package jnr.ffi;
 import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.provider.FFIProvider;
 import org.junit.jupiter.api.Test;
-import jnr.ffi.provider.jffi.NativeLibrary;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -29,13 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class LibraryLoaderTest {
 
@@ -198,15 +191,17 @@ public class LibraryLoaderTest {
         String libName = "should-not-find-me";
         // because of lazy loading behavior, empty mappings don't load anything, so this doesn't fail
         EmptyLib testLib = LibraryLoader.loadLibrary(EmptyLib.class, null, libName);
-        Assert.assertNotNull(testLib);
+        assertNotNull(testLib);
     }
 
     // Incorrect empty lib fails when we set LibraryOption.LoadNow
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void testLoadNowIncorrectLib() {
         String libName = "should-not-find-me";
         Map<LibraryOption, Object> options = new HashMap<>();
         options.put(LibraryOption.LoadNow, true);
-        EmptyLib testLib = LibraryLoader.loadLibrary(EmptyLib.class, options, libName); // fails because LoadNow
+        assertThrows(UnsatisfiedLinkError.class, () -> {
+            LibraryLoader.loadLibrary(EmptyLib.class, options, libName); // fails because LoadNow
+        });
     }
 }
