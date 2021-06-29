@@ -25,18 +25,14 @@ import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;
 import jnr.ffi.annotations.Transient;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- * @author wayne
- */
 public class AsciiStringFieldTest {
     public AsciiStringFieldTest() {
     }
@@ -61,21 +57,21 @@ public class AsciiStringFieldTest {
     }
     static TestLib testlib;
     static Runtime runtime;
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -86,6 +82,6 @@ public class AsciiStringFieldTest {
         s.string.set(MAGIC);
         StringBuilder tmp = new StringBuilder(s.string.length());
         testlib.copyByteBuffer(tmp, s, s.string.length());
-        assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
+        assertEquals(MAGIC, tmp.toString(), "String not put into struct correctly");
     }
 }

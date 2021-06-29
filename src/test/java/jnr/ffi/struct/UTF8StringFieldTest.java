@@ -25,18 +25,14 @@ import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.annotations.Pinned;
 import jnr.ffi.annotations.Transient;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- * @author wayne
- */
 public class UTF8StringFieldTest {
     public UTF8StringFieldTest() {
     }
@@ -60,21 +56,21 @@ public class UTF8StringFieldTest {
     static TestLib testlib;
     static Runtime runtime;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     @Test public void stringFieldFirstInStruct() {
@@ -83,7 +79,7 @@ public class UTF8StringFieldTest {
         s.string.set(MAGIC);
         StringBuilder tmp = new StringBuilder(s.string.length());
         testlib.copyByteBuffer(tmp, s, s.string.length());
-        assertEquals("String not put into struct correctly", MAGIC, tmp.toString());
+        assertEquals(MAGIC, tmp.toString(), "String not put into struct correctly");
     }
 
     public static final class SockaddrUnix extends Struct {
@@ -105,8 +101,8 @@ public class UTF8StringFieldTest {
         s.sun_len.set(SUN_LEN);
         s.sun_family.set(SUN_FAM);
         s.sun_path.set(SUN_PATH);
-        assertEquals("Incorrect sun_len value", SUN_LEN, s.sun_len.intValue());
-        assertEquals("Incorrect sun_fam value", SUN_FAM, s.sun_family.intValue());
-        assertEquals("Incorrect sun_path value", SUN_PATH, s.sun_path.toString());
+        assertEquals(SUN_LEN, s.sun_len.intValue(), "Incorrect sun_len value");
+        assertEquals(SUN_FAM, s.sun_family.intValue(), "Incorrect sun_fam value");
+        assertEquals(SUN_PATH, s.sun_path.toString(), "Incorrect sun_path value");
     }
 }

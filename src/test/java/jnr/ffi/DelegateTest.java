@@ -21,36 +21,35 @@ package jnr.ffi;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.types.u_int32_t;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-/**
- *
- */
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class DelegateTest {
 
     public DelegateTest() {
     }
     private static TestLib lib;
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         lib = TstUtil.loadTestLib(TestLib.class);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     
@@ -169,14 +168,14 @@ public class DelegateTest {
             }
         };
         int retValue = lib.testClosureNull(closure, 41);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from callable", 42, retValue);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(42, retValue, "Incorrect return value from callable");
     }
     @Test
     public void closureNullWithNull() {
         final TestLib.CallableNull closure = null;
         int retValue = lib.testClosureNull(closure, 41);
-        assertEquals("Incorrect return value from callable", 41, retValue);
+        assertEquals(41, retValue, "Incorrect return value from callable");
     }
     @Test
     public void closureVrV() {
@@ -188,7 +187,7 @@ public class DelegateTest {
             }
         };
         lib.testClosureVrV(closure);
-        assertTrue("Callable not called", called[0]);
+        assertTrue(called[0], "Callable not called");
     }
     @Test
     public void closureVrB() {
@@ -202,8 +201,8 @@ public class DelegateTest {
             }
         };
         byte retVal = lib.testClosureVrB(closure);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from closure", MAGIC, retVal);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, retVal, "Incorrect return value from closure");
     }
     @Test
     public void closureVrS() {
@@ -217,8 +216,8 @@ public class DelegateTest {
             }
         };
         short retVal = lib.testClosureVrS(closure);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from closure", MAGIC, retVal);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, retVal, "Incorrect return value from closure");
     }
     @Test
     public void closureVrI() {
@@ -232,8 +231,8 @@ public class DelegateTest {
             }
         };
         int retVal = lib.testClosureVrI(closure);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from closure", MAGIC, retVal);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, retVal, "Incorrect return value from closure");
     }
     @Test
     public void closureVrL() {
@@ -247,8 +246,8 @@ public class DelegateTest {
             }
         };
         long retVal = lib.testClosureVrL(closure);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from closure", MAGIC, retVal);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, retVal, "Incorrect return value from closure");
     }
     @Test
     public void closureVrF() {
@@ -262,8 +261,8 @@ public class DelegateTest {
             }
         };
         float retVal = lib.testClosureVrF(closure);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from closure", MAGIC, retVal, 0f);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, retVal, 0f, "Incorrect return value from closure");
     }
     @Test
     public void closureVrD() {
@@ -277,8 +276,8 @@ public class DelegateTest {
             }
         };
         double retVal = lib.testClosureVrD(closure);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from closure", MAGIC, retVal, 0d);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, retVal, 0d, "Incorrect return value from closure");
     }
     @Test
     public void closureBrV() {
@@ -293,8 +292,8 @@ public class DelegateTest {
             }
         };
         lib.testClosureBrV(closure, MAGIC);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, val[0], "Wrong value passed to closure");
     }
     @Test
     public void closureSrV() {
@@ -309,8 +308,8 @@ public class DelegateTest {
             }
         };
         lib.testClosureSrV(closure, MAGIC);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, val[0], "Wrong value passed to closure");
     }
 
     @Test
@@ -326,8 +325,8 @@ public class DelegateTest {
             }
         };
         lib.testClosureIrV(closure, MAGIC);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, val[0], "Wrong value passed to closure");
     }
 
     @Test
@@ -345,8 +344,8 @@ public class DelegateTest {
         TestLib.ClosureStruct s = new TestLib.ClosureStruct(Runtime.getRuntime(lib));
         s.function.set(closure);
         lib.testStructClosureIrV(s, MAGIC);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, val[0], "Wrong value passed to closure");
     }
 
 
@@ -363,8 +362,8 @@ public class DelegateTest {
             }
         };
         lib.testClosureIrV(closure, MAGIC);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, val[0], "Wrong value passed to closure");
     }
 
     @Test
@@ -380,8 +379,8 @@ public class DelegateTest {
             }
         };
         lib.testClosureIrV(closure, MAGIC);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Wrong value passed to closure", MAGIC, val[0]);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC, val[0], "Wrong value passed to closure");
     }
 
     @Test
@@ -396,8 +395,8 @@ public class DelegateTest {
             }
         };
         int retVal = lib.testClosureVrI(closure);
-        assertTrue("Callable not called", called[0]);
-        assertEquals("Incorrect return value from closure", MAGIC.intValue(), retVal);
+        assertTrue(called[0], "Callable not called");
+        assertEquals(MAGIC.intValue(), retVal, "Incorrect return value from closure");
     }
 
     @Test
@@ -408,7 +407,7 @@ public class DelegateTest {
         };
         Pointer p1 = lib.ret_pointer(closure);
         Pointer p2 = lib.ret_pointer(closure);
-        assertEquals("not same native address for Callable instance", p1, p2);
+        assertEquals(p1, p2, "not same native address for Callable instance");
     }
 
     @Test public void allocateMany() {

@@ -24,20 +24,19 @@ import jnr.ffi.Runtime;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
 import jnr.ffi.provider.converters.EnumSetConverter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class CachingTypeMapperTest {
     public static interface Lib {
@@ -168,7 +167,7 @@ public class CachingTypeMapperTest {
     }
 
     private SignatureTypeMapper defaultTypeMapper;
-    @Before
+    @BeforeEach
     public void setUp() {
         defaultTypeMapper = new CachingTypeMapper(new TestTypeMapper());
     }
@@ -201,7 +200,7 @@ public class CachingTypeMapperTest {
     @Test public void differentEnumSet() {
         FromNativeConverter converter1;
         assertNotNull(converter1 = getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset1a")));
-        assertSame(converter1,  getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset1b")));
+        assertSame(converter1, getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset1b")));
         FromNativeConverter converter2;
         assertNotNull(converter2 = getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset2a")));
         assertSame(converter2, getFromNativeConverter(defaultTypeMapper, getLibMethod("ret_enumset2b")));

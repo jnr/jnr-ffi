@@ -22,15 +22,12 @@ import jnr.ffi.types.int8_t;
 import jnr.ffi.types.size_t;
 import jnr.ffi.types.u_int32_t;
 import jnr.ffi.types.u_int8_t;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- */
 public class TypeDefinitionTest {
 
     public TypeDefinitionTest() {
@@ -50,12 +47,12 @@ public class TypeDefinitionTest {
 
     static TestLib testlib;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
         testlib = null;
     }
@@ -66,12 +63,12 @@ public class TypeDefinitionTest {
     @Test public void returnUnsigned8() {
         int i1 = 0xdead0001;
         // when passed to the native function, only the lowest 8 bits are passed
-        assertEquals("incorrect value returned", 1, testlib.ret_uint8_t(i1));
+        assertEquals(1, testlib.ret_uint8_t(i1), "incorrect value returned");
     }
     @Test public void addUnsigned8() {
         int i1 = 0xdead0001;
         int i2 = 0xbeef0002;
         // when passed to the native function, only the lowest 8 bits are passed
-        assertEquals("did not add correctly", 3, testlib.add_uint8_t(i1, i2));
+        assertEquals(3, testlib.add_uint8_t(i1, i2), "did not add correctly");
     }
 }

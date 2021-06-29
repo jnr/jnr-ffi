@@ -20,18 +20,16 @@ package jnr.ffi;
 
 import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.SaveError;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-/**
- *
- */
 public class LastErrorTest {
     public interface ErrorSavingUnspecified {
         int setLastError(int error);
@@ -97,9 +95,9 @@ public class LastErrorTest {
         methodSaveError.setLastError(MAGIC);
 
         if (expected) {
-            assertEquals("Errno value was not saved for " + cls, MAGIC, runtime.getLastError());
+            assertEquals(MAGIC, runtime.getLastError(), "Errno value was not saved for " + cls);
         } else {
-            assertNotEquals("Errno value was saved for " + cls, MAGIC, runtime.getLastError());
+            assertNotEquals(MAGIC, runtime.getLastError(), "Errno value was saved for " + cls);
         }
     }
 }

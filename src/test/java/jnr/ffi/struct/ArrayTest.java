@@ -25,16 +25,15 @@ import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.provider.AbstractArrayMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class ArrayTest {
     public static interface TestLib {
@@ -55,21 +54,21 @@ public class ArrayTest {
     public ArrayTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     public static final class s8 extends Struct {
@@ -94,23 +93,23 @@ public class ArrayTest {
     // public void hello() {}
     @Test public void s8Array() {
         s8[] array = Struct.arrayOf(runtime, s8.class, 10);
-        assertEquals("Array length incorrect", 10, array.length);
+        assertEquals(10, array.length, "Array length incorrect");
         for (int i = 0; i < array.length; ++i) {
-            assertNotNull("Memory not allocated for array member", Struct.getMemory(array[i]));
+            assertNotNull(Struct.getMemory(array[i]), "Memory not allocated for array member");
         }
         Pointer ptr = ((DelegatingMemoryIO) Struct.getMemory(array[0])).getDelegatedMemoryIO();
         for (int i = 0; i < array.length; ++i) {
-            assertSame("Different backing memory", ptr, ((DelegatingMemoryIO) Struct.getMemory(array[i])).getDelegatedMemoryIO());
+            assertSame(ptr, ((DelegatingMemoryIO) Struct.getMemory(array[i])).getDelegatedMemoryIO(), "Different backing memory");
         }
         if (ptr instanceof AbstractArrayMemoryIO) {
-            assertEquals("Incorrect size", array.length, ((AbstractArrayMemoryIO)ptr).length());
+            assertEquals(array.length, ((AbstractArrayMemoryIO) ptr).length(), "Incorrect size");
         }
         for (int i = 0; i < array.length; ++i) {
             array[i].s8.set((byte) i);
         }
         for (int i = 0; i < array.length; ++i) {
-            assertEquals("Incorrect value written to native memory at index " + i,
-                    (byte) i, testlib.ptr_ret_int8_t(array, i));
+            assertEquals((byte) i, testlib.ptr_ret_int8_t(array, i),
+                    "Incorrect value written to native memory at index " + i);
         }
     }
 }

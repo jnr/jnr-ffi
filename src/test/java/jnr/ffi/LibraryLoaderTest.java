@@ -20,19 +20,15 @@ package jnr.ffi;
 
 import jnr.ffi.mapper.FunctionMapper;
 import jnr.ffi.provider.FFIProvider;
-import jnr.ffi.provider.jffi.NativeLibrary;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Assert;
-import org.junit.Test;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class LibraryLoaderTest {
 
@@ -48,15 +44,19 @@ public class LibraryLoaderTest {
         }
     }
 
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void failImmediatelyShouldThrowULE() {
-        LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+        assertThrows(UnsatisfiedLinkError.class, () -> {
+            LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+        });
     }
 
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void invocationOnFailedLoadShouldThrowULE() {
-        TestLib lib = LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
-        lib.setLastError(0);
+        assertThrows(UnsatisfiedLinkError.class, () -> {
+            TestLib lib = LibraryLoader.create(TestLib.class).failImmediately().load("non-existent-library");
+            lib.setLastError(0);
+        });
     }
 
     // Loadable library interface to test function mapping
@@ -143,7 +143,7 @@ public class LibraryLoaderTest {
         loader.map("subd", "sub_double");
 
         TestLibMath lib = loader.load();
-        assertNotNull("Could not load libtest", lib);
+        assertNotNull(lib, "Could not load libtest");
 
         // Do some arithmetic with the library to prove methods exist
         int sum = lib.sub(lib.add(10, 5), 3); // 10+5-3 = 12
@@ -191,15 +191,17 @@ public class LibraryLoaderTest {
         String libName = "should-not-find-me";
         // because of lazy loading behavior, empty mappings don't load anything, so this doesn't fail
         EmptyLib testLib = LibraryLoader.loadLibrary(EmptyLib.class, null, libName);
-        Assert.assertNotNull(testLib);
+        assertNotNull(testLib);
     }
 
     // Incorrect empty lib fails when we set LibraryOption.LoadNow
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void testLoadNowIncorrectLib() {
         String libName = "should-not-find-me";
         Map<LibraryOption, Object> options = new HashMap<>();
         options.put(LibraryOption.LoadNow, true);
-        EmptyLib testLib = LibraryLoader.loadLibrary(EmptyLib.class, options, libName); // fails because LoadNow
+        assertThrows(UnsatisfiedLinkError.class, () -> {
+            LibraryLoader.loadLibrary(EmptyLib.class, options, libName); // fails because LoadNow
+        });
     }
 }

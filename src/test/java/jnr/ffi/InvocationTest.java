@@ -18,14 +18,11 @@
 
 package jnr.ffi;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- *
- */
 public class InvocationTest {
     public static interface TestLib {
         int ret_int32_t(int i);
@@ -33,7 +30,7 @@ public class InvocationTest {
 
     static TestLib testlib;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
     }

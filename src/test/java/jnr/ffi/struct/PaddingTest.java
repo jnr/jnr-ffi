@@ -24,14 +24,13 @@ import jnr.ffi.Struct;
 import jnr.ffi.TstUtil;
 import jnr.ffi.Type;
 import jnr.ffi.struct.PaddingTest.TestLib.LongPadding;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PaddingTest {
     static TestLib testlib;
@@ -52,28 +51,28 @@ public class PaddingTest {
     public PaddingTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test public void longPadding() throws Throwable {
         Type longType = runtime.findType(NativeType.SLONG);
         final int SIZE = longType.alignment() + (longType.size() * 3);
-        assertEquals("incorrect size", SIZE, Struct.size(new LongPadding()));
+        assertEquals(SIZE, Struct.size(new LongPadding()), "incorrect size");
     }
 
 }

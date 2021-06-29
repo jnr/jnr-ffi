@@ -22,22 +22,19 @@ import jnr.ffi.annotations.LongLong;
 import jnr.ffi.types.int32_t;
 import jnr.ffi.types.pid_t;
 import jnr.ffi.types.u_int32_t;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-/**
- *
- * @author wayne
- */
 public class NumberTest {
 
     public NumberTest() {
@@ -99,22 +96,22 @@ public class NumberTest {
     }
     static Test_boolean2 test_boolean;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         test_boolean = TstUtil.loadTestLib(Test_boolean2.class);
         test_Boolean = TstUtil.loadTestLib(Test_Boolean.class);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
     }
         
@@ -123,7 +120,7 @@ public class NumberTest {
         for (int i = 0; i <= 255; ++i) {
             byte i1 = (byte) i;
             byte i2 = (byte) 0xde;
-            assertEquals("byte addition failed", (byte) (i1 + i2), testlib.add_int8_t(i1, i2));
+            assertEquals((byte) (i1 + i2), testlib.add_int8_t(i1, i2), "byte addition failed");
         }
     }
     @Test
@@ -131,7 +128,7 @@ public class NumberTest {
         for (int i = 0; i <= 0xffff; ++i) {
             short i1 = (short) i;
             short i2 = (short) 0xdead;
-            assertEquals("byte addition failed", (short) (i1 + i2), testlib.add_int16_t(i1, i2));
+            assertEquals((short) (i1 + i2), testlib.add_int16_t(i1, i2), "byte addition failed");
         }
     }
     static interface FloatOp {
@@ -141,10 +138,10 @@ public class NumberTest {
     private void testFloat(FloatOp op) throws Exception {
         float f1 = 1.0f;
         float f2 = (float) 0xdeadbeef;
-        assertEquals("float " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
+        assertEquals(op.j(f1, f2), op.n(f1, f2), 0.001, "float " + op + " failed");
         for (int i = 0; i < 0xffff; ++i) {
             f1 = (float) i;
-            assertEquals("float + " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
+            assertEquals(op.j(f1, f2), op.n(f1, f2), 0.001, "float + " + op + " failed");
         }
         Random random = new Random();
         for (int i = 0; i < 0xffff; ++i) {
@@ -227,10 +224,10 @@ public class NumberTest {
     private void testDouble(DoubleOp op) throws Exception {
         double f1 = 1.0f;
         double f2 = (double) 0xdeadbeef;
-        assertEquals("double " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
+        assertEquals(op.j(f1, f2), op.n(f1, f2), 0.001, "double " + op + " failed");
         for (int i = 0; i < 0xffff; ++i) {
             f1 = (float) i;
-            assertEquals("double + " + op + " failed", op.j(f1, f2), op.n(f1, f2), 0.001);
+            assertEquals(op.j(f1, f2), op.n(f1, f2), 0.001, "double + " + op + " failed");
         }
         Random random = new Random();
         for (int i = 0; i < 0xffff; ++i) {
@@ -313,18 +310,18 @@ public class NumberTest {
     private void testNativeLong(NativeLongOp op) throws Exception {
         long i1 = 1;
         long i2 = 2;
-        assertEquals("NativeLong " + op + " failed", op.j(i1, i2), op.n(i1, i2));
+        assertEquals(op.j(i1, i2), op.n(i1, i2), "NativeLong " + op + " failed");
         for (int i = 0; i < 0xffff; ++i) {
-            assertEquals("NativeLong + " + op + " failed", op.j(i, i2), op.n(i, i2));
+            assertEquals(op.j(i, i2), op.n(i, i2), "NativeLong + " + op + " failed");
         }
     }
     @Test
     public void NativeLong_valueOf() {
         for (int i = -1000; i < 1000; ++i) {
-            assertEquals("Incorrect value from valueOf(" + i+ ")", i, NativeLong.valueOf(i).intValue());
+            assertEquals(i, NativeLong.valueOf(i).intValue(), "Incorrect value from valueOf(" + i + ")");
         }
         for (long i = -1000; i < 1000; ++i) {
-            assertEquals("Incorrect value from valueOf(" + i+ ")", i, NativeLong.valueOf(i).longValue());
+            assertEquals(i, NativeLong.valueOf(i).longValue(), "Incorrect value from valueOf(" + i + ")");
         }
     }
     
@@ -371,11 +368,11 @@ public class NumberTest {
     }
 
     @Test public void testSignExtension() throws Exception {
-        assertEquals("upper 32 bits not set to 1", 0xffffffffdeadbeefL, testlib.ret_int32_t(0x1eefdeadbeefL));
+        assertEquals(0xffffffffdeadbeefL, testlib.ret_int32_t(0x1eefdeadbeefL), "upper 32 bits not set to 1");
     }
 
     @Test public void testZeroExtension() throws Exception {
-        assertEquals("upper 32 bits not set to zero", 0xdeadbeefL, testlib.ret_uint32_t(0xfee1deadbeefL));
+        assertEquals(0xdeadbeefL, testlib.ret_uint32_t(0xfee1deadbeefL), "upper 32 bits not set to zero");
     }
 
     @Test public void testBooleanFromInt() throws Exception {
@@ -386,10 +383,10 @@ public class NumberTest {
 
         int value = 0x00000001;
         for (int i = 0; i < 32; i++) {
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_int32_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_uint32_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_int32_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_uint32_t(value));
+            assertTrue(test_boolean.ret_int32_t(value), String.format("Must evaluate to true: 0x%04x", value));
+            assertTrue(test_boolean.ret_uint32_t(value), String.format("Must evaluate to true: 0x%04x", value));
+            assertTrue(test_Boolean.ret_int32_t(value), String.format("Must evaluate to true: 0x%04x", value));
+            assertTrue(test_Boolean.ret_uint32_t(value), String.format("Must evaluate to true: 0x%04x", value));
             value <<= 1;
         }
     }
@@ -402,10 +399,10 @@ public class NumberTest {
 
         byte value = 0x01;
         for (int i = 0; i < 8; i++) {
-            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_boolean.ret_int8_t((byte)value));
-            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_boolean.ret_uint8_t((byte)value));
-            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_Boolean.ret_int8_t((byte)value));
-            assertTrue(String.format("Must evaluate to true: 0x%02x", value), test_Boolean.ret_uint8_t((byte)value));
+            assertTrue(test_boolean.ret_int8_t((byte) value), String.format("Must evaluate to true: 0x%02x", value));
+            assertTrue(test_boolean.ret_uint8_t((byte) value), String.format("Must evaluate to true: 0x%02x", value));
+            assertTrue(test_Boolean.ret_int8_t((byte) value), String.format("Must evaluate to true: 0x%02x", value));
+            assertTrue(test_Boolean.ret_uint8_t((byte) value), String.format("Must evaluate to true: 0x%02x", value));
             value <<= 1;
         }
     }
@@ -418,10 +415,10 @@ public class NumberTest {
 
         short value = 0x0001;
         for (int i = 0; i < 16; i++) {
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_int16_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_boolean.ret_uint16_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_int16_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%04x", value), test_Boolean.ret_uint16_t(value));
+            assertTrue(test_boolean.ret_int16_t(value), String.format("Must evaluate to true: 0x%04x", value));
+            assertTrue(test_boolean.ret_uint16_t(value), String.format("Must evaluate to true: 0x%04x", value));
+            assertTrue(test_Boolean.ret_int16_t(value), String.format("Must evaluate to true: 0x%04x", value));
+            assertTrue(test_Boolean.ret_uint16_t(value), String.format("Must evaluate to true: 0x%04x", value));
             value <<= 1;
         }
     }
@@ -434,10 +431,10 @@ public class NumberTest {
         
         long value = 0x0000000000000001;
         for (int i = 0; i < 32; i++) {
-            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_boolean.ret_int64_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_boolean.ret_uint64_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_Boolean.ret_int64_t(value));
-            assertTrue(String.format("Must evaluate to true: 0x%016x", value), test_Boolean.ret_uint64_t(value));
+            assertTrue(test_boolean.ret_int64_t(value), String.format("Must evaluate to true: 0x%016x", value));
+            assertTrue(test_boolean.ret_uint64_t(value), String.format("Must evaluate to true: 0x%016x", value));
+            assertTrue(test_Boolean.ret_int64_t(value), String.format("Must evaluate to true: 0x%016x", value));
+            assertTrue(test_Boolean.ret_uint64_t(value), String.format("Must evaluate to true: 0x%016x", value));
             value <<= 1;
         }
     }

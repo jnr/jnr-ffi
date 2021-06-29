@@ -26,11 +26,11 @@ import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.mapper.TypeMapper;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
@@ -38,13 +38,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- *
- * @author wayne
- */
 public class ResultConverterTest {
     public static final class TestType {
         public final String str;
@@ -97,7 +93,7 @@ public class ResultConverterTest {
     public ResultConverterTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         Map<LibraryOption, Object> options = new HashMap<LibraryOption, Object>();
         options.put(LibraryOption.TypeMapper, mapper);
@@ -106,15 +102,15 @@ public class ResultConverterTest {
         runtime = Runtime.getRuntime(testlib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -127,7 +123,7 @@ public class ResultConverterTest {
         final String MAGIC = "test";
         TestType t = testlib.string_duplicate(MAGIC);
         assertNotNull(t);
-        assertEquals("contents not set", MAGIC, t.str);
+        assertEquals(MAGIC, t.str, "contents not set");
     }
 
     @Retention(RetentionPolicy.RUNTIME)

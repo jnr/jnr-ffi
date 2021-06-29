@@ -21,35 +21,32 @@ package jnr.ffi.byref;
 import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-/**
- *
- */
 public class ByteByReferenceTest {
     public ByteByReferenceTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     public static interface TestLib {
@@ -71,7 +68,7 @@ public class ByteByReferenceTest {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final byte MAGIC = (byte) 0xef;
         ByteByReference ref = new ByteByReference(MAGIC);
-        assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_int8_t(ref, 0));
+        assertEquals(MAGIC, lib.ptr_ret_int8_t(ref, 0), "Wrong value passed");
     }
 
     @Test public void inOnlyByteReferenceNotWritten() {
@@ -79,14 +76,14 @@ public class ByteByReferenceTest {
         final byte MAGIC = (byte) 0xef;
         ByteByReference ref = new ByteByReference(MAGIC);
         lib.ptr_set_int8_t(ref, 0, (byte) 0);
-        assertEquals("Int reference written when it should not be", Byte.valueOf(MAGIC), ref.getValue());
+        assertEquals(Byte.valueOf(MAGIC), ref.getValue(), "Int reference written when it should not be");
     }
 
     @Test public void outOnlyByteReferenceNotRead() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final byte MAGIC = (byte) 0xef;
         ByteByReference ref = new ByteByReference(MAGIC);
-        assertTrue("Reference value passed to native code when it should not be", MAGIC != lib.ptr_ret_int8_t(ref, 0));
+        assertNotEquals(MAGIC, lib.ptr_ret_int8_t(ref, 0), "Reference value passed to native code when it should not be");
     }
 
     @Test public void outOnlyByteReferenceGet() {
@@ -94,7 +91,7 @@ public class ByteByReferenceTest {
         final byte MAGIC = (byte) 0xef;
         ByteByReference ref = new ByteByReference((byte) 0);
         lib.ptr_set_int8_t(ref, 0, MAGIC);
-        assertEquals("Reference value not set", Byte.valueOf(MAGIC), ref.getValue());
+        assertEquals(Byte.valueOf(MAGIC), ref.getValue(), "Reference value not set");
     }
 
 }
