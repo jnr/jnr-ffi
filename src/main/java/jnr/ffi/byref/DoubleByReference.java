@@ -25,31 +25,23 @@ import jnr.ffi.Runtime;
  *
  */
 public final class DoubleByReference extends AbstractNumberReference<Double> {
-    private static final Double DEFAULT = Double.valueOf(0d);
 
+    private double value;    
     /**
      * Creates a new reference to a double value initialized to zero.
      */
     public DoubleByReference() {
-        super(DEFAULT);
     }
 
-    /**
-     * Creates a new reference to a double value
-     * 
-     * @param value the initial native value
-     */
-    public DoubleByReference(Double value) {
-        super(checkNull(value));
-    }
-
+ 
     /**
      * Creates a new reference to a double value
      *
      * @param value the initial native value
      */
     public DoubleByReference(double value) {
-        super(value);
+        super();
+        this.value = value;
     }
     
     /**
@@ -82,5 +74,40 @@ public final class DoubleByReference extends AbstractNumberReference<Double> {
      */
     public final int nativeSize(Runtime runtime) {
         return 8;
+    }
+    
+    @Override
+    public Double getValue() {
+        return Double.valueOf(value);
+    }
+    
+     @Override
+    public byte byteValue() {
+        return (byte)value;
+    }
+
+    @Override
+    public short shortValue() {
+        return (short)value;
+    }
+
+    @Override
+    public int intValue() {
+        return (int)value;
+    }
+
+    @Override
+    public long longValue() {
+        return (long)value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float)value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return value;
     }
 }
