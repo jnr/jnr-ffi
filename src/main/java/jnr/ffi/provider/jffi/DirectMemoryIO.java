@@ -25,6 +25,7 @@ import jnr.ffi.provider.DelegatingMemoryIO;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 class DirectMemoryIO extends AbstractMemoryIO {
     static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
@@ -186,8 +187,30 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
 
     public String getString(long offset, int maxLength, Charset cs) {
-        final byte[] bytes = IO.getZeroTerminatedByteArray(address() + offset, maxLength);
-        return cs.decode(ByteBuffer.wrap(bytes)).toString();
+        if(cs == StandardCharsets.UTF_8){
+            final byte[] bytes = IO.getZeroTerminatedByteArray(address() + offset, maxLength);
+            return cs.decode(ByteBuffer.wrap(bytes)).toString();
+        }else{
+            byte[] bytes = new byte[maxLength];
+            IO.getByteArray(address() + offset, bytes, 0, maxLength);
+            final byte[] nullCharBytes = new String("\0").getBytes(cs);
+            int nullIndex = maxLength;
+            int matchingBytesCount = 0;
+            for(int i = 0; i < (int)bytes.length; i++){
+                if(bytes[i] == nullCharBytes[matchingBytesCount]){
+                    matchingBytesCount++;
+                } else {
+                    matchingBytesCount = 0;
+                }
+
+                if(matchingBytesCount == nullCharBytes.length){
+                    nullIndex = i;
+                    break;
+                }
+            }
+
+            return new String(bytes, 0, nullIndex, cs);
+        }
     }
 
     public void putString(long offset, String string, int maxLength, Charset cs) {
