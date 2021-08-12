@@ -64,7 +64,8 @@ public final class BufferUtil {
         final ByteBuffer buffer = buf.slice();
         // Find the NUL terminator and limit to that, so the
         // StringBuffer/StringBuilder does not have superfluous NUL chars
-        int end = indexOf(buffer, (byte) 0);
+        final byte[] nullCharBytes = new String("\0").getBytes(charset);
+        int end = indexOf(buffer, nullCharBytes) - nullCharBytes.length;
         if (end < 0) {
             end = buffer.limit();
         }
@@ -134,6 +135,47 @@ public final class BufferUtil {
             int begin = buf.position();
             for (int offset = 0; offset < buf.limit(); ++offset) {
                 if (buf.get(begin + offset) == value) {
+                    return offset;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static int indexOf(ByteBuffer buf, byte[] value) {
+    	int matchingBytesCount = 0;
+    	int offset = 0;
+        if (buf.hasArray()) {
+            byte[] array = buf.array();
+            int begin = buf.arrayOffset() + buf.position();
+            int end = buf.arrayOffset() + buf.limit();
+            while(offset < end && offset > -1){
+                if(array[begin + offset] == value[matchingBytesCount]){
+                    matchingBytesCount++;
+                    offset++;
+                } else {
+                    matchingBytesCount = 0;
+                    offset += value.length - (offset%value.length);//jump to start of next character
+                    continue;
+                }
+
+                if(matchingBytesCount == value.length){
+                    return  offset;
+                }
+            }
+        } else {
+            int begin = buf.position();
+            while(offset < buf.limit()){
+                if(buf.get(begin + offset) == value[matchingBytesCount]){
+                    matchingBytesCount++;
+                    offset++;
+                } else {
+                    matchingBytesCount = 0;
+                    offset += value.length - (offset%value.length);//jump to start of next character
+                    continue;
+                }
+
+                if(matchingBytesCount == value.length){
                     return offset;
                 }
             }
