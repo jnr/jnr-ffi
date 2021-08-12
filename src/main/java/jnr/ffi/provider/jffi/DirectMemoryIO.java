@@ -191,15 +191,13 @@ class DirectMemoryIO extends AbstractMemoryIO {
             final byte[] bytes = IO.getZeroTerminatedByteArray(address() + offset, maxLength);
             return cs.decode(ByteBuffer.wrap(bytes)).toString();
         }else{
-            //TODO: change this to only allocate an array of needed size
-            byte[] bytes = new byte[maxLength];
-            IO.getByteArray(address() + offset, bytes, 0, maxLength);
+            long baseAddress = address() + offset;
             final byte[] nullCharBytes = new String("\0").getBytes(cs);
             int nullTerminatedLen = maxLength;
             int matchingBytesCount = 0;
             int i = 0;
-            while(i < (int)bytes.length){
-                if(bytes[i] == nullCharBytes[matchingBytesCount]){
+            while(i < maxLength){
+                if(IO.getByte(baseAddress+i) == nullCharBytes[matchingBytesCount]){
                     matchingBytesCount++;
                     i++;
                 } else {
@@ -209,12 +207,14 @@ class DirectMemoryIO extends AbstractMemoryIO {
                 }
 
                 if(matchingBytesCount == nullCharBytes.length){
-                    nullTerminatedLen = i;
+                    nullTerminatedLen = i-nullCharBytes.length;//trim to the last byte just before null terminator
                     break;
                 }
             }
 
-            return new String(bytes, 0, nullTerminatedLen, cs);
+            byte[] bytes = new byte[nullTerminatedLen];
+            IO.getByteArray(address() + offset, bytes, 0, nullTerminatedLen);
+            return new String(bytes, 0, bytes.length, cs);
         }
     }
 
