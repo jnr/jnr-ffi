@@ -18,13 +18,14 @@
 
 package jnr.ffi;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test library locating/loading
@@ -34,19 +35,19 @@ public class LibraryTest {
     public LibraryTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -60,13 +61,15 @@ public class LibraryTest {
     }
     @Test public void loadTestLib() {
         TestLib lib = TstUtil.loadTestLib(TestLib.class);
-        assertNotNull("Could not load libtest", lib);
+        assertNotNull(lib, "Could not load libtest");
         // This just forces the library to really load and call a function
         lib.setLastError(0);
     }
 
-    @Test(expected = UnsatisfiedLinkError.class)
+    @Test
     public void badLibrarynameShouldThrowULE() {
-        Library.loadLibrary(TestLib.class, "non-existant-library");
+        Assertions.assertThrows(UnsatisfiedLinkError.class, () -> {
+            Library.loadLibrary(TestLib.class, "non-existant-library");
+        });
     }
 }

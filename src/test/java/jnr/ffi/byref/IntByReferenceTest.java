@@ -21,35 +21,32 @@ package jnr.ffi.byref;
 import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-/**
- *
- */
 public class IntByReferenceTest {
     public IntByReferenceTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
     public static interface TestLib {
@@ -69,26 +66,26 @@ public class IntByReferenceTest {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final int MAGIC = 0xdeadbeef;
         IntByReference ref = new IntByReference(MAGIC);
-        assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_int32_t(ref, 0));
+        assertEquals(MAGIC, lib.ptr_ret_int32_t(ref, 0), "Wrong value passed");
     }
     @Test public void inOnlyIntReferenceNotWritten() {
         TestLibInOnly lib = TstUtil.loadTestLib(TestLibInOnly.class);
         final int MAGIC = 0xdeadbeef;
         IntByReference ref = new IntByReference(MAGIC);
         lib.ptr_set_int32_t(ref, 0, 0);
-        assertEquals("Int reference written when it should not be", Integer.valueOf(MAGIC), ref.getValue());
+        assertEquals(Integer.valueOf(MAGIC), ref.getValue(), "Int reference written when it should not be");
     }
     @Test public void outOnlyIntReferenceNotRead() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final int MAGIC = 0xdeadbeef;
         IntByReference ref = new IntByReference(MAGIC);
-        assertTrue("Reference value passed to native code when it should not be", MAGIC != lib.ptr_ret_int32_t(ref, 0));
+        assertNotEquals(MAGIC, lib.ptr_ret_int32_t(ref, 0), "Reference value passed to native code when it should not be");
     }
     @Test public void outOnlyIntReferenceGet() {
         TestLibOutOnly lib = TstUtil.loadTestLib(TestLibOutOnly.class);
         final int MAGIC = 0xdeadbeef;
         IntByReference ref = new IntByReference(0);
         lib.ptr_set_int32_t(ref, 0, MAGIC);
-        assertEquals("Reference value not set", Integer.valueOf(MAGIC), ref.getValue());
+        assertEquals(Integer.valueOf(MAGIC), ref.getValue(), "Reference value not set");
     }
 }

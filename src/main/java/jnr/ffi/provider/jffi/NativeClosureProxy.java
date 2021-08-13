@@ -18,10 +18,6 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.NativeType;
-import jnr.ffi.Pointer;
-import jnr.ffi.provider.FromNativeType;
-import jnr.ffi.provider.ToNativeType;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -31,6 +27,11 @@ import java.lang.ref.Reference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
+
+import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
+import jnr.ffi.provider.FromNativeType;
+import jnr.ffi.provider.ToNativeType;
 
 import static jnr.ffi.provider.jffi.AsmUtil.emitFromNativeConversion;
 import static jnr.ffi.provider.jffi.AsmUtil.emitReturnOp;
@@ -46,7 +47,7 @@ import static jnr.ffi.provider.jffi.NumberUtil.sizeof;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.V1_6;
+import static org.objectweb.asm.Opcodes.V1_8;
 
 /**
  *
@@ -104,8 +105,8 @@ public abstract class NativeClosureProxy {
         final ClassVisitor closureClassVisitor = DEBUG ? AsmUtil.newCheckClassAdapter(closureClassWriter) : closureClassWriter;
         AsmBuilder builder = new AsmBuilder(runtime, closureProxyClassName, closureClassVisitor, classLoader);
 
-        closureClassVisitor.visit(V1_6, ACC_PUBLIC | ACC_FINAL, closureProxyClassName, null, p(NativeClosureProxy.class),
-                new String[]{ });
+        closureClassVisitor.visit(V1_8, ACC_PUBLIC | ACC_FINAL, closureProxyClassName, null, p(NativeClosureProxy.class),
+                new String[]{});
 
         Class[] nativeParameterClasses = new Class[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {

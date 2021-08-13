@@ -18,42 +18,38 @@
 
 package jnr.ffi.byref;
 
-
 import jnr.ffi.Memory;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.TstUtil;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
-/**
- *
- */
 public class PointerByReferenceTest {
     public PointerByReferenceTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -80,7 +76,7 @@ public class PointerByReferenceTest {
         final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
         
         PointerByReference ref = new PointerByReference(MAGIC);
-        assertEquals("Wrong value passed", MAGIC, lib.ptr_ret_pointer(ref, 0));
+        assertEquals(MAGIC, lib.ptr_ret_pointer(ref, 0), "Wrong value passed");
     }
 
     @Test public void inOnlyIntReferenceNotWritten() {
@@ -92,7 +88,7 @@ public class PointerByReferenceTest {
         PointerByReference ref = new PointerByReference(MAGIC);
 
         lib.ptr_set_pointer(ref, 0, null);
-        assertEquals("Int reference written when it should not be", MAGIC, ref.getValue());
+        assertEquals(MAGIC, ref.getValue(), "Int reference written when it should not be");
     }
 
     @Test public void outOnlyIntReferenceNotRead() {
@@ -102,7 +98,7 @@ public class PointerByReferenceTest {
         final Pointer MAGIC = Memory.allocateDirect(runtime, 123);
 
         PointerByReference ref = new PointerByReference(MAGIC);
-        assertNotSame("Reference value passed to native code when it should not be", MAGIC, lib.ptr_ret_pointer(ref, 0));
+        assertNotSame(MAGIC, lib.ptr_ret_pointer(ref, 0), "Reference value passed to native code when it should not be");
     }
 
     @Test public void outOnlyIntReferenceGet() {
@@ -114,6 +110,6 @@ public class PointerByReferenceTest {
 
         PointerByReference ref = new PointerByReference(Memory.allocateDirect(runtime, 1));
         lib.ptr_set_pointer(ref, 0, MAGIC);
-        assertEquals("Reference value not set", MAGIC, ref.getValue());
+        assertEquals(MAGIC, ref.getValue(), "Reference value not set");
     }
 }

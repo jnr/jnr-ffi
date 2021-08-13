@@ -32,10 +32,14 @@ import jnr.ffi.provider.DefaultObjectReferenceManager;
 
 import java.lang.reflect.Field;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,8 +53,20 @@ public final class NativeRuntime extends AbstractRuntime {
 
     private final Type[] aliases;
 
+    // WeakHashMap to auto remove GC'd NativeLibraries
+    final WeakHashMap<NativeLibrary, NativeLibrary.LoadedLibraryData> loadedLibraries = new WeakHashMap<>();
+
     public static NativeRuntime getInstance() {
         return SingletonHolder.INSTANCE;
+    }
+
+    /**
+     * See and use {@link Runtime#getLoadedLibraries()} (which forwards here) instead of this directly
+     */
+    public static List<NativeLibrary.LoadedLibraryData> getLoadedLibraries() {
+        if (getSystemRuntime() instanceof NativeRuntime) {
+            return new ArrayList<>(((NativeRuntime) getSystemRuntime()).loadedLibraries.values());
+        } else return Collections.emptyList();
     }
 
     private static final class SingletonHolder {

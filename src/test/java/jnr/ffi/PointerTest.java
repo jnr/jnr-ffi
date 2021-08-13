@@ -24,21 +24,19 @@ import jnr.ffi.annotations.Out;
 import jnr.ffi.types.int32_t;
 import jnr.ffi.types.int8_t;
 import jnr.ffi.types.size_t;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- *
- */
 public class PointerTest {
 
     public PointerTest() {
@@ -86,22 +84,22 @@ public class PointerTest {
         void cfree(Pointer ptr);
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
 //        libc = Library.loadLibrary("c", Libc.class);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
    
@@ -143,7 +141,7 @@ public class PointerTest {
         byte MAGIC = (byte) 0xFE;
         for (int i = 0; i < SIZE; ++i) {
             p.putByte(i, MAGIC);
-            assertEquals("Byte not set at offset " + i, MAGIC, testlib.ptr_ret_int8_t(p, i));
+            assertEquals(MAGIC, testlib.ptr_ret_int8_t(p, i), "Byte not set at offset " + i);
         } 
     }
     @Test
@@ -153,7 +151,7 @@ public class PointerTest {
         short MAGIC = (short) 0xFEE1;
         for (int i = 0; i < (SIZE - 1); i += 2) {
             p.putShort(i, MAGIC);
-            assertEquals("Short not set at offset " + i, MAGIC, testlib.ptr_ret_int16_t(p, i));
+            assertEquals(MAGIC, testlib.ptr_ret_int16_t(p, i), "Short not set at offset " + i);
         } 
     }
     @Test
@@ -163,7 +161,7 @@ public class PointerTest {
         int MAGIC = (int) 0xFEE1DEAD;
         for (int i = 0; i < (SIZE - 3); i += 4) {
             p.putInt(i, MAGIC);
-            assertEquals("Integer not set at offset " + i, MAGIC, testlib.ptr_ret_int32_t(p, i));
+            assertEquals(MAGIC, testlib.ptr_ret_int32_t(p, i), "Integer not set at offset " + i);
         } 
     }
     @Test
@@ -187,9 +185,9 @@ public class PointerTest {
         for (int i = 0; i < (SIZE - 7); i += 8) {
             p.putLongLong(i, MAGIC);
             for (int idx = 0; idx < 8; ++idx) {
-                assertEquals("incorrect byte value at offset= " + i + " idx=" + idx, bytes[idx], p.getByte(i + idx));
+                assertEquals(bytes[idx], p.getByte(i + idx), "incorrect byte value at offset= " + i + " idx=" + idx);
             }
-            assertEquals("Long not set at offset " + i, MAGIC, testlib.ptr_ret_int64_t(p, i));
+            assertEquals(MAGIC, testlib.ptr_ret_int64_t(p, i), "Long not set at offset " + i);
         } 
     }
     @Test
@@ -199,7 +197,7 @@ public class PointerTest {
         float MAGIC = (float) 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < (SIZE - 3); i += 4) {
             p.putFloat(i, MAGIC);
-            assertEquals("Float not set at offset " + i, MAGIC, testlib.ptr_ret_float(p, i), 0.00001);
+            assertEquals(MAGIC, testlib.ptr_ret_float(p, i), 0.00001, "Float not set at offset " + i);
         } 
     }
     @Test
@@ -223,11 +221,11 @@ public class PointerTest {
 
         p.putDouble(0, MAGIC);
         for (int i = 0; i < 8; ++i) {
-            assertEquals("incorrect byte value at idx=" + i, bytes[i], p.getByte(i));
+            assertEquals(bytes[i], p.getByte(i), "incorrect byte value at idx=" + i);
         }
         for (int i = 0; i < (SIZE - 7); i += 8) {
             p.putDouble(i, MAGIC);
-            assertEquals("Double not set at offset " + i, MAGIC, testlib.ptr_ret_double(p, i), 0.0001E16);
+            assertEquals(MAGIC, testlib.ptr_ret_double(p, i), 0.0001E16, "Double not set at offset " + i);
         } 
     }
     @Test
@@ -237,7 +235,7 @@ public class PointerTest {
         byte MAGIC = (byte) 0xFE;
         for (int i = 0; i < SIZE; ++i) {
             testlib.ptr_set_int8_t(p, i, MAGIC);
-            assertEquals("Byte not set at offset " + i, MAGIC, p.getByte(i));
+            assertEquals(MAGIC, p.getByte(i), "Byte not set at offset " + i);
         } 
     }
     @Test
@@ -247,7 +245,7 @@ public class PointerTest {
         short MAGIC = (short) 0xFEE1;
         for (int i = 0; i < SIZE - 1; i += 2) {
             testlib.ptr_set_int16_t(p, i, MAGIC);
-            assertEquals("Short not set at offset " + i, MAGIC, p.getShort(i));
+            assertEquals(MAGIC, p.getShort(i), "Short not set at offset " + i);
         } 
     }
     @Test
@@ -257,7 +255,7 @@ public class PointerTest {
         int MAGIC = (int) 0xFEE1DEAD;
         for (int i = 0; i < SIZE - 3; i += 4) {
             testlib.ptr_set_int32_t(p, i, MAGIC);
-            assertEquals("Integer not set at offset " + i, MAGIC, p.getInt(i));
+            assertEquals(MAGIC, p.getInt(i), "Integer not set at offset " + i);
         } 
     }
     @Test
@@ -267,7 +265,7 @@ public class PointerTest {
         long MAGIC = 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < SIZE - 7; i += 8) {
             testlib.ptr_set_int64_t(p, i, MAGIC);
-            assertEquals("Long not set at offset " + i, MAGIC, p.getLongLong(i));
+            assertEquals(MAGIC, p.getLongLong(i), "Long not set at offset " + i);
         }
     }
     @Test
@@ -277,7 +275,7 @@ public class PointerTest {
         float MAGIC = (float) 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < (SIZE - 3); i += 4) {
             testlib.ptr_set_float(p, i, MAGIC);
-            assertEquals("Float not set at offset " + i, MAGIC, p.getFloat(i), 0.0001);
+            assertEquals(MAGIC, p.getFloat(i), 0.0001, "Float not set at offset " + i);
         } 
     }
     @Test
@@ -287,7 +285,7 @@ public class PointerTest {
         double MAGIC = (double) 0xFEE1DEADABCDEF12L;
         for (int i = 0; i < (SIZE - 7); i += 8) {
             testlib.ptr_set_double(p, i, MAGIC);
-            assertEquals("Double not set at offset " + i, MAGIC, p.getDouble(i), 0.00001);
+            assertEquals(MAGIC, p.getDouble(i), 0.00001, "Double not set at offset " + i);
         } 
     }
     @Test
@@ -315,7 +313,7 @@ public class PointerTest {
         }
         testlib.ptr_reverse_l5(p[0], p[1], p[2], p[3], p[4]);
         for (int i  = 0; i < p.length; ++i) {
-            assertEquals("not same value for pointer " + (i + 1), v[v.length - i - 1], p[i].getLongLong(0));
+            assertEquals(v[v.length - i - 1], p[i].getLongLong(0), "not same value for pointer " + (i + 1));
         }
     }
 
@@ -333,7 +331,7 @@ public class PointerTest {
         }
         testlib.ptr_reverse_l6(p[0], p[1], p[2], p[3], p[4], p[5]);
         for (int i  = 0; i < p.length; ++i) {
-            assertEquals("not same value for pointer " + (i + 1), v[v.length - i - 1], p[i].getLongLong(0));
+            assertEquals(v[v.length - i - 1], p[i].getLongLong(0), "not same value for pointer " + (i + 1));
         }
     }
 
@@ -372,7 +370,7 @@ public class PointerTest {
         byte MAGIC = (byte) 0xFE;
         for (int i = 0; i < SIZE; ++i) {
             p.putByte(i, MAGIC);
-            assertEquals("Byte not set at offset " + i, MAGIC, testlib.ptr_ret_int8_t(Address.valueOf(p.address()), i));
+            assertEquals(MAGIC, testlib.ptr_ret_int8_t(Address.valueOf(p.address()), i), "Byte not set at offset " + i);
         }
     }
 
@@ -426,18 +424,22 @@ public class PointerTest {
         }
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
+    @Test
     public void testTransferToSrcOutOfBounds() {
         Pointer src = runtime.getMemoryManager().allocateDirect(128);
         Pointer dst = runtime.getMemoryManager().allocateDirect(128);
-        src.transferTo(10, dst, 0, src.size());
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            src.transferTo(10, dst, 0, src.size());
+        });
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
+    @Test
     public void testTransferToDstOutOfBounds() {
         Pointer src = runtime.getMemoryManager().allocateDirect(128);
         Pointer dst = runtime.getMemoryManager().allocateDirect(128);
-        src.transferTo(0, dst, 10, src.size());
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            src.transferTo(0, dst, 10, src.size());
+        });
     }
 
     @Test
@@ -455,17 +457,21 @@ public class PointerTest {
         }
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
+    @Test
     public void testTransferFromSrcOutOfBounds() {
         Pointer src = runtime.getMemoryManager().allocateDirect(128);
         Pointer dst = runtime.getMemoryManager().allocateDirect(128);
-        dst.transferFrom(0, dst, 10, src.size());
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            dst.transferFrom(0, dst, 10, src.size());
+        });
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
+    @Test
     public void testTransferFromDstOutOfBounds() {
         Pointer src = runtime.getMemoryManager().allocateDirect(128);
         Pointer dst = runtime.getMemoryManager().allocateDirect(128);
-        dst.transferFrom(10, dst, 0, src.size());
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            dst.transferFrom(10, dst, 0, src.size());
+        });
     }
 }

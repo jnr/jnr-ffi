@@ -23,10 +23,10 @@ import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.TstUtil;
 import jnr.ffi.types.size_t;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class AnnotatedMappedTypeTest {
     public static final class CustomPointer {
@@ -55,7 +55,7 @@ public class AnnotatedMappedTypeTest {
     static TestLib testlib;
     static Runtime runtime;
     
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);

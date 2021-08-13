@@ -20,22 +20,16 @@ package jnr.ffi;
 
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import java.nio.charset.Charset;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-/**
- *
- * @author wayne
- */
 public class StringArrayTest {
 
     public StringArrayTest() {
@@ -49,21 +43,21 @@ public class StringArrayTest {
     
     static TestLib testlib;
     static Runtime runtime;
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         testlib = TstUtil.loadTestLib(TestLib.class);
         runtime = Runtime.getRuntime(testlib);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -75,13 +69,13 @@ public class StringArrayTest {
     @Test public void lastElementOfStringArrayShouldBeNull() {
         String[] strings = { "test" };
         String result = testlib.ptr_return_array_element(strings, 1);
-        assertNull("last element of string array was not null", result);
+        assertNull(result, "last element of string array was not null");
     }
 
     @Test public void lastElementOfCharSequenceArrayShouldBeNull() {
         CharSequence[] strings = { "test" };
         String result = testlib.ptr_return_array_element(strings, 1);
-        assertNull("last element of string array was not null", result);
+        assertNull(result, "last element of string array was not null");
     }
 
     @Test public void firstElementOfStringArrayShouldNotBeNull() {
@@ -108,6 +102,6 @@ public class StringArrayTest {
     @Test public void lastIndexOfSparseStringArrayShouldNotBeNull() {
         String[] strings = { null, "test" };
         String result = testlib.ptr_return_array_element(strings, 1);
-        assertNotNull("last element of string array was null", result);
+        assertNotNull(result, "last element of string array was null");
     }
 }

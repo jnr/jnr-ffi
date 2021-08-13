@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Wayne Meissner
+ * Copyright (C) 2012 Wayne Meissner
  *
  * This file is part of the JNR project.
  *
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package jnr.ffi.provider.jffi.platform.aarch64.linux;
+package jnr.ffi.provider.jffi.platform.aarch64.freebsd;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;
@@ -34,36 +34,36 @@ public final class TypeAliases {
         m.put(TypeAlias.u_int16_t, NativeType.USHORT);
         m.put(TypeAlias.int32_t, NativeType.SINT);
         m.put(TypeAlias.u_int32_t, NativeType.UINT);
-        m.put(TypeAlias.int64_t, NativeType.ADDRESS);
-        m.put(TypeAlias.u_int64_t, NativeType.ADDRESS);
+        m.put(TypeAlias.int64_t, NativeType.SLONGLONG);
+        m.put(TypeAlias.u_int64_t, NativeType.ULONGLONG);
         m.put(TypeAlias.intptr_t, NativeType.SLONG);
         m.put(TypeAlias.uintptr_t, NativeType.ULONG);
         m.put(TypeAlias.caddr_t, NativeType.ADDRESS);
-        m.put(TypeAlias.dev_t, NativeType.ULONG);
+        m.put(TypeAlias.dev_t, NativeType.SINT);
         m.put(TypeAlias.blkcnt_t, NativeType.SLONG);
-        m.put(TypeAlias.blksize_t, NativeType.SINT);
+        m.put(TypeAlias.blksize_t, NativeType.SLONG);
         m.put(TypeAlias.gid_t, NativeType.UINT);
         m.put(TypeAlias.in_addr_t, NativeType.UINT);
         m.put(TypeAlias.in_port_t, NativeType.USHORT);
-        m.put(TypeAlias.ino_t, NativeType.ULONG);
-        m.put(TypeAlias.ino64_t, NativeType.ULONG);
-        m.put(TypeAlias.key_t, NativeType.SINT);
+        m.put(TypeAlias.ino_t, NativeType.UINT);
+        m.put(TypeAlias.ino64_t, NativeType.ULONGLONG);
+        m.put(TypeAlias.key_t, NativeType.SLONG);
         m.put(TypeAlias.mode_t, NativeType.UINT);
         m.put(TypeAlias.nlink_t, NativeType.UINT);
         m.put(TypeAlias.id_t, NativeType.UINT);
         m.put(TypeAlias.pid_t, NativeType.SINT);
-        m.put(TypeAlias.off_t, NativeType.SLONG);
-        m.put(TypeAlias.swblk_t, NativeType.SLONG);
+        m.put(TypeAlias.off_t, NativeType.SLONGLONG);
+        m.put(TypeAlias.swblk_t, NativeType.SINT);
         m.put(TypeAlias.uid_t, NativeType.UINT);
-        m.put(TypeAlias.clock_t, NativeType.SLONG);
+        m.put(TypeAlias.clock_t, NativeType.SINT);
         m.put(TypeAlias.size_t, NativeType.ULONG);
         m.put(TypeAlias.ssize_t, NativeType.SLONG);
         m.put(TypeAlias.time_t, NativeType.SLONG);
         m.put(TypeAlias.fsblkcnt_t, NativeType.ULONG);
         m.put(TypeAlias.fsfilcnt_t, NativeType.ULONG);
-        m.put(TypeAlias.sa_family_t, NativeType.USHORT);
+        m.put(TypeAlias.sa_family_t, NativeType.UCHAR);
         m.put(TypeAlias.socklen_t, NativeType.UINT);
-        m.put(TypeAlias.rlim_t, NativeType.ULONG);
+        m.put(TypeAlias.rlim_t, NativeType.ULONGLONG);
         m.put(TypeAlias.cc_t, NativeType.UCHAR);
         m.put(TypeAlias.speed_t, NativeType.UINT);
         m.put(TypeAlias.tcflag_t, NativeType.UINT);

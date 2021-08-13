@@ -18,15 +18,6 @@
 
 package jnr.ffi.provider.jffi;
 
-import jnr.ffi.NativeType;
-import jnr.ffi.Pointer;
-import jnr.ffi.Variable;
-import jnr.ffi.mapper.DefaultSignatureType;
-import jnr.ffi.mapper.FromNativeContext;
-import jnr.ffi.mapper.FromNativeConverter;
-import jnr.ffi.mapper.SignatureType;
-import jnr.ffi.mapper.SignatureTypeMapper;
-import jnr.ffi.mapper.ToNativeConverter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -40,6 +31,16 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import jnr.ffi.NativeType;
+import jnr.ffi.Pointer;
+import jnr.ffi.Variable;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
+import jnr.ffi.mapper.SignatureType;
+import jnr.ffi.mapper.SignatureTypeMapper;
+import jnr.ffi.mapper.ToNativeConverter;
+
 import static jnr.ffi.provider.jffi.AsmUtil.emitFromNativeConversion;
 import static jnr.ffi.provider.jffi.AsmUtil.emitToNativeConversion;
 import static jnr.ffi.provider.jffi.CodegenUtils.ci;
@@ -48,7 +49,7 @@ import static jnr.ffi.provider.jffi.CodegenUtils.sig;
 import static jnr.ffi.provider.jffi.InvokerUtil.hasAnnotation;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.V1_6;
+import static org.objectweb.asm.Opcodes.V1_8;
 
 /**
  * Generate global variable accessors
@@ -97,8 +98,8 @@ public class VariableAccessorGenerator {
         ClassVisitor cv = debug ? AsmUtil.newCheckClassAdapter(cw) : cw;
 
         AsmBuilder builder = new AsmBuilder(runtime, p(interfaceClass) + "$VariableAccessor$$" + nextClassID.getAndIncrement(), cv, classLoader);
-        cv.visit(V1_6, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(Object.class),
-                new String[] { p(Variable.class) });
+        cv.visit(V1_8, ACC_PUBLIC | ACC_FINAL, builder.getClassNamePath(), null, p(Object.class),
+                new String[]{p(Variable.class)});
 
         SkinnyMethodAdapter set = new SkinnyMethodAdapter(builder.getClassVisitor(), ACC_PUBLIC | ACC_FINAL, "set",
                 sig(void.class, Object.class),

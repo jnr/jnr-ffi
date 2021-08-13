@@ -224,7 +224,13 @@ public abstract class Struct {
             try {
                 sb.append(fieldPrefix);
                 sb.append(field.getName()).append(" = ");
-                sb.append(field.get(this).toString());
+                try {
+                    sb.append(field.get(this).toString());
+                } catch (NullPointerException ex) {
+                    sb.append("- null -");
+                } catch (IllegalAccessException ex) {
+                    sb.append("- IllegalAccessException -");
+                }
                 sb.append("\n");
             } catch (Throwable ex) {
                 throw new RuntimeException(ex);
@@ -784,7 +790,7 @@ public abstract class Struct {
         }
 
         public final boolean get() {
-            return (getMemory().getByte(offset()) & 0x1) != 0;
+            return getMemory().getByte(offset()) != 0;
         }
 
         public final void set(boolean value) {
@@ -801,7 +807,7 @@ public abstract class Struct {
         }
 
         public final boolean get() {
-            return (getMemory().getInt(offset()) & 0x1) != 0;
+            return getMemory().getInt(offset()) != 0;
         }
 
         public final void set(boolean value) {
@@ -815,7 +821,7 @@ public abstract class Struct {
     }
 
     public final boolean get() {
-      return (getMemory().getShort(offset()) & 0x1) != 0;
+      return getMemory().getShort(offset()) != 0;
     }
 
     public final void set(boolean value) {
