@@ -2350,8 +2350,8 @@ public abstract class Struct {
     }
 
     public class WString extends UTFString {
-        public WString(int size) {
-            super(size * getWideCharWidthInBytes(), getCharset());
+        public WString(int sizeInChars) {
+            super(sizeInChars * getWideCharWidthInBytes(), getCharset());
         }
     }
 
@@ -2379,7 +2379,6 @@ public abstract class Struct {
         public final void set(java.lang.String value) {
             if(value == null) {
                 this.valueHolder = null;
-                this.length = 0;
                 getMemory().putAddress(offset(), 0);
                 return;
             }
@@ -2394,7 +2393,7 @@ public abstract class Struct {
             valueHolder.put(0, bytes, 0, bytes.length);
         }
 
-        public final void reAllocate(int sizeBytes){
+        public void reAllocate(int sizeBytes){
             valueHolder = getRuntime().getMemoryManager().allocateDirect(sizeBytes);
             length = sizeBytes;
             getMemory().putPointer(offset(), valueHolder);
@@ -2422,11 +2421,21 @@ public abstract class Struct {
     }
 
     public class WStringRef extends UTFStringRef {
-        public WStringRef(int size) {
-            super(size, getCharset());
+        public WStringRef(int sizeInChars) {
+            super(sizeInChars * getWideCharWidthInBytes(), getCharset());
         }
+        
         public WStringRef() {
-            super(0, getCharset());
+            super(Integer.MAX_VALUE, getCharset());
+        }
+        
+        public final void setMaxLength(int sizeInChars){
+            length = sizeInChars * getWideCharWidthInBytes();
+        }
+        
+        @Override
+        public void reAllocate(int sizeInChars){
+        	super.reAllocate(sizeInChars * getWideCharWidthInBytes());
         }
     }
 
