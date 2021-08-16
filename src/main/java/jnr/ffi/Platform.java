@@ -222,7 +222,7 @@ public abstract class Platform {
         } else if (equalsIgnoreCase("x86_64", archString) || equalsIgnoreCase("amd64", archString)) {
             return CPU.X86_64;
         } else if (equalsIgnoreCase("ppc", archString) || equalsIgnoreCase("powerpc", archString)) {
-            if(OS.IBMI.equals(determineOS()))
+            if (OS.IBMI.equals(determineOS()))
                 return CPU.PPC64;
             return CPU.PPC;
         } else if (equalsIgnoreCase("ppc64", archString) || equalsIgnoreCase("powerpc64", archString)) {
