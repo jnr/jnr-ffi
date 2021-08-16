@@ -66,6 +66,8 @@ public abstract class Platform {
         WINDOWS,
         /** IBM AIX */
         AIX,
+        /** IBM i */
+        IBMI,
         /** IBM zOS **/
         ZLINUX,
         /** MidnightBSD **/
@@ -156,6 +158,8 @@ public abstract class Platform {
             return OS.SOLARIS;
         } else if (startsWithIgnoreCase(osName, "aix")) {
             return OS.AIX;
+        } else if (startsWithIgnoreCase(osName, "os400") || startsWithIgnoreCase(osName, "os/400")) {
+            return OS.IBMI;
         } else if (startsWithIgnoreCase(osName, "openbsd")) {
             return OS.OPENBSD;
         } else if (startsWithIgnoreCase(osName, "freebsd")) {
@@ -185,6 +189,8 @@ public abstract class Platform {
                 return new Linux();
             case WINDOWS:
                 return new Windows();
+            case IBMI:
+                return new IbmI();
             case UNKNOWN:
                 return new Unsupported(os);
             default:
@@ -216,6 +222,8 @@ public abstract class Platform {
         } else if (equalsIgnoreCase("x86_64", archString) || equalsIgnoreCase("amd64", archString)) {
             return CPU.X86_64;
         } else if (equalsIgnoreCase("ppc", archString) || equalsIgnoreCase("powerpc", archString)) {
+            if (OS.IBMI.equals(determineOS()))
+                return CPU.PPC64;
             return CPU.PPC;
         } else if (equalsIgnoreCase("ppc64", archString) || equalsIgnoreCase("powerpc64", archString)) {
             if ("little".equals(System.getProperty("sun.cpu.endian"))) {
@@ -263,6 +271,9 @@ public abstract class Platform {
                 break;
             case DARWIN:
                 libpattern = "lib.*\\.(dylib|jnilib)$";
+                break;
+            case IBMI:
+                libpattern = "lib.*\\.(so|a\\(shr.o\\)|a\\(shr_64.o\\)|a|so.[\\.0-9]+)$";
                 break;
             default:
                 libpattern = "lib.*\\.so.*$";
@@ -385,6 +396,7 @@ public abstract class Platform {
         case NETBSD:
             return "c";
         case AIX:
+        case IBMI:
             return addressSize == 32
                 ? "libc.a(shr.o)"
                 : "libc.a(shr_64.o)";
@@ -512,6 +524,99 @@ public abstract class Platform {
             return "lib" + libName + ".dylib";
         }
 
+    }
+
+    static final class IbmI extends Supported {
+        public IbmI() {
+            super(OS.IBMI);
+        }
+
+        @Override
+        public String mapLibraryName(String libName) {
+            //
+            // A specific version was requested - use as is for search
+            //
+            if (libPattern.matcher(libName).find()) {
+                return libName;
+            }
+            return "lib" + libName + ".a(shr_64.o)";
+        }
+        @Override
+        public String locateLibrary(final String libName, List<String> libraryPaths) {
+            final Pattern versionedLibPattern = Pattern.compile("lib" + libName + "\\.so((?:\\.[0-9]+)*)$");
+            final Pattern dotAorSoPattern = Pattern.compile("lib" + libName + "\\.(a|so)$");
+            List<File> dotAorSoFiles = new java.util.LinkedList<File>();
+
+            List<String> searchPaths = new java.util.LinkedList<String>();
+            searchPaths.addAll(libraryPaths);
+            searchPaths.add("/QOpenSys/pkgs/lib");
+            searchPaths.add("/QOpenSys/usr/lib");
+
+            FilenameFilter filter = new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    return dotAorSoPattern.matcher(name).matches() ||  versionedLibPattern.matcher(name).matches() ;
+                }
+            };
+            Map<String, int[]> matches = new LinkedHashMap<String, int[]>();
+            for (String path : searchPaths) {
+                if(path.toLowerCase(LOCALE).startsWith("/qsys")) {
+                    continue;
+                }
+                File libraryPath = new File(path);
+                File[] files = libraryPath.listFiles(filter);
+                if (files == null) {
+                    continue;
+                }
+
+                for (File file : files) {
+                    if (dotAorSoPattern.matcher(file.getName()).matches()) {
+                        dotAorSoFiles.add(file);
+                        continue;
+                    }
+                    Matcher matcher = versionedLibPattern.matcher(file.getName());
+                    String versionString = matcher.matches() ? matcher.group(1) : "";
+                    int[] version;
+                    if (versionString == null || versionString.isEmpty()) {
+                        version = new int[0];
+                    } else {
+                        String[] parts = versionString.split("\\.");
+                        version = new int[parts.length - 1];
+                        for (int i = 1; i < parts.length; i++) {
+                            version[i - 1] = Integer.parseInt(parts[i]);
+                        }
+                    }
+                    matches.put(file.getAbsolutePath(), version);
+                }
+            }
+
+            //
+            // Search through the results and return the highest numbered version
+            // i.e. libc.so.6 is preferred over libc.so.5
+            //
+            int[] bestVersion = null;
+            String bestMatch = null;
+            for (Map.Entry<String,int[]> entry : matches.entrySet()) {
+                String file = entry.getKey();
+                int[] fileVersion = entry.getValue();
+
+                if (Linux.compareVersions(fileVersion, bestVersion) > 0) {
+                    bestMatch = file;
+                    bestVersion = fileVersion;
+                }
+            }
+            if (null != bestMatch) {
+                return bestMatch;
+            }
+            if (!dotAorSoFiles.isEmpty()) {
+                String qualifiedAorSo = dotAorSoFiles.get(0).getAbsolutePath();
+                if(qualifiedAorSo.endsWith(".a")) {
+                    qualifiedAorSo +="(shr_64.o)";
+                }
+                return qualifiedAorSo;
+            }
+
+            return mapLibraryName(libName);
+        }
     }
 
     /**
