@@ -2385,7 +2385,7 @@ public abstract class Struct {
 
             value += "\0";
             byte[] bytes = value.getBytes(charset);
-            if(bytes.length > length || valueHolder == null){
+            if(bytes.length > length || valueHolder == null) {
                 valueHolder = getRuntime().getMemoryManager().allocateDirect(bytes.length);
                 length = bytes.length;
                 getMemory().putPointer(offset(), valueHolder);
@@ -2393,7 +2393,7 @@ public abstract class Struct {
             valueHolder.put(0, bytes, 0, bytes.length);
         }
 
-        public void reAllocate(int sizeBytes){
+        public void reAllocate(int sizeBytes) {
             valueHolder = getRuntime().getMemoryManager().allocateDirect(sizeBytes);
             length = sizeBytes;
             getMemory().putPointer(offset(), valueHolder);
@@ -2429,7 +2429,7 @@ public abstract class Struct {
             super(Integer.MAX_VALUE, getCharset());
         }
         
-        public final void setMaxLength(int sizeInChars){
+        public final void setMaxLength(int sizeInChars) {
             length = sizeInChars * getWideCharWidthInBytes();
         }
         

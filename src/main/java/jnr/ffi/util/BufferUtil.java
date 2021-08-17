@@ -149,8 +149,8 @@ public final class BufferUtil {
             byte[] array = buf.array();
             int begin = buf.arrayOffset() + buf.position();
             int end = buf.arrayOffset() + buf.limit();
-            while(offset < end && offset > -1){
-                if(array[begin + offset] == value[matchingBytesCount]){
+            while(offset < end && offset > -1) {
+                if(array[begin + offset] == value[matchingBytesCount]) {
                     matchingBytesCount++;
                     offset++;
                 } else {
@@ -159,14 +159,14 @@ public final class BufferUtil {
                     continue;
                 }
 
-                if(matchingBytesCount == value.length){
+                if(matchingBytesCount == value.length) {
                     return  offset;
                 }
             }
         } else {
             int begin = buf.position();
-            while(offset < buf.limit()){
-                if(buf.get(begin + offset) == value[matchingBytesCount]){
+            while(offset < buf.limit()) {
+                if(buf.get(begin + offset) == value[matchingBytesCount]) {
                     matchingBytesCount++;
                     offset++;
                 } else {
@@ -175,7 +175,7 @@ public final class BufferUtil {
                     continue;
                 }
 
-                if(matchingBytesCount == value.length){
+                if(matchingBytesCount == value.length) {
                     return offset;
                 }
             }
