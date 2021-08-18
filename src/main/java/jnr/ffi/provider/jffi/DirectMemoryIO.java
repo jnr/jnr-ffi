@@ -22,10 +22,10 @@ import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.AbstractMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
+import jnr.ffi.provider.converters.StringUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 class DirectMemoryIO extends AbstractMemoryIO {
     static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
@@ -188,8 +188,8 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
     public String getString(long offset, int maxLength, Charset cs) {
     	long baseAddress = address() + offset;
-    	
-        if(cs == StandardCharsets.UTF_8) {
+    	int nullTermSize = StringUtil.terminatorWidth(cs);
+        if(nullTermSize == 1) {
             final byte[] bytes = IO.getZeroTerminatedByteArray(baseAddress, maxLength);
             return cs.decode(ByteBuffer.wrap(bytes)).toString();
         } else {
@@ -197,21 +197,20 @@ class DirectMemoryIO extends AbstractMemoryIO {
         		return null;
         	}
         	
-            final byte[] nullCharBytes = new String("\0").getBytes(cs);
             int nullTerminatedLen = 0;
             int matchingBytesCount = 0;
             int i = 0;
             while(i < maxLength) {
-                if(IO.getByte(baseAddress+i) == nullCharBytes[matchingBytesCount]) {
+                if(IO.getByte(baseAddress+i) == 0) {
                     matchingBytesCount++;
                     i++;
                 } else {
                     matchingBytesCount = 0;
-                    i += nullCharBytes.length - (i%nullCharBytes.length);//jump to start of next character
+                    i += nullTermSize - (i%nullTermSize);//jump to start of next character
                     continue;
                 }
-                if(matchingBytesCount == nullCharBytes.length) {
-                    nullTerminatedLen = i-nullCharBytes.length;//trim to the last byte just before null terminator
+                if(matchingBytesCount == nullTermSize) {
+                    nullTerminatedLen = i-nullTermSize;//trim to the last byte just before null terminator
                     break;
                 }
             }

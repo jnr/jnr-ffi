@@ -26,6 +26,8 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 
+import jnr.ffi.provider.converters.StringUtil;
+
 /**
  *
  */
@@ -64,7 +66,7 @@ public final class BufferUtil {
         final ByteBuffer buffer = buf.slice();
         // Find the NUL terminator and limit to that, so the
         // StringBuffer/StringBuilder does not have superfluous NUL chars
-        final byte[] nullCharBytes = new String("\0").getBytes(charset);
+        final byte[] nullCharBytes = new byte[StringUtil.terminatorWidth(charset)];
         int end = indexOf(buffer, nullCharBytes) - nullCharBytes.length;
         if (end < 0) {
             end = buffer.limit();
