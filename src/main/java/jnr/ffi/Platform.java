@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -81,7 +82,7 @@ public abstract class Platform {
         }
     }
 
-        /**
+    /**
      * The supported CPU architectures.
      */
     public enum CPU {
@@ -368,6 +369,22 @@ public abstract class Platform {
      */
     public final int addressSize() {
         return addressSize;
+    }
+
+    /**
+     * Returns true if the current platform is little endian
+     * @return true if little endian, false otherwise or if cannot determine
+     */
+    public final boolean isLittleEndian() {
+        return "little".equals(System.getProperty("sun.cpu.endian"));
+    }
+
+    /**
+     * Returns true if the current platform is big endian
+     * @return true if big endian, false otherwise or if cannot determine
+     */
+    public final boolean isBigEndian() {
+        return "big".equals(System.getProperty("sun.cpu.endian"));
     }
 
     /**
