@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class PlatformTest {
@@ -180,6 +181,8 @@ public class PlatformTest {
     // No preference but custom has lower version so system wins
     @Test
     public void testDefaultLocateLibraryLowerCustomVersion() throws IOException {
+        assumeFalse(Platform.getNativePlatform().getOS() == Platform.OS.DARWIN);
+
         mkLib("libc.so", "4");
         List<String> libPaths = libPaths();
 
@@ -193,6 +196,8 @@ public class PlatformTest {
     // No preference but custom has no version so system wins
     @Test
     public void testDefaultLocateLibraryNoCustomVersion() throws IOException {
+        assumeFalse(Platform.getNativePlatform().getOS() == Platform.OS.DARWIN);
+
         mkLib("libc.so", "");
         List<String> libPaths = libPaths();
 
