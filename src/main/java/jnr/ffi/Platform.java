@@ -788,9 +788,62 @@ public abstract class Platform {
      * A {@link Platform} subclass representing the Windows system.
      */
     private static class Windows extends Supported {
-
         public Windows() {
             super(OS.WINDOWS);
+        }
+
+        // This list only includes the Windows versions supported by Java 8+ (our minimum JDK)
+        private static final String WINDOWS_SERVER = "server";
+        private static final String WINDOWS_VISTA = "windows vista";
+        private static final String WINDOWS_7 = "windows 7";
+        private static final String WINDOWS_8 = "windows 8";
+        private static final String WINDOWS_10 = "windows 10";
+        private static final String WINDOWS_11 = "windows 11";
+
+        private String osName() {
+            return System.getProperty("os.name").toLowerCase();
+        }
+
+        /**
+         * @return true if this Windows version is a Windows server version
+         */
+        public boolean isServer() {
+            return osName().contains(WINDOWS_SERVER);
+        }
+
+        /**
+         * @return true if this Windows version is Windows Vista
+         */
+        public boolean isVista() {
+            return osName().contains(WINDOWS_VISTA);
+        }
+
+        /**
+         * @return true if this Windows version is Windows 7
+         */
+        public boolean is7() {
+            return osName().contains(WINDOWS_7);
+        }
+
+        /**
+         * @return true if this Windows version is Windows 8 (or 8.1)
+         */
+        public boolean is8() {
+            return osName().contains(WINDOWS_8);
+        }
+
+        /**
+         * @return true if this Windows version is Windows 10
+         */
+        public boolean is10() {
+            return osName().contains(WINDOWS_10);
+        }
+
+        /**
+         * @return true if this Windows versions is Windows 11
+         */
+        public boolean is11() {
+            return osName().contains(WINDOWS_11);
         }
     }
 
