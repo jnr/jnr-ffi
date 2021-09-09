@@ -404,6 +404,15 @@ public abstract class Platform {
     }
 
     /**
+     * @return the String representing the OS name from the System property {@code os.name} or null if none was found
+     * This is not the same as {@link #getOS()} which returns the {@link OS}.
+     * For example: Mac OS X is the {@link OS#DARWIN} {@link OS} but returns  "Mac OS X" from this method
+     */
+    public final String getOSName() {
+        return System.getProperty("os.name", null);
+    }
+
+    /**
      * Gets the name of this <code>Platform</code>.
      *
      * @return The name of this platform.
