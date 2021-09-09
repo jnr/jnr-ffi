@@ -372,6 +372,22 @@ public abstract class Platform {
     }
 
     /**
+     * @return true if this platform is 32 bit, else false
+     * @apiNote do not use this to determine long size, instead use {@link Runtime#longSize()}
+     */
+    public final boolean is32Bit() {
+        return addressSize == 32;
+    }
+
+    /**
+     * @return true if this platform is 64 bit, else false
+     * @apiNote do not use this to determine long size, instead use {@link Runtime#longSize()}
+     */
+    public final boolean is64Bit() {
+        return addressSize == 64;
+    }
+
+    /**
      * Returns true if the current platform is little endian
      * @return true if little endian, false otherwise or if cannot determine
      */
