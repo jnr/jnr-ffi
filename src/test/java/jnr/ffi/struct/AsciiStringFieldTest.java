@@ -84,4 +84,21 @@ public class AsciiStringFieldTest {
         testlib.copyByteBuffer(tmp, s, s.string.length());
         assertEquals(MAGIC, tmp.toString(), "String not put into struct correctly");
     }
+
+    public static final class StructWithStringByRef extends Struct {
+        private final AsciiStringRef stringValue = new AsciiStringRef();
+
+        public StructWithStringByRef() {
+            super(runtime);
+        }
+    }
+
+    @Test public void testStringByRef() {
+        final String testValue = "some test string";
+        final StructWithStringByRef struct = new StructWithStringByRef();
+
+        struct.stringValue.set(testValue);
+
+        assertEquals(testValue, struct.stringValue.get());
+    }
 }

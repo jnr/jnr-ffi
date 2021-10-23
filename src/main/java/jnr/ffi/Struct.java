@@ -20,7 +20,7 @@
  *
  * Copyright (C) 2006 - Javolution (http://javolution.org/)
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software is
  * freely granted, provided that this notice is preserved.
  */
@@ -2370,8 +2370,8 @@ public abstract class Struct {
 
         public final void set(java.lang.String value) {
             if (value != null) {
-                valueHolder = getRuntime().getMemoryManager().allocateDirect(length() * 4);
-                valueHolder.putString(0, value, length() * 4, charset);
+                valueHolder = getRuntime().getMemoryManager().allocateDirect(value.length() * 4);
+                valueHolder.putString(0, value, value.length() * 4, charset);
                 getMemory().putPointer(offset(), valueHolder);
 
             } else {
