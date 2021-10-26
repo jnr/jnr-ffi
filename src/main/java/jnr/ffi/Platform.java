@@ -372,6 +372,22 @@ public abstract class Platform {
     }
 
     /**
+     * @return true if this platform is 32 bit, else false
+     * Note: do not use this to determine long size, instead use {@link Runtime#longSize()}
+     */
+    public final boolean is32Bit() {
+        return addressSize == 32;
+    }
+
+    /**
+     * @return true if this platform is 64 bit, else false
+     * Note: do not use this to determine long size, instead use {@link Runtime#longSize()}
+     */
+    public final boolean is64Bit() {
+        return addressSize == 64;
+    }
+
+    /**
      * Returns true if the current platform is little endian
      * @return true if little endian, false otherwise or if cannot determine
      */
@@ -385,6 +401,15 @@ public abstract class Platform {
      */
     public final boolean isBigEndian() {
         return "big".equals(System.getProperty("sun.cpu.endian"));
+    }
+
+    /**
+     * @return the String representing the OS name from the System property {@code os.name} or null if none was found
+     * This is not the same as {@link #getOS()} which returns the {@link OS}.
+     * For example: Mac OS X is the {@link OS#DARWIN} {@link OS} but returns  "Mac OS X" from this method
+     */
+    public final String getOSName() {
+        return System.getProperty("os.name", null);
     }
 
     /**
