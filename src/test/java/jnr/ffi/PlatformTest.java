@@ -274,4 +274,29 @@ public class PlatformTest {
         assertEquals(customSystemPath, locatedFile.getParentFile().getAbsolutePath());
     }
 
+    @Test
+    public void testGetVersion() {
+        String originalVersion = System.getProperty("os.version");
+        assumeTrue(originalVersion != null);
+        assertEquals(originalVersion, Platform.getNativePlatform().getVersion());
+        try {
+            String[] versionStrings = new String[]{
+                    "5.11.0-69420-generic",     // GNU/Linux
+                    "10.16",                    // Darwin
+                    "10.0",                     // Windows
+                    " wildcard-123-456",        // wildcard
+            };
+            for (String version : versionStrings) {
+                System.setProperty("os.version", version);
+                int major = Platform.getNativePlatform().getVersionMajor();
+                int minor = Platform.getNativePlatform().getVersionMinor();
+                assertNotEquals(-1, major);
+                assertNotEquals(-1, minor);
+            }
+        } finally { // even if test fails reset version to what it was before
+            System.setProperty("os.version", originalVersion);
+            assertEquals(originalVersion, System.getProperty("os.version"));
+        }
+    }
+
 }

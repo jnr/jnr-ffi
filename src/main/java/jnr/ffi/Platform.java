@@ -397,6 +397,48 @@ public abstract class Platform {
     }
 
     /**
+     * Gets the version of this platform as specified by the system property "os.version"
+     * @return the String representing the version of this platform, or null if none could be found
+     */
+    public String getVersion() {
+        return System.getProperty("os.version", null);
+    }
+
+    /**
+     * @return the list of version numbers found from {@link #getVersion()} or an empty list if none were found
+     */
+    private List<String> getVersionNumbers() {
+        String version = getVersion();
+        if (version == null) return Collections.emptyList();
+        Matcher matcher = Pattern.compile("[\\d]+").matcher(version); // get digits only
+        ArrayList<String> result = new ArrayList<>();
+        while (matcher.find()) {
+            result.add(matcher.group());
+        }
+        return result;
+    }
+
+    /**
+     * Gets the number representing the major version of this platform
+     * This uses the first number from {@link #getVersion()}
+     * @return the number representing the major version of this platform or -1 if none was found
+     */
+    public int getVersionMajor() {
+        List<String> versionNumbers = getVersionNumbers();
+        return versionNumbers.size() < 1 ? -1 : Integer.parseInt(versionNumbers.get(0));
+    }
+
+    /**
+     * Gets the number representing the minor version of this platform
+     * This uses the second number from {@link #getVersion()}
+     * @return the number representing the minor version of this platform or -1 if none was found
+     */
+    public int getVersionMinor() {
+        List<String> versionNumbers = getVersionNumbers();
+        return versionNumbers.size() < 2 ? -1 : Integer.parseInt(versionNumbers.get(1));
+    }
+
+    /**
      * Returns the platform specific standard C library name
      * 
      * @return The standard C library name
