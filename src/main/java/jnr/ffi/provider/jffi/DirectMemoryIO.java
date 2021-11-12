@@ -22,6 +22,7 @@ import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.AbstractMemoryIO;
 import jnr.ffi.provider.DelegatingMemoryIO;
+import jnr.ffi.provider.converters.StringUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -186,8 +187,42 @@ class DirectMemoryIO extends AbstractMemoryIO {
 
 
     public String getString(long offset, int maxLength, Charset cs) {
-        final byte[] bytes = IO.getZeroTerminatedByteArray(address() + offset, maxLength);
-        return cs.decode(ByteBuffer.wrap(bytes)).toString();
+    	long baseAddress = address() + offset;
+    	int nullTermSize = StringUtil.terminatorWidth(cs);
+        if(nullTermSize == 1) {
+            final byte[] bytes = IO.getZeroTerminatedByteArray(baseAddress, maxLength);
+            return cs.decode(ByteBuffer.wrap(bytes)).toString();
+        } else {
+        	if(address() == 0) {
+        		return null;
+        	}
+        	
+            int nullTerminatedLen = 0;
+            int matchingBytesCount = 0;
+            int i = 0;
+            while(i < maxLength) {
+                if(IO.getByte(baseAddress+i) == 0) {
+                    matchingBytesCount++;
+                    i++;
+                } else {
+                    matchingBytesCount = 0;
+                    i += nullTermSize - (i%nullTermSize);//jump to start of next character
+                    continue;
+                }
+                if(matchingBytesCount == nullTermSize) {
+                    nullTerminatedLen = i-nullTermSize;//trim to the last byte just before null terminator
+                    break;
+                }
+            }
+
+            if(nullTerminatedLen == 0) {
+            	return "";
+			}
+
+			byte[] bytes = new byte[nullTerminatedLen];
+            IO.getByteArray(baseAddress, bytes, 0, nullTerminatedLen);
+            return new String(bytes, 0, bytes.length, cs);
+        }
     }
 
     public void putString(long offset, String string, int maxLength, Charset cs) {

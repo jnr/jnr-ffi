@@ -30,10 +30,12 @@ package jnr.ffi;
 import jnr.ffi.provider.ParameterFlags;
 import jnr.ffi.provider.jffi.ArrayMemoryIO;
 import jnr.ffi.util.EnumMapper;
+import jnr.ffi.Platform;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Representation of C structures in java.
@@ -2291,7 +2293,7 @@ public abstract class Struct {
 
     abstract public class String extends AbstractMember {
         protected final Charset charset;
-        protected final int length;
+        protected int length;
 
         protected String(int size, int align, int length, Charset cs) {
             super(size, align);
@@ -2318,8 +2320,8 @@ public abstract class Struct {
     }
 
     public class UTFString extends String {
-        public UTFString(int length, Charset cs) {
-            super(length * 8, 8, length, cs); // FIXME: This won't work for non-ASCII
+        public UTFString(int lengthInBytes, Charset cs) {
+            super(lengthInBytes * 8, 8, lengthInBytes, cs); // FIXME: This won't work for non-ASCII
 
         }
         protected jnr.ffi.Pointer getStringMemory() {
@@ -2347,6 +2349,12 @@ public abstract class Struct {
         }
     }
 
+    public class WString extends UTFString {
+        public WString(int sizeInChars) {
+            super(sizeInChars * getWideCharWidthInBytes(), getCharset());
+        }
+    }
+
     public class UTFStringRef extends String {
         private jnr.ffi.Pointer valueHolder;
 
@@ -2369,16 +2377,29 @@ public abstract class Struct {
         }
 
         public final void set(java.lang.String value) {
-            if (value != null) {
-                valueHolder = getRuntime().getMemoryManager().allocateDirect(length() * 4);
-                valueHolder.putString(0, value, length() * 4, charset);
-                getMemory().putPointer(offset(), valueHolder);
-
-            } else {
+            if(value == null) {
                 this.valueHolder = null;
                 getMemory().putAddress(offset(), 0);
+                return;
             }
+
+            value += "\0";
+            byte[] bytes = value.getBytes(charset);
+            if(bytes.length > length || valueHolder == null) {
+                valueHolder = getRuntime().getMemoryManager().allocateDirect(bytes.length);
+                length = bytes.length;
+                getMemory().putPointer(offset(), valueHolder);
+            } 
+            valueHolder.put(0, bytes, 0, bytes.length);
         }
+
+        public void reAllocate(int sizeBytes) {
+            valueHolder = getRuntime().getMemoryManager().allocateDirect(sizeBytes);
+            length = sizeBytes;
+            getMemory().putPointer(offset(), valueHolder);
+        }
+
+        //TODO: implement bool isNull()
     }
 
     public class UTF8StringRef extends UTFStringRef {
@@ -2397,6 +2418,37 @@ public abstract class Struct {
         public AsciiStringRef() {
             super(Integer.MAX_VALUE, ASCII);
         }
+    }
+
+    public class WStringRef extends UTFStringRef {
+        public WStringRef(int sizeInChars) {
+            super(sizeInChars * getWideCharWidthInBytes(), getCharset());
+        }
+        
+        public WStringRef() {
+            super(Integer.MAX_VALUE, getCharset());
+        }
+        
+        public final void setMaxLength(int sizeInChars) {
+            length = sizeInChars * getWideCharWidthInBytes();
+        }
+        
+        @Override
+        public void reAllocate(int sizeInChars){
+        	super.reAllocate(sizeInChars * getWideCharWidthInBytes());
+        }
+    }
+
+    private static Charset getCharset() {
+        if(Platform.getPlatform().getOS() == Platform.OS.WINDOWS) {
+            return StandardCharsets.UTF_16LE;
+        } else {
+            return Charset.forName("UTF-32LE");//unless -fshort-wchar is used for compiling native libs
+        }
+    }
+
+    private static int getWideCharWidthInBytes() {
+        return Platform.getPlatform().getOS() == Platform.OS.WINDOWS ? 2 : 4;
     }
 
     /**

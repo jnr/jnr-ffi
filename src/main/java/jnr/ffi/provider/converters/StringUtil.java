@@ -35,7 +35,7 @@ import java.nio.charset.CodingErrorAction;
 import java.util.Arrays;
 import java.util.Collection;
 
-final class StringUtil {
+final public class StringUtil {
     private StringUtil() {}
 
     static CharsetEncoder getEncoder(Charset charset, ThreadLocal<Reference<CharsetEncoder>> localEncoder) {
@@ -121,7 +121,7 @@ final class StringUtil {
     private static final Charset UTF16LE = Charset.forName("UTF-16LE");
     private static final Charset UTF16BE = Charset.forName("UTF-16BE");
 
-    static int terminatorWidth(Charset charset) {
+    public static int terminatorWidth(Charset charset) {
         if (charset.equals(UTF8) || charset.equals(USASCII) || charset.equals(ISO8859_1)) {
             return 1;
 
