@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class UTF8StringFieldTest {
     public UTF8StringFieldTest() {
     }
-    
+
     public static class StringFieldStruct extends Struct {
         public final UTF8String string = new UTF8String(32);
 
@@ -104,5 +104,22 @@ public class UTF8StringFieldTest {
         assertEquals(SUN_LEN, s.sun_len.intValue(), "Incorrect sun_len value");
         assertEquals(SUN_FAM, s.sun_family.intValue(), "Incorrect sun_fam value");
         assertEquals(SUN_PATH, s.sun_path.toString(), "Incorrect sun_path value");
+    }
+
+    public static final class StructWithStringByRef extends Struct {
+        private final UTF8StringRef stringValue = new UTF8StringRef();
+
+        public StructWithStringByRef() {
+            super(runtime);
+        }
+    }
+
+    @Test public void testStringByRef() {
+        final String testValue = "some test string";
+        final StructWithStringByRef struct = new StructWithStringByRef();
+
+        struct.stringValue.set(testValue);
+
+        assertEquals(testValue, struct.stringValue.get());
     }
 }
