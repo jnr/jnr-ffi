@@ -27,8 +27,8 @@ For example, an `unsigned char` can contain the value `220` but a Java `byte` ca
 
 To remedy this you can use a larger size Java type with the corresponding annotation to let JNR-FFI to do the correct conversion. To fit the bounds of unsigned C types use the following table:
 
-| C Type | Java Type | Notes |
-|--------|-----------|------|
+| C Type | Java Type |
+|--------|-----------|
 | `unsigned char` | `@u_int8_t byte` |
 | `unsigned short` | `@u_int16_t int` |
 | `unsigned int` | `@u_int32_t long` |
@@ -37,7 +37,7 @@ Unsigned 64 bit integers (such as `unsigned long` on 64bit systems and `unsigned
 
 ### Enums
 
-Native enums can be mapped using any Java integral numeric types such as `int` or `Int`, or by using a similarly valued Java enum to the native one.
+Native enums can be mapped using any Java integral numeric types such as `int` or `Integer`, or by using a similarly valued Java enum to the native one.
 
 For example the C enum:
 
