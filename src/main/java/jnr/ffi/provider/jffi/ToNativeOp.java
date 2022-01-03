@@ -58,8 +58,8 @@ abstract class ToNativeOp {
         }
         m.put(float.class, new Float32(float.class));
         m.put(Float.class, new Float32(Float.class));
-        m.put(double.class, new Float64(float.class));
-        m.put(Double.class, new Float64(Float.class));
+        m.put(double.class, new Float64(double.class));
+        m.put(Double.class, new Float64(Double.class));
         m.put(Address.class, new AddressOp());
 
         operations = Collections.unmodifiableMap(m);
