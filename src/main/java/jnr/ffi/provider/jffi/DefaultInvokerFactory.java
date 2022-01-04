@@ -138,7 +138,7 @@ final class DefaultInvokerFactory {
                 marshallers[i] = getMarshaller(parameterTypes[i]);
             }
 
-            return new DefaultInvoker(runtime, library, function, functionInvoker, marshallers);
+            invoker = new DefaultInvoker(runtime, library, function, functionInvoker, marshallers);
         }
 
         //
