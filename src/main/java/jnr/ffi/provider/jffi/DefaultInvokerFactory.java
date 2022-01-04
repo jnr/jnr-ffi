@@ -368,8 +368,9 @@ final class DefaultInvokerFactory {
             variableArgs[variableArgsCount] = null;
             variableArgsCount++;
 
+            int totalArgsCount = variableArgsCount + fixedParameterTypes.length - 1;
             Function function = new Function(functionAddress,
-                    getCallContext(resultType, argTypes, variableArgsCount + fixedParameterTypes.length - 1, callingConvention, requiresErrno));
+                    getCallContext(resultType, fixedParameterTypes.length, argTypes, totalArgsCount, callingConvention, requiresErrno));
             HeapInvocationBuffer buffer = new HeapInvocationBuffer(function.getCallContext());
 
             InvocationSession session = new InvocationSession();
