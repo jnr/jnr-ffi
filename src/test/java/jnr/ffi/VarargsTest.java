@@ -42,6 +42,14 @@ public class VarargsTest {
         assertEquals("12345", result);
     }
 
+    @Test public void testSizeTNoType() {
+        Pointer ptr = Runtime.getRuntime(c).getMemoryManager().allocate(5000);
+        int size = c.snprintf(ptr, 5000, "%zu", 12345L);
+        assertEquals(5, size);
+        String result = ptr.getString(0, size, Charset.defaultCharset());
+        assertEquals("12345", result);
+    }
+
     @Test public void testSizeTNoVarargs() {
         Pointer ptr = Runtime.getRuntime(c).getMemoryManager().allocate(5000);
         int size = c.snprintf(ptr, 5000, "%zu", 12345);
