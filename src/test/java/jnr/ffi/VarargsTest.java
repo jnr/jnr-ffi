@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class VarargsTest {
     public static interface C {
         @Variadic(fixedCount = 3)
+        public int snprintf(Pointer buffer, @size_t long bufferSize, String format, @size_t int value);
+        @Variadic(fixedCount = 3)
         public int snprintf(Pointer buffer, @size_t long bufferSize, String format, long value);
         public int snprintf(Pointer buffer, @size_t long bufferSize, String format, Object... varargs);
     }
@@ -52,9 +54,15 @@ public class VarargsTest {
 
     @Test public void testSizeTNoVarargs() {
         Pointer ptr = Runtime.getRuntime(c).getMemoryManager().allocate(5000);
-        int size = c.snprintf(ptr, 5000, "%zu", 12345);
+        int size = c.snprintf(ptr, 5000, "%zu", 12345L);
         assertEquals(5, size);
         String result = ptr.getString(0, size, Charset.defaultCharset());
+        assertEquals("12345", result);
+
+        // int form with size_t annotation
+        size = c.snprintf(ptr, 5000, "%zu", 12345);
+        assertEquals(5, size);
+        result = ptr.getString(0, size, Charset.defaultCharset());
         assertEquals("12345", result);
     }
 
