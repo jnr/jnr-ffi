@@ -1,4 +1,4 @@
-package jnr.ffi.number.utils;
+package jnr.ffi.numeric.utils;
 
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.types.u_int64_t;

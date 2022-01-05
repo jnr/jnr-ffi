@@ -1,4 +1,4 @@
-package jnr.ffi.number;
+package jnr.ffi.numeric;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -9,8 +9,8 @@ import java.util.EnumSet;
 import jnr.ffi.TstUtil;
 import jnr.ffi.util.EnumMapper;
 
-import static jnr.ffi.number.utils.NumberOps.returnLoop;
-import static jnr.ffi.number.utils.NumberUtils.box;
+import static jnr.ffi.numeric.utils.NumberOps.returnLoop;
+import static jnr.ffi.numeric.utils.NumberUtils.box;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

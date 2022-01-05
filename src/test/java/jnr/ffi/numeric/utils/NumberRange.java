@@ -1,4 +1,4 @@
-package jnr.ffi.number.utils;
+package jnr.ffi.numeric.utils;
 
 import java.util.Arrays;
 import java.util.List;

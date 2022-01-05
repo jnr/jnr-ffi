@@ -1,4 +1,4 @@
-package jnr.ffi.number;
+package jnr.ffi.numeric;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -6,17 +6,17 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import jnr.ffi.TstUtil;
-import jnr.ffi.number.utils.BooleanNumberTestLib;
-import jnr.ffi.number.utils.NumberTestLib;
+import jnr.ffi.numeric.utils.BooleanNumberTestLib;
+import jnr.ffi.numeric.utils.NumberTestLib;
 
-import static jnr.ffi.number.utils.NumberOps.doubleLoop;
-import static jnr.ffi.number.utils.NumberOps.doubleReturnLoop;
-import static jnr.ffi.number.utils.NumberOps.floatLoop;
-import static jnr.ffi.number.utils.NumberOps.floatReturnLoop;
-import static jnr.ffi.number.utils.NumberOps.rangesLoop;
-import static jnr.ffi.number.utils.NumberOps.returnLoop;
-import static jnr.ffi.number.utils.NumberUtils.box;
-import static jnr.ffi.number.utils.NumberUtils.nativeLong;
+import static jnr.ffi.numeric.utils.NumberOps.doubleLoop;
+import static jnr.ffi.numeric.utils.NumberOps.doubleReturnLoop;
+import static jnr.ffi.numeric.utils.NumberOps.floatLoop;
+import static jnr.ffi.numeric.utils.NumberOps.floatReturnLoop;
+import static jnr.ffi.numeric.utils.NumberOps.rangesLoop;
+import static jnr.ffi.numeric.utils.NumberOps.returnLoop;
+import static jnr.ffi.numeric.utils.NumberUtils.box;
+import static jnr.ffi.numeric.utils.NumberUtils.nativeLong;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

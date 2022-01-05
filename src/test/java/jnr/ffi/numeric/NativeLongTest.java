@@ -1,4 +1,4 @@
-package jnr.ffi.number;
+package jnr.ffi.numeric;
 
 import org.junit.jupiter.api.Test;
 
