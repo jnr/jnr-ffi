@@ -368,9 +368,10 @@ final class DefaultInvokerFactory {
             variableArgs[variableArgsCount] = null;
             variableArgsCount++;
 
-            int totalArgsCount = variableArgsCount + fixedParameterTypes.length - 1;
+            int fixedParamCount = fixedParameterTypes.length - 1;
+            int totalArgsCount = variableArgsCount + fixedParamCount;
             Function function = new Function(functionAddress,
-                    getCallContext(resultType, fixedParameterTypes.length, argTypes, totalArgsCount, callingConvention, requiresErrno));
+                    getCallContext(resultType, fixedParamCount, argTypes, totalArgsCount, callingConvention, requiresErrno));
             HeapInvocationBuffer buffer = new HeapInvocationBuffer(function.getCallContext());
 
             InvocationSession session = new InvocationSession();
@@ -380,7 +381,7 @@ final class DefaultInvokerFactory {
                 }
                 
                 for (int i = 0; i < variableArgsCount; ++i) {
-                    getMarshaller(argTypes[i + fixedParameterTypes.length - 1]).marshal(session, buffer, variableArgs[i]);
+                    getMarshaller(argTypes[i + fixedParamCount]).marshal(session, buffer, variableArgs[i]);
                 }
 
                 return functionInvoker.invoke(runtime, function, buffer);
