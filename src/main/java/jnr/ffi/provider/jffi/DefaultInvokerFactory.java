@@ -355,10 +355,17 @@ final class DefaultInvokerFactory {
                 }
             }
             
-            //Add one extra vararg of NULL to meet the common convention of ending
-            //varargs with a NULL.  Functions that get a length from the fixed arguments
-            //will ignore the extra, and funtions that expect the extra NULL will get it.
-            //This matches what JNA does.
+            // Add one extra vararg of NULL to meet the common convention of ending
+            // varargs with a NULL.  Functions that get a length from the fixed arguments
+            // will ignore the extra, and funtions that expect the extra NULL will get it.
+            // This matches what JNA does.
+            //
+            // Note: After https://github.com/jnr/jffi/pull/121 we now use the variadic ffi_prep_cif_var function for
+            // setup of the call when invoking a variadic function, which does not need the trailing null. However, for
+            // platforms where we have not rebuilt the jffi stub we still set up this trailing NULL to be compatible
+            // with ffi_prep_cif and the common va_arg layout. Once all platforms have been rebuilt to use
+            // ffi_prep_cif_var, this NULL and the +1 on variableArgs allocation above can be removed.
+            
             argTypes[fixedParameterTypes.length + variableArgsCount - 1] = new ParameterType(
                     Pointer.class, 
                     Types.getType(runtime, Pointer.class, Collections.<Annotation>emptyList()).getNativeType(), 
