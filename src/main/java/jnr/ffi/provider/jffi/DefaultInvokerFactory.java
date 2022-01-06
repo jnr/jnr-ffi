@@ -32,6 +32,7 @@ import jnr.ffi.Runtime;
 import jnr.ffi.annotations.Meta;
 import jnr.ffi.annotations.StdCall;
 import jnr.ffi.annotations.Synchronized;
+import jnr.ffi.annotations.Variadic;
 import jnr.ffi.mapper.DataConverter;
 import jnr.ffi.mapper.DefaultSignatureType;
 import jnr.ffi.mapper.FromNativeContext;
@@ -130,15 +131,24 @@ final class DefaultInvokerFactory {
         if (method.isVarArgs()) {
             invoker = new VariadicInvoker(runtime, functionInvoker, typeMapper, parameterTypes, functionAddress, resultType, saveError, callingConvention);
         } else {
-            Function function = new Function(functionAddress,
-                    getCallContext(resultType, parameterTypes, callingConvention, saveError));
+            Function function;
+            // check if method is all-fixed but calling a variadic function
+            Variadic variadic = method.getAnnotation(Variadic.class);
+
+            if (variadic != null) {
+                function = new Function(functionAddress,
+                        getCallContext(resultType, variadic.fixedCount(), parameterTypes, callingConvention, saveError));
+            } else {
+                function = new Function(functionAddress,
+                        getCallContext(resultType, parameterTypes, callingConvention, saveError));
+            }
 
             Marshaller[] marshallers = new Marshaller[parameterTypes.length];
             for (int i = 0; i < marshallers.length; ++i) {
                 marshallers[i] = getMarshaller(parameterTypes[i]);
             }
 
-            return new DefaultInvoker(runtime, library, function, functionInvoker, marshallers);
+            invoker = new DefaultInvoker(runtime, library, function, functionInvoker, marshallers);
         }
 
         //
@@ -355,10 +365,17 @@ final class DefaultInvokerFactory {
                 }
             }
             
-            //Add one extra vararg of NULL to meet the common convention of ending
-            //varargs with a NULL.  Functions that get a length from the fixed arguments
-            //will ignore the extra, and funtions that expect the extra NULL will get it.
-            //This matches what JNA does.
+            // Add one extra vararg of NULL to meet the common convention of ending
+            // varargs with a NULL.  Functions that get a length from the fixed arguments
+            // will ignore the extra, and funtions that expect the extra NULL will get it.
+            // This matches what JNA does.
+            //
+            // Note: After https://github.com/jnr/jffi/pull/121 we now use the variadic ffi_prep_cif_var function for
+            // setup of the call when invoking a variadic function, which does not need the trailing null. However, for
+            // platforms where we have not rebuilt the jffi stub we still set up this trailing NULL to be compatible
+            // with ffi_prep_cif and the common va_arg layout. Once all platforms have been rebuilt to use
+            // ffi_prep_cif_var, this NULL and the +1 on variableArgs allocation above can be removed.
+
             argTypes[fixedParameterTypes.length + variableArgsCount - 1] = new ParameterType(
                     Pointer.class, 
                     Types.getType(runtime, Pointer.class, Collections.<Annotation>emptyList()).getNativeType(), 
@@ -368,8 +385,10 @@ final class DefaultInvokerFactory {
             variableArgs[variableArgsCount] = null;
             variableArgsCount++;
 
+            int fixedParamCount = fixedParameterTypes.length - 1;
+            int totalArgsCount = variableArgsCount + fixedParamCount;
             Function function = new Function(functionAddress,
-                    getCallContext(resultType, argTypes, variableArgsCount + fixedParameterTypes.length - 1, callingConvention, requiresErrno));
+                    getCallContext(resultType, fixedParamCount, argTypes, totalArgsCount, callingConvention, requiresErrno));
             HeapInvocationBuffer buffer = new HeapInvocationBuffer(function.getCallContext());
 
             InvocationSession session = new InvocationSession();
@@ -379,7 +398,7 @@ final class DefaultInvokerFactory {
                 }
                 
                 for (int i = 0; i < variableArgsCount; ++i) {
-                    getMarshaller(argTypes[i + fixedParameterTypes.length - 1]).marshal(session, buffer, variableArgs[i]);
+                    getMarshaller(argTypes[i + fixedParamCount]).marshal(session, buffer, variableArgs[i]);
                 }
 
                 return functionInvoker.invoke(runtime, function, buffer);
