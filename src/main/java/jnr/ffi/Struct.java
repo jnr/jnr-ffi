@@ -165,8 +165,48 @@ public abstract class Struct {
         return struct.__info.getMemory(flags);
     }
 
+    /**
+     * Gets the size of a Struct instance in bytes
+     *
+     * @param struct the Struct instance
+     * @return the size of the Struct in bytes
+     */
     public static int size(Struct struct) {
         return struct.__info.size();
+    }
+
+    /**
+     * Gets the size of a Struct type in bytes
+     *
+     * @param structClass the {@link Class} of the Struct
+     * @param runtime     the {@link Runtime} that will be used to create an instance of the Struct
+     * @param <T>         the Struct type
+     * @return the size of the Struct in bytes
+     */
+    public static <T extends Struct> int size(Class<T> structClass, Runtime runtime) {
+        try {
+            Constructor<T> structConstructor = structClass.getDeclaredConstructor(Runtime.class);
+            T struct = structConstructor.newInstance(runtime);
+            return Struct.size(struct);
+        } catch (NoSuchMethodException ex) {
+            throw new RuntimeException("Could not create an instance of " + structClass.getName() +
+                    "\nBecause could not find the public constructor with a Runtime argument, it should look like:\n" +
+                    "public " + structClass.getSimpleName() + "(Runtime runtime) {super(runtime);}",
+                    ex);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Gets the size of a Struct type in bytes
+     *
+     * @param structClass the {@link Class} of the Struct
+     * @param <T>         the Struct type
+     * @return the size of the Struct in bytes
+     */
+    public static <T extends Struct> int size(Class<T> structClass) {
+        return Struct.size(structClass, Runtime.getSystemRuntime());
     }
 
     public static int alignment(Struct struct) {
@@ -689,6 +729,28 @@ public abstract class Struct {
         return array;
     }
 
+    /**
+     * Creates inner Structs in Struct definitions.
+     * Example:
+     * <pre>{@code
+     *     public class InnerStruct extends Struct {
+     *         public final Signed32 innerInt32 = new Signed32();
+     *         public final Double innerDouble = new Double();
+     *
+     *         public InnerStruct(Runtime runtime) {super(runtime);}
+     *     }
+     *
+     *     public class MyStruct extends Struct {
+     *         public final Signed32 myInt32 = new Signed32();
+     *         public final InnerStruct myInnerStruct = inner(new InnerStruct());
+     *
+     *         public MyStruct(Runtime runtime) {super(runtime);}
+     *     }
+     *}</pre>
+     * @param struct an instance of the inner Struct
+     * @param <T> the type of the inner Struct
+     * @return the instance of the inner Struct of type {@link T}
+     */
     protected final <T extends Struct> T inner(T struct) {
         int alignment = __info.alignment.intValue() > 0 ? Math.min(__info.alignment.intValue(), struct.__info.getMinimumAlignment()) : struct.__info.getMinimumAlignment();
         int offset = __info.resetIndex ? 0 : align(__info.size, alignment);
@@ -696,6 +758,43 @@ public abstract class Struct {
         struct.__info.offset = offset;
         __info.size = Math.max(__info.size, offset + struct.__info.size);
         return struct;
+    }
+
+    /**
+     * Creates inner Structs in Struct definitions.
+     * Example:
+     * <pre>{@code
+     *     public class InnerStruct extends Struct {
+     *         public final Signed32 innerInt32 = new Signed32();
+     *         public final Double innerDouble = new Double();
+     *
+     *         public InnerStruct(Runtime runtime) {super(runtime);}
+     *     }
+     *
+     *     public class MyStruct extends Struct {
+     *         public final Signed32 myInt32 = new Signed32();
+     *         public final InnerStruct myInnerStruct = inner(InnerStruct.class);
+     *
+     *         public MyStruct(Runtime runtime) {super(runtime);}
+     *     }
+     *}</pre>
+     * @param structClass the {@link Class} of the inner Struct
+     * @param <T> the type of the inner Struct
+     * @return the newly created inner Struct of type {@link T}
+     */
+    protected final <T extends Struct> T inner(Class<T> structClass) {
+        try {
+            Constructor<T> structConstructor = structClass.getDeclaredConstructor(Runtime.class);
+            T struct = structConstructor.newInstance(getRuntime());
+            return inner(struct);
+        } catch (NoSuchMethodException ex) {
+            throw new RuntimeException("Could not create an instance of " + structClass.getName() +
+                    "\nBecause could not find the public constructor with a Runtime argument, it should look like:\n" +
+                    "public " + structClass.getSimpleName() + "(Runtime runtime) {super(runtime);}",
+                    ex);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
