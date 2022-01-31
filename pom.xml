@@ -315,21 +315,12 @@
     </profile>
     <profile>
       <id>java9</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <!-- Use -release compiler option rather than source/target if 9+ -->
-              <release>${maven.compiler.target}</release>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
       <activation>
         <jdk>[9,)</jdk>
       </activation>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
     </profile>
   </profiles>
   <reporting>
