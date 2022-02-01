@@ -64,13 +64,7 @@ endif
 
 ifeq ($(OS), darwin)
   CC = gcc
-  ifneq ($(findstring $(CPU), x86_64),)
-    ARCHFLAGS = -arch x86_64
-  endif
-  ifneq ($(findstring $(CPU), arm64),)
-    ARCHFLAGS = -arch arm64 
-  endif
-  
+  ARCHFLAGS = -arch x86_64 -arch arm64
   CFLAGS += -fno-common $(ARCHFLAGS)
   LDFLAGS = $(ARCHFLAGS) -dynamiclib
   LIBEXT = dylib
