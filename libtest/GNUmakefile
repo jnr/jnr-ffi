@@ -67,8 +67,8 @@ ifeq ($(OS), darwin)
   ifneq ($(findstring $(CPU), x86_64),)
     ARCHFLAGS = -arch x86_64
   endif
-  ifneq ($(findstring $(CPU), ppc powerpc),)
-    ARCHFLAGS = -arch ppc
+  ifneq ($(findstring $(CPU), arm64),)
+    ARCHFLAGS = -arch arm64 
   endif
   
   CFLAGS += -fno-common $(ARCHFLAGS)
