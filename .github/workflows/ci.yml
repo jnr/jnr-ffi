@@ -56,7 +56,3 @@ jobs:
         architecture: arm
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    - name: mvn package ${{ matrix.package-flags }}
-      run: tool/maven-ci-script.sh
-      env:
-        PHASE: 'package ${{ matrix.package-flags }}'
