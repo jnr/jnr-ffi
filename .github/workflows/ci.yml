@@ -10,28 +10,53 @@ on:
     branches: [ master ]
 
 jobs:
-  jdk8:
+
+  mvn-test-ubuntu-x86:
 
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        java-version: ['8', '11']
+
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 8
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    - name: Set up JDK ${{ matrix.java-version }}
       uses: actions/setup-java@v1.4.3
       with:
-        java-version: 8
+        java-version: ${{ matrix.java-version }}
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-  jdk11:
+  mvn-test-macos-aarch64:
 
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macos, aarch64]
+
+    name: mvn test on Apple M1
 
     steps:
     - uses: actions/checkout@v2
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
     - name: Set up JDK 11
-      uses: actions/setup-java@v1.4.3
+      uses: actions/setup-java@v2
       with:
+        distribution: 'zulu'
         java-version: 11
+        architecture: arm
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+    - name: mvn package ${{ matrix.package-flags }}
+      run: tool/maven-ci-script.sh
+      env:
+        PHASE: 'package ${{ matrix.package-flags }}'
