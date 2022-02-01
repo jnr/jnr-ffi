@@ -30,7 +30,7 @@ export MACOSX_DEPLOYMENT_TARGET=10.5
 
 CCACHE := $(strip $(realpath $(shell which ccache 2> /dev/null)))
 
-TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)
+TEST_SRCS = $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*/*.c)
 TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(TEST_SRCS))
 
 #
