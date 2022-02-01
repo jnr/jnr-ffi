@@ -40,8 +40,7 @@ public final class EnumMapper {
     }
     
     private final Class<? extends Enum> enumClass;
-    private final Integer[] intValues;
-    private final Long[] longValues;
+    private final int[] intValues;
     private final Map<Number, Enum> reverseLookupMap = new HashMap<Number, Enum>();
 
     private EnumMapper(Class<? extends Enum> enumClass) {
@@ -49,23 +48,16 @@ public final class EnumMapper {
 
         EnumSet<? extends Enum> enums = EnumSet.allOf(enumClass);
 
-        this.intValues = new Integer[enums.size()];
-        this.longValues = new Long[enums.size()];
+        this.intValues = new int[enums.size()];
         Method intValueMethod = getNumberValueMethod(enumClass, int.class);
-        Method longValueMethod = getNumberValueMethod(enumClass, long.class);
         for (Enum e : enums) {
             Number value;
-            if (longValueMethod != null) {
-                value = reflectedNumberValue(e, longValueMethod);
-
-            } else if (intValueMethod != null) {
+             if (intValueMethod != null) {
                 value = reflectedNumberValue(e, intValueMethod);
-
             } else {
                 value = e.ordinal();
             }
             intValues[e.ordinal()] = value.intValue();
-            longValues[e.ordinal()] = value.longValue();
 
             reverseLookupMap.put(value, e);
         }
@@ -127,32 +119,16 @@ public final class EnumMapper {
         return integerValue(value);
     }
 
-    public final Long longValue(Enum value) {
-        if (value.getClass() != enumClass) {
-            throw new IllegalArgumentException("enum class mismatch, " + value.getClass());
-        }
-
-        return longValues[value.ordinal()];
-    }
-
     public Enum valueOf(int value) {
         return reverseLookup(value);
     }
 
-    public Enum valueOf(long value) {
-        return reverseLookup(value);
-    }
-
-    public Enum valueOf(Number value) {
-        return reverseLookup(value);
-    }
-
-    private Enum reverseLookup(Number value) {
+    private Enum reverseLookup(int value) {
         Enum e = reverseLookupMap.get(value);
         return e != null ? e : badValue(value);
     }
 
-    private Enum badValue(Number value) {
+    private Enum badValue(int value) {
         //
         // No value found - try to find the default value for unknown values.
         // This is useful for enums that aren't fixed in stone and/or where you

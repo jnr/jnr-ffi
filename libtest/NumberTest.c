@@ -17,10 +17,12 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #if !defined(__mips___) || defined(__PASE__)
 # include <stdint.h>
 #endif
 
+// Let's define the stdint.h typedefs ourselves if they can't be found
 #if !defined (_STDINT_H_) && !defined(_STDINT_H) && !defined(_SYS__STDINT_H_) && !defined(_H_STDINT)
 typedef signed char int8_t;
 typedef signed short int16_t;
@@ -31,23 +33,19 @@ typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 #endif
-typedef char Signed8;
-typedef short Signed16;
-typedef int Signed32;
-typedef long long Signed64;
-typedef float Float32;
-typedef double Float64;
-typedef long SignedLong;
-typedef void* pointer;
+
 typedef unsigned long ulong;
+typedef long double ldouble;
+typedef void* pointer;
+typedef enum Enum_t {e0, e1, e2, e3} Enum;
 
 #define ADD(T) T add_##T(T arg1, T arg2) { return arg1 + arg2; }
 #define SUB(T) T sub_##T(T arg1, T arg2) { return arg1 - arg2; }
 #define MUL(T) T mul_##T(T arg1, T arg2) { return arg1 * arg2; }
 #define DIV(T) T div_##T(T arg1, T arg2) { return arg1 / arg2; }
 #define RET(T) T ret_##T(T arg1) { return arg1; }
-typedef char* ptr;
 #define TEST(T) ADD(T) SUB(T) MUL(T) DIV(T) RET(T)
+
 TEST(int8_t);
 TEST(int16_t);
 TEST(int32_t);
@@ -60,11 +58,8 @@ TEST(float);
 TEST(double);
 TEST(long);
 TEST(ulong);
-TEST(Signed8);
-TEST(Signed16);
-TEST(Signed32);
-TEST(Signed64);
-TEST(SignedLong);
-TEST(Float32);
-TEST(Float64);
+TEST(ldouble);
+
+RET(bool);
+RET(Enum);
 RET(pointer);

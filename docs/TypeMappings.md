@@ -1,26 +1,104 @@
 # Type Mappings
 
-# Primitive Types
+## Numeric Types
 
-All Java primitives are mapped to their size equivalent C types:
+### Signed Types
+
+Signed numeric types map to their equivalent size Java primitive or boxed types:
 
 | C Type | Java Type | Size |
 |--------|-----------|------|
-| `char` | `byte` | 8 bit integer |
-| `short` | `short` | 16 bit integer |
-| `int` | `int` | 32 bit integer |
-| `long` | `long` | natural long, 32 bits on 32 bit systems, 64 bits on 64 bit systems |
-| `float` | `float` | 32 bit floating point |
-| `double` | `double` | 64 bit floating point |
+| `char` | `byte` or `Byte` | 8 bit integer |
+| `short` | `short` or `Short` | 16 bit integer |
+| `int` | `int` or `Integer` | 32 bit integer |
+| `long` | `long` or `Long` or `NativeLong` | natural long, 32 bit integer on 32 bit systems, 64 bit integer on 64 bit systems |
+| `long long` | `long` or `Long` | 64 bit integer |
+| `float` | `float` or `Float` | 32 bit floating point |
+| `double` | `double` or `Double` | 64 bit floating point |
 
-The signedness and width can be additionally modified using annotations for example, for C `long long` use a `long`
-with the `@LongLong` annotation.
+Java `boolean` or `Boolean` can also be used in place of a C numeric type where a boolean would be expected, check the native function's documentation
+before doing this. `0` maps to `false` and any other value will be `true`. Floating point types (`float` and `double`) are not supported in this regard.
 
-In addition to these types there exist numerous annotations for common C types for example `@size_t` on an `int` for C
-`size_t`.
+### Unsigned Types
 
-`boolean` can also be used in place of a C `int` where a boolean would be expected, check the function's documentation
-before doing this.
+For native unsigned types you can use the same size Java type (`unsigned char` maps to `byte` or `Byte`) but you will not be able to fit the values greater than the maximum limit for the Java type. 
+
+For example, an `unsigned char` can contain the value `220` but a Java `byte` cannot and will thus underflow to `-36`.
+
+To remedy this you can use a larger size Java type with the corresponding annotation to let JNR-FFI to do the correct conversion. To fit the bounds of unsigned C types use the following table:
+
+| C Type | Java Type |
+|--------|-----------|
+| `unsigned char` | `@u_int8_t byte` |
+| `unsigned short` | `@u_int16_t int` |
+| `unsigned int` | `@u_int32_t long` |
+
+Unsigned 64 bit integers (such as `unsigned long` on 64bit systems and `unsigned long long`) are not yet supported to fit values beyond those of Java's `Long.MAX_VALUE`. [This is a documented issue.](https://github.com/jnr/jnr-ffi/issues/289)
+
+### Enums
+
+Native enums can be mapped using any Java integral numeric types such as `int` or `Integer`, or by using a similarly valued Java enum to the native one.
+
+For example the C enum:
+
+```c
+enum week{Mon, Tue, Wed, Thu, Fri, Sat, Sun};
+```
+
+can be mapped in Java as:
+
+```java
+public enum Week {MON, TUE, WED, THU, FRI, SAT, SUN;}
+```
+
+This works because they have the same "value" which, if undefined, is the order in which the enum entry appears.
+
+If the C enum contains values, the values need to match in Java by implementing a mapping function:
+
+```c
+enum State {On = 2, Off = 4, Broken = 8};
+```
+
+should be mapped in Java as:
+
+```java
+    public static enum State implements EnumMapper.IntegerEnum {
+        ON(2), OFF(4), BROKEN(8);
+
+        private final int value;
+
+        public State(int value) {this.value = value;}
+
+        @Override
+        public int intValue() {return value;} // mapping function
+    }
+```
+
+C functions often use enums in "flags" and allow you to combine "flags" by logical OR-ing the values together. For example:
+
+```c
+void start_stream(stream_flags flags);
+```
+
+```c
+// start paused and muted and allow latency adjustment
+stream_flags flags = STREAM_START_PAUSED | 
+                     STREAM_START_MUTED |
+                     STREAM_ADJUST_LATENCY;
+start_stream(flags);
+```
+
+The same can be done in Java also by OR-ing the values of the enum, but more elegantly, by using an `EnumSet` where such a combined enum would be expected:
+
+```java
+public void start_stream(EnumSet<stream_flags> flags);
+```
+
+```java
+start_stream(EnumSet.of(
+    STREAM_START_PAUSED, STREAM_START_MUTED, STREAM_ADJUST_LATENCY
+));
+```
 
 # Complex Types
 
