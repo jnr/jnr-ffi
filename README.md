@@ -5,6 +5,7 @@ hand, or using tools such as SWIG.
 
 ## Installation
 
+Latest version:
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.jnr/jnr-ffi/badge.svg)](https://search.maven.org/artifact/com.github.jnr/jnr-ffi)
 
 Apache Maven:
@@ -13,20 +14,20 @@ Apache Maven:
 <dependency>
   <groupId>com.github.jnr</groupId>
   <artifactId>jnr-ffi</artifactId>
-  <version>2.2.3</version>
+  <version>x.y.z</version>
 </dependency>
 ```
 
 Gradle Kotlin:
 
 ```kotlin
-implementation("com.github.jnr:jnr-ffi:2.2.3")
+implementation("com.github.jnr:jnr-ffi:x.y.z")
 ```
 
 Gradle Groovy:
 
 ```groovy
-implementation 'com.github.jnr:jnr-ffi:2.2.3'
+implementation 'com.github.jnr:jnr-ffi:x.y.z'
 ```
 
 ## Example

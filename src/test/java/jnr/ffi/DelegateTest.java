@@ -21,6 +21,7 @@ package jnr.ffi;
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
 import jnr.ffi.types.u_int32_t;
+import jnr.ffi.util.EnumMapper;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +36,21 @@ public class DelegateTest {
 
     public DelegateTest() {
     }
+    public static enum TestEnum implements EnumMapper.IntegerEnum {
+        A(1),
+        B(2),
+        C(3),
+        Z(100);
+        TestEnum(int value) {
+            this.value = value;
+        }
+
+        public int intValue() {
+            return value;
+        }
+        private final int value;
+    }
+
     private static TestLib lib;
     @BeforeAll
     public static void setUpClass() throws Exception {
@@ -108,12 +124,12 @@ public class DelegateTest {
         void testClosureIrV(CallableIrVBoxed closure, @u_int32_t long a1);
 
         public interface CallableErV {
-            @Delegate public void call(@u_int32_t EnumTest.TestEnum a1);
+            @Delegate public void call(@u_int32_t TestEnum a1);
         }
-        void testClosureIrV(CallableErV closure, @u_int32_t EnumTest.TestEnum a1);
+        void testClosureIrV(CallableErV closure, @u_int32_t TestEnum a1);
 
         public static interface CallableVrE {
-            @Delegate public EnumTest.TestEnum call();
+            @Delegate public TestEnum call();
         }
         int testClosureVrI(CallableVrE closure);
 
@@ -369,11 +385,11 @@ public class DelegateTest {
     @Test
     public void closureErV() {
         final boolean[] called = { false };
-        final EnumTest.TestEnum[] val = { null };
-        final EnumTest.TestEnum MAGIC = EnumTest.TestEnum.C;
+        final TestEnum[] val = { null };
+        final TestEnum MAGIC = TestEnum.C;
         TestLib.CallableErV closure = new TestLib.CallableErV() {
 
-            public void call(EnumTest.TestEnum a1) {
+            public void call(TestEnum a1) {
                 called[0] = true;
                 val[0] = a1;
             }
@@ -386,10 +402,10 @@ public class DelegateTest {
     @Test
     public void closureVrE() {
         final boolean[] called = { false };
-        final EnumTest.TestEnum MAGIC = EnumTest.TestEnum.C;
+        final TestEnum MAGIC = TestEnum.C;
         TestLib.CallableVrE closure = new TestLib.CallableVrE() {
 
-            public EnumTest.TestEnum call() {
+            public TestEnum call() {
                 called[0] = true;
                 return MAGIC;
             }

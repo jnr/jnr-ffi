@@ -30,7 +30,7 @@ export MACOSX_DEPLOYMENT_TARGET=10.5
 
 CCACHE := $(strip $(realpath $(shell which ccache 2> /dev/null)))
 
-TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)
+TEST_SRCS = $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*/*.c)
 TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(TEST_SRCS))
 
 #
@@ -64,13 +64,7 @@ endif
 
 ifeq ($(OS), darwin)
   CC = gcc
-  ifneq ($(findstring $(CPU), x86_64),)
-    ARCHFLAGS = -arch x86_64
-  endif
-  ifneq ($(findstring $(CPU), ppc powerpc),)
-    ARCHFLAGS = -arch ppc
-  endif
-  
+  ARCHFLAGS = -arch x86_64 -arch arm64
   CFLAGS += -fno-common $(ARCHFLAGS)
   LDFLAGS = $(ARCHFLAGS) -dynamiclib
   LIBEXT = dylib

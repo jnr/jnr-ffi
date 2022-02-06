@@ -21,6 +21,7 @@ package jnr.ffi.provider.jffi;
 
 import com.kenai.jffi.Function;
 
+import jnr.ffi.annotations.Variadic;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -126,9 +127,11 @@ public class AsmLibraryLoader extends LibraryLoader {
         InterfaceScanner scanner = new InterfaceScanner(interfaceClass, typeMapper, libraryCallingConvention);
 
         for (NativeFunction function : scanner.functions()) {
-            if (function.getMethod().isVarArgs()) {
-                ObjectField field = builder.getObjectField(invokerFactory.createInvoker(function.getMethod()), Invoker.class);
-                generateVarargsInvocation(builder, function.getMethod(), field);
+            Method method = function.getMethod();
+
+            if (method.isVarArgs() || method.isAnnotationPresent(Variadic.class)) {
+                ObjectField field = builder.getObjectField(invokerFactory.createInvoker(method), Invoker.class);
+                generateVarargsInvocation(builder, method, field);
                 continue;
             }
 
@@ -137,13 +140,13 @@ public class AsmLibraryLoader extends LibraryLoader {
             try {
                 long functionAddress = library.findSymbolAddress(functionName);
                 
-                FromNativeContext resultContext = new MethodResultContext(runtime, function.getMethod());
-                SignatureType signatureType = DefaultSignatureType.create(function.getMethod().getReturnType(), resultContext);
-                ResultType resultType = getResultType(runtime, function.getMethod().getReturnType(),
+                FromNativeContext resultContext = new MethodResultContext(runtime, method);
+                SignatureType signatureType = DefaultSignatureType.create(method.getReturnType(), resultContext);
+                ResultType resultType = getResultType(runtime, method.getReturnType(),
                         resultContext.getAnnotations(), typeMapper.getFromNativeType(signatureType, resultContext),
                         resultContext);
 
-                ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, function.getMethod());
+                ParameterType[] parameterTypes = getParameterTypes(runtime, typeMapper, method);
 
                 boolean saveError = jnr.ffi.LibraryLoader.saveError(libraryOptions, function.hasSaveError(), function.hasIgnoreError());
 
@@ -152,7 +155,7 @@ public class AsmLibraryLoader extends LibraryLoader {
 
                 for (MethodGenerator g : generators) {
                     if (g.isSupported(resultType, parameterTypes, function.convention())) {
-                        g.generate(builder, function.getMethod().getName(), jffiFunction, resultType, parameterTypes, !saveError);
+                        g.generate(builder, method.getName(), jffiFunction, resultType, parameterTypes, !saveError);
                         break;
                     }
                 }
@@ -161,7 +164,7 @@ public class AsmLibraryLoader extends LibraryLoader {
                 String errorFieldName = "error_" + uniqueId.incrementAndGet();
                 cv.visitField(ACC_PRIVATE | ACC_FINAL | ACC_STATIC, errorFieldName, ci(String.class), null, ex.getMessage());
                 generateFunctionNotFound(cv, builder.getClassNamePath(), errorFieldName, functionName, 
-                        function.getMethod().getReturnType(), function.getMethod().getParameterTypes());
+                        method.getReturnType(), method.getParameterTypes());
             }
         }
 

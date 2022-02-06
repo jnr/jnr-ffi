@@ -189,18 +189,26 @@ final class InvokerUtil {
     }
 
     static CallContext getCallContext(SigType resultType, SigType[] parameterTypes, jnr.ffi.CallingConvention convention, boolean requiresErrno) {
-        return getCallContext(resultType, parameterTypes, parameterTypes.length, convention, requiresErrno);
+        return getCallContext(resultType, parameterTypes.length, parameterTypes, parameterTypes.length, convention, requiresErrno);
     }
 
-    static CallContext getCallContext(SigType resultType, SigType[] parameterTypes, int paramTypesLength, jnr.ffi.CallingConvention convention, boolean requiresErrno) {
+    static CallContext getCallContext(SigType resultType, int fixedParamCount, SigType[] parameterTypes, jnr.ffi.CallingConvention convention, boolean requiresErrno) {
+        return getCallContext(resultType, fixedParamCount, parameterTypes, parameterTypes.length, convention, requiresErrno);
+    }
+
+    static CallContext getCallContext(SigType resultType, int fixedParamCount, SigType[] parameterTypes, int paramTypesLength, jnr.ffi.CallingConvention convention, boolean requiresErrno) {
         com.kenai.jffi.Type[] nativeParamTypes = new com.kenai.jffi.Type[paramTypesLength];
 
         for (int i = 0; i < nativeParamTypes.length; ++i) {
             nativeParamTypes[i] = jffiType(parameterTypes[i].getNativeType());
         }
 
-        return CallContextCache.getInstance().getCallContext(jffiType(resultType.getNativeType()),
-                nativeParamTypes, jffiConvention(convention), requiresErrno);
+        return CallContextCache.getInstance().getCallContext(
+                jffiType(resultType.getNativeType()),
+                fixedParamCount,
+                nativeParamTypes,
+                jffiConvention(convention),
+                requiresErrno);
     }
 
 
