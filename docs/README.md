@@ -5,6 +5,7 @@ to even use JNR-FFI.
 
 * [Getting Started](./GettingStarted.md)
 * [Type Mappings](./TypeMappings.md)
+* [Memory Management](./MemoryManagement.md)
 * [Why Use JNR-FFI](./WhyUseJNR.md)
 * [Comparison to Similar Projects](./ComparisonToSimilarProjects.md)
 * [Projects using JNR-FFI](./ProjectsUsingJNR.md)
