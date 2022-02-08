@@ -208,9 +208,23 @@ public interface ExampleLibrary {
     }
 
     int setCallback(MyCallback callback);
-
 }
 ```
+
+Any `MyCallback` instance can be passed as a function pointer now. This pointer is valid as long as the instance stays
+strongly-referenced. So if you want to use the callback multiple times, it is advised to keep it referenced using an
+`ObjectReferenceManager` like this:
+
+```java
+ObjectReferenceManager referenceManager = Runtime.getRuntime(lib).newObjectReferenceManager();
+MyCallback callback = data -> 0;
+Pointer key = referenceManager.add(callback);
+
+lib.setCallback(callback);     // Callback is passed internally as a function pointer 
+
+referenceManager.remove(key);  // Free the callback when no more required
+```
+
 
 # Global Variables
 
