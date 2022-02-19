@@ -122,4 +122,24 @@ public class UTF8StringFieldTest {
 
         assertEquals(testValue, struct.stringValue.get());
     }
+
+    public static final class StructWithConsecutiveStringsByRef extends Struct {
+        private final UTF8StringRef firstValue = new UTF8StringRef();
+        private final UTF8StringRef secondValue = new UTF8StringRef();
+
+        public StructWithConsecutiveStringsByRef() {
+            super(runtime);
+        }
+    }
+
+    @Test public void testStructWithConsecutiveStringsByRef() {
+        final String testValue = "some test string";
+        final StructWithConsecutiveStringsByRef struct = new StructWithConsecutiveStringsByRef();
+
+        struct.firstValue.set("");
+        struct.secondValue.set(testValue);
+
+        assertEquals("", struct.firstValue.get());
+        assertEquals(testValue, struct.secondValue.get());
+    }
 }
