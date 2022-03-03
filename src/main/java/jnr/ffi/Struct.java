@@ -2469,8 +2469,9 @@ public abstract class Struct {
 
         public final void set(java.lang.String value) {
             if (value != null) {
-                valueHolder = getRuntime().getMemoryManager().allocateDirect(value.length() * 4);
-                valueHolder.putString(0, value, value.length() * 4, charset);
+                int maxBytes = (value.length() * 4) + 1; // Additional byte required for trailing null termination.
+                valueHolder = getRuntime().getMemoryManager().allocateDirect(maxBytes);
+                valueHolder.putString(0, value, maxBytes, charset);
                 getMemory().putPointer(offset(), valueHolder);
 
             } else {

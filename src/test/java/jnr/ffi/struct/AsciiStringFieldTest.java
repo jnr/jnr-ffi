@@ -101,4 +101,24 @@ public class AsciiStringFieldTest {
 
         assertEquals(testValue, struct.stringValue.get());
     }
+
+    public static final class StructWithConsecutiveStringsByRef extends Struct {
+        private final AsciiStringRef firstValue = new AsciiStringRef();
+        private final AsciiStringRef secondValue = new AsciiStringRef();
+
+        public StructWithConsecutiveStringsByRef() {
+            super(runtime);
+        }
+    }
+
+    @Test public void testStructWithConsecutiveStringsByRef() {
+        final String testValue = "some test string";
+        final StructWithConsecutiveStringsByRef struct = new StructWithConsecutiveStringsByRef();
+
+        struct.firstValue.set("");
+        struct.secondValue.set(testValue);
+
+        assertEquals("", struct.firstValue.get());
+        assertEquals(testValue, struct.secondValue.get());
+    }
 }
