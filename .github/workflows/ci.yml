@@ -11,12 +11,13 @@ on:
 
 jobs:
 
-  mvn-test-ubuntu-x86:
+  mvn-test-x86:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest, [self-hosted, macos, aarch64]]
         java-version: ['8', '11']
 
     steps:
