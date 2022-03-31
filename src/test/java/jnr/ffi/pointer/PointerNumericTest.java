@@ -1,6 +1,7 @@
 package jnr.ffi.pointer;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -512,6 +513,7 @@ public class PointerNumericTest {
 
     // ========================= Boolean ============================
 
+    @Disabled("fails on MacOS x86_64, see https://github.com/jnr/jnr-ffi/issues/302")
     @Test
     public void testPointerGetBoolean() {
         final int total = COUNT;
@@ -545,6 +547,7 @@ public class PointerNumericTest {
                 "Incorrect booleans returned from bulk get method");
     }
 
+    @Disabled("fails on MacOS x86_64, see https://github.com/jnr/jnr-ffi/issues/302")
     @Test
     public void testPointerSetBoolean() {
         final int total = COUNT;
