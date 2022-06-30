@@ -99,7 +99,7 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         checkBounds(size, offset, 4);
         return io.getInt(base + offset);
     }
-    
+
     @Override
     public long getLongLong(long offset) {
         checkBounds(size, offset, 8);
@@ -122,7 +122,7 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         checkBounds(size, offset, getRuntime().addressSize());
         return io.getPointer(base + offset);
     }
-    
+
     public Pointer getPointer(long offset, long size) {
         checkBounds(this.size, base + offset, getRuntime().addressSize());
         return io.getPointer(base + offset, size);
@@ -145,7 +145,7 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
         checkBounds(size, offset, 4);
         io.putInt(base + offset, value);
     }
-    
+
     @Override
     public void putLongLong(long offset, long value) {
         checkBounds(size, offset, 8);
@@ -181,61 +181,61 @@ public final class BoundedMemoryIO extends AbstractMemoryIO implements Delegatin
 
     @Override
     public void get(long offset, short[] dst, int off, int len) {
-        checkBounds(size, offset, len * Short.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Short.SIZE / 8));
         io.get(base + offset, dst, off, len);
     }
 
     @Override
     public void put(long offset, short[] dst, int off, int len) {
-        checkBounds(size, offset, len * Short.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Short.SIZE / 8));
         io.put(base + offset, dst, off, len);
     }
 
     @Override
     public void get(long offset, int[] dst, int off, int len) {
-        checkBounds(size, offset, len * Integer.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Integer.SIZE / 8));
         io.get(base + offset, dst, off, len);
     }
 
     @Override
     public void put(long offset, int[] src, int off, int len) {
-        checkBounds(size, offset, len * Integer.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Integer.SIZE / 8));
         io.put(base + offset, src, off, len);
     }
 
     @Override
     public void get(long offset, long[] dst, int off, int len) {
-        checkBounds(size, offset, len * Long.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Long.SIZE / 8));
         io.get(base + offset, dst, off, len);
     }
 
     @Override
     public void put(long offset, long[] src, int off, int len) {
-        checkBounds(size, offset, len * Long.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Long.SIZE / 8));
         io.put(base + offset, src, off, len);
     }
 
     @Override
     public void get(long offset, float[] dst, int off, int len) {
-        checkBounds(size, offset, len * Float.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Float.SIZE / 8));
         io.get(base + offset, dst, off, len);
     }
 
     @Override
     public void put(long offset, float[] src, int off, int len) {
-        checkBounds(size, offset, len * Float.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Float.SIZE / 8));
         io.put(base + offset, src, off, len);
     }
 
     @Override
     public void get(long offset, double[] dst, int off, int len) {
-        checkBounds(size, offset, len * Double.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Double.SIZE / 8));
         io.get(base + offset, dst, off, len);
     }
 
     @Override
     public void put(long offset, double[] src, int off, int len) {
-        checkBounds(size, offset, len * Double.SIZE / 8);
+        checkBounds(size, offset, Math.multiplyExact(len, Double.SIZE / 8));
         io.put(base + offset, src, off, len);
     }
 
