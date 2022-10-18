@@ -31,6 +31,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import jnr.ffi.CallingConvention;
@@ -125,8 +126,15 @@ public class AsmLibraryLoader extends LibraryLoader {
         
         DefaultInvokerFactory invokerFactory = new DefaultInvokerFactory(runtime, library, typeMapper, functionMapper, libraryCallingConvention, libraryOptions, interfaceClass.isAnnotationPresent(Synchronized.class));
         InterfaceScanner scanner = new InterfaceScanner(interfaceClass, typeMapper, libraryCallingConvention);
-
-        for (NativeFunction function : scanner.functions()) {
+  
+        // forces deterministic order , important for native-image AOT compiled classes, hashed by source code  
+        
+        TreeMap<String,NativeFunction> sorted = new TreeMap(); 
+        for (NativeFunction function : scanner.functions()) 
+        	sorted.put(function.getMethod().toString(), function);
+        
+        for (NativeFunction function : sorted.values()) 
+        {
             Method method = function.getMethod();
 
             if (method.isVarArgs() || method.isAnnotationPresent(Variadic.class)) {
