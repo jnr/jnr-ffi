@@ -19,6 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, [self-hosted, macos, aarch64]]
         java-version: ['8', '11']
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
@@ -40,6 +41,8 @@ jobs:
     runs-on: [self-hosted, macos, aarch64]
 
     name: mvn test on Apple M1
+
+    fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
