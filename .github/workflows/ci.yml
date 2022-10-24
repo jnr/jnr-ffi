@@ -42,7 +42,8 @@ jobs:
 
     name: mvn test on Apple M1
 
-    fail-fast: false
+    strategy:
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
