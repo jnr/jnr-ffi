@@ -45,7 +45,7 @@ public class NumericStructTest {
 
     public static class FfiStrList extends Struct {
         //public final UTF8String count = new UTF8String(32); <-- works as per example
-        public final Struct.Signed64 count = new Struct.Signed64(); //<-- not working
+        public final Struct.LONG count = new Struct.LONG(); //<-- not working
         //public final PointerByReference data; //TODO add in rest of structure
         //public final Struct.Pointer[] data; // Or this ???
         public FfiStrList(jnr.ffi.Runtime runtime /*, java.lang.String[] sAry*/) {
@@ -98,7 +98,7 @@ public class NumericStructTest {
 
     public static interface Lib {
 
-        public int struct_num_al_test(FfiStrList s);
+        public long struct_num_al_test(FfiStrList s);
         public byte struct_num_get_int8_t(NumericStruct s);
         public void struct_num_set_int8_t(NumericStruct s, byte v);
 
@@ -162,7 +162,7 @@ public class NumericStructTest {
         FfiStrList s = new FfiStrList(runtime);
         s.count.set(34);
 
-        int r = lib.struct_num_al_test(s);
+        long r = lib.struct_num_al_test(s);
         assertEquals(34, r);
     }
 

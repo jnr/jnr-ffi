@@ -56,7 +56,7 @@ int struct_num_size() {
     return sizeof(NumericStruct);
 }
 
-int struct_num_al_test(FfiStrList s) {
+long struct_num_al_test(FfiStrList s) {
    return s.count;
 }
 /*
