@@ -55,3 +55,16 @@ GET_VAL(pointer);
 int struct_num_size() {
     return sizeof(NumericStruct);
 }
+
+int struct_num_al_test(FfiStrList s) {
+   return s.count;
+}
+/*
+This will work but I don't have access to the original code and I rather not create a wrapper in c
+int struct_num_al_test(FfiStrList *s) {
+   return struct_num_al_test_internal(*s);
+}
+
+int struct_num_al_test_internal(FfiStrList s) {
+   return s.count;
+}*/
