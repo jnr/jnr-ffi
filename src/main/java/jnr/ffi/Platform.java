@@ -130,6 +130,9 @@ public abstract class Platform {
         /** 64 bit LOONGARCH */
         LOONGARCH64,
 
+        /** 64 bit RISC-V */
+        RISCV64,
+
         /**
          * Unknown CPU architecture.  A best effort will be made to infer architecture
          * specific values such as address and long size.
@@ -246,6 +249,8 @@ public abstract class Platform {
             return CPU.MIPS64EL;
         } else if (equalsIgnoreCase("loongarch64", archString)) {
            return CPU.LOONGARCH64;
+        } else if (equalsIgnoreCase("riscv64", archString)) {
+           return CPU.RISCV64;
         }
 
         // Try to find by lookup up in the CPU list
@@ -308,6 +313,7 @@ public abstract class Platform {
                 case AARCH64:
 		case MIPS64EL:
 		case LOONGARCH64:
+        case RISCV64:
                     dataModel = 64;
                     break;
                 default:
