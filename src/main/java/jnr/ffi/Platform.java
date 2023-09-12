@@ -311,9 +311,9 @@ public abstract class Platform {
                 case SPARCV9:
                 case S390X:
                 case AARCH64:
-		case MIPS64EL:
-		case LOONGARCH64:
-        case RISCV64:
+                case MIPS64EL:
+                case LOONGARCH64:
+                case RISCV64:
                     dataModel = 64;
                     break;
                 default:

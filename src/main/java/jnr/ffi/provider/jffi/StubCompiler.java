@@ -50,7 +50,7 @@ abstract class StubCompiler {
                     break;
                 case X86_64:
                     if (Platform.getPlatform().getOS() != Platform.OS.WINDOWS) {
-                        return new X86_64StubCompiler(runtime);	//currently supporting only A64
+                        return new X86_64StubCompiler(runtime);    //currently supporting only A64
                     }
                     break;
                 case AARCH64:
