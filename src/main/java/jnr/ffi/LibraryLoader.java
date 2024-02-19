@@ -508,13 +508,6 @@ public abstract class LibraryLoader<T> {
             } catch (Exception ignored) {
             }
 
-            if (Platform.getNativePlatform().isUnix()) {
-                // order is intentional!
-                paths.add("/usr/local/lib");
-                paths.add("/usr/lib");
-                paths.add("/lib");
-            }
-
             switch (Platform.getNativePlatform().getOS()) {
                 case FREEBSD:
                 case OPENBSD:
