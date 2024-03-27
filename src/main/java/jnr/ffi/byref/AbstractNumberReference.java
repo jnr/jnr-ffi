@@ -52,7 +52,7 @@ abstract public class AbstractNumberReference<T extends Number> extends Number i
     
     @Override
     public final short shortValue() {
-        return value.byteValue();
+        return value.shortValue();
     }
 
     public final int intValue() {
