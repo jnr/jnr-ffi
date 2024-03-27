@@ -60,29 +60,22 @@ import jnr.ffi.Runtime;
  */
 public final class LongLongByReference extends AbstractNumberReference<Long> {
     
+    private long value;
+    
     /**
      * Creates a new reference to a long long value initialized to zero.
      */
     public LongLongByReference() {
-        super(Long.valueOf(0));
     }
     
-    /**
-     * Creates a new reference to a native longlong value
-     * 
-     * @param value the initial native value
-     */
-    public LongLongByReference(Long value) {
-        super(checkNull(value));
-    }
-
     /**
      * Creates a new reference to a native longlong value
      *
      * @param value the initial native value
      */
     public LongLongByReference(long value) {
-        super(value);
+        super();
+        this.value = value;
     }
     
     /**
@@ -115,5 +108,40 @@ public final class LongLongByReference extends AbstractNumberReference<Long> {
      */
     public final int nativeSize(Runtime runtime) {
         return 8;
+    }
+    
+    @Override
+    public Long getValue() {
+        return Long.valueOf(value);
+    }
+    
+    @Override
+    public byte byteValue() {
+        return (byte)value;
+    }
+
+    @Override
+    public short shortValue() {
+        return (short)value;
+    }
+
+    @Override
+    public int intValue() {
+        return (int)value;
+    }
+
+    @Override
+    public long longValue() {
+        return value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float)value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double)value;
     }
 }
