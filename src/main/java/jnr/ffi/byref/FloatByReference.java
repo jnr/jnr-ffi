@@ -26,22 +26,12 @@ import jnr.ffi.Runtime;
  *
  */
 public final class FloatByReference extends AbstractNumberReference<Float> {
-    private static final Float DEFAULT = Float.valueOf(0f);
 
+    private float value;
     /**
      * Creates a new reference to a short value initialized to zero.
      */
     public FloatByReference() {
-        super(DEFAULT);
-    }
-
-    /**
-     * Creates a new reference to a float value
-     * 
-     * @param value the initial native value
-     */
-    public FloatByReference(Float value) {
-        super(checkNull(value));
     }
 
     /**
@@ -50,7 +40,8 @@ public final class FloatByReference extends AbstractNumberReference<Float> {
      * @param value the initial native value
      */
     public FloatByReference(float value) {
-        super(value);
+        super();
+        this.value = value;
     }
     
     /**
@@ -83,5 +74,40 @@ public final class FloatByReference extends AbstractNumberReference<Float> {
      */
     public final int nativeSize(Runtime runtime) {
         return 4;
+    }
+    
+    @Override
+    public Float getValue() {
+        return Float.valueOf(value);
+    }
+    
+    @Override
+    public byte byteValue() {
+        return (byte)value;
+    }
+
+    @Override
+    public short shortValue() {
+        return (short)value;
+    }
+
+    @Override
+    public int intValue() {
+        return (int)value;
+    }
+
+    @Override
+    public long longValue() {
+        return (long)value;
+    }
+
+    @Override
+    public float floatValue() {
+        return value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double)value;
     }
 }
