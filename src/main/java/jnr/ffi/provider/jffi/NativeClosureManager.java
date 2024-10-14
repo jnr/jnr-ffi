@@ -21,11 +21,15 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.Pointer;
 import jnr.ffi.mapper.CachingTypeMapper;
 import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ClosureManager;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -67,6 +71,17 @@ final class NativeClosureManager implements ClosureManager {
 
     public final <T> jnr.ffi.Pointer getClosurePointer(Class<? extends T> closureClass, T instance) {
         return getClosureFactory(closureClass).getClosureReference(instance).getPointer();
+    }
+
+    public <T> T getClosureFromPointer(Class<? extends T> closureClass, Pointer pointer) {
+        FromNativeContext context = new SimpleNativeContext(runtime, Collections.emptyList());
+        FromNativeConverter<T, Pointer> converter = (FromNativeConverter<T, Pointer>) ClosureFromNativeConverter.getInstance(
+                runtime,
+                DefaultSignatureType.create(closureClass, context),
+                asmClassLoaders.get(closureClass.getClassLoader()),
+                typeMapper
+        );
+        return converter.fromNative(pointer, context);
     }
 
     synchronized <T> NativeClosureFactory<T> initClosureFactory(Class<T> closureClass, AsmClassLoader classLoader) {
