@@ -52,5 +52,13 @@ Before sending a pull request, please file an issue ([see the previous section](
 with the details of what you have changed or are going to change. This way, your time is not wasted if the change does
 not meet our goals, and we can discuss the changes in depth within the issue.
 
+## Why am I getting EINVAL for a pointer passed to native (e.g. getsockopt's len pointer)
+
+Length pointers passed to native functions are often read and also written back by the function to indicate how much
+data was actually returned. If you specify only @In OR @Out the native memory allocated for the pointer may not be
+set up correctly for two-way synchronization. Remove the annotation or specify both (which is the default when neither
+are specified.
+
+
 If you are adding new functionality, ensure that you add unit tests that will test the behavior of your new code and, if
 it is a public API, add descriptive javadoc comments for the new code.
