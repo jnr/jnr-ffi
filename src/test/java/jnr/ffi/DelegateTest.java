@@ -20,6 +20,7 @@ package jnr.ffi;
 
 import jnr.ffi.annotations.Delegate;
 import jnr.ffi.annotations.LongLong;
+import jnr.ffi.provider.ClosureManager;
 import jnr.ffi.types.u_int32_t;
 import jnr.ffi.util.EnumMapper;
 
@@ -141,6 +142,17 @@ public class DelegateTest {
         }
 
         void testStructClosureIrV(ClosureStruct closure, int a1);
+
+        public static interface FunGetter {
+            @Delegate public int get();
+        }
+        public static interface FunSetter {
+            @Delegate public void set(int v);
+        }
+        public static interface CallableFPrV {
+            @Delegate public void call(Pointer setter, Pointer getter, int a1);
+        }
+        void testClosureFPrV(CallableFPrV closure, int a1);
 
 //        void testClosureBrV(Callable closure, byte a1);
 //        void testClosureSrV(Callable closure, short a1);
@@ -413,6 +425,27 @@ public class DelegateTest {
         int retVal = lib.testClosureVrI(closure);
         assertTrue(called[0], "Callable not called");
         assertEquals(MAGIC.intValue(), retVal, "Incorrect return value from closure");
+    }
+
+    @Test
+    public void closureFPrV() {
+        final boolean[] called = { false };
+        final int MAGIC = 0xdeadbeef;
+        TestLib.CallableFPrV closure = new TestLib.CallableFPrV() {
+            @Override
+            public void call(Pointer setterPointer, Pointer getterPointer, int a1) {
+                ClosureManager closureManager = Runtime.getSystemRuntime().getClosureManager();
+                TestLib.FunSetter setter = closureManager.getClosureFromPointer(TestLib.FunSetter.class, setterPointer);
+                TestLib.FunGetter getter = closureManager.getClosureFromPointer(TestLib.FunGetter.class, getterPointer);
+
+                setter.set(a1);
+                assertEquals(getter.get(), a1);
+
+                called[0] = true;
+            }
+        };
+        lib.testClosureFPrV(closure, MAGIC);
+        assertTrue(called[0], "Callable not called");
     }
 
     @Test

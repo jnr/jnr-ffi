@@ -52,13 +52,16 @@ final class NativeClosureManager implements ClosureManager {
         if (factory != null) {
             return factory;
         }
+        return initClosureFactory(closureClass, getAsmClassLoader(closureClass));
+    }
+
+    AsmClassLoader getAsmClassLoader(Class closureClass) {
         AsmClassLoader asmCl = asmClassLoaders.get(closureClass.getClassLoader());
         if (asmCl==null) {
-            asmCl = new AsmClassLoader( closureClass.getClassLoader());
+            asmCl = new AsmClassLoader(closureClass.getClassLoader());
             asmClassLoaders.put(closureClass.getClassLoader(), asmCl);
         }
-
-        return initClosureFactory(closureClass, asmCl);
+        return asmCl;
     }
 
     public <T> T newClosure(Class<? extends T> closureClass, T instance) {
@@ -78,7 +81,7 @@ final class NativeClosureManager implements ClosureManager {
         FromNativeConverter<T, Pointer> converter = (FromNativeConverter<T, Pointer>) ClosureFromNativeConverter.getInstance(
                 runtime,
                 DefaultSignatureType.create(closureClass, context),
-                asmClassLoaders.get(closureClass.getClassLoader()),
+                getAsmClassLoader(closureClass),
                 typeMapper
         );
         return converter.fromNative(pointer, context);
