@@ -411,7 +411,7 @@ abstract public class Pointer {
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
      * @param src the array to get values from.
-     * @param idx the start index in the {@code dst} array to begin reading values.
+     * @param idx the start index in the {@code src} array to begin reading values.
      * @param len the number of values to be written.
      */
     abstract public void put(long offset, byte[] src, int idx, int len);
@@ -437,7 +437,7 @@ abstract public class Pointer {
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
      * @param src the array to get values from.
-     * @param idx the start index in the {@code dst} array to begin reading values.
+     * @param idx the start index in the {@code src} array to begin reading values.
      * @param len the number of values to be written.
      */
     abstract public void put(long offset, short[] src, int idx, int len);
@@ -463,7 +463,7 @@ abstract public class Pointer {
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
      * @param src the array to get values from.
-     * @param idx the start index in the {@code dst} array to begin reading values.
+     * @param idx the start index in the {@code src} array to begin reading values.
      * @param len the number of values to be written.
      */
     abstract public void put(long offset, int[] src, int idx, int len);
@@ -489,7 +489,7 @@ abstract public class Pointer {
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
      * @param src the array to get values from.
-     * @param idx the start index in the {@code dst} array to begin reading values.
+     * @param idx the start index in the {@code src} array to begin reading values.
      * @param len the number of values to be written.
      */
     abstract public void put(long offset, long[] src, int idx, int len);
@@ -515,7 +515,7 @@ abstract public class Pointer {
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
      * @param src the array to get values from.
-     * @param idx the start index in the {@code dst} array to begin reading values.
+     * @param idx the start index in the {@code src} array to begin reading values.
      * @param len the number of values to be written.
      */
     abstract public void put(long offset, float[] src, int idx, int len);
@@ -541,7 +541,7 @@ abstract public class Pointer {
      *
      * @param offset the offset from the start of the memory this {@code Pointer} represents at which the first value will be written.
      * @param src the array to get values from.
-     * @param idx the start index in the {@code dst} array to begin reading values.
+     * @param idx the start index in the {@code src} array to begin reading values.
      * @param len the number of values to be written.
      */
     abstract public void put(long offset, double[] src, int idx, int len);
