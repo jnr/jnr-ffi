@@ -61,8 +61,17 @@ public class NativeLibrary {
     }
 
     long getSymbolAddress(String name) {
+        return getSymbolAddress(name, null);
+    }
+
+    long getSymbolAddress(String name, String version) {
         for (com.kenai.jffi.Library l : getNativeLibraries()) {
-            long address = l.getSymbolAddress(name);
+            long address;
+            if (version != null)
+                address = l.getSymbolAddressWithVersion(name, version);
+            else
+                address = l.getSymbolAddress(name);
+
             if (address != 0) {
                 return address;
             }
@@ -71,7 +80,11 @@ public class NativeLibrary {
     }
 
     long findSymbolAddress(String name) {
-        long address = getSymbolAddress(name);
+        return findSymbolAddress(name, null);
+    }
+
+    long findSymbolAddress(String name, String version) {
+        long address = getSymbolAddress(name, version);
         if (address == 0) {
             throw new SymbolNotFoundError(com.kenai.jffi.Library.getLastError());
         }
