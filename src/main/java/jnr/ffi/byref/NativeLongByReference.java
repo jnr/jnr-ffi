@@ -60,29 +60,22 @@ import jnr.ffi.Runtime;
  */
 public final class NativeLongByReference extends AbstractNumberReference<NativeLong> {
     
+    private long value; 
+    
     /**
      * Creates a new reference to a native long value initialized to zero.
      */
     public NativeLongByReference() {
-        super(NativeLong.valueOf(0));
     }
     
-    /**
-     * Creates a new reference to a native long value
-     * 
-     * @param value the initial native value
-     */
-    public NativeLongByReference(NativeLong value) {
-        super(checkNull(value));
-    }
-
     /**
      * Creates a new reference to a native long value
      *
      * @param value the initial native value
      */
     public NativeLongByReference(long value) {
-        super(NativeLong.valueOf(value));
+        super();
+        this.value = value;
     }
     
     /**
@@ -93,7 +86,7 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
      * @param offset  the memory offset.
      */
     public void toNative(Runtime runtime, Pointer memory, long offset) {
-        memory.putNativeLong(offset, value.longValue());
+        memory.putNativeLong(offset, value);
     }
 
     /**
@@ -104,7 +97,7 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
      * @param offset  the memory offset.
      */
     public void fromNative(Runtime runtime, Pointer memory, long offset) {
-        this.value = NativeLong.valueOf(memory.getNativeLong(offset));
+        this.value = memory.getNativeLong(offset);
     }
     
     /**
@@ -116,4 +109,40 @@ public final class NativeLongByReference extends AbstractNumberReference<NativeL
     public final int nativeSize(Runtime runtime) {
         return runtime.longSize();
     }
+    
+    @Override
+    public NativeLong getValue() {
+        return NativeLong.valueOf(value);
+    }
+    
+    @Override
+    public byte byteValue() {
+        return (byte)value;
+    }
+
+    @Override
+    public short shortValue() {
+        return (short)value;
+    }
+
+    @Override
+    public int intValue() {
+        return (int)value;
+    }
+
+    @Override
+    public long longValue() {
+        return value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float)value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double)value;
+    }
+
 }
