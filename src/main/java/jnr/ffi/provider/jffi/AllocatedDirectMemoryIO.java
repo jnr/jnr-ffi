@@ -18,6 +18,7 @@
 
 package jnr.ffi.provider.jffi;
 
+import com.kenai.jffi.internal.Cleaner;
 import jnr.ffi.Runtime;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +33,15 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
         if (address() == 0L) {
             throw new OutOfMemoryError("Failed to allocate " + size + " bytes");
         }
+
+        Cleaner.register(this, new Runnable() {
+            @Override
+            public void run() {
+                if (allocated.getAndSet(false)) {
+                    IO.freeMemory(address());
+                }
+            }
+        });
     }
 
     @Override
@@ -60,14 +70,4 @@ class AllocatedDirectMemoryIO extends DirectMemoryIO {
         }
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        try {
-            if (allocated.getAndSet(false)) {
-                IO.freeMemory(address());
-            }
-        } finally {
-            super.finalize();
-        }
-    }
 }
