@@ -22,6 +22,7 @@ import com.kenai.jffi.MemoryIO;
 import com.kenai.jffi.NativeMethod;
 import com.kenai.jffi.NativeMethods;
 import com.kenai.jffi.PageManager;
+import com.kenai.jffi.internal.Cleaner;
 import jnr.a64asm.Assembler_A64;
 import jnr.ffi.Platform;
 import jnr.ffi.Runtime;
@@ -86,21 +87,21 @@ abstract class AbstractA64StubCompiler extends StubCompiler {
             this.pm = pm;
             this.memory = memory;
             this.pageCount = pageCount;
-        }
 
-        @Override
-        protected void finalize() throws Throwable {
-            try {
-                int disposed = PAGE_HOLDER_UPDATER.getAndSet(this, 1);
-                if (disposed == 0) {
-                    pm.freePages(memory, (int) pageCount);
+            Cleaner.register(this, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int disposed = PAGE_HOLDER_UPDATER.getAndSet(PageHolder.this, 1);
+                        if (disposed == 0) {
+                            pm.freePages(memory, (int) pageCount);
+                        }
+                    } catch (Throwable t) {
+                        Logger.getLogger(getClass().getName()).log(Level.WARNING,
+                                "Exception when freeing native pages: %s", t.getLocalizedMessage());
+                    }
                 }
-            } catch (Throwable t) {
-                Logger.getLogger(getClass().getName()).log(Level.WARNING,
-                    "Exception when freeing native pages: %s", t.getLocalizedMessage());
-            } finally {
-                super.finalize();
-            }
+            });
         }
 
     }
