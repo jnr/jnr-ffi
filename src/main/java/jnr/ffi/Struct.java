@@ -2291,7 +2291,8 @@ public abstract class Struct {
          */
         @Override
         public final int intValue() {
-            return getMemory().getByte(offset());
+            short value = getMemory().getByte(offset());
+            return value < 0 ? (short) ((value & 0x7F) + 0x80) : value;
         }
     }
 
@@ -2310,7 +2311,8 @@ public abstract class Struct {
         }
         @Override
         public final int intValue() {
-            return getMemory().getShort(offset());
+            int value = getMemory().getShort(offset());
+            return value < 0 ? (value & 0x7FFF) + 0x8000 : value;
         }
     }
 
@@ -2319,7 +2321,7 @@ public abstract class Struct {
             super(NativeType.SINT, enumClass);
         }
         public final E get() {
-            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(longValue()));
         }
         public final void set(E value) {
             getMemory().putInt(offset(), EnumMapper.getInstance(enumClass).intValue(value));
@@ -2329,7 +2331,13 @@ public abstract class Struct {
         }
         @Override
         public final int intValue() {
-            return getMemory().getInt(offset());
+            return (int) longValue();
+        }
+
+        @Override
+        public long longValue() {
+            long value = getMemory().getInt(offset());
+            return value < 0 ? (long)((value & 0x7FFFFFFFL) + 0x80000000L) : value;
         }
     }
 
@@ -2338,10 +2346,10 @@ public abstract class Struct {
             super(NativeType.SLONGLONG, enumClass);
         }
         public final E get() {
-            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(longValue()));
         }
         public final void set(E value) {
-            getMemory().putLongLong(offset(), EnumMapper.getInstance(enumClass).intValue(value));
+            getMemory().putLongLong(offset(), EnumMapper.getInstance(enumClass).longValue(value));
         }
         public void set(java.lang.Number value) {
             getMemory().putLongLong(offset(), value.longValue());
@@ -2362,10 +2370,10 @@ public abstract class Struct {
         }
 
         public final E get() {
-            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(intValue()));
+            return enumClass.cast(EnumMapper.getInstance(enumClass).valueOf(longValue()));
         }
         public final void set(E value) {
-            getMemory().putNativeLong(offset(), EnumMapper.getInstance(enumClass).intValue(value));
+            set(EnumMapper.getInstance(enumClass).longValue(value));
         }
         public void set(java.lang.Number value) {
             getMemory().putNativeLong(offset(), value.longValue());
