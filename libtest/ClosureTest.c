@@ -80,6 +80,17 @@ void testStructClosureIrV(struct StructClosureIrV *s, int a1)
 {
     (*s->closure)(a1);
 }
+
+extern int gvar_int_st;
+int gvar_int_st = -1;
+int gvar_int_st_get() {return gvar_int_st;}
+void gvar_int_st_set(int v) {gvar_int_st = v;}
+
+void testClosureFPrV(void (*closure)(void (*setter)(int), int (*getter)(), int), int a1)
+{
+    (*closure)(&gvar_int_st_set, &gvar_int_st_get, a1);
+}
+
 //
 // These macros produce functions of the form:
 // testClosureBIrV(void (*closure)(char, int), char a1, int a2) {}
