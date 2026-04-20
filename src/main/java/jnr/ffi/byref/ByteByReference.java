@@ -59,11 +59,12 @@ import jnr.ffi.Runtime;
  */
 public final class ByteByReference extends AbstractNumberReference<Byte> {
 
+    private byte value;
+    
     /**
      * Creates a new reference to a byte value initialized to zero.
      */
     public ByteByReference() {
-        super(Byte.valueOf((byte) 0));
     }
 
     /**
@@ -71,19 +72,12 @@ public final class ByteByReference extends AbstractNumberReference<Byte> {
      * 
      * @param value the initial native value
      */
-    public ByteByReference(Byte value) {
-        super(checkNull(value));
+    public ByteByReference(byte value) {
+        super();
+        this.value = value;
     }
 
-    /**
-     * Creates a new reference to a byte value
-     *
-     * @param value the initial native value
-     */
-    public ByteByReference(byte value) {
-        super(value);
-    }
-    
+
     /**
      * Copies the Byte value to native memory
      *
@@ -112,4 +106,40 @@ public final class ByteByReference extends AbstractNumberReference<Byte> {
     public final int nativeSize(Runtime runtime) {
         return 1;
     }
+    
+    @Override
+    public Byte getValue() {
+        return Byte.valueOf(value);
+    }
+   
+    @Override
+    public byte byteValue() {
+        return value;
+    }
+
+    @Override
+    public short shortValue() {
+        return (short)value;
+    }
+
+    @Override
+    public int intValue() {
+        return (int)value;
+    }
+
+    @Override
+    public long longValue() {
+        return (long)value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float)value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double)value;
+    }
+    
 }
