@@ -43,6 +43,16 @@ public class NumericStructTest {
 
     public enum Enum {e0, e1, e2, e3}
 
+    public static class FfiStrList extends Struct {
+        //public final UTF8String count = new UTF8String(32); <-- works as per example
+        public final Struct.LONG count = new Struct.LONG(); //<-- not working
+        //public final PointerByReference data; //TODO add in rest of structure
+        //public final Struct.Pointer[] data; // Or this ???
+        public FfiStrList(jnr.ffi.Runtime runtime /*, java.lang.String[] sAry*/) {
+            super(runtime);
+        }
+    }
+
     public static class NumericStruct extends Struct {
         public final Struct.Signed8 val_int8_t = new Struct.Signed8();
         public final Struct.Signed16 val_int16_t = new Struct.Signed16();
@@ -87,6 +97,8 @@ public class NumericStructTest {
     }
 
     public static interface Lib {
+
+        public long struct_num_al_test(FfiStrList s);
         public byte struct_num_get_int8_t(NumericStruct s);
         public void struct_num_set_int8_t(NumericStruct s, byte v);
 
@@ -143,6 +155,15 @@ public class NumericStructTest {
     public static void beforeAll() {
         lib = TstUtil.loadTestLib(Lib.class);
         runtime = Runtime.getRuntime(lib);
+    }
+
+    @Test
+    public void testAlNumeric() {
+        FfiStrList s = new FfiStrList(runtime);
+        s.count.set(34);
+
+        long r = lib.struct_num_al_test(s);
+        assertEquals(34, r);
     }
 
     // ========================= Byte ===============================
