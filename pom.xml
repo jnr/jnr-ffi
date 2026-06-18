@@ -5,7 +5,6 @@
     <groupId>com.github.jnr</groupId>
     <artifactId>jnr-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>jnr-ffi</artifactId>
@@ -159,7 +158,6 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>6.0.2</version>
         <configuration>
           <instructions>
             <_nouses>true</_nouses>
