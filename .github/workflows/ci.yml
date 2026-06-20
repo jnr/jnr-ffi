@@ -32,4 +32,4 @@ jobs:
         cache: maven
         distribution: 'zulu'
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package --file pom.xml -Djnr.test.toolchain=${{ matrix.java-test-version }}
