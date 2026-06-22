@@ -57,3 +57,12 @@ typedef union NestedUnion_t {
     NumericStruct *ptr_NumericStruct;
     NumericUnion *ptr_NumericUnion;
 } NestedUnion;
+
+typedef const char *FfiStr;
+
+typedef struct FfiList_FfiStr {
+  size_t count;
+} FfiList_FfiStr;
+
+typedef struct FfiList_FfiStr FfiStrList;
+
