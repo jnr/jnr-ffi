@@ -18,6 +18,12 @@
 
 #include <string.h>
 
+char *
+string_static()
+{
+    return "static string";
+}
+
 int 
 string_equals(const char* s1, const char* s2)
 {
