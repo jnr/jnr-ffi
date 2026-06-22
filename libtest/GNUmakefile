@@ -40,7 +40,7 @@ JFLAGS = -fno-omit-frame-pointer -fno-strict-aliasing
 OFLAGS = -O2 $(JFLAGS)
 WFLAGS = -W -Wall -Wno-unused -Wno-parentheses
 PICFLAGS = -fPIC
-SOFLAGS = -shared -Wl,-O1
+SOFLAGS = -shared -Wl,-O1 -Wl,--version-script,$(SRC_DIR)/libtest.map
 LDFLAGS += $(SOFLAGS)
 
 IFLAGS = -I"$(BUILD_DIR)"
