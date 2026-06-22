@@ -83,9 +83,23 @@ public class StringResultConverter implements FromNativeConverter<String, Pointe
 
         Search: for (int idx = 0; ; ) {
             idx += pointer.indexOf(idx, (byte) 0);
+            
+            // Align idx up to the next char boundary. If indexOf landed on an
+            // unaligned zero (e.g. the 0x00 in 0x00 0x03 of U+0300 in UTF-16LE),
+            // skip past it and resume searching from the aligned position.
+            boolean wasAligned = true;
+            while (idx % terminatorWidth != 0) {
+                idx++;
+                wasAligned = false;
+            }
+            if (!wasAligned) {
+                continue Search;
+            }
+
+            // idx is aligned and points at a zero byte. Check the rest of the char.
             for (int tcount = 1; tcount < terminatorWidth; tcount++) {
                 if (pointer.getByte(idx + tcount) != 0) {
-                    idx += tcount;
+                    idx += terminatorWidth;
                     continue Search;
                 }
             }
