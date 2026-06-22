@@ -21,11 +21,15 @@ package jnr.ffi.provider.jffi;
 import jnr.ffi.Pointer;
 import jnr.ffi.mapper.CachingTypeMapper;
 import jnr.ffi.mapper.CompositeTypeMapper;
+import jnr.ffi.mapper.DefaultSignatureType;
+import jnr.ffi.mapper.FromNativeContext;
+import jnr.ffi.mapper.FromNativeConverter;
 import jnr.ffi.mapper.SignatureTypeMapper;
 import jnr.ffi.mapper.ToNativeContext;
 import jnr.ffi.mapper.ToNativeConverter;
 import jnr.ffi.provider.ClosureManager;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -48,13 +52,16 @@ final class NativeClosureManager implements ClosureManager {
         if (factory != null) {
             return factory;
         }
+        return initClosureFactory(closureClass, getAsmClassLoader(closureClass));
+    }
+
+    AsmClassLoader getAsmClassLoader(Class closureClass) {
         AsmClassLoader asmCl = asmClassLoaders.get(closureClass.getClassLoader());
         if (asmCl==null) {
-            asmCl = new AsmClassLoader( closureClass.getClassLoader());
+            asmCl = new AsmClassLoader(closureClass.getClassLoader());
             asmClassLoaders.put(closureClass.getClassLoader(), asmCl);
         }
-
-        return initClosureFactory(closureClass, asmCl);
+        return asmCl;
     }
 
     public <T> T newClosure(Class<? extends T> closureClass, T instance) {
@@ -67,6 +74,17 @@ final class NativeClosureManager implements ClosureManager {
 
     public final <T> jnr.ffi.Pointer getClosurePointer(Class<? extends T> closureClass, T instance) {
         return getClosureFactory(closureClass).getClosureReference(instance).getPointer();
+    }
+
+    public <T> T getClosureFromPointer(Class<? extends T> closureClass, Pointer pointer) {
+        FromNativeContext context = new SimpleNativeContext(runtime, Collections.emptyList());
+        FromNativeConverter<T, Pointer> converter = (FromNativeConverter<T, Pointer>) ClosureFromNativeConverter.getInstance(
+                runtime,
+                DefaultSignatureType.create(closureClass, context),
+                getAsmClassLoader(closureClass),
+                typeMapper
+        );
+        return converter.fromNative(pointer, context);
     }
 
     synchronized <T> NativeClosureFactory<T> initClosureFactory(Class<T> closureClass, AsmClassLoader classLoader) {
