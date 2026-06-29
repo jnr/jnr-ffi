@@ -46,6 +46,7 @@
   <properties>
     <github.global.server>github</github.global.server>
     <asm.version>9.10.1</asm.version>
+    <junit.version>5.14.4</junit.version>
     <make>make</make>
   </properties>
 
@@ -53,7 +54,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.14.4</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
