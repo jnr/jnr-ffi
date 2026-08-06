@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2012 Wayne Meissner
+ * Copyright (C) 2021 Justin Hibbits
  *
  * This file is part of the JNR project.
  *
@@ -16,7 +17,7 @@
  * limitations under the License.
  */
 
-package jnr.ffi.provider.jffi.platform.x86_64.openbsd;
+package jnr.ffi.provider.jffi.platform.ppc64.openbsd;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;

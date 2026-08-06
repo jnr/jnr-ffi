@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package jnr.ffi.provider.jffi.platform.x86_64.openbsd;
+package jnr.ffi.provider.jffi.platform.aarch64.openbsd;
 
 import jnr.ffi.NativeType;
 import jnr.ffi.TypeAlias;
