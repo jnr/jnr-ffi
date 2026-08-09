@@ -37,7 +37,7 @@ import java.util.Map;
  * function call - even for the ones that succeed.  This can have a significant
  * performance impact, so for those functions which either don't fail, or for which
  * the errno value can be ignored, can be annotated with {@code @IgnoreError} to
- * avoid unneccessary saving of the errno value.
+ * avoid unnecessary saving of the errno value.
  *
  * @see SaveError
  * @see LibraryLoader#saveError(Map, boolean, boolean)
