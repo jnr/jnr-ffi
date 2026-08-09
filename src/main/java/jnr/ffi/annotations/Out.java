@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * <p>As this extra copying can be expensive, for native functions which only
  * write to the passed in memory block and do not use the existing contents, 
  * parameters can be annotated with {@code @Out} so there is only copied {@code OUT} 
- * from native memory to java memory after the call, and the unneccessary copy {@code IN}
+ * from native memory to java memory after the call, and the unnecessary copy {@code IN}
  * from java to native memory before the call can be avoided.
  *
  * <p>Parameters with neither a {@code @In} nor a {@code @Out} annotation will copy both ways.
