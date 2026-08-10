@@ -42,53 +42,7 @@ import java.nio.ShortBuffer;
 public final class AsmRuntime {
     public static final com.kenai.jffi.MemoryIO IO = com.kenai.jffi.MemoryIO.getInstance();
 
-    /** java.lang.ref.Reference.reachabilityFence(Object), if running on Java 9+ */
-    private static final java.lang.invoke.MethodHandle REACHABILITY_FENCE;
-    static {
-        java.lang.invoke.MethodHandle fence = null;
-        try {
-            fence = java.lang.invoke.MethodHandles.publicLookup().findStatic(
-                    java.lang.ref.Reference.class, "reachabilityFence",
-                    java.lang.invoke.MethodType.methodType(void.class, Object.class));
-        } catch (Throwable t) {
-            // Java 8 - no Reference.reachabilityFence; keepAlive() falls back to a volatile sink
-        }
-        REACHABILITY_FENCE = fence;
-    }
-
-    /**
-     * Opaque sink used by {@link #keepAlive(Object)} on Java 8. The JIT cannot eliminate or
-     * reorder volatile stores, so publishing the object here forms a reachability fence.
-     */
-    private static volatile Object keepAliveSink;
-
     private AsmRuntime() {}
-
-    /**
-     * Ensures the given object remains strongly reachable up to the point of this call,
-     * serving the same purpose for generated stubs as {@link jnr.ffi.provider.InvocationSession#keepAlive}
-     * does for the reflection invoker, without a per-call allocation.
-     *
-     * Generated stubs invoke this after the native call returns, for every parameter object
-     * whose native memory may have been passed to the native function by raw address only
-     * (e.g. a {@code Pointer} produced by a {@link ToNativeConverter}, backed by
-     * TransientNativeMemory or AllocatedDirectMemoryIO). Without it, the JVM may consider the
-     * object unreachable as soon as its address has been extracted, and GC-driven reclamation
-     * can free the native memory while the native call is still executing.
-     */
-    public static void keepAlive(Object obj) {
-        java.lang.invoke.MethodHandle fence = REACHABILITY_FENCE;
-        if (fence != null) {
-            try {
-                fence.invokeExact(obj);
-            } catch (Throwable t) {
-                throw new AssertionError(t);
-            }
-        } else {
-            keepAliveSink = obj;
-            keepAliveSink = null;
-        }
-    }
 
     public static UnsatisfiedLinkError newUnsatisifiedLinkError(String msg) {
         return new UnsatisfiedLinkError(msg);
