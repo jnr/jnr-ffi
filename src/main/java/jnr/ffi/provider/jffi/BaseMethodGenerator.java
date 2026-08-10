@@ -104,6 +104,7 @@ abstract class BaseMethodGenerator implements MethodGenerator {
     static void emitEpilogue(final AsmBuilder builder, final SkinnyMethodAdapter mv, final ResultType resultType,
                            final ParameterType[] parameterTypes,
                       final LocalVariable[] parameters, final LocalVariable[] converted, final Runnable sessionCleanup) {
+        emitKeepAlive(mv, parameterTypes, parameters, converted);
         final Class unboxedResultType = unboxedReturnType(resultType.effectiveJavaType());
         if (isPostInvokeRequired(parameterTypes) || sessionCleanup != null) {
             tryfinally(mv, new Runnable() {
@@ -126,6 +127,34 @@ abstract class BaseMethodGenerator implements MethodGenerator {
             emitFromNativeConversion(builder, mv, resultType, unboxedResultType);
         }
         emitReturnOp(mv, resultType.getDeclaredType());
+    }
+
+    /**
+     * Emits a call to {@link AsmRuntime#keepAlive(Object)} for each object parameter, so that
+     * every parameter (and any native memory it owns) remains strongly reachable until the
+     * native call has returned.
+     *
+     * Parameters whose native memory is passed by raw address only (e.g. a direct
+     * {@code Pointer} produced by a {@code ToNativeConverter}) are otherwise unreachable in the
+     * JIT's liveness analysis as soon as the address has been extracted, allowing GC-driven
+     * reclamation (TransientNativeMemory magazine pages, AllocatedDirectMemoryIO finalization)
+     * to free the memory while the native function is still using it.
+     *
+     * This must be emitted after the native invoke, with the (primitive) native result on the
+     * operand stack; each aload/invokestatic pair leaves the stack unchanged.
+     */
+    static void emitKeepAlive(SkinnyMethodAdapter mv, ParameterType[] parameterTypes,
+                              LocalVariable[] parameters, LocalVariable[] converted) {
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            // loadAndConvertParameter returns the original parameter variable when no
+            // converter is present, so converted[i] aliases parameters[i] in that case
+            LocalVariable variable = converted != null && converted[i] != null ? converted[i] : parameters[i];
+            if (variable.type.isPrimitive()) {
+                continue;
+            }
+            mv.aload(variable);
+            mv.invokestatic(AsmRuntime.class, "keepAlive", void.class, Object.class);
+        }
     }
 
     static void emitPostInvoke(AsmBuilder builder, final SkinnyMethodAdapter mv, ParameterType[] parameterTypes,
