@@ -11,7 +11,7 @@ on:
 
 jobs:
 
-  mvn-test-x86:
+  mvn-test:
 
     runs-on: ${{ matrix.os }}
 
