@@ -32,7 +32,7 @@ public class StructLayout extends Type {
 
     private final Runtime runtime;
     private final boolean isUnion = false;
-    private boolean resetIndex = false;
+    private int currentSize = -1; // only used when this is an enum and add array elements
     StructLayout enclosing = null;
     int offset = 0;
     int size = 0;
@@ -100,9 +100,22 @@ public class StructLayout extends Type {
         return (offset + alignment - 1) & ~(alignment - 1);
     }
 
+    private int nextOffset(int size, int alignment) {
+        if (isUnion) {
+            if (currentSize > -1) { // add element to an array
+                int result = align(this.currentSize, alignment);
+                this.currentSize = result + size;
+                return result;
+            } else {
+                return 0;
+            }
+        } else {
+            return align(this.size, alignment);
+        }
+    }
 
     protected final int addField(int size, int align) {
-        final int off = resetIndex ? 0 : align(this.size, align);
+        final int off = nextOffset(size, align);
         this.size = Math.max(this.size, off + size);
         this.alignment = Math.max(this.alignment, align);
         this.paddedSize = align(this.size, this.alignment);
@@ -162,14 +175,14 @@ public class StructLayout extends Type {
      * Starts an array construction session
      */
     protected final void arrayBegin() {
-        resetIndex = false;
+        this.currentSize = 0;
     }
 
     /**
      * Ends an array construction session
      */
     protected final void arrayEnd() {
-        resetIndex = isUnion;
+        this.currentSize = -1;
     }
 
     /**
@@ -201,7 +214,7 @@ public class StructLayout extends Type {
         structLayout.offset = align(this.size, structLayout.alignment);
         this.size = structLayout.offset + structLayout.size;
         this.paddedSize = align(this.size, this.alignment());
-
+        this.alignment = Math.max(this.alignment, structLayout.alignment);
         return structLayout;
     }
 
