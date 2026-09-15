@@ -10,7 +10,7 @@
 
   <artifactId>jnr-ffi</artifactId>
   <packaging>jar</packaging>
-  <version>2.3.3-SNAPSHOT</version>
+  <version>2.3.3</version>
   <name>jnr-ffi</name>
   <description>A library for invoking native functions from java</description>
   <url>http://github.com/jnr/jnr-ffi</url>
@@ -60,13 +60,13 @@
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.4.0</version>
+      <version>1.4.3</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.4.0</version>
+      <version>1.4.3</version>
       <scope>runtime</scope>
       <classifier>native</classifier>
     </dependency>
