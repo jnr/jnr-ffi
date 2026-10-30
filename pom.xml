@@ -48,7 +48,7 @@
     <asm.version>9.11.1</asm.version>
     <junit.version>5.14.4</junit.version>
     <make>make</make>
-    <jffi.version>1.4.4</jffi.version>
+    <jffi.version>1.4.5</jffi.version>
   </properties>
 
   <dependencies>
