@@ -48,6 +48,7 @@
     <asm.version>9.11.1</asm.version>
     <junit.version>5.14.4</junit.version>
     <make>make</make>
+    <jffi.version>1.4.4</jffi.version>
   </properties>
 
   <dependencies>
@@ -60,13 +61,13 @@
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.4.3</version>
+      <version>${jffi.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jffi</artifactId>
-      <version>1.4.3</version>
+      <version>${jffi.version}</version>
       <scope>runtime</scope>
       <classifier>native</classifier>
     </dependency>
