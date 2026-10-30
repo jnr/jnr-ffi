@@ -783,7 +783,7 @@ public abstract class Platform {
             Pattern exclude;
             // there are /libx32 directories in wild on ubuntu 14.04 and the
             // oracle-java8-installer package
-            if (getCPU() == CPU.X86_64) {
+            if (getCPU() == CPU.X86_64 || getCPU() == CPU.AARCH64) {
                 exclude = Pattern.compile(".*(lib[a-z]*32|i[0-9]86).*"); // ignore 32 bit libs on 64-bit
             } else {
                 exclude = Pattern.compile(".*(lib[a-z]*64|amd64|x86_64).*"); // ignore 64 bit libs on 32-bit
