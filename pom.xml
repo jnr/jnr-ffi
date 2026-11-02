@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.github.jnr</groupId>
     <artifactId>jnr-parent</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <relativePath />
   </parent>
 
@@ -48,7 +48,7 @@
     <asm.version>9.11.1</asm.version>
     <junit.version>5.14.4</junit.version>
     <make>make</make>
-    <jffi.version>1.4.6</jffi.version>
+    <jffi.version>1.4.7</jffi.version>
   </properties>
 
   <dependencies>
