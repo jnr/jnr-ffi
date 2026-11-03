@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Guava Authors
+ * Modified by the JNR project.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +26,8 @@ package jnr.ffi.util.ref;
  */
 public interface FinalizableReference {
   /**
-   * Invoked on a background thread after the referent has been garbage collected unless security
-   * restrictions prevented starting a background thread, in which case this method is invoked when
-   * new references are created.
+   * Invoked after the referent has been garbage collected, when the next reference is created with
+   * the same {@link FinalizableReferenceQueue}.
    */
   void finalizeReferent();
 }

@@ -35,7 +35,8 @@ public class TransientNativeMemory extends DirectMemoryIO {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private static final Map<Magazine, Boolean> referenceSet = new ConcurrentHashMap<Magazine, Boolean>();
 
-    private static final ThreadLocal<Magazine> currentMagazine = new ThreadLocal<Magazine>();
+    /** The magazine each thread allocates from, held weakly so that the thread doesn't keep this class loader alive */
+    private static final ThreadLocal<Reference<Magazine>> currentMagazine = new ThreadLocal<Reference<Magazine>>();
     private static final int PAGES_PER_MAGAZINE = 2;
 
     private final Sentinel sentinel;
@@ -54,7 +55,8 @@ public class TransientNativeMemory extends DirectMemoryIO {
             return new AllocatedDirectMemoryIO(runtime, size, clear);
         }
 
-        Magazine magazine = currentMagazine.get();
+        Reference<Magazine> magazineReference = currentMagazine.get();
+        Magazine magazine = magazineReference != null ? magazineReference.get() : null;
         Sentinel sentinel = magazine != null ? magazine.sentinel() : null;
         long address;
 
@@ -73,7 +75,7 @@ public class TransientNativeMemory extends DirectMemoryIO {
             } while (true);
 
             referenceSet.put(magazine = new Magazine(sentinel = new Sentinel(), pm, memory, PAGES_PER_MAGAZINE), Boolean.TRUE);
-            currentMagazine.set(magazine);
+            currentMagazine.set(new WeakReference<Magazine>(magazine));
             address = magazine.allocate(size, align);
         }
 

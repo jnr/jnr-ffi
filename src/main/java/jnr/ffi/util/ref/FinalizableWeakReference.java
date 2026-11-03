@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Guava Authors
+ * Modified by the JNR project.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +20,9 @@ package jnr.ffi.util.ref;
 import java.lang.ref.WeakReference;
 
 /**
- * Weak reference with a {@code finalizeReferent()} method which a background thread invokes after
- * the garbage collector reclaims the referent. This is a simpler alternative to using a {@link
- * java.lang.ref.ReferenceQueue}.
+ * Weak reference with a {@code finalizeReferent()} method which is invoked after the garbage
+ * collector reclaims the referent, when the next reference is created with the same queue. This is
+ * a simpler alternative to using a {@link java.lang.ref.ReferenceQueue}.
  *
  * @author Bob Lee
  * @since 2.0 (imported from Google Collections Library)
